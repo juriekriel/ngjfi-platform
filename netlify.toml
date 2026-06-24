@@ -1,0 +1,14 @@
+# Netlify build configuration for the NGJFI platform (Next.js App Router).
+# Connect this repo in Netlify once; every pull request then gets its own
+# Deploy Preview URL, and merges to `main` publish to production.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Official Next.js runtime for Netlify (SSR, API routes, image optimisation).
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

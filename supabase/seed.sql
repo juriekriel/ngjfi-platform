@@ -1,0 +1,7 @@
+-- Supabase runs this on `supabase db reset`.
+-- The instrument, items, demo org and campaign are seeded from the canonical
+-- JSON via the Node script instead (so there is a single source of truth):
+--
+--     npm run db:seed
+--
+-- Run that after migrations are applied. Nothing to do here.
