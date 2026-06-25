@@ -14,7 +14,7 @@ export default function Home() {
         crowdsourced across hundreds of organisations, each running it as their own.
       </p>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2">
+      <div className="mt-10 grid gap-4 sm:grid-cols-3">
         <Link
           href="/sunrise"
           className="rounded-lg border border-ink bg-card p-6 transition hover:bg-ink hover:text-paper"
@@ -37,6 +37,18 @@ export default function Home() {
           <div className="mt-2 text-xl font-semibold">Org dashboard →</div>
           <p className="mt-1 text-sm text-slate">
             Aggregate results for a ministry (sign-in required).
+          </p>
+        </Link>
+        <Link
+          href="/intelligence"
+          className="rounded-lg border border-ink bg-card p-6 transition hover:bg-ink hover:text-paper"
+        >
+          <div className="font-mono text-[10px] uppercase tracking-widest text-muted">
+            Collab view
+          </div>
+          <div className="mt-2 text-xl font-semibold">Collab Intelligence →</div>
+          <p className="mt-1 text-sm text-slate">
+            The crowdsourced picture across every organisation.
           </p>
         </Link>
       </div>
