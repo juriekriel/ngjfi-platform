@@ -14,6 +14,7 @@ type Dash = {
   domains: Record<string, number | null>;
   matrix: Record<string, Record<string, number | null>>;
   items: Item[];
+  trend?: { year: number; index: number }[] | null;
 };
 
 const TIERS = ["exposure", "response", "formation", "multiplication"];
@@ -161,6 +162,22 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
               </table>
             </div>
           </div>
+
+          {/* trend over waves */}
+          {dash.trend && dash.trend.length > 1 && (
+            <div className="mt-4 rounded-lg border border-rule bg-paper p-4">
+              <div className="font-mono text-[9px] uppercase tracking-wider text-muted">Movement over time</div>
+              <div className="mt-3 flex items-end gap-5">
+                {dash.trend.map((p) => (
+                  <div key={p.year} className="flex flex-col items-center gap-1">
+                    <div className="text-xs font-bold">{p.index}</div>
+                    <div className="w-10 rounded-t bg-moss" style={{ height: `${Math.max(6, (p.index / 100) * 90)}px` }} />
+                    <div className="font-mono text-[10px] text-muted">{p.year}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* per-item table */}
           <div className="mt-4 rounded-lg border border-rule bg-paper p-4">
