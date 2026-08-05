@@ -1,4 +1,4 @@
-// Seeds the database from the canonical instrument file (src/data/instrument.v0.json):
+// Seeds the database from the canonical instrument file (src/data/instrument.v1.json):
 //   - upserts the instrument version + its expanded items
 //   - upserts the demo Sunrise org + a default campaign
 //
@@ -16,7 +16,7 @@ if (!url || !key) {
 
 const sb = createClient(url, key, { auth: { persistSession: false } });
 const inst = JSON.parse(
-  readFileSync(new URL("../src/data/instrument.v0.json", import.meta.url), "utf8"),
+  readFileSync(new URL("../src/data/instrument.v1.json", import.meta.url), "utf8"),
 );
 
 // 1) instrument version (stores the full definition for reference)
@@ -29,6 +29,14 @@ const { data: iv, error: e1 } = await sb
   .select()
   .single();
 if (e1) throw e1;
+
+// Only one version is ever active: archive every other version so campaigns
+// can't silently straddle two instruments.
+const { error: e1b } = await sb
+  .from("instrument_versions")
+  .update({ status: "archived" })
+  .neq("version", inst.version);
+if (e1b) throw e1b;
 
 // 2) items (replace the set for this version)
 await sb.from("items").delete().eq("instrument_version_id", iv.id);
