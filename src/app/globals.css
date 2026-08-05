@@ -1,16 +1,83 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * The Jesus Index — almanac, not app.
+ * Fonts are loaded and self-hosted by next/font in layout.tsx (no CDN round
+ * trip, which matters on a mid-range Android over 3G). The variables below are
+ * bound there.
+ */
 
 :root {
   color-scheme: light;
 }
 
 body {
-  background: #f5f6f8;
-  color: #22252b;
-  font-family: "Inter Tight", system-ui, sans-serif;
+  background: #faf7f1;
+  color: #1b1f27;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 17px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* The rule of voices: controls are the quiet grotesk, never the bookface. */
+button,
+input,
+select,
+textarea,
+label {
+  font-family: var(--font-ui), system-ui, sans-serif;
+}
+
+/* Every number is tabular mono, so columns of figures actually line up. */
+.tabular {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Hairline and double rules do the work cards and shadows do elsewhere. */
+.rule-double {
+  border-top: 3px double #c8bfac;
+}
+
+/* Figure captions: numbered, sourced, set small. */
+.figcap {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8a8f9b;
+}
+
+/* Marginalia in the asymmetric grid. */
+.margin-note {
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #4c5260;
+}
+
+::selection {
+  background: #0b8a60;
+  color: #fffdf8;
+}
+
+/* Focus is visible and square — accessibility is not negotiable here. */
+:focus-visible {
+  outline: 2px solid #0b8a60;
+  outline-offset: 2px;
+}
+
+/* Nothing glows. Nothing fades in. Respect the setting anyway. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }
