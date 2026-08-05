@@ -89,7 +89,10 @@ A working platform is already live — see **`NGJFI_Session_Context.md`** for th
 
 - **Never push to `main`.** Branch (`feat/…`, `fix/…`, `db/…`), open a PR, review the Netlify Deploy Preview, keep CI green, squash-merge.
 - **Database changes are always migrations** — a new numbered file in `supabase/migrations/`. **Never hand-edit tables in the Supabase dashboard.**
-- **Instrument changes** go in `src/data/instrument.v0.json` (single source of truth), then `npm run db:seed`. If scoring logic changes, update **both** `src/lib/scoring.ts` and the SQL `ngjfi_normalize`, and add a test.
+- **Instrument changes** go in `src/data/instrument.v1.json` (single source of truth), then `npm run db:seed`. v0 is archived, not deleted — responses bind to the version they were captured under. If scoring logic changes, update **both** `src/lib/scoring.ts` and the SQL `ngjfi_normalize`, and add a test.
+- **The demo must never diverge from the product.** The landing page, the guided tour at `/tour` and the live product render the *same* components — `components/survey/QuestionCard` and `components/index/Figures` — and `lib/sample.ts` derives every sample figure from the instrument JSON at render time. Never write a fixture, never fork a component "just for the demo". `tests/sample.test.ts` fails the build if you do.
+- **Two data spaces.** `is_demo = false` is the live space and the only thing `/intelligence` publishes; `is_demo = true` is the sandbox. The split is enforced inside the SECURITY DEFINER functions and by a trigger, not by remembering a WHERE clause. Verify with `select public.data_space_report();` before any announcement.
+- **Standing up a fresh database:** `npm run db:bootstrap` regenerates `supabase/bootstrap.sql` — every migration in order, one paste into a new project's SQL editor. It deliberately excludes the demo seeds.
 - **Verify before claiming done:** `npm run typecheck`, `npm test`, `npm run build`, and check the live/preview URL.
 - **Secrets:** only `NEXT_PUBLIC_*` values may reach the browser. Never commit the service-role key or DB password; never paste them into chat. The app runs on the anon key + RLS alone.
 - **Ask before:** changing the instrument's wording or scoring (researcher-owned), spending money (domains, paid tiers), deleting data, or anything that would centralise identifiable data.
@@ -98,13 +101,16 @@ A working platform is already live — see **`NGJFI_Session_Context.md`** for th
 
 ## 8. Design system
 
-Clean research-dashboard aesthetic (reference: Institute for Progress, Tony Blair Institute). Match the pitch artifact.
+**An almanac, not an app** (Brand Proof № 2, Aug 2026). As if the Index had been printed annually since long before it had a website. Density is credibility: airy hero sections say marketing, set tables say measurement.
 
-- **Ink** `#22252b` · **Page** `#f5f6f8` · **Cards** `#ffffff` · **Rules** `#e2e5ea`
-- **Accent (coral)** `#ff7a47` · **Violet** `#8b5cf6` · **Green** `#3f9d72` · **Blue** `#2f80c4`
-- **Map levels:** green `#3f9d72` (strong ≥58) / orange `#e0993f` (emerging 42–57) / red `#d65349` (early <42) / grey `#e6e8ec` (no data)
-- **Type:** **Inter Tight** across the UI (hierarchy by weight/tracking) + **JetBrains Mono** for small labels and data. No serif display.
-- **UX:** mobile-first respondent flow; progressive disclosure — simple by default, detail on demand; white-label cleanly overrides org-facing surfaces.
+**Do not restate these values in a component.** They live in `tailwind.config.ts` and `globals.css`, and every surface reads them from there — that is why the whole platform re-skinned from one file.
+
+- **Paper** `#FAF7F1` · **Plate** `#FFFDF8` · **Ink** `#1B1F27` · **Ink-2** `#4C5260` · **Rules** `#D9D2C4`
+- **Emerald** `#0B8A60` — the single working colour · **Navy** `#35639C` — levels · **Vermillion** `#B5451B` — semantic "down" only, never decoration
+- **The rule of voices:** if it's a sentence, it's **Newsreader**. If it's a number, it's **IBM Plex Mono**, tabular. If it's a control, it's **Inter**. No exceptions — that's what makes it a system, and it's enforced by a global CSS selector, not by discipline.
+- **Refused:** gradients · glassmorphism · rounded cards · shadows · scroll-triggered animation · emoji as icons · the centered hero with three feature cards. `borderRadius` and `boxShadow` collapse to nothing in the Tailwind config, so these cannot be written even by accident.
+- **Kept:** hairline and double rules · numbered figures with captions · footnotes and sources · asymmetric grid with marginalia · square corners · a colophon.
+- **UX:** mobile-first respondent flow; progressive disclosure; white-label cleanly overrides org-facing surfaces.
 
 ---
 
