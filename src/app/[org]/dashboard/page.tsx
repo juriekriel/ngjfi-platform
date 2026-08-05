@@ -28,6 +28,10 @@ const DOMAIN_LABEL: Record<string, string> = {
 const ITEM_LABEL: Record<string, string> = Object.fromEntries(
   instrument.items.map((i) => [i.key, t(i.text, "en")]),
 );
+// Responses bind to the instrument version they were captured under, so a
+// dashboard can legitimately contain keys from an archived version. Fall back to
+// the key rather than rendering a blank row.
+const labelFor = (key: string) => ITEM_LABEL[key] ?? key;
 const fmt = (n: number | null | undefined) => (n === null || n === undefined ? "—" : String(n));
 const green = (v: number | null) =>
   v === null || v === undefined ? "transparent" : `rgba(63,157,114,${Math.max(0.08, v / 100)})`;
@@ -214,7 +218,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
               <tbody>
                 {(dash.items || []).map((it) => (
                   <tr key={it.key} className="border-t border-rule">
-                    <td className="py-1.5 pr-2">{ITEM_LABEL[it.key] || it.key}</td>
+                    <td className="py-1.5 pr-2">{labelFor(it.key) || it.key}</td>
                     <td className="py-1.5 font-mono text-[10px] uppercase text-muted">{TIER_LABEL[it.tier] || it.tier}</td>
                     <td className="py-1.5 text-right font-semibold">{fmt(it.mean)}</td>
                     <td className="py-1.5 text-right font-mono text-[11px] text-muted">{it.n}</td>
