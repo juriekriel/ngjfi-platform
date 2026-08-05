@@ -8,8 +8,11 @@ export function Masthead({ edition }: { edition?: string }) {
   return (
     <header className="border-b border-ink">
       <div className="mx-auto flex max-w-5xl flex-wrap items-end justify-between gap-x-6 gap-y-2 px-5 py-3">
-        <Link href="/" className="flex items-baseline gap-2 no-underline">
-          <RisingJ className="h-[26px] w-[26px] shrink-0 translate-y-[5px]" />
+        {/* The mark never sits beside the typed name — the J-curve reads as a
+            letter J and you get "J The Jesus Index". Wordmark here; the icon
+            stands alone where there is no wordmark (favicon, app icon, survey
+            header, QR sticker). */}
+        <Link href="/" className="no-underline">
           <span className="text-[19px] leading-none tracking-tight">
             The <span className="italic">Jesus</span>{" "}
             <span className="tabular text-[15px] uppercase tracking-[0.18em]">Index</span>

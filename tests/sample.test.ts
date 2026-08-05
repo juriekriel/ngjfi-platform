@@ -80,10 +80,35 @@ test("the live survey and the tour share one question renderer", () => {
   );
 });
 
-test("the landing page renders live components rather than static markup", () => {
+test("the landing page renders live components and carries no fabricated scores", () => {
   const home = src("../src/app/page.tsx");
   assert.match(home, /from "@\/components\/index\/Figures"/);
-  assert.match(home, /from "@\/lib\/sample"/);
+
+  // Deliberate: the front page shows the MODEL, never sample results. A
+  // fabricated number is a poor thing to lead with even when it is labelled —
+  // it invites a visitor to read the demo as the product. Scores live behind
+  // door 03, where the context travels with them.
+  assert.ok(
+    !/from "@\/lib\/sample"/.test(home),
+    "the landing page must not pull sample results — send people to /demo for numbers",
+  );
+  assert.match(home, /<Matrix phrases \/>/, "the model grid must be the plain-language variant");
+});
+
+test("the mark never sits beside the typed wordmark", () => {
+  // The Rising J reads as a letter J. Next to the words it produces
+  // "J The Jesus Index". It stands alone, or the rising rule carries the gesture.
+  for (const f of ["../src/app/page.tsx", "../src/components/site/Chrome.tsx"]) {
+    const s = src(f);
+    const wordmark = /<span className="italic">Jesus<\/span>/;
+    if (!wordmark.test(s)) continue;
+    const idx = s.search(wordmark);
+    const window = s.slice(Math.max(0, idx - 400), idx);
+    assert.ok(
+      !/<RisingJ/.test(window),
+      `${f} places <RisingJ> immediately before the typed wordmark`,
+    );
+  }
 });
 
 test("every public surface carries the never-overclaim label", () => {
