@@ -9,7 +9,7 @@ export function Masthead({ edition }: { edition?: string }) {
     <header className="border-b border-ink">
       <div className="mx-auto flex max-w-5xl flex-wrap items-end justify-between gap-x-6 gap-y-2 px-5 py-3">
         <Link href="/" className="flex items-baseline gap-2 no-underline">
-          <RisingJ className="h-6 w-6 shrink-0 translate-y-[3px]" />
+          <RisingJ className="h-[26px] w-[26px] shrink-0 translate-y-[5px]" />
           <span className="text-[19px] leading-none tracking-tight">
             The <span className="italic">Jesus</span>{" "}
             <span className="tabular text-[15px] uppercase tracking-[0.18em]">Index</span>
@@ -54,22 +54,48 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
  * The Rising J — a J that is also a J-curve, ending in a cross that is also a
  * data point. Down before up. One stroke, one colour, no gradient.
  */
-export function RisingJ({ className = "h-8 w-8" }: { className?: string }) {
+export function RisingJ({
+  className = "h-8 w-8",
+  stroke = "#1B1F27",
+  cross = "#0B8A60",
+}: {
+  className?: string;
+  stroke?: string;
+  cross?: string;
+}) {
   return (
-    <svg viewBox="0 0 32 32" className={className} aria-hidden="true" fill="none">
+    <svg viewBox="0 0 100 100" className={className} aria-hidden="true">
+      {/* One continuous stroke: down before up. Weight and round caps are the
+          mark — thinning either turns it into a letterform and loses the curve. */}
       <path
-        d="M7 5.5h9.5M12.5 5.5v11.2c0 3.4-1.6 5.1-4.1 5.1-1.9 0-3.2-.9-3.9-2.3"
-        stroke="#1B1F27"
-        strokeWidth="2.1"
-        strokeLinecap="square"
+        d="M 22 58 C 24 74, 32 85, 46 84 C 62 83, 71 66, 73 26"
+        fill="none"
+        stroke={stroke}
+        strokeWidth="13"
+        strokeLinecap="round"
       />
-      <path
-        d="M13.6 22.4c3.1-.7 6.6-4.3 10.1-11.6"
-        stroke="#0B8A60"
-        strokeWidth="2.1"
-        strokeLinecap="square"
-      />
-      <path d="M21.2 8.2h5.2M23.8 5.6v5.2" stroke="#0B8A60" strokeWidth="2.1" strokeLinecap="square" />
+      {/* The terminal: a cross that is also a data point. */}
+      <g fill={cross}>
+        <rect x="70" y="4" width="6" height="22" rx="2" />
+        <rect x="62" y="12" width="22" height="6" rx="2" />
+      </g>
+    </svg>
+  );
+}
+
+/**
+ * FIG. 06 — the rising rule. The icon's gesture stretched to masthead scale:
+ * a hairline that runs flat, then lifts to the same terminal. Same story, no
+ * redraw. Used under the nameplate where a 100 × 100 icon would be too loud.
+ */
+export function RisingRule({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 560 30" className={className} aria-hidden="true" preserveAspectRatio="none">
+      <path d="M 0 24 L 402 24 L 486 4" fill="none" stroke="#1B1F27" strokeWidth="1.5" />
+      <g fill="#0B8A60">
+        <rect x="490" y="0" width="5" height="19" rx="1.5" />
+        <rect x="483" y="7" width="19" height="5" rx="1.5" />
+      </g>
     </svg>
   );
 }

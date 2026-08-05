@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Colophon, Door, Masthead, RisingJ } from "@/components/site/Chrome";
+import { Colophon, Door, Masthead, RisingJ, RisingRule } from "@/components/site/Chrome";
 import { IndexPlate, JourneyFunnel, Matrix, Plate } from "@/components/index/Figures";
 import { sampleDashboard, sampleTierCounts } from "@/lib/sample";
 
@@ -24,15 +24,17 @@ export default function Home() {
         <section className="grid gap-8 border-b border-ink py-10 md:grid-cols-[1.35fr_1fr] md:gap-12">
           <div>
             <div className="flex items-start gap-4">
-              <RisingJ className="mt-1 h-11 w-11 shrink-0" />
-              <div>
+              <RisingJ className="mt-1.5 h-14 w-14 shrink-0" />
+              <div className="min-w-0 flex-1">
                 <h1 className="text-[40px] leading-[0.98] tracking-tight sm:text-[52px]">
                   The <span className="italic">Jesus</span>{" "}
                   <span className="tabular text-[34px] uppercase tracking-[0.14em] sm:text-[44px]">
                     Index
                   </span>
                 </h1>
-                <p className="tabular mt-2 text-[11px] uppercase tracking-[0.16em] text-ink-2">
+                {/* Same terminal as the icon, stretched to nameplate scale. */}
+                <RisingRule className="mt-2 h-5 w-full max-w-[420px]" />
+                <p className="tabular mt-1 text-[11px] uppercase tracking-[0.16em] text-ink-2">
                   A global measure of Jesus-following
                 </p>
               </div>
