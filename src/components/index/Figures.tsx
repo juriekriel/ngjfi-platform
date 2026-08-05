@@ -17,6 +17,7 @@ import {
   MATRIX_PHRASE,
   NAVY,
   TIERS,
+  TIER_TINT,
   TIER_GLOSS,
   TIER_LABEL,
   delta,
@@ -208,11 +209,16 @@ export function Matrix({
               </th>
               {TIERS.map((tk) => {
                 const v = matrix?.[dk]?.[tk] ?? null;
+                const tint = TIER_TINT[tk];
                 return (
                   <td
                     key={tk}
-                    className={`px-2 py-3 text-center ${phrases ? "text-[13px] leading-tight" : "tabular text-[15px]"}`}
-                    style={phrases ? undefined : { background: heat(v) }}
+                    className={`px-2.5 py-4 text-center ${phrases ? "text-[13.5px] leading-tight" : "tabular text-[15px]"}`}
+                    style={
+                      phrases
+                        ? { background: tint.bg, color: tint.fg }
+                        : { background: heat(v) }
+                    }
                   >
                     {phrases ? MATRIX_PHRASE[dk][tk] : fig(v)}
                   </td>
@@ -310,5 +316,49 @@ export function IntegrityNote({ extra }: { extra?: string }) {
       Aggregates only — never an individual response. Of those who completed the Index.
       {extra ? ` ${extra}` : ""}
     </p>
+  );
+}
+
+/* ── 08 · the J12 diagram ─────────────────────────────────────────────── */
+
+/**
+ * The J12's own diagram: twelve cells, six of them lit — a cross among the
+ * twelve. Round One's cross-grid, re-read; the geometry gained a second meaning
+ * by changing nothing.
+ *
+ * Used where the front page needs a visual anchor that carries the idea without
+ * putting a single fabricated figure on screen. Twelve items, twelve disciples,
+ * one shape.
+ */
+export function J12Grid({ className = "" }: { className?: string }) {
+  const COLS = 4;
+  const ROWS = 3;
+  // Vertical bar down column 1, horizontal bar across row 1 → exactly six cells.
+  const lit = (r: number, c: number) => c === 1 || r === 1;
+
+  return (
+    <figure className={className}>
+      <div className="grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
+        {Array.from({ length: ROWS * COLS }, (_, i) => {
+          const r = Math.floor(i / COLS);
+          const c = i % COLS;
+          const on = lit(r, c);
+          return (
+            <div
+              key={i}
+              aria-hidden="true"
+              className="aspect-square"
+              style={{
+                background: on ? TIER_TINT[TIERS[c]].bg : "transparent",
+                border: on ? "none" : "1px solid #D9D2C4",
+              }}
+            />
+          );
+        })}
+      </div>
+      <figcaption className="figcap mt-3 leading-relaxed">
+        The J12 — twelve items, and a cross among them
+      </figcaption>
+    </figure>
   );
 }

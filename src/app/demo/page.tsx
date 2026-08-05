@@ -90,10 +90,10 @@ export default function DemoHub() {
                 <p className="figcap">Across all of them</p>
                 <h3 className="mt-1.5 text-[19px] leading-snug">Collab Intelligence</h3>
                 <p className="margin-note mt-1">
-                  The pooled picture — what no single study could buy.
+                  The pooled picture across the invented organisations — the fiction, aggregated only within itself.
                 </p>
                 <Link
-                  href="/intelligence"
+                  href="/demo/intelligence"
                   className="tabular mt-3 inline-block text-[10px] uppercase tracking-[0.14em] text-emerald no-underline hover:underline"
                 >
                   Read the global view →

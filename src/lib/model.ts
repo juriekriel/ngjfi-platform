@@ -69,6 +69,18 @@ export const MATRIX_PHRASE: Record<string, Record<string, string>> = {
   },
 };
 
+/**
+ * The tier ramp. Colour means depth, and only depth — a single emerald
+ * deepening as the journey goes on, so the grid reads as a progression at a
+ * glance rather than as decoration. Text flips to paper on the darker two.
+ */
+export const TIER_TINT: Record<string, { bg: string; fg: string }> = {
+  exposure:       { bg: "#E4F1EA", fg: "#1B1F27" },
+  response:       { bg: "#B6DCC8", fg: "#1B1F27" },
+  formation:      { bg: "#4FA684", fg: "#FFFDF8" },
+  multiplication: { bg: "#0B8A60", fg: "#FFFDF8" },
+};
+
 export const INK = "#1B1F27";
 export const EMERALD = "#0B8A60";
 export const NAVY = "#35639C";

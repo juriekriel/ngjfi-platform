@@ -2,7 +2,7 @@
   "name": "ngjfi-platform",
   "version": "0.1.0",
   "private": false,
-  "description": "The Next Gen Jesus-Following Index (NGJFI) — a multi-tenant, white-labelled, crowdsourced faith-engagement measurement platform.",
+  "description": "The Next Gen Jesus-Following Index (NGJFI) \u2014 a multi-tenant, white-labelled, crowdsourced faith-engagement measurement platform.",
   "license": "MIT",
   "engines": {
     "node": ">=20"
@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "test:scoring": "node --experimental-strip-types --test tests/scoring.test.ts",
-    "db:seed": "node --env-file=.env.local scripts/sync-instrument.mjs"
+    "db:seed": "node --env-file=.env.local scripts/sync-instrument.mjs",
+    "db:bootstrap": "node scripts/build-bootstrap.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.1",
