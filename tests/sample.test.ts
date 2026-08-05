@@ -103,3 +103,53 @@ test("waitlist contact data is kept separate from respondent data", () => {
   );
   assert.match(sql, /security definer/, "writes must go through definer RPCs, as elsewhere");
 });
+
+/* ── data spaces ───────────────────────────────────────────────────────── */
+
+test("the published view can never see the sandbox", () => {
+  const sql = src("../supabase/migrations/0009_data_spaces.sql");
+
+  // The filter must live INSIDE the definer body, not be a caller's job.
+  const live = sql.slice(
+    sql.indexOf("function public.collab_intelligence()"),
+    sql.indexOf("function public.collab_intelligence_demo()"),
+  );
+  assert.ok(live.length > 0, "collab_intelligence() must be redefined here");
+  assert.match(live, /o\.is_demo\s*=\s*false/, "the live view must exclude demo organisations");
+
+  const demo = sql.slice(sql.indexOf("function public.collab_intelligence_demo()"));
+  assert.match(demo, /o\.is_demo\s*=\s*true/, "the demo view must aggregate only the fiction");
+});
+
+test("an organisation cannot change data space once it holds responses", () => {
+  const sql = src("../supabase/migrations/0009_data_spaces.sql");
+  assert.match(sql, /organisations_lock_data_space/);
+  assert.match(sql, /cannot be changed/i, "the guard must refuse, not silently allow");
+});
+
+test("the critical-mass gate is data, never a constant in code", () => {
+  const sql = src("../supabase/migrations/0009_data_spaces.sql");
+  assert.match(sql, /platform_settings/);
+  assert.match(sql, /critical_mass_gate/);
+  // A hard-coded 400 in the application would defeat the point of the setting.
+  for (const f of ["../src/lib/model.ts", "../src/components/index/IntelligenceView.tsx"]) {
+    assert.ok(!/\b400\b/.test(src(f)), `${f} hard-codes the gate — it must read platform_settings`);
+  }
+});
+
+test("the separation is verifiable with a live query, not by reading SQL", () => {
+  const sql = src("../supabase/migrations/0009_data_spaces.sql");
+  assert.match(sql, /function public\.data_space_report\(\)/);
+  assert.match(sql, /grant execute on function public\.data_space_report/);
+});
+
+test("a fresh database can be stood up from the repo in one paste", () => {
+  const boot = src("../supabase/bootstrap.sql");
+  for (const n of ["0001_schema", "0006_demo_dashboard", "0009_data_spaces"]) {
+    assert.ok(boot.includes(n), `bootstrap.sql is missing ${n} — re-run npm run db:bootstrap`);
+  }
+  assert.ok(
+    !boot.includes("seed_demo_data"),
+    "bootstrap must NOT include demo data — a live database should never have it run against it",
+  );
+});
