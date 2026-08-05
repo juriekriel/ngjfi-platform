@@ -36,7 +36,7 @@ export default function Home() {
           </div>
           <div className="mt-2 text-xl font-semibold">Org dashboard →</div>
           <p className="mt-1 text-sm text-slate">
-            Aggregate results for a ministry (sign-in required).
+            What one ministry sees back — open on sample orgs, verified sign-in on real ones.
           </p>
         </Link>
         <Link

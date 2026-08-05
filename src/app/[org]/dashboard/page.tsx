@@ -40,12 +40,25 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
   const [dash, setDash] = useState<Dash | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [needsClaim, setNeedsClaim] = useState(false);
+  // True when this dashboard is being shown to a signed-out visitor because the
+  // organisation is flagged is_demo. Real orgs never reach this state.
+  const [demoPreview, setDemoPreview] = useState(false);
 
   const load = useCallback(async () => {
     if (!sb) return;
     const { data: s } = await sb.auth.getSession();
     setAuthed(Boolean(s.session));
-    if (!s.session) return;
+
+    if (!s.session) {
+      // No sign-in: offer the public preview, which the database only serves for
+      // demo organisations. If this org isn't a demo org the RPC raises and we
+      // fall through to the normal ministry sign-in screen.
+      const { data, error } = await sb.rpc("org_dashboard_demo", { p_org_slug: slug });
+      if (!error && data) { setDash(data as Dash); setDemoPreview(true); }
+      return;
+    }
+
+    setDemoPreview(false);
     const { data, error } = await sb.rpc("org_dashboard", { p_org_slug: slug });
     if (error) { setNeedsClaim(true); } else { setDash(data as Dash); setNeedsClaim(false); }
   }, [sb, slug]);
@@ -73,7 +86,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
   if (!sb)
     return <Shell slug={slug}><p className="text-sm text-slate">Supabase isn&apos;t configured yet.</p></Shell>;
 
-  if (authed === false)
+  if (authed === false && !demoPreview)
     return (
       <Shell slug={slug}>
         <h2 className="text-lg font-semibold">Ministry sign-in</h2>
@@ -99,6 +112,16 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
 
   return (
     <Shell slug={slug}>
+      {demoPreview && (
+        <div className="mb-4 rounded-lg border border-rule bg-paper-deep px-4 py-3">
+          <p className="font-mono text-[9px] uppercase tracking-wider text-muted">Open preview</p>
+          <p className="mt-1 text-sm text-slate">
+            You&apos;re seeing this dashboard without signing in because <b>{slug}</b> is a sample
+            organisation. A real ministry&apos;s dashboard is only reachable after email verification
+            against its own website domain — and shows aggregates only, never a young person&apos;s answers.
+          </p>
+        </div>
+      )}
       {!dash && <p className="text-sm text-slate">Loading…</p>}
       {dash && (
         <>
