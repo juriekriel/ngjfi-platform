@@ -292,3 +292,30 @@ test("the seed script cannot put a synthetic organisation in the live space", ()
     "creating an organisation must be opt-in — seeding the instrument is not",
   );
 });
+
+test("both links the console hands out have a route to land on", () => {
+  // org_links() has published /<short_name>/open since migration 0011 and the
+  // console now shows it with a Copy button. For a while the route did not
+  // exist and every public link 404'd, which is the kind of thing you only
+  // notice after someone has already pasted it into Instagram.
+  const app = new URL("../src/app/", import.meta.url);
+  for (const route of ["[org]/page.tsx", "[org]/open/page.tsx"]) {
+    const src = readFileSync(new URL(route, app), "utf8");
+    assert.match(src, /from "@\/components\/survey\/Survey"/, `${route} must mount the one survey`);
+  }
+  const community = readFileSync(new URL("[org]/page.tsx", app), "utf8");
+  const open = readFileSync(new URL("[org]/open/page.tsx", app), "utf8");
+  assert.match(community, /audience="community"/);
+  assert.match(open, /audience="public"/);
+
+  // And the slugs the survey looks for must match the ones campaign_upsert
+  // writes, or the console would publish a link to a campaign nothing serves.
+  const survey = readFileSync(new URL("../src/components/survey/Survey.tsx", import.meta.url), "utf8");
+  assert.match(survey, /community:\s*"default"/);
+  assert.match(survey, /public:\s*"open"/);
+  const sql = readFileSync(
+    new URL("../supabase/migrations/0014_waves_and_survey_setup.sql", import.meta.url),
+    "utf8",
+  );
+  assert.match(sql, /p_audience = 'public' then 'open' else 'default'/);
+});
