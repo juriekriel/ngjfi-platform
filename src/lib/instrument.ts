@@ -69,6 +69,17 @@ export interface Instrument {
 
 export const instrument = instrumentV1 as unknown as Instrument;
 
+/**
+ * How many questions each item set actually asks.
+ *
+ * Derived, never typed in. The console tells a youth pastor "the twelve, about
+ * four minutes" and that sentence has to stay true when the research panel
+ * changes the instrument — so it counts the JSON rather than trusting a
+ * constant somebody forgot to update.
+ */
+export const CORE_COUNT = instrument.items.filter((i) => i.core).length;
+export const TOTAL_COUNT = instrument.items.length;
+
 /** Localized string with English fallback. */
 export function t(text: LocalizedText, locale: Locale = "en"): string {
   return (locale === "es" && text.es) || text.en;
