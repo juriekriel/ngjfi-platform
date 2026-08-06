@@ -272,6 +272,12 @@ function Shell({ tier, children }: { tier: string; children: React.ReactNode }) 
           <p className="mt-2 max-w-measure text-[15px] leading-relaxed text-ink-2">
             A worklist, not a dashboard. What is on this page is what is waiting on a person.
           </p>
+          <Link
+            href="/build/wireframes"
+            className="tabular mt-4 inline-block border border-rule-2 px-3.5 py-2 text-[10px] uppercase tracking-[0.14em] text-ink-2 no-underline hover:border-ink hover:text-ink"
+          >
+            The console spec — all four tiers →
+          </Link>
         </div>
         <div className="mt-8">{children}</div>
       </main>
