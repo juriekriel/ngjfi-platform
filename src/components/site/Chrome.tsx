@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { EMERALD, INK, MUTED } from "@/lib/model";
+
 /**
  * The masthead. jfindx.org is a nameplate, not a hero — a visitor should feel
  * they have walked into something that existed before them.
@@ -59,8 +61,8 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
  */
 export function RisingJ({
   className = "h-8 w-8",
-  stroke = "#1B1F27",
-  cross = "#0B8A60",
+  stroke = INK,
+  cross = EMERALD,
 }: {
   className?: string;
   stroke?: string;
@@ -94,8 +96,8 @@ export function RisingJ({
 export function RisingRule({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 560 30" className={className} aria-hidden="true" preserveAspectRatio="none">
-      <path d="M 0 24 L 402 24 L 486 4" fill="none" stroke="#1B1F27" strokeWidth="1.5" />
-      <g fill="#0B8A60">
+      <path d="M 0 24 L 402 24 L 486 4" fill="none" stroke={INK} strokeWidth="1.5" />
+      <g fill={EMERALD}>
         <rect x="490" y="0" width="5" height="19" rx="1.5" />
         <rect x="483" y="7" width="19" height="5" rx="1.5" />
       </g>
@@ -180,10 +182,10 @@ export function Door({
     <Link
       href={href}
       className="group flex flex-col border-t-2 border-ink pt-3 no-underline"
-      style={accent ? { borderTopColor: "#0B8A60" } : undefined}
+      style={accent ? { borderTopColor: EMERALD } : undefined}
     >
       <div className="flex items-baseline gap-2">
-        <span className="tabular text-[11px] tracking-[0.16em]" style={{ color: accent ? "#0B8A60" : "#8A8F9B" }}>
+        <span className="tabular text-[11px] tracking-[0.16em]" style={{ color: accent ? EMERALD : MUTED }}>
           {n}
         </span>
         <span className="figcap">{kicker}</span>
@@ -192,7 +194,7 @@ export function Door({
       <p className="mt-2 flex-1 text-[15px] leading-relaxed text-ink-2">{body}</p>
       <p
         className="tabular mt-4 text-[11px] uppercase tracking-[0.14em] group-hover:underline"
-        style={{ color: accent ? "#0B8A60" : "#1B1F27" }}
+        style={{ color: accent ? EMERALD : INK }}
       >
         {cta} →
       </p>

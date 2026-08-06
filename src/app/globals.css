@@ -9,13 +9,62 @@
  * bound there.
  */
 
+/*
+ * ── THE PALETTE ──────────────────────────────────────────────────────────────
+ *
+ * The single source of truth for every colour on the platform. Tailwind reads
+ * these (see tailwind.config.ts), this stylesheet reads these, and the chart
+ * primitives read these via src/lib/model.ts. Change a value here and the
+ * respondent survey, the org dashboard, Collab Intelligence, the guided tour
+ * and the landing page all move together. That is the whole point — nothing
+ * restates a colour locally.
+ *
+ * Values are space-separated RGB channels, not hex, so Tailwind's opacity
+ * modifiers keep working (`bg-paper/95` → `rgb(var(--c-paper) / 0.95)`).
+ * The hex equivalent is in the comment on each line.
+ *
+ * COLOUR MEANS SOMETHING HERE. Before changing the three semantic colours,
+ * read the note above --c-vermillion.
+ */
 :root {
   color-scheme: light;
+
+  /* Ground: warm paper, near-black ink, hairline rules. */
+  --c-paper: 250 247 241; /* #FAF7F1 */
+  --c-paper-deep: 241 236 225; /* #F1ECE1 */
+  --c-plate: 255 253 248; /* #FFFDF8 */
+  --c-ink: 27 31 39; /* #1B1F27 */
+  --c-ink-2: 76 82 96; /* #4C5260 */
+  --c-rule: 217 210 196; /* #D9D2C4 */
+  --c-rule-2: 200 191 172; /* #C8BFAC */
+  --c-muted: 138 143 155; /* #8A8F9B */
+
+  /* ── The three semantic colours ─────────────────────────────────────────
+   * These are not decoration and they are not interchangeable:
+   *   emerald    the single working colour, AND "up" in delta()
+   *   navy       levels and benchmarks, never anything else
+   *   vermillion "down", and only ever "down"
+   * Warming the brand towards red/orange collides with vermillion: a rising
+   * figure and a falling one stop being distinguishable at a glance. If you
+   * change --c-emerald towards the warm end, you must also decide what
+   * carries "up". See docs/PALETTE.md. */
+  --c-emerald: 11 138 96; /* #0B8A60 */
+  --c-emerald-deep: 8 108 76; /* #086C4C */
+  --c-navy: 53 99 156; /* #35639C */
+  --c-vermillion: 181 69 27; /* #B5451B */
+
+  /* The tier ramp. Hue is constant; LIGHTNESS alone encodes journey depth,
+   * so the heat grid reads as a progression rather than as four categories.
+   * Text flips to plate on the darker two — keep that contrast if you re-tint. */
+  --c-tier-exposure: 228 241 234; /* #E4F1EA */
+  --c-tier-response: 182 220 200; /* #B6DCC8 */
+  --c-tier-formation: 79 166 132; /* #4FA684 */
+  --c-tier-multiplication: 11 138 96; /* #0B8A60 */
 }
 
 body {
-  background: #faf7f1;
-  color: #1b1f27;
+  background: rgb(var(--c-paper));
+  color: rgb(var(--c-ink));
   font-family: var(--font-serif), Georgia, serif;
   font-size: 17px;
   line-height: 1.55;
@@ -41,7 +90,7 @@ label {
 
 /* Hairline and double rules do the work cards and shadows do elsewhere. */
 .rule-double {
-  border-top: 3px double #c8bfac;
+  border-top: 3px double rgb(var(--c-rule-2));
 }
 
 /* Figure captions: numbered, sourced, set small. */
@@ -50,7 +99,7 @@ label {
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #8a8f9b;
+  color: rgb(var(--c-muted));
 }
 
 /* Marginalia in the asymmetric grid. */
@@ -58,17 +107,17 @@ label {
   font-family: var(--font-ui), system-ui, sans-serif;
   font-size: 12.5px;
   line-height: 1.5;
-  color: #4c5260;
+  color: rgb(var(--c-ink-2));
 }
 
 ::selection {
-  background: #0b8a60;
-  color: #fffdf8;
+  background: rgb(var(--c-emerald));
+  color: rgb(var(--c-plate));
 }
 
 /* Focus is visible and square — accessibility is not negotiable here. */
 :focus-visible {
-  outline: 2px solid #0b8a60;
+  outline: 2px solid rgb(var(--c-emerald));
   outline-offset: 2px;
 }
 

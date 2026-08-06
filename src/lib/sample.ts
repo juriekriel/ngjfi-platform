@@ -71,6 +71,9 @@ export const SAMPLE_ORG: SampleOrg = {
   name: "Riverbend Youth Network (sample)",
   country: "Argentina",
   region: "Latin America",
+  // Deliberately a literal, NOT the platform token. This is a white-label
+  // org's own brand colour — respondent-facing org data, not a design token.
+  // Re-skinning the platform must not silently re-skin a ministry's brand.
   brand: "#0B8A60",
   n: 1204,
 };

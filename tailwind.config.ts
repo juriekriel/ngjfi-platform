@@ -12,39 +12,50 @@ import type { Config } from "tailwindcss";
  * Intelligence — re-skins from this one file. That is the point: the landing
  * page, the guided tour and the live product cannot drift apart, because they
  * are all reading these same values.
+ *
+ * THE VALUES THEMSELVES LIVE IN src/app/globals.css, in the :root block.
+ * This file only maps Tailwind's token names onto those CSS variables, so that
+ * the stylesheet, the utility classes and the chart primitives in
+ * src/lib/model.ts cannot drift apart either. To change a colour, edit
+ * globals.css — not here.
+ *
+ * The `rgb(var(--x) / <alpha-value>)` form is what keeps Tailwind's opacity
+ * modifiers working (`bg-paper/95`, `text-ink/60`).
  */
+const c = (name: string) => `rgb(var(--c-${name}) / <alpha-value>)`;
+
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        ink: "#1B1F27",
-        "ink-2": "#4C5260",
-        paper: "#FAF7F1",
-        "paper-deep": "#F1ECE1",
-        plate: "#FFFDF8",
-        card: "#FFFDF8",
-        rule: "#D9D2C4",
-        "rule-2": "#C8BFAC",
+        ink: c("ink"),
+        "ink-2": c("ink-2"),
+        paper: c("paper"),
+        "paper-deep": c("paper-deep"),
+        plate: c("plate"),
+        card: c("plate"),
+        rule: c("rule"),
+        "rule-2": c("rule-2"),
 
         // One working colour. Up-is-growth belongs to the subject matter.
-        emerald: "#0B8A60",
-        "emerald-deep": "#086C4C",
-        accent: "#0B8A60",
-        "accent-soft": "#086C4C",
-        moss: "#0B8A60",
+        emerald: c("emerald"),
+        "emerald-deep": c("emerald-deep"),
+        accent: c("emerald"),
+        "accent-soft": c("emerald-deep"),
+        moss: c("emerald"),
 
         // Levels, never decoration.
-        navy: "#35639C",
-        bench: "#35639C",
-        violet: "#35639C",
+        navy: c("navy"),
+        bench: c("navy"),
+        violet: c("navy"),
 
         // Semantic only: vermillion means "down". Never styling.
-        vermillion: "#B5451B",
+        vermillion: c("vermillion"),
 
-        slate: "#4C5260",
-        muted: "#8A8F9B",
-        faint: "#8A8F9B",
+        slate: c("ink-2"),
+        muted: c("muted"),
+        faint: c("muted"),
       },
       fontFamily: {
         // If it's a sentence, it's serif. If it's a number, it's mono.
