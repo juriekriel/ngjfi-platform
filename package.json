@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "test:scoring": "node --experimental-strip-types --test tests/scoring.test.ts",
-    "db:seed": "node --env-file=.env.local scripts/sync-instrument.mjs",
+    "db:seed": "node scripts/seed-instrument.mjs",
+    "db:seed:full": "node --env-file=.env.local scripts/sync-instrument.mjs",
     "db:bootstrap": "node scripts/build-bootstrap.mjs"
   },
   "dependencies": {
