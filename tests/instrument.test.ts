@@ -237,3 +237,58 @@ test("the open prompt comes before the leading belief items", () => {
 test("age band is mapped onto the session, not just stored as a response", () => {
   assert.equal(byKey("age_band").session_field, "age_band");
 });
+
+/* ── the promises the console makes out loud ─────────────────────────── */
+
+test("the NGC12 is exactly twelve items and carries the 4 beliefs + 2 activities", () => {
+  const core = instrument.items.filter((i) => i.core);
+  assert.equal(core.length, 12, "the console tells people 'the twelve' — it has to be twelve");
+
+  // The twelve are shaped by the Collab's metrics, not by the grid: the four
+  // beliefs and both weekly activities must survive any future edit, because
+  // they are what the coalition actually agreed to measure.
+  assert.equal(core.filter((i) => i.belief).length, 4, "all four beliefs must be in the core set");
+  assert.equal(
+    core.filter((i) => i.core_activity).length,
+    2,
+    "weekly prayer and weekly scripture must be in the core set",
+  );
+});
+
+test("the core set covers 8 of the 12 cells — and the UI must not claim otherwise", () => {
+  // This is a REAL asymmetry, not a bug. Four of the twelve are the beliefs,
+  // which all sit in follow × response, so the short set cannot fill the grid.
+  // Consequence: an organisation fielding core-only gets an index and a funnel
+  // weighted towards `follow`, and four empty matrix cells —
+  // mission × exposure/response and world × exposure/response.
+  //
+  // The test exists so nobody writes "one item per cell" in a tooltip again,
+  // and so a future panel decision to rebalance shows up here first.
+  const core = instrument.items.filter((i) => i.core);
+  const cells = new Set(core.map((i) => `${i.question_domain}×${i.tier}`));
+  assert.equal(cells.size, 8, "core-set cell coverage changed — update the console copy with it");
+
+  for (const missing of [
+    "mission×exposure",
+    "mission×response",
+    "world×exposure",
+    "world×response",
+  ]) {
+    assert.ok(!cells.has(missing), `${missing} is now covered — the honest-copy note can be relaxed`);
+  }
+});
+
+test("the seed script cannot put a synthetic organisation in the live space", () => {
+  const src = readFileSync(new URL("../scripts/sync-instrument.mjs", import.meta.url), "utf8");
+  assert.match(src, /is_demo:\s*true/, "the demo persona must be seeded into the sandbox");
+  assert.match(
+    src,
+    /existing\.is_demo === false/,
+    "the script must refuse to overwrite an organisation already in the live space",
+  );
+  assert.match(
+    src,
+    /WITH_DEMO_ORG/,
+    "creating an organisation must be opt-in — seeding the instrument is not",
+  );
+});

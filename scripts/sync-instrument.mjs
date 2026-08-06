@@ -1,11 +1,23 @@
 // Seeds the database from the canonical instrument file (src/data/instrument.v1.json):
 //   - upserts the instrument version + its expanded items
-//   - upserts the demo Sunrise org + a default campaign
+//   - with --with-demo-org, ALSO upserts the Sunrise persona into the SANDBOX
 //
 // Single source of truth = the JSON. Re-run any time the instrument changes.
-// Usage:  npm run db:seed     (reads .env.local via node --env-file)
+// Usage:  npm run db:seed                    instrument only — safe on a live database
+//         npm run db:seed -- --with-demo-org adds the Sunrise sandbox org too
+//
+// WHY THE SPLIT
+// This script used to create Sunrise Youth Collective unconditionally and without
+// is_demo, which meant every run dropped a synthetic organisation into the LIVE
+// data space — the exact contamination migration 0009 exists to prevent. Worse,
+// lock_data_space() freezes an organisation's space the moment it holds a single
+// response, so the mistake would have become permanent rather than correctable.
+// Seeding the instrument is a routine, safe operation; creating an organisation
+// is not. They are now different commands.
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
+
+const WITH_DEMO_ORG = process.argv.includes("--with-demo-org");
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -54,7 +66,34 @@ const items = inst.items.map((it) => ({
 const { error: e2 } = await sb.from("items").insert(items);
 if (e2) throw e2;
 
-// 3) demo org + campaign (Sunrise — Buenos Aires pilot persona)
+// 3) Sunrise — a Buenos Aires pilot persona. SANDBOX ONLY, and opt-in.
+if (!WITH_DEMO_ORG) {
+  console.log(
+    `✓ Seeded instrument ${inst.version} (${items.length} items). ` +
+      `No organisation touched — pass --with-demo-org for the Sunrise sandbox persona.`,
+  );
+  process.exit(0);
+}
+
+// Refuse to resurrect Sunrise into the live space. If a previous run of this
+// script (before the split) already put it there, say so loudly rather than
+// upserting over it — the fix is a decision about data, not a silent overwrite.
+const { data: existing } = await sb
+  .from("organisations")
+  .select("id, slug, is_demo")
+  .eq("slug", "sunrise")
+  .maybeSingle();
+
+if (existing && existing.is_demo === false) {
+  console.error(
+    `✗ Organisation "sunrise" already exists in the LIVE data space.\n` +
+      `  This script will not touch it. Decide deliberately: either delete it (if it\n` +
+      `  holds no responses) or leave it and rename the persona. Once an organisation\n` +
+      `  holds responses, lock_data_space() makes its space permanent.`,
+  );
+  process.exit(1);
+}
+
 const { data: org, error: e3 } = await sb
   .from("organisations")
   .upsert(
@@ -67,6 +106,7 @@ const { data: org, error: e3 } = await sb
       website_domain: "sunriseyouth.org",
       membership_tier: "collab_member",
       verified: true,
+      is_demo: true, // the whole point of the guard above
     },
     { onConflict: "slug" },
   )
@@ -88,4 +128,6 @@ const { error: e4 } = await sb.from("campaigns").upsert(
 );
 if (e4) throw e4;
 
-console.log(`✓ Seeded instrument ${inst.version} (${items.length} items) + org "${org.slug}".`);
+console.log(
+  `✓ Seeded instrument ${inst.version} (${items.length} items) + sandbox org "${org.slug}".`,
+);
