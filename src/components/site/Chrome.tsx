@@ -27,7 +27,7 @@ export function Masthead({ edition }: { edition?: string }) {
             href="/access"
             className="tabular border border-ink px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-ink no-underline hover:bg-ink hover:text-paper"
           >
-            Early access
+            Sign in
           </Link>
         </nav>
       </div>
