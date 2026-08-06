@@ -122,9 +122,12 @@ export function JourneyFunnel({
       <tbody>
         {TIERS.map((tk) => (
           <tr key={tk} className="border-t border-rule align-middle">
-            <th scope="row" className="w-[34%] py-2.5 pr-3 font-normal">
-              {TIER_LABEL[tk]}
-              <span className="ml-1.5 italic text-muted">{TIER_GLOSS[tk]}</span>
+            {/* The gloss goes on its own line rather than trailing the label —
+                inline, "Multiplication does it spread?" wraps into the bar
+                beside it at anything below a comfortable column width. */}
+            <th scope="row" className="w-[34%] py-2.5 pr-3 align-top font-normal leading-tight">
+              <span className="block">{TIER_LABEL[tk]}</span>
+              <span className="block text-[12.5px] italic text-muted">{TIER_GLOSS[tk]}</span>
             </th>
             <td className="py-2.5 pr-3">
               <Bar value={tiers?.[tk] ?? null} />

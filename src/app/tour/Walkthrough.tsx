@@ -402,7 +402,12 @@ function BeatOrg() {
           <div className="mt-4">
             <IndexPlate value={d.index} n={d.n} change={1.9} edition="JX:NG · Field II" />
           </div>
-          <div className="mt-7 grid gap-7 sm:grid-cols-2">
+          {/* Deliberately stacked, not side by side. These two plates sit inside
+              an already-narrow column, and at that width the tier glosses
+              ("Multiplication — does it spread?") and the full question text
+              ("Do they participate in His mission?") both wrap and collide.
+              Two columns only once there is genuinely room for them. */}
+          <div className="mt-7 grid gap-7 lg:grid-cols-2">
             <Plate label="The journey" figure="i">
               <JourneyFunnel tiers={d.tiers} counts={counts} />
             </Plate>
