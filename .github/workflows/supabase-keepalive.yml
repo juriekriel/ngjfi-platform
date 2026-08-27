@@ -1,0 +1,71 @@
+name: Supabase keepalive
+
+# Supabase pauses free-tier projects after ~7 days without activity, and it
+# flagged this project on 19 and 26 August.
+#
+# jfindx.org queries Supabase from the BROWSER (see src/lib/supabaseClient.ts —
+# createBrowserClient, anon key, RLS). A plain curl of the site therefore never
+# touches the database, so the project reads as idle whenever no real visitor is
+# on it. This loads the site in a real headless browser once a week, which fires
+# the same organisations + campaigns queries a visitor would.
+#
+# Deliberately NO secrets: the anon key already ships inside the deployed
+# bundle, so the browser picks it up the same way a visitor's does. Nothing to
+# store, nothing to rotate, nothing to leak.
+#
+# It doubles as an end-to-end uptime check — if the survey route stops reaching
+# the database, this goes red.
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'   # Mondays, 06:17 UTC
+  workflow_dispatch:
+
+jobs:
+  visit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Playwright Chromium
+        run: npm init -y >/dev/null && npm i -D playwright@1 && npx playwright install --with-deps chromium
+
+      - name: Load the survey route and confirm it reached Supabase
+        env:
+          TARGET: https://jfindx.org/riverbend
+        run: |
+          cat > visit.mjs <<'JS'
+          import { chromium } from 'playwright';
+
+          const TARGET = process.env.TARGET;
+          const browser = await chromium.launch();
+          const page = await browser.newPage();
+
+          const calls = [];
+          page.on('response', (r) => {
+            if (r.url().includes('.supabase.co')) calls.push({ status: r.status(), url: r.url() });
+          });
+
+          let status = null;
+          try {
+            const resp = await page.goto(TARGET, { waitUntil: 'networkidle', timeout: 60000 });
+            status = resp?.status() ?? null;
+          } finally {
+            await page.waitForTimeout(3000);
+            await browser.close();
+          }
+
+          console.log(`page ${TARGET} -> ${status}`);
+          for (const c of calls) console.log(`  supabase ${c.status} ${c.url.split('?')[0]}`);
+
+          const ok = calls.filter((c) => c.status < 400);
+          if (!ok.length) {
+            console.error('::error::No successful Supabase request. Either the project is paused, the deployed anon key is missing, or the survey route stopped querying.');
+            process.exit(1);
+          }
+          console.log(`${ok.length} successful Supabase request(s). Inactivity timer reset.`);
+          JS
+          node visit.mjs
