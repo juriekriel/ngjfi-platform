@@ -3,6 +3,7 @@ import { Colophon, Masthead } from "@/components/site/Chrome";
 import { Matrix, Plate } from "@/components/index/Figures";
 import LearnExplorer from "./LearnExplorer";
 import { NAMING, OPEN_QUESTIONS } from "@/data/history";
+import { NAVY, VERMILLION } from "@/lib/model";
 
 export const metadata = {
   title: "Why the Jesus Index exists — The Jesus Index",
@@ -91,7 +92,7 @@ export default function LearnPage() {
                           <div className="h-[9px] w-full border-b border-rule bg-paper-deep">
                             <div
                               className="h-full"
-                              style={{ width: `${r.value}%`, background: r.value >= 60 ? "#35639C" : "#B5451B" }}
+                              style={{ width: `${r.value}%`, background: r.value >= 60 ? NAVY : VERMILLION }}
                             />
                           </div>
                         </td>

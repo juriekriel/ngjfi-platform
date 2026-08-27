@@ -202,7 +202,7 @@ export default function JoinForm() {
         </div>
         <label className="flex items-start gap-2.5 text-[14px] leading-snug text-ink-2">
           <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}
-            className="mt-1 h-3.5 w-3.5 shrink-0 accent-[#0B8A60]" />
+            className="mt-1 h-3.5 w-3.5 shrink-0 accent-emerald" />
           <span>Send me <b>Field Notes</b> — a monthly note on how the Index is being built. Unsubscribe any time.</span>
         </label>
       </div>

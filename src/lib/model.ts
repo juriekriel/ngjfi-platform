@@ -70,28 +70,40 @@ export const MATRIX_PHRASE: Record<string, Record<string, string>> = {
 };
 
 /**
+ * Colour, for the chart primitives.
+ *
+ * These do NOT restate hex values. They point at the CSS variables defined in
+ * src/app/globals.css, which is the single source of truth for the palette —
+ * the same block Tailwind reads. A colour therefore exists in exactly one
+ * place, and re-skinning the platform is one edit to one file.
+ */
+const token = (name: string) => `rgb(var(--c-${name}))`;
+
+/**
  * The tier ramp. Colour means depth, and only depth — a single emerald
  * deepening as the journey goes on, so the grid reads as a progression at a
  * glance rather than as decoration. Text flips to paper on the darker two.
  */
 export const TIER_TINT: Record<string, { bg: string; fg: string }> = {
-  exposure:       { bg: "#E4F1EA", fg: "#1B1F27" },
-  response:       { bg: "#B6DCC8", fg: "#1B1F27" },
-  formation:      { bg: "#4FA684", fg: "#FFFDF8" },
-  multiplication: { bg: "#0B8A60", fg: "#FFFDF8" },
+  exposure:       { bg: token("tier-exposure"),       fg: token("ink") },
+  response:       { bg: token("tier-response"),       fg: token("ink") },
+  formation:      { bg: token("tier-formation"),      fg: token("plate") },
+  multiplication: { bg: token("tier-multiplication"), fg: token("plate") },
 };
 
-export const INK = "#1B1F27";
-export const EMERALD = "#0B8A60";
-export const NAVY = "#35639C";
-export const VERMILLION = "#B5451B";
-export const RULE = "#D9D2C4";
+export const INK = token("ink");
+export const PLATE = token("plate");
+export const MUTED = token("muted");
+export const EMERALD = token("emerald");
+export const NAVY = token("navy");
+export const VERMILLION = token("vermillion");
+export const RULE = token("rule");
 
 /** Emerald wash for heat cells. Colour only ever means something. */
 export const heat = (v: number | null | undefined): string =>
   v === null || v === undefined
     ? "transparent"
-    : `rgba(11, 138, 96, ${Math.max(0.06, Math.min(0.92, v / 110))})`;
+    : `rgb(var(--c-emerald) / ${Math.max(0.06, Math.min(0.92, v / 110))})`;
 
 /** A figure, or an em dash. Never a zero standing in for "we don't know". */
 export const fig = (n: number | null | undefined): string =>
@@ -100,7 +112,7 @@ export const fig = (n: number | null | undefined): string =>
 /** Signed delta with the semantic arrow. Vermillion is reserved for "down". */
 export const delta = (d: number | null | undefined) =>
   d === null || d === undefined
-    ? { text: "—", colour: "#8A8F9B" }
+    ? { text: "—", colour: MUTED }
     : d >= 0
       ? { text: `▲ ${d.toFixed(1)}`, colour: EMERALD }
       : { text: `▼ ${Math.abs(d).toFixed(1)}`, colour: VERMILLION };
