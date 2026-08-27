@@ -22,7 +22,7 @@ import {
   type AnswerValue,
 } from "@/lib/instrument";
 import { SAMPLE_ORG, itemLabel, sampleDashboard, sampleTierCounts } from "@/lib/sample";
-import { TIERS, TIER_LABEL, fig } from "@/lib/model";
+import { EMERALD, MUTED, TIERS, TIER_LABEL, fig } from "@/lib/model";
 
 /**
  * The guided walkthrough.
@@ -506,7 +506,7 @@ function BeatCollab() {
                       <td className="tabular py-2.5 text-right text-[14px]">{r.n.toLocaleString()}</td>
                       <td
                         className="tabular py-2.5 text-right text-[10px] uppercase tracking-[0.13em]"
-                        style={{ color: unlocked ? "#0B8A60" : "#8A8F9B" }}
+                        style={{ color: unlocked ? EMERALD : MUTED }}
                       >
                         {unlocked ? "Unlocked" : "Gathering"}
                       </td>

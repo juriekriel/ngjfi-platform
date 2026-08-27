@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Colophon, Door, Masthead, RisingRule } from "@/components/site/Chrome";
 import { J12Grid, Matrix, Plate } from "@/components/index/Figures";
+import { TIER_TINT } from "@/lib/model";
 
 /**
  * jfindx.org — the front page.
@@ -88,33 +89,33 @@ export default function Home() {
                 n: "01",
                 h: "A diagnosis, not a grade",
                 p: "Not “how are we doing” but exactly where your people stop moving — belief, practice, or reproduction. Three different problems needing three different responses.",
-                tint: "#E4F1EA",
+                tier: "exposure",
               },
               {
                 n: "02",
                 h: "Yours, under your name",
                 p: "Your logo, your colour, your words, your consent process. To a young person it is their youth group asking — because it is. The Index sits in the footer.",
-                tint: "#B6DCC8",
+                tier: "response",
               },
               {
                 n: "03",
                 h: "Benchmarked, not isolated",
                 p: "The same twelve questions everywhere means your number finally means something next to your country and the globe.",
-                tint: "#4FA684",
-                dark: true,
+                tier: "formation",
               },
               {
                 n: "04",
                 h: "Proof that it moved",
                 p: "Run it again next season and the same figure tells you whether what you changed actually worked. Width and time — not depth.",
-                tint: "#0B8A60",
-                dark: true,
+                tier: "multiplication",
               },
             ].map((c) => (
               <div key={c.n}>
+                {/* The four cards walk the tier ramp, so this block cannot drift
+                    from the heat grid: both read TIER_TINT. */}
                 <div
                   className="flex h-[74px] items-end p-3"
-                  style={{ background: c.tint, color: c.dark ? "#FFFDF8" : "#1B1F27" }}
+                  style={{ background: TIER_TINT[c.tier].bg, color: TIER_TINT[c.tier].fg }}
                 >
                   <span className="tabular text-[26px] leading-none">{c.n}</span>
                 </div>

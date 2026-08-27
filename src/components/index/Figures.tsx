@@ -16,6 +16,7 @@ import {
   EMERALD,
   MATRIX_PHRASE,
   NAVY,
+  RULE,
   TIERS,
   TIER_TINT,
   TIER_GLOSS,
@@ -353,7 +354,7 @@ export function J12Grid({ className = "" }: { className?: string }) {
               className="aspect-square"
               style={{
                 background: on ? TIER_TINT[TIERS[c]].bg : "transparent",
-                border: on ? "none" : "1px solid #D9D2C4",
+                border: on ? "none" : `1px solid ${RULE}`,
               }}
             />
           );
