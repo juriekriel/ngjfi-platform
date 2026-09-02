@@ -32,7 +32,7 @@ type InstrumentItem = {
 };
 
 const instrument = JSON.parse(
-  readFileSync(new URL("../src/data/instrument.v1.json", import.meta.url), "utf8"),
+  readFileSync(new URL("../src/data/instrument.v2.json", import.meta.url), "utf8"),
 ) as { version: string; items: InstrumentItem[] };
 
 const orderedItems = () => inOrder(instrument.items);
@@ -71,6 +71,15 @@ const neverHeard: Record<string, AnswerValue> = {
   age_band: "13_17",
   heard_story: "no",
   orientation: "open_not_exploring",
+};
+
+// Someone who HAS heard the story but is explicitly not (yet) a follower —
+// the exact logical complement of the maturity gate used by pray_frequency,
+// being_mentored, mentoring_someone, etc. Feeds the v2 "aware" branch
+// (jesus_source / jesus_channel / jesus_meaningful_why).
+const notAFollower: Record<string, AnswerValue> = {
+  ...notEngaged,
+  identify_as_follower: 2,
 };
 
 test("every domain × tier cell has at least one scored item", () => {
@@ -119,16 +128,36 @@ test("the NGC12 core is exactly twelve items and covers all three domains", () =
 test("the full instrument stays within the agreed ceiling for a fielded set", () => {
   // "1 question is best, 12 can be done, 20 is the max" — the max applies to what
   // any one respondent walks, which branching keeps below the raw item count.
-  assert.ok(instrument.items.length <= 25, `instrument has grown to ${instrument.items.length} items`);
+  //
+  // v2 raised this ceiling from 25 to 30, deliberately, to add the "aware"
+  // diagnostic branch (jesus_source / jesus_channel / jesus_meaningful_why /
+  // why_not_heard) — see instrument.v2.json's `note`. It is a one-time,
+  // reviewed increase, not an invitation to keep raising the number: a further
+  // bump should get the same explicit sign-off this one did, not just a
+  // higher constant. No single respondent walks all four — each one is
+  // mutually exclusive with the others by heard_story/orientation — so the
+  // "branching genuinely shortens the survey" test below is what actually
+  // protects respondent-side length.
+  assert.ok(instrument.items.length <= 30, `instrument has grown to ${instrument.items.length} items`);
 });
 
 test("item order is unique and every item is reachable by someone", () => {
   const orders = orderedItems().map((i) => i.order);
   assert.equal(new Set(orders).size, orders.length, "duplicate order values");
+
+  // Before v2, "reachable by someone" and "visible to committed" were the same
+  // check, because every item happened to be visible to a fully committed
+  // respondent. The v2 "aware" branch breaks that coincidence on purpose:
+  // jesus_source/jesus_channel/jesus_meaningful_why are shown ONLY to someone
+  // who is NOT a follower, and why_not_heard ONLY to someone who has never
+  // heard the story at all — committed sees none of the four. So the test
+  // now checks its own name literally: visible to at least one of the three
+  // canonical profiles, not to committed alone.
+  const profiles = [committed, notAFollower, neverHeard];
   for (const item of instrument.items) {
     assert.ok(
-      isVisible(item, committed),
-      `"${item.key}" is not visible even to a fully committed respondent — unreachable`,
+      profiles.some((p) => isVisible(item, p)),
+      `"${item.key}" is not visible to committed, not-a-follower, or never-heard — unreachable`,
     );
   }
 });
@@ -176,6 +205,38 @@ test("self-identification re-opens the practice branch regardless of orientation
 
   const weakSelfId = { ...notEngaged, identify_as_follower: 2 };
   assert.equal(isVisible(byKey("pray_frequency"), weakSelfId), false);
+});
+
+test("the aware branch (jesus_source/channel/meaningful) is shown only to a heard-but-not-following respondent", () => {
+  for (const key of ["jesus_source", "jesus_channel", "jesus_meaningful_why"]) {
+    assert.equal(isVisible(byKey(key), notAFollower), true, `"${key}" should show to notAFollower`);
+    assert.equal(isVisible(byKey(key), committed), false, `"${key}" leaked to a committed follower`);
+    assert.equal(isVisible(byKey(key), neverHeard), false, `"${key}" leaked to someone who never heard`);
+    // Answering "confident_no_god"/"open_not_exploring" alone isn't enough —
+    // the gate is heard_story AND orientation-not-yet AND identify<=2, all three.
+    assert.equal(
+      isVisible(byKey(key), notEngaged),
+      false,
+      `"${key}" should stay hidden until identify_as_follower is actually answered`,
+    );
+  }
+});
+
+test("why_not_heard is shown only to someone who has never heard the story", () => {
+  assert.equal(isVisible(byKey("why_not_heard"), neverHeard), true);
+  assert.equal(isVisible(byKey("why_not_heard"), notAFollower), false);
+  assert.equal(isVisible(byKey("why_not_heard"), committed), false);
+});
+
+test("self-identifying as a follower closes the aware branch, same as any other maturity signal", () => {
+  const nowIdentifies = { ...notAFollower, identify_as_follower: 4 };
+  assert.equal(isVisible(byKey("jesus_source"), nowIdentifies), false);
+});
+
+test("the aware branch is diagnostic, not scored — it must not silently join the Index", () => {
+  for (const key of ["jesus_source", "jesus_channel", "jesus_meaningful_why", "why_not_heard"]) {
+    assert.equal(byKey(key).scored, false, `"${key}" must be scored:false — no validated direction/weight yet`);
+  }
 });
 
 test("branching genuinely shortens the survey", () => {

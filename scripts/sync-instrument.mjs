@@ -1,4 +1,4 @@
-// Seeds the database from the canonical instrument file (src/data/instrument.v1.json):
+// Seeds the database from the canonical instrument file (src/data/instrument.v2.json):
 //   - upserts the instrument version + its expanded items
 //   - with --with-demo-org, ALSO upserts the Sunrise persona into the SANDBOX
 //
@@ -28,7 +28,7 @@ if (!url || !key) {
 
 const sb = createClient(url, key, { auth: { persistSession: false } });
 const inst = JSON.parse(
-  readFileSync(new URL("../src/data/instrument.v1.json", import.meta.url), "utf8"),
+  readFileSync(new URL("../src/data/instrument.v2.json", import.meta.url), "utf8"),
 );
 
 // 1) instrument version (stores the full definition for reference)
