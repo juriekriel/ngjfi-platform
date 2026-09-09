@@ -17,6 +17,14 @@ type Dash = {
   trend?: { year: number; index: number }[] | null;
 };
 
+type BenchmarkScope = { available: boolean; n: number; index: number | null; tiers?: Record<string, number | null> | null };
+type Benchmark = {
+  gate: number;
+  country: BenchmarkScope & { geography: string | null };
+  global: BenchmarkScope;
+};
+type CompareMode = "mine" | "country" | "global";
+
 const TIERS = ["exposure", "response", "formation", "multiplication"];
 const TIER_LABEL: Record<string, string> = {
   exposure: "Exposure", response: "Response", formation: "Formation", multiplication: "Multiplication",
@@ -36,12 +44,33 @@ const fmt = (n: number | null | undefined) => (n === null || n === undefined ? "
 const green = (v: number | null) =>
   v === null || v === undefined ? "transparent" : `rgba(63,157,114,${Math.max(0.08, v / 100)})`;
 
+/** One pill in the compare-to row. Disabled (not hidden) below the gate, so
+ * an org can see the comparison exists and roughly how far off it is. */
+function CompareButton({
+  label, active, disabled, title, onClick,
+}: { label: string; active: boolean; disabled?: boolean; title?: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={`rounded-full border px-3 py-1 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40 ${
+        active ? "border-ink bg-ink text-paper" : "border-rule text-slate hover:border-ink"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
 export default function DashboardPage({ params }: { params: { org: string } }) {
   const slug = params.org;
   const sb = useMemo(() => getSupabaseBrowser(), []);
   const [email, setEmail] = useState("");
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [dash, setDash] = useState<Dash | null>(null);
+  const [bench, setBench] = useState<Benchmark | null>(null);
+  const [compare, setCompare] = useState<CompareMode>("mine");
   const [msg, setMsg] = useState<string | null>(null);
   const [needsClaim, setNeedsClaim] = useState(false);
   // True when this dashboard is being shown to a signed-out visitor because the
@@ -65,6 +94,8 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
     setDemoPreview(false);
     const { data, error } = await sb.rpc("org_dashboard", { p_org_slug: slug });
     if (error) { setNeedsClaim(true); } else { setDash(data as Dash); setNeedsClaim(false); }
+    const { data: b } = await sb.rpc("org_benchmark", { p_org_slug: slug });
+    if (b) setBench(b as Benchmark);
   }, [sb, slug]);
 
   useEffect(() => { load(); }, [load]);
@@ -89,6 +120,13 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
 
   if (!sb)
     return <Shell slug={slug}><p className="text-sm text-slate">Supabase isn&apos;t configured yet.</p></Shell>;
+
+  // Available wherever the JSX below needs it — the value being compared
+  // against, or null when "Just us" is selected or the chosen scope hasn't
+  // passed its own gate.
+  const benchScope = compare === "country" ? bench?.country : compare === "global" ? bench?.global : null;
+  const baseline = compare !== "mine" && benchScope?.available ? benchScope : null;
+  const baselineLabel = compare === "country" ? (bench?.country.geography ?? "Country") : "Global";
 
   if (authed === false && !demoPreview)
     return (
@@ -136,11 +174,44 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
             </span>
           </div>
 
+          {bench && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-wider text-muted">Compare to:</span>
+              <CompareButton label="Just us" active={compare === "mine"} onClick={() => setCompare("mine")} />
+              <CompareButton
+                label={bench.country.geography ? `${bench.country.geography}` : "Country"}
+                active={compare === "country"}
+                disabled={!bench.country.available}
+                title={
+                  bench.country.available
+                    ? undefined
+                    : `Not enough data yet in ${bench.country.geography ?? "your country"} (${bench.country.n}/${bench.gate})`
+                }
+                onClick={() => setCompare("country")}
+              />
+              <CompareButton
+                label="Global"
+                active={compare === "global"}
+                disabled={!bench.global.available}
+                title={bench.global.available ? undefined : `Not published yet, or not enough data (${bench.global.n}/${bench.gate})`}
+                onClick={() => setCompare("global")}
+              />
+            </div>
+          )}
+
           {/* index + journey funnel */}
           <div className="mt-4 grid gap-4 sm:grid-cols-[160px_1fr]">
             <div className="rounded-lg border border-rule bg-paper p-4">
               <div className="font-mono text-[9px] uppercase tracking-wider text-muted">Index score</div>
               <div className="mt-2 text-4xl font-bold text-accent">{fmt(dash.index)}</div>
+              {baseline && baseline.index != null && dash.index != null && (
+                <div className="mt-1 font-mono text-[11px] text-muted">
+                  vs {fmt(baseline.index)} · n {baseline.n.toLocaleString()}
+                  <b className="ml-1" style={{ color: dash.index >= baseline.index ? "#3f9d72" : "#d65349" }}>
+                    {dash.index >= baseline.index ? "+" : ""}{(dash.index - baseline.index).toFixed(1)}
+                  </b>
+                </div>
+              )}
             </div>
             <div className="rounded-lg border border-rule bg-paper p-4">
               <div className="font-mono text-[9px] uppercase tracking-wider text-muted">The journey</div>
@@ -148,8 +219,15 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                 {TIERS.map((tk) => (
                   <div key={tk} className="flex items-center gap-2 text-xs">
                     <span className="w-24 shrink-0 text-slate">{TIER_LABEL[tk]}</span>
-                    <div className="h-2.5 flex-1 rounded bg-paper-deep">
+                    <div className="relative h-2.5 flex-1 rounded bg-paper-deep">
                       <div className="h-full rounded" style={{ width: `${dash.tiers?.[tk] ?? 0}%`, background: tk === "multiplication" ? "#ff7a47" : "#3f9d72" }} />
+                      {baseline?.tiers?.[tk] != null && (
+                        <div
+                          className="absolute top-0 h-full w-[2px] bg-ink"
+                          style={{ left: `${baseline.tiers[tk]}%` }}
+                          title={`${baselineLabel} average: ${baseline.tiers[tk]}`}
+                        />
+                      )}
                     </div>
                     <b className="w-7 text-right">{fmt(dash.tiers?.[tk])}</b>
                   </div>
