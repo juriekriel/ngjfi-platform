@@ -18,7 +18,7 @@ type Item = {
 };
 
 const instrument = JSON.parse(
-  readFileSync(new URL("../src/data/instrument.v1.json", import.meta.url), "utf8"),
+  readFileSync(new URL("../src/data/instrument.v2.json", import.meta.url), "utf8"),
 ) as { items: Item[] };
 
 const src = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");

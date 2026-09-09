@@ -32,7 +32,7 @@ type InstrumentItem = {
 };
 
 const instrument = JSON.parse(
-  readFileSync(new URL("../src/data/instrument.v1.json", import.meta.url), "utf8"),
+  readFileSync(new URL("../src/data/instrument.v2.json", import.meta.url), "utf8"),
 ) as { version: string; items: InstrumentItem[] };
 
 const orderedItems = () => inOrder(instrument.items);
@@ -71,6 +71,14 @@ const neverHeard: Record<string, AnswerValue> = {
   age_band: "13_17",
   heard_story: "no",
   orientation: "open_not_exploring",
+};
+
+// Someone on the exploration branch who has also answered its two follow-up
+// gates — needed so explore_who_talked / explore_pray_to are reachable at all.
+const notEngagedFollowUp: Record<string, AnswerValue> = {
+  ...notEngaged,
+  explore_heard_about_jesus: true,
+  explore_pray: "yes",
 };
 
 test("every domain × tier cell has at least one scored item", () => {
@@ -116,19 +124,31 @@ test("the NGC12 core is exactly twelve items and covers all three domains", () =
   }
 });
 
-test("the full instrument stays within the agreed ceiling for a fielded set", () => {
-  // "1 question is best, 12 can be done, 20 is the max" — the max applies to what
-  // any one respondent walks, which branching keeps below the raw item count.
-  assert.ok(instrument.items.length <= 25, `instrument has grown to ${instrument.items.length} items`);
+test("no single respondent path exceeds the agreed ceiling for a fielded set", () => {
+  // "1 question is best, 12 can be done, 20 is the max" applies to the SHORT,
+  // exploratory paths. The full Index (committed_growing / new_follower) was
+  // already 25 items before v2 and is unchanged here — that ceiling is the
+  // one the original test enforced (instrument.items.length <= 25), carried
+  // forward per-path instead of as a raw total.
+  const full = visibleItems(committed).length;
+  assert.ok(full <= 25, `the full Index path asks ${full} questions — grew past 25`);
+  for (const [name, answers] of Object.entries({ notEngaged, neverHeard })) {
+    const n = visibleItems(answers).length;
+    assert.ok(n <= 20, `the "${name}" (exploration) path asks ${n} questions — over the agreed ceiling`);
+  }
 });
 
 test("item order is unique and every item is reachable by someone", () => {
   const orders = orderedItems().map((i) => i.order);
   assert.equal(new Set(orders).size, orders.length, "duplicate order values");
+  // v2 has two mutually exclusive branches — the Index (committed) and the
+  // exploration branch (notEngaged / notEngagedFollowUp) — so no single
+  // persona sees everything any more. An item is reachable if any reference
+  // persona reaches it.
   for (const item of instrument.items) {
     assert.ok(
-      isVisible(item, committed),
-      `"${item.key}" is not visible even to a fully committed respondent — unreachable`,
+      isVisible(item, committed) || isVisible(item, notEngaged) || isVisible(item, notEngagedFollowUp),
+      `"${item.key}" is visible to no reference persona — unreachable`,
     );
   }
 });
@@ -157,34 +177,52 @@ test("someone who has never heard the story is not asked about following", () =>
   assert.equal(isVisible(byKey("heard_story"), neverHeard), true);
   assert.equal(isVisible(byKey("someone_shared_with_me"), neverHeard), true);
   assert.equal(isVisible(byKey("seen_faith_do_good"), neverHeard), true);
+
+  // …and instead of a dead end, they land in the exploration branch.
+  assert.equal(isVisible(byKey("explore_believe_god"), neverHeard), true);
 });
 
-test("a confident non-believer is asked beliefs but not practices", () => {
-  assert.equal(isVisible(byKey("god_exists"), notEngaged), true);
-  assert.equal(isVisible(byKey("jesus_only_way"), notEngaged), true);
-  // Formation and multiplication are about practising a faith they do not hold.
-  assert.equal(isVisible(byKey("pray_frequency"), notEngaged), false);
-  assert.equal(isVisible(byKey("being_mentored"), notEngaged), false);
-  assert.equal(isVisible(byKey("mentoring_someone"), notEngaged), false);
-  assert.equal(isVisible(byKey("acted_on_need_6mo"), notEngaged), false);
+test("only new_follower / committed_growing reach the Index — everyone else gets the exploration branch", () => {
+  for (const key of [
+    "god_exists", "jesus_is_son_of_god", "identify_as_follower", "jesus_only_way",
+    "pray_frequency", "scripture_frequency", "being_mentored", "mentoring_someone",
+    "acted_on_need_6mo", "who_is_jesus",
+  ]) {
+    assert.equal(isVisible(byKey(key), notEngaged), false, `"${key}" leaked to a non-Index orientation`);
+  }
+  for (const key of [
+    "explore_believe_god", "explore_open_experience", "explore_had_experience",
+    "explore_influences", "explore_heard_about_jesus", "explore_pray",
+    "explore_open_to_prayer", "explore_open_to_gathering", "explore_describe_jesus",
+  ]) {
+    assert.equal(isVisible(byKey(key), notEngaged), true, `"${key}" did not open for a non-Index orientation`);
+  }
+  // The two-level exploration items only open once their own gate is answered.
+  assert.equal(isVisible(byKey("explore_who_talked"), notEngaged), false);
+  assert.equal(isVisible(byKey("explore_who_talked"), notEngagedFollowUp), true);
+  assert.equal(isVisible(byKey("explore_pray_to"), notEngaged), false);
+  assert.equal(isVisible(byKey("explore_pray_to"), notEngagedFollowUp), true);
 });
 
-test("self-identification re-opens the practice branch regardless of orientation", () => {
-  const selfIdentifies = { ...notEngaged, identify_as_follower: 4 };
-  assert.equal(isVisible(byKey("pray_frequency"), selfIdentifies), true);
-  assert.equal(isVisible(byKey("mentoring_someone"), selfIdentifies), true);
-
-  const weakSelfId = { ...notEngaged, identify_as_follower: 2 };
-  assert.equal(isVisible(byKey("pray_frequency"), weakSelfId), false);
+test("the exploration branch is entirely unscored", () => {
+  const exploration = instrument.items.filter((i) => i.question_domain === "exploration");
+  assert.ok(exploration.length > 0, "the exploration branch should not be empty");
+  for (const i of exploration) {
+    assert.equal(i.scored, false, `"${i.key}" is tagged exploration but scored — it must not feed the Index`);
+  }
 });
+
 
 test("branching genuinely shortens the survey", () => {
+  // v2: everyone answers the same four unconditional screener items, then
+  // splits into exactly one of two paths. Both non-Index orientations land
+  // on the same exploration branch and so ask the same count; the real
+  // comparison is exploration vs. the (much longer) Index.
   const full = visibleItems(committed).length;
-  const short = visibleItems(neverHeard).length;
-  const mid = visibleItems(notEngaged).length;
-  assert.ok(short < mid, "a non-hearer should get fewer questions than a non-believer");
-  assert.ok(mid < full, "a non-believer should get fewer questions than a committed follower");
-  assert.ok(short <= 6, `a non-hearer should finish in a handful of questions, got ${short}`);
+  const exploreShort = visibleItems(neverHeard).length;
+  const exploreMid = visibleItems(notEngaged).length;
+  assert.equal(exploreShort, exploreMid, "both non-Index orientations should reach the same branch");
+  assert.ok(exploreShort < full, "the exploration branch should ask fewer questions than the full Index");
 });
 
 test("nextVisibleIndex walks the path and terminates", () => {
@@ -201,10 +239,10 @@ test("nextVisibleIndex walks the path and terminates", () => {
 });
 
 test("yes/no gates tolerate boolean and string forms", () => {
-  assert.equal(isVisible(byKey("god_exists"), { ...notEngaged, heard_story: true }), true);
-  assert.equal(isVisible(byKey("god_exists"), { ...notEngaged, heard_story: "yes" }), true);
-  assert.equal(isVisible(byKey("god_exists"), { ...notEngaged, heard_story: false }), false);
-  assert.equal(isVisible(byKey("god_exists"), { ...notEngaged, heard_story: "no" }), false);
+  assert.equal(isVisible(byKey("god_exists"), { ...committed, heard_story: true }), true);
+  assert.equal(isVisible(byKey("god_exists"), { ...committed, heard_story: "yes" }), true);
+  assert.equal(isVisible(byKey("god_exists"), { ...committed, heard_story: false }), false);
+  assert.equal(isVisible(byKey("god_exists"), { ...committed, heard_story: "no" }), false);
 });
 
 test("an unanswered gate hides the item rather than leaking it through", () => {
@@ -220,13 +258,18 @@ test("attention check is unscored and detects inattentive answers", () => {
   assert.deepEqual(failedAttentionChecks({}), []);
 });
 
-test("the only free-text item is unscored and length-capped", () => {
+test("every free-text item is unscored and length-capped", () => {
   const open = instrument.items.filter((i) => i.type === "open_text");
-  assert.equal(open.length, 1);
-  assert.equal(open[0].key, "who_is_jesus");
-  assert.equal(open[0].scored, false);
-  assert.ok((open[0].max_length ?? 0) > 0, "free text must be bounded");
-  assert.ok(open[0].help, "free text must warn the respondent not to identify anyone");
+  assert.deepEqual(
+    open.map((i) => i.key).sort(),
+    ["explore_describe_jesus", "who_is_jesus"],
+    "a new open_text item showed up without an update here — confirm it belongs",
+  );
+  for (const item of open) {
+    assert.equal(item.scored, false, `"${item.key}" is free text but scored`);
+    assert.ok((item.max_length ?? 0) > 0, `"${item.key}" must be length-bounded`);
+    assert.ok(item.help, `"${item.key}" must warn the respondent not to identify anyone`);
+  }
 });
 
 test("the open prompt comes before the leading belief items", () => {
