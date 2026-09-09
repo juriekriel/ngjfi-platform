@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { t, type AnswerValue, type InstrumentItem, type Locale } from "@/lib/instrument";
+import { t, type AnswerValue, type InstrumentItem, type InstrumentOption, type Locale } from "@/lib/instrument";
 
 const LIKERT = ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"];
 
@@ -105,6 +105,19 @@ export function Question({
         />
       )}
 
+      {item.type === "multi_select" && (
+        <MultiSelect
+          key={item.key}
+          brand={brand}
+          busy={busy}
+          options={item.options || []}
+          maxSelect={item.max_select}
+          locale={locale}
+          initial={Array.isArray(selected) ? selected.map(String) : []}
+          onSubmit={onChoose}
+        />
+      )}
+
       {onBack && (
         <button onClick={onBack} className="mt-5 text-xs text-muted hover:text-ink">
           ← Back
@@ -166,6 +179,86 @@ function OpenText({
           Skip
         </button>
       </div>
+    </div>
+  );
+}
+
+/**
+ * "Select up to N" / "check all that apply" items (Drivers, Journey).
+ *
+ * Unscored by convention (`scored: false`) — these feed covariate analysis,
+ * not the Index — so there is no right answer to force. Submitting an empty
+ * selection is allowed, same as skipping an open_text item, rather than
+ * blocking someone who genuinely has none of the listed experiences.
+ */
+function MultiSelect({
+  brand,
+  busy,
+  options,
+  maxSelect,
+  locale,
+  initial,
+  onSubmit,
+}: {
+  brand: string;
+  busy: boolean;
+  options: InstrumentOption[];
+  maxSelect?: number;
+  locale: Locale;
+  initial: string[];
+  onSubmit: (v: AnswerValue) => void;
+}) {
+  const [picked, setPicked] = useState<string[]>(initial);
+  const atCap = typeof maxSelect === "number" && picked.length >= maxSelect;
+
+  function toggle(value: string) {
+    setPicked((prev) => {
+      if (prev.includes(value)) return prev.filter((v) => v !== value);
+      if (atCap) return prev; // already at the cap — ignore new picks until one is deselected
+      return [...prev, value];
+    });
+  }
+
+  return (
+    <div>
+      {typeof maxSelect === "number" && (
+        <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
+          Select up to {maxSelect} — {picked.length}/{maxSelect} chosen
+        </p>
+      )}
+      <div className="flex flex-col gap-2">
+        {options.map((o) => {
+          const value = String(o.value);
+          const isChecked = picked.includes(value);
+          const disabled = busy || (atCap && !isChecked);
+          return (
+            <button
+              key={value}
+              type="button"
+              disabled={disabled}
+              onClick={() => toggle(value)}
+              className="flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition disabled:opacity-40"
+              style={isChecked ? { borderColor: brand, background: `${brand}1a` } : { borderColor: "#e6e8ec" }}
+            >
+              <span
+                className="flex h-4 w-4 flex-none items-center justify-center rounded border-2"
+                style={isChecked ? { borderColor: brand, background: brand } : { borderColor: "#c7cbd4" }}
+              >
+                {isChecked && <span className="h-1.5 w-1.5 rounded-sm bg-white" />}
+              </span>
+              {t(o.text, locale)}
+            </button>
+          );
+        })}
+      </div>
+      <button
+        disabled={busy}
+        onClick={() => onSubmit(picked)}
+        className="mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold text-white disabled:opacity-40"
+        style={{ background: brand }}
+      >
+        Continue →
+      </button>
     </div>
   );
 }
