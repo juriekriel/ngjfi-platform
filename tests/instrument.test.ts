@@ -51,12 +51,23 @@ const byKey = (k: string): InstrumentItem => {
 const DOMAINS = ["follow", "mission", "world"] as const;
 const TIERS = ["exposure", "response", "formation", "multiplication"] as const;
 
-// A respondent who is all the way in — used as the "everything visible" baseline.
+// A respondent who is all the way in — used as the "everything visible"
+// baseline. Includes opting into Drivers/Journey (continue_to_extras), since
+// this persona exists to prove reachability, not to model the modal path.
 const committed: Record<string, AnswerValue> = {
   age_band: "18_22",
   heard_story: "yes",
   orientation: "committed_growing",
   identify_as_follower: 5,
+  continue_to_extras: "yes",
+};
+
+// The same respondent, but declining the optional continuation — this is
+// the length that actually matters for "how long is the survey," since
+// Drivers/Journey are opt-in.
+const committedCore: Record<string, AnswerValue> = {
+  ...committed,
+  continue_to_extras: "no",
 };
 
 // Someone who has heard of Jesus but is not engaged.
@@ -128,18 +139,29 @@ test("the NGC12 core is exactly twelve items and covers all three domains", () =
 
 test("no single respondent path exceeds the agreed ceiling for a fielded set", () => {
   // "1 question is best, 12 can be done, 20 is the max" is the project's own
-  // stated ceiling (CLAUDE.md §4, "~6 minutes end to end"). Matthew's 24-item
-  // Index + Drivers + Journey + the two kept frequency items now puts the
-  // full path at 41 questions — genuinely over that ceiling, not a test
-  // artifact. This assertion documents the real number rather than silently
-  // raising the bar; flagged for a product decision (e.g. Drivers/Journey as
-  // an optional continuation after the Index proper), not fixed here.
-  const full = visibleItems(committed).length;
-  assert.equal(full, 41, `full Index path length changed to ${full} — update this number and the flag above`);
+  // stated ceiling (CLAUDE.md §4, "~6 minutes end to end"). Drivers/Journey
+  // are now an explicit opt-in (continue_to_extras) rather than part of the
+  // core flow, specifically so the REQUIRED path has a real number to hold
+  // to — 34, still over 20, still worth a look, but no longer a silent
+  // 41-question flow nobody chose to walk into.
+  const core = visibleItems(committedCore).length;
+  const withExtras = visibleItems(committed).length;
+  assert.equal(core, 34, `core (extras declined) path length changed to ${core} — update this number`);
+  assert.equal(withExtras, 42, `full (extras accepted) path length changed to ${withExtras} — update this number`);
   for (const [name, answers] of Object.entries({ notEngaged, neverHeard })) {
     const n = visibleItems(answers).length;
     assert.ok(n <= 20, `the "${name}" (exploration) path asks ${n} questions — over the agreed ceiling`);
   }
+});
+
+test("Drivers and Journey are opt-in, not part of the core flow", () => {
+  for (const key of ["driver_sources_of_belief", "journey_encounter_and_response"]) {
+    assert.equal(isVisible(byKey(key), committedCore), false, `"${key}" showed up despite declining the extras`);
+    assert.equal(isVisible(byKey(key), committed), true, `"${key}" stayed hidden despite accepting the extras`);
+  }
+  // The offer itself is asked right after the core Index, before any extras.
+  assert.ok(byKey("continue_to_extras").order! > byKey("scripture_frequency").order!);
+  assert.ok(byKey("continue_to_extras").order! < byKey("driver_sources_of_belief").order!);
 });
 
 test("item order is unique and every item is reachable by someone", () => {

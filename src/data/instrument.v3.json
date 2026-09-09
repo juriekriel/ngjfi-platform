@@ -1436,6 +1436,45 @@
       }
     },
     {
+      "key": "continue_to_extras",
+      "question_domain": "screener",
+      "tier": "na",
+      "type": "single_select",
+      "scored": false,
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ]
+      },
+      "options": [
+        {
+          "value": "yes",
+          "text": {
+            "en": "Sure, a few more",
+            "es": "Claro, algunas más"
+          }
+        },
+        {
+          "value": "no",
+          "text": {
+            "en": "No thanks, I'm done",
+            "es": "No, gracias, ya terminé"
+          }
+        }
+      ],
+      "order": 198,
+      "text": {
+        "en": "That's the main set — thank you. Want to help us understand your journey a bit more? A few optional questions, about two more minutes.",
+        "es": "Ese es el conjunto principal — gracias. ¿Quieres ayudarnos a entender un poco más tu camino? Algunas preguntas opcionales, unos dos minutos más."
+      }
+    },
+    {
       "key": "driver_sources_of_belief",
       "question_domain": "drivers",
       "tier": "na",
@@ -1448,6 +1487,12 @@
             "in": [
               "new_follower",
               "committed_growing"
+            ]
+          },
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
             ]
           }
         ]
@@ -1545,6 +1590,12 @@
               "new_follower",
               "committed_growing"
             ]
+          },
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
           }
         ]
       },
@@ -1618,6 +1669,12 @@
             "in": [
               "new_follower",
               "committed_growing"
+            ]
+          },
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
             ]
           }
         ]
@@ -1707,6 +1764,12 @@
               "new_follower",
               "committed_growing"
             ]
+          },
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
           }
         ]
       },
@@ -1787,6 +1850,12 @@
             "in": [
               "new_follower",
               "committed_growing"
+            ]
+          },
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
             ]
           }
         ]
@@ -1904,6 +1973,12 @@
               "new_follower",
               "committed_growing"
             ]
+          },
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
           }
         ]
       },
@@ -2020,6 +2095,12 @@
               "new_follower",
               "committed_growing"
             ]
+          },
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
           }
         ]
       },
@@ -2100,6 +2181,12 @@
             "in": [
               "new_follower",
               "committed_growing"
+            ]
+          },
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
             ]
           }
         ]
