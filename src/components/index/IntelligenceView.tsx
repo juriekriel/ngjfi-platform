@@ -17,7 +17,7 @@ type Intel = {
   domains: Record<string, number | null>;
   matrix: Record<string, Record<string, number | null>>;
   by_age: Record<string, number | null>;
-  regions: { region: string; index: number; responses: number }[];
+  regions: { region: string; n: number; index: number | null; tiers: Record<string, number | null> }[];
   trend: { year: number; index: number }[] | null;
   countries: { country: string; n: number; tiers: Record<string, number | null> }[] | null;
   findings: { formation_mult_r2: number | null; formation_corr: number | null; mult_top: number | null; mult_bottom: number | null };
@@ -60,6 +60,7 @@ export default function IntelligenceView({
   const [d, setD] = useState<Intel | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [tier, setTier] = useState("formation");
+  const [mapView, setMapView] = useState<"countries" | "regions">("countries");
 
   useEffect(() => {
     (async () => {
@@ -223,35 +224,73 @@ export default function IntelligenceView({
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="font-sans text-xl font-semibold">The map, tier by tier</h2>
-                  <p className="mt-1 text-sm text-slate">Nations coloured by score — switch tiers to watch the world shift.</p>
+                  <p className="mt-1 text-sm text-slate">
+                    {mapView === "countries"
+                      ? "Nations coloured by score — switch tiers to watch the world shift."
+                      : "The same picture at region scale — every one of the 11 NXT Move regions, not just the ones a country grid happens to have room for."}
+                  </p>
                 </div>
-                <div className="flex flex-wrap gap-1">
-                  {TIERS.map((tk) => (
-                    <button key={tk} onClick={() => setTier(tk)}
-                      className={`rounded border px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider ${tier === tk ? "border-ink bg-ink text-paper" : "border-rule text-slate"}`}>
-                      {TIER_LABEL[tk]}
-                    </button>
-                  ))}
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex gap-1 rounded border border-rule p-0.5">
+                    {(["countries", "regions"] as const).map((v) => (
+                      <button key={v} onClick={() => setMapView(v)}
+                        className={`rounded px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider ${mapView === v ? "bg-ink text-paper" : "text-slate"}`}>
+                        {v === "countries" ? "Countries" : "Regions"}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {TIERS.map((tk) => (
+                      <button key={tk} onClick={() => setTier(tk)}
+                        className={`rounded border px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider ${tier === tk ? "border-ink bg-ink text-paper" : "border-rule text-slate"}`}>
+                        {TIER_LABEL[tk]}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div className="mt-5 overflow-x-auto">
-                <div className="grid gap-1.5" style={{ gridTemplateColumns: "repeat(13, minmax(34px, 1fr))", gridAutoRows: "40px", minWidth: 560 }}>
-                  {(d.countries || []).map((c) => {
-                    const pos = TILES[c.country];
-                    if (!pos) return null;
-                    const v = c.tiers?.[tier] ?? null;
+              {mapView === "countries" ? (
+                <div className="mt-5 overflow-x-auto">
+                  <div className="grid gap-1.5" style={{ gridTemplateColumns: "repeat(13, minmax(34px, 1fr))", gridAutoRows: "40px", minWidth: 560 }}>
+                    {(d.countries || []).map((c) => {
+                      const pos = TILES[c.country];
+                      if (!pos) return null;
+                      const v = c.tiers?.[tier] ?? null;
+                      const dark = v !== null && v !== undefined;
+                      return (
+                        <div key={c.country} title={`${c.country} · ${TIER_LABEL[tier]}: ${fmt(v)} (n=${c.n})`}
+                          className="flex flex-col items-center justify-center rounded"
+                          style={{ gridColumn: pos.c, gridRow: pos.r, background: level(v), color: dark ? "#fff" : "#9aa0a8" }}>
+                          <span className="font-mono text-[10px] font-semibold leading-none">{pos.code}</span>
+                          <span className="text-[9px] font-semibold leading-none opacity-90">{fmt(v)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                // Regions have no pixel-perfect geography to place them at, and
+                // don't need one — there are only 11, always the same 11, so a
+                // plain responsive wrap reads fine and never runs out of room
+                // for a country the original grid was never taught about.
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {(d.regions || []).map((r) => {
+                    const v = r.tiers?.[tier] ?? null;
                     const dark = v !== null && v !== undefined;
                     return (
-                      <div key={c.country} title={`${c.country} · ${TIER_LABEL[tier]}: ${fmt(v)} (n=${c.n})`}
-                        className="flex flex-col items-center justify-center rounded"
-                        style={{ gridColumn: pos.c, gridRow: pos.r, background: level(v), color: dark ? "#fff" : "#9aa0a8" }}>
-                        <span className="font-mono text-[10px] font-semibold leading-none">{pos.code}</span>
-                        <span className="text-[9px] font-semibold leading-none opacity-90">{fmt(v)}</span>
+                      <div key={r.region} title={`${r.region} · ${TIER_LABEL[tier]}: ${fmt(v)} (n=${r.n})`}
+                        className="flex min-w-[120px] flex-1 flex-col items-center justify-center gap-0.5 rounded px-3 py-4"
+                        style={{ background: level(v), color: dark ? "#fff" : "#9aa0a8" }}>
+                        <span className="text-center font-mono text-[10px] font-semibold leading-tight">{r.region}</span>
+                        <span className="text-[11px] font-semibold leading-none opacity-90">{fmt(v)}</span>
                       </div>
                     );
                   })}
+                  {!d.regions?.length && (
+                    <p className="text-sm text-slate">No region has passed the critical-mass gate yet.</p>
+                  )}
                 </div>
-              </div>
+              )}
               <div className="mt-4 flex flex-wrap gap-4 font-mono text-[9px] uppercase tracking-wider text-muted">
                 <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ background: "#3f9d72" }} /> Strong · 58+</span>
                 <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ background: "#e0993f" }} /> Emerging · 42–57</span>
@@ -269,9 +308,9 @@ export default function IntelligenceView({
                 {(d.regions || []).map((r) => (
                   <div key={r.region} className="flex items-center gap-3 text-sm">
                     <span className="w-40 shrink-0">{r.region}</span>
-                    <div className="h-2 flex-1 rounded bg-paper-deep"><div className="h-full rounded bg-moss" style={{ width: `${r.index}%` }} /></div>
-                    <b className="w-8 text-right font-serif">{r.index}</b>
-                    <span className="w-16 text-right font-mono text-[11px] text-muted">{r.responses?.toLocaleString?.() ?? r.responses}</span>
+                    <div className="h-2 flex-1 rounded bg-paper-deep"><div className="h-full rounded bg-moss" style={{ width: `${r.index ?? 0}%` }} /></div>
+                    <b className="w-8 text-right font-serif">{fmt(r.index)}</b>
+                    <span className="w-16 text-right font-mono text-[11px] text-muted">{r.n?.toLocaleString?.() ?? r.n}</span>
                   </div>
                 ))}
               </div>
