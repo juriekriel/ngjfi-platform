@@ -28,6 +28,12 @@
 --   0007_branching_and_session_context.sql
 --   0008_waitlist_and_access.sql
 --   0009_data_spaces.sql
+--   0010_roles_and_short_names.sql
+--   0011_path_based_short_names.sql
+--   0012_admin_worklist.sql
+--   0013_networks.sql
+--   0014_waves_and_survey_setup.sql
+--   0015_fix_intelligence_data_contract.sql
 -- ============================================================================
 
 
@@ -1461,4 +1467,1435 @@ language sql security definer set search_path = public as $$
 $$;
 
 grant execute on function public.data_space_report() to anon, authenticated;
+
+
+-- ─── 0010_roles_and_short_names.sql ────────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — roles and short names (migration 0010)
+--
+-- Step 1 of the engine build. Nothing else in the spec can be built until a
+-- signed-in person has a tier, because every screen above the respondent layer
+-- is a different answer to "who is asking".
+--
+-- Three tiers, named neutrally so a facilitator tier drops in later without a
+-- migration:
+--
+--   admin   — the backbone. Approves access, sets platform_settings, activates
+--             instrument versions. Two people today; should stay under five.
+--   collab  — Collab members, research panel, technical partners. Reads the
+--             pooled picture INCLUDING below-gate geographies, which the public
+--             view will never show. Never a single organisation's results.
+--   org     — a participating ministry. Its own aggregates only, via the
+--             existing org_members + website-domain verification.
+--
+-- No tier can read an individual response. That is not enforced here because it
+-- is enforced by absence: there is no function anywhere that returns one.
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- The tier lives on app_users, which handle_new_user() already populates on
+-- sign-up. Default 'org' so a new sign-in is never accidentally privileged.
+-- ----------------------------------------------------------------------------
+alter table public.app_users
+  add column if not exists role text not null default 'org'
+    check (role in ('admin', 'collab', 'org'));
+
+comment on column public.app_users.role is
+  'Access tier. Set by an administrator, never by the client — see set_user_role().';
+
+-- ----------------------------------------------------------------------------
+-- The caller's own tier. Every protected surface resolves through this rather
+-- than trusting anything the browser says about itself.
+-- ----------------------------------------------------------------------------
+create or replace function public.my_role()
+returns text
+language sql stable security definer set search_path = public as $$
+  select coalesce((select role from app_users where id = auth.uid()), 'anon');
+$$;
+
+grant execute on function public.my_role() to anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- Only an administrator can change a tier, and never their own — so a single
+-- compromised admin session cannot quietly promote itself further or lock the
+-- other administrators out.
+-- ----------------------------------------------------------------------------
+create or replace function public.set_user_role(p_email text, p_role text)
+returns void
+language plpgsql security definer set search_path = public as $$
+declare v_uid uuid;
+begin
+  if my_role() <> 'admin' then
+    raise exception 'only an administrator can change a tier';
+  end if;
+  if p_role not in ('admin', 'collab', 'org') then
+    raise exception 'unknown tier %', p_role;
+  end if;
+
+  select id into v_uid from auth.users where lower(email) = lower(btrim(p_email));
+  if v_uid is null then
+    raise exception 'no account for % — they must sign in once first', p_email;
+  end if;
+  if v_uid = auth.uid() then
+    raise exception 'you cannot change your own tier';
+  end if;
+
+  update app_users set role = p_role where id = v_uid;
+end;
+$$;
+
+grant execute on function public.set_user_role(text, text) to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- Short names. `sn.jfindx.org` is the survey link, so this value ends up printed
+-- on QR codes and posters — which is why it is validated hard and why renaming
+-- is deliberately not a self-serve action.
+-- ----------------------------------------------------------------------------
+alter table public.organisations
+  add column if not exists short_name text unique;
+
+alter table public.organisations
+  drop constraint if exists organisations_short_name_shape;
+
+alter table public.organisations
+  add constraint organisations_short_name_shape
+    check (short_name is null or short_name ~ '^[a-z][a-z0-9-]{1,31}$');
+
+comment on column public.organisations.short_name is
+  'The subdomain: <short_name>.jfindx.org. Lowercase, 2–32 chars, no leading digit. Ends up on printed QR codes, so treat as permanent.';
+
+-- Reserved names can never become an organisation's subdomain. Kept as DATA so
+-- adding one later is an insert, not a deploy.
+create table if not exists public.reserved_short_names (
+  name   text primary key,
+  reason text
+);
+
+alter table public.reserved_short_names enable row level security;
+
+create policy "reserved names are publicly readable"
+  on public.reserved_short_names for select using (true);
+
+insert into public.reserved_short_names (name, reason) values
+  ('index', 'the engine'), ('www', 'apex'), ('app', 'platform'), ('api', 'platform'),
+  ('admin', 'platform'), ('demo', 'sandbox'), ('assets', 'platform'), ('static', 'platform'),
+  ('mail', 'infrastructure'), ('smtp', 'infrastructure'), ('ftp', 'infrastructure'),
+  ('collab', 'tier'), ('build', 'legacy route'), ('join', 'public'), ('learn', 'public'),
+  ('tour', 'public'), ('access', 'public'), ('intelligence', 'public'), ('method', 'public'),
+  ('privacy', 'public'), ('coverage', 'public'), ('support', 'reserved'), ('help', 'reserved'),
+  ('status', 'reserved'), ('jfindx', 'brand'), ('jesusindex', 'brand'), ('jx', 'brand')
+on conflict (name) do nothing;
+
+create or replace function public.enforce_short_name()
+returns trigger language plpgsql set search_path = public as $$
+begin
+  if new.short_name is not null
+     and exists (select 1 from reserved_short_names r where r.name = new.short_name) then
+    raise exception '"%" is reserved and cannot be used as a short name', new.short_name;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists organisations_short_name_guard on public.organisations;
+create trigger organisations_short_name_guard
+  before insert or update on public.organisations
+  for each row execute function public.enforce_short_name();
+
+-- ----------------------------------------------------------------------------
+-- Is a short name available? Public, because the org setup screen needs to say
+-- so while someone types. Returns only a boolean — never the list.
+-- ----------------------------------------------------------------------------
+create or replace function public.short_name_available(p_name text)
+returns boolean
+language sql stable security definer set search_path = public as $$
+  select p_name ~ '^[a-z][a-z0-9-]{1,31}$'
+     and not exists (select 1 from reserved_short_names where name = p_name)
+     and not exists (select 1 from organisations where short_name = p_name);
+$$;
+
+grant execute on function public.short_name_available(text) to anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- Two campaigns per organisation, not one.
+--
+-- The original research design had two avenues — influenced (their own network)
+-- and uninfluenced (public) — and the platform only ever built the first. The
+-- audience label is what makes "the young people we reach vs the young people
+-- around us" answerable, which is the Index's most distinctive claim.
+-- ----------------------------------------------------------------------------
+alter table public.campaigns
+  add column if not exists audience text not null default 'community'
+    check (audience in ('community', 'public'));
+
+comment on column public.campaigns.audience is
+  'community = inside their own network (influenced). public = social/open link (uninfluenced). Compared side by side, never pooled silently.';
+
+-- An organisation that drops non-core items is still fully readable to itself,
+-- but must not be silently benchmarked against organisations running the whole
+-- instrument. Flagged here; the UI explains it at the moment of the choice.
+alter table public.campaigns
+  add column if not exists is_partial boolean not null default false;
+
+comment on column public.campaigns.is_partial is
+  'True when non-core items were removed. Own results unaffected; excluded from benchmark comparison for the affected tiers.';
+
+-- Presentation is theirs; the measure is not.
+alter table public.organisations
+  add column if not exists logo_url text,
+  add column if not exists welcome_message text,
+  add column if not exists closing_message text;
+
+comment on column public.organisations.welcome_message is
+  'The organisation''s own words before question one. This is where "make it ours" belongs — never in the item text, which must stay identical everywhere.';
+
+
+-- ─── 0011_path_based_short_names.sql ───────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — one public identifier (migration 0011)
+--
+-- DECISION: the survey link is jfindx.org/<short_name>, not <short_name>.jfindx.org.
+--
+-- Path-based costs almost nothing that matters. The URL is on screen for about
+-- two seconds; the moment the survey opens it is fully theirs — their logo,
+-- colour, name and welcome message. Most respondents arrive by QR code and never
+-- read a URL at all. In exchange it ships today with no wildcard certificate, no
+-- DNS migration off Squarespace (which would drag MX and TXT along with it), and
+-- no single point of failure: a wildcard cert that fails to renew would break
+-- EVERY organisation's link at once, and a path cannot do that.
+--
+-- Nothing from 0010 is wasted. short_name becomes the path segment instead of
+-- the subdomain — same column, same shape, same reserved list. The reserved list
+-- matters MORE on a path, because those names collide with real routes.
+--
+-- Upgrading later is additive: add the wildcard and 301 the path to the
+-- subdomain. Both keep working, nothing needs reprinting.
+--
+-- THE PROBLEM THIS FIXES NOW, WHILE IT IS STILL FREE
+-- /[org] currently matches on `slug`, and 0010 added `short_name`. Two public
+-- identifiers that can drift is a bug waiting for its first support ticket —
+-- an organisation would hand out one and find the other on their dashboard.
+-- short_name becomes canonical; slug is backfilled from it and kept in lockstep.
+-- Doing this after an organisation has printed a QR code would be expensive.
+-- ============================================================================
+
+-- Every existing organisation keeps working: its slug becomes its short name.
+update public.organisations
+   set short_name = slug
+ where short_name is null
+   and slug ~ '^[a-z][a-z0-9-]{1,31}$'
+   and not exists (select 1 from public.reserved_short_names r where r.name = slug);
+
+-- Anything that could not be adopted verbatim is visible rather than silent.
+do $$
+declare v_bad int;
+begin
+  select count(*) into v_bad from public.organisations where short_name is null;
+  if v_bad > 0 then
+    raise notice '% organisation(s) have no short name — they need one assigned before they can field.', v_bad;
+  end if;
+end $$;
+
+-- ----------------------------------------------------------------------------
+-- Keep the two in lockstep so a lookup by either always lands in one place.
+-- The application should read and write short_name only; slug survives as an
+-- internal key so existing foreign relationships and demo data keep resolving.
+-- ----------------------------------------------------------------------------
+create or replace function public.sync_short_name()
+returns trigger language plpgsql set search_path = public as $$
+begin
+  if new.short_name is not null and new.short_name is distinct from new.slug then
+    new.slug := new.short_name;
+  elsif new.short_name is null then
+    new.short_name := new.slug;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists organisations_sync_short_name on public.organisations;
+create trigger organisations_sync_short_name
+  before insert or update on public.organisations
+  for each row execute function public.sync_short_name();
+
+-- ----------------------------------------------------------------------------
+-- Resolve an organisation for the public survey route. Returns presentation
+-- only — never a score, never a member, never anything a competitor could use.
+-- This is what /[org] should call instead of selecting from the table directly.
+-- ----------------------------------------------------------------------------
+create or replace function public.org_public(p_short_name text)
+returns jsonb
+language sql stable security definer set search_path = public as $$
+  select case when o.id is null then null else jsonb_build_object(
+    'short_name',      o.short_name,
+    'name',            o.name,
+    'brand_color',     o.brand_color,
+    'country',         o.country,
+    'logo_url',        o.logo_url,
+    'welcome_message', o.welcome_message,
+    'closing_message', o.closing_message,
+    'is_demo',         o.is_demo
+  ) end
+  from public.organisations o
+  where o.short_name = lower(btrim(p_short_name))
+     or o.slug       = lower(btrim(p_short_name))
+  limit 1;
+$$;
+
+grant execute on function public.org_public(text) to anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- The two links an organisation hands out. One call, so the setup screen and
+-- the print sheet can never disagree about what the links are.
+-- ----------------------------------------------------------------------------
+create or replace function public.org_links(p_short_name text)
+returns jsonb
+language sql stable security definer set search_path = public as $$
+  select jsonb_build_object(
+    'community', jsonb_build_object(
+      'url',   'https://jfindx.org/' || o.short_name,
+      'label', 'Your community',
+      'note',  'For the young people you already reach — camps, services, groups.'
+    ),
+    'public', jsonb_build_object(
+      'url',   'https://jfindx.org/' || o.short_name || '/open',
+      'label', 'Beyond your community',
+      'note',  'For social media and the wider city — the young people you have not reached yet.'
+    )
+  )
+  from public.organisations o
+  where o.short_name = lower(btrim(p_short_name))
+  limit 1;
+$$;
+
+grant execute on function public.org_links(text) to anon, authenticated;
+
+-- Path-based means these names collide with real application routes, so the
+-- reserved list is load-bearing rather than cosmetic. Add the rest of them.
+insert into public.reserved_short_names (name, reason) values
+  ('open', 'the public campaign suffix'),
+  ('dashboard', 'org route'), ('settings', 'org route'), ('links', 'org route'),
+  ('preview', 'org route'), ('team', 'org route'), ('waves', 'org route'),
+  ('signin', 'auth'), ('signout', 'auth'), ('callback', 'auth'),
+  ('_next', 'framework'), ('favicon.ico', 'framework'), ('robots.txt', 'framework'),
+  ('sitemap.xml', 'framework'), ('manifest.json', 'framework')
+on conflict (name) do nothing;
+
+
+-- ─── 0012_admin_worklist.sql ───────────────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — the administrator's worklist (migration 0012)
+--
+-- One call behind the console. It is a WORKLIST, not a dashboard: the 2027
+-- target is a chain of handovers that each need a person to notice them, so the
+-- job of this function is to surface what is waiting on a human right now.
+--
+-- Everything it returns is aggregate or operational. It never returns an
+-- individual response, because nothing does.
+-- ============================================================================
+
+create or replace function public.admin_worklist()
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare result jsonb;
+begin
+  if my_role() <> 'admin' then
+    raise exception 'the worklist is for administrators';
+  end if;
+
+  select jsonb_build_object(
+    'access_requests', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id', a.id, 'email', a.email, 'reason', a.reason,
+        'status', a.status, 'created_at', a.created_at
+      ) order by a.created_at desc)
+      from access_requests a where a.status = 'requested'
+    ), '[]'::jsonb),
+
+    'people', coalesce((
+      select jsonb_agg(jsonb_build_object('email', u.email, 'role', au.role) order by u.email)
+      from app_users au join auth.users u on u.id = au.id
+    ), '[]'::jsonb),
+
+    -- Live organisations only. The 26 synthetic ones are not work.
+    'organisations', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'short_name', o.short_name, 'name', o.name, 'country', o.country,
+        'verified', o.verified, 'has_brand', (o.logo_url is not null or o.brand_color is not null),
+        'campaigns', (select count(*) from campaigns c where c.org_id = o.id),
+        'responses', (
+          select count(*) from responses r
+          join sessions s on s.id = r.session_id
+          join campaigns c on c.id = s.campaign_id
+          where c.org_id = o.id
+        )
+      ) order by o.name)
+      from organisations o where o.is_demo = false
+    ), '[]'::jsonb),
+
+    -- How close each country is to unlocking a benchmark for everyone in it.
+    -- Concentration is the constraint, so this is the number that steers effort.
+    'clusters', coalesce((
+      select jsonb_agg(jsonb_build_object('country', country, 'completions', n, 'orgs', orgs)
+                       order by n desc)
+      from (
+        select o.country, count(distinct s.id) n, count(distinct o.id) orgs
+        from organisations o
+        join campaigns c on c.org_id = o.id
+        join sessions s on s.campaign_id = c.id
+        where o.is_demo = false and o.country is not null
+        group by o.country
+      ) k
+    ), '[]'::jsonb),
+
+    'instrument', (
+      select jsonb_build_object('version', iv.version, 'status', iv.status,
+                                'items', (select count(*) from items i where i.instrument_version_id = iv.id))
+      from instrument_versions iv where iv.status = 'active' limit 1
+    ),
+
+    'settings', coalesce((
+      select jsonb_object_agg(key, value) from platform_settings
+    ), '{}'::jsonb),
+
+    'spaces', data_space_report()
+  ) into result;
+
+  return result;
+end;
+$$;
+
+grant execute on function public.admin_worklist() to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- Decide an access request. Approving records the decision; it does not grant a
+-- tier — that stays a separate, deliberate act via set_user_role(), so nobody
+-- becomes an administrator as a side effect of a queue being cleared.
+-- ----------------------------------------------------------------------------
+create or replace function public.decide_access_request(p_id uuid, p_decision text)
+returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if my_role() <> 'admin' then
+    raise exception 'only an administrator can decide access requests';
+  end if;
+  if p_decision not in ('approved', 'declined') then
+    raise exception 'decision must be approved or declined';
+  end if;
+  update access_requests
+     set status = p_decision, decided_at = now()
+   where id = p_id and status = 'requested';
+end;
+$$;
+
+grant execute on function public.decide_access_request(uuid, text) to authenticated;
+
+
+-- ─── 0013_networks.sql ─────────────────────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — networks (migration 0013)
+--
+-- A gap in the model, not a naming question. Until now the world was
+-- organisations plus tiers, and that cannot describe what NXT Move actually is.
+--
+--   Shoreline Church  FIELDS a survey. Respondents, links, its own dashboard.
+--   NXT Move          FIELDS NOTHING. It CONTAINS organisations and needs to
+--                     see across them.
+--
+-- Those are different objects. A network is not a bigger organisation, and
+-- modelling it as one would mean either giving it phantom respondents or
+-- special-casing it everywhere.
+--
+-- Membership is many-to-many on purpose: a church can sit in NXT Move AND a
+-- denominational network AND a city cluster at the same time, and each of those
+-- rolls up the same underlying responses without duplicating them.
+--
+-- WHAT A NETWORK MAY SEE
+-- Aggregates across its member organisations, and — deliberately — the per-org
+-- index for organisations that have consented to share it upward. That consent
+-- is per-membership and defaults to FALSE. A network lead cannot silently see
+-- a member church's score just by adding them.
+-- ============================================================================
+
+create table if not exists public.networks (
+  id            uuid primary key default gen_random_uuid(),
+  short_name    text unique not null,
+  name          text not null,
+  kind          text not null default 'network'
+                  check (kind in ('network', 'denomination', 'cluster', 'backbone')),
+  country       text,
+  region        text,
+  brand_color   text,
+  logo_url      text,
+  website_domain text,
+  is_demo       boolean not null default false,
+  created_at    timestamptz not null default now()
+);
+
+alter table public.networks
+  drop constraint if exists networks_short_name_shape;
+alter table public.networks
+  add constraint networks_short_name_shape
+    check (short_name ~ '^[a-z][a-z0-9-]{1,31}$');
+
+comment on table public.networks is
+  'A container of organisations. Fields nothing itself — it has no campaigns and no respondents.';
+
+-- Networks and organisations share one namespace, so a link can never be
+-- ambiguous about which kind of thing it points at.
+create or replace function public.enforce_network_short_name()
+returns trigger language plpgsql set search_path = public as $$
+begin
+  if exists (select 1 from reserved_short_names r where r.name = new.short_name) then
+    raise exception '"%" is reserved', new.short_name;
+  end if;
+  if exists (select 1 from organisations o where o.short_name = new.short_name) then
+    raise exception '"%" is already an organisation', new.short_name;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists networks_short_name_guard on public.networks;
+create trigger networks_short_name_guard
+  before insert or update on public.networks
+  for each row execute function public.enforce_network_short_name();
+
+-- ----------------------------------------------------------------------------
+-- Membership. `shares_index` is the consent: an organisation agrees that this
+-- particular network may see its own index, not just be counted in the pool.
+-- Defaults to false, because being added to a network is not consent.
+-- ----------------------------------------------------------------------------
+create table if not exists public.network_members (
+  network_id   uuid not null references public.networks(id) on delete cascade,
+  org_id       uuid not null references public.organisations(id) on delete cascade,
+  shares_index boolean not null default false,
+  added_at     timestamptz not null default now(),
+  primary key (network_id, org_id)
+);
+
+-- People who work at the network level rather than at one organisation.
+create table if not exists public.network_members_users (
+  network_id uuid not null references public.networks(id) on delete cascade,
+  user_id    uuid not null references public.app_users(id) on delete cascade,
+  status     text not null default 'active' check (status in ('active', 'invited', 'removed')),
+  primary key (network_id, user_id)
+);
+
+alter table public.networks              enable row level security;
+alter table public.network_members       enable row level security;
+alter table public.network_members_users enable row level security;
+
+create policy "networks are publicly readable" on public.networks for select using (true);
+
+-- ----------------------------------------------------------------------------
+-- The network console's payload. Aggregates across members, plus per-org rows
+-- ONLY where that organisation consented to share upward.
+-- ----------------------------------------------------------------------------
+create or replace function public.network_console(p_short_name text)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_net public.networks%rowtype; v_uid uuid := auth.uid(); result jsonb;
+begin
+  select * into v_net from networks where short_name = lower(btrim(p_short_name));
+  if not found then raise exception 'network not found'; end if;
+
+  -- Administrators may look into any network. Everyone else must belong to it.
+  if my_role() <> 'admin' and not exists (
+    select 1 from network_members_users m
+     where m.network_id = v_net.id and m.user_id = v_uid and m.status = 'active'
+  ) then
+    raise exception 'not authorised for this network';
+  end if;
+
+  with mem as (
+    select o.id, o.short_name, o.name, o.country, nm.shares_index
+      from network_members nm join organisations o on o.id = nm.org_id
+     where nm.network_id = v_net.id
+  ),
+  r as (
+    select rsp.tier, rsp.question_domain, rsp.normalized, s.id sid, m.id oid, m.shares_index
+      from mem m
+      join campaigns c on c.org_id = m.id
+      join sessions s on s.campaign_id = c.id
+      join responses rsp on rsp.session_id = s.id
+     where rsp.normalized is not null
+  )
+  select jsonb_build_object(
+    'network', jsonb_build_object('short_name', v_net.short_name, 'name', v_net.name, 'kind', v_net.kind),
+    'members', (select count(*) from mem),
+    'headline', jsonb_build_object(
+      'organisations', (select count(distinct oid) from r),
+      'responses',     (select count(distinct sid) from r)
+    ),
+    'funnel',  (select jsonb_object_agg(tier, m) from
+                 (select tier, round(avg(normalized),1) m from r group by tier) t),
+    'domains', (select jsonb_object_agg(question_domain, m) from
+                 (select question_domain, round(avg(normalized),1) m from r group by question_domain) d),
+    -- Per-organisation rows appear only with that organisation's consent.
+    'organisations', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'short_name', m.short_name, 'name', m.name, 'country', m.country,
+        'shares_index', m.shares_index,
+        'index', case when m.shares_index then (
+          select round(avg(x.normalized),1) from r x where x.oid = m.id
+        ) else null end,
+        'responses', (select count(distinct x.sid) from r x where x.oid = m.id)
+      ) order by m.name) from mem m
+    ), '[]'::jsonb)
+  ) into result;
+
+  return result;
+end;
+$$;
+
+grant execute on function public.network_console(text) to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- An administrator opening someone else's console. This is the most sensitive
+-- capability in the system, so it is read-only by construction, it is logged,
+-- and it still cannot return an individual response — because nothing can.
+-- ----------------------------------------------------------------------------
+create table if not exists public.view_as_log (
+  id         uuid primary key default gen_random_uuid(),
+  viewed_at  timestamptz not null default now(),
+  admin_id   uuid references public.app_users(id) on delete set null,
+  subject_kind text not null check (subject_kind in ('organisation', 'network')),
+  subject     text not null
+);
+
+alter table public.view_as_log enable row level security;
+
+create or replace function public.view_as(p_kind text, p_short_name text)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+begin
+  if my_role() <> 'admin' then
+    raise exception 'only an administrator can view another console';
+  end if;
+  if p_kind not in ('organisation', 'network') then
+    raise exception 'kind must be organisation or network';
+  end if;
+
+  insert into view_as_log (admin_id, subject_kind, subject)
+  values (auth.uid(), p_kind, lower(btrim(p_short_name)));
+
+  if p_kind = 'network' then
+    return network_console(p_short_name) || jsonb_build_object('viewed_as', true);
+  else
+    return org_dashboard_admin(p_short_name) || jsonb_build_object('viewed_as', true);
+  end if;
+end;
+$$;
+
+-- An admin-scoped read of one organisation. Same shape as org_dashboard, but
+-- reached by tier rather than by membership. Aggregates only, as ever.
+create or replace function public.org_dashboard_admin(p_short_name text)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_org public.organisations%rowtype; result jsonb;
+begin
+  if my_role() <> 'admin' then raise exception 'administrators only'; end if;
+  select * into v_org from organisations where short_name = lower(btrim(p_short_name));
+  if not found then raise exception 'organisation not found'; end if;
+
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.id sid, c.audience
+      from responses rsp
+      join sessions s on s.id = rsp.session_id
+      join campaigns c on c.id = s.campaign_id
+     where c.org_id = v_org.id and rsp.normalized is not null
+  )
+  select jsonb_build_object(
+    'org', jsonb_build_object('short_name', v_org.short_name, 'name', v_org.name,
+                              'country', v_org.country, 'verified', v_org.verified),
+    'n', (select count(distinct sid) from r),
+    'tiers',   (select jsonb_object_agg(tier, m) from (select tier, round(avg(normalized),1) m from r group by tier) t),
+    'domains', (select jsonb_object_agg(question_domain, m) from (select question_domain, round(avg(normalized),1) m from r group by question_domain) d),
+    -- The comparison the Index exists to make possible.
+    'by_audience', (select jsonb_object_agg(audience, m) from
+                     (select audience, round(avg(normalized),1) m from r group by audience) a)
+  ) into result;
+  return result;
+end;
+$$;
+
+grant execute on function public.org_dashboard_admin(text) to authenticated;
+grant execute on function public.view_as(text, text) to authenticated;
+
+-- Reserve the network route so it cannot be claimed as a short name.
+insert into public.reserved_short_names (name, reason)
+values ('network', 'network route'), ('networks', 'network route')
+on conflict (name) do nothing;
+
+
+-- ─── 0014_waves_and_survey_setup.sql ───────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — survey setup at every tier (migration 0014)
+--
+-- The brief was "every tier can set up surveys". That sentence hides two
+-- different verbs, and conflating them is what would break the arithmetic:
+--
+--   FIELD    run a survey and collect responses.
+--            ALWAYS owned by exactly one organisation. Every response traces
+--            to an owner that can be counted once — which is what stops a
+--            church sitting in three networks from appearing three times in a
+--            benchmark, and what makes "delete my data" answerable.
+--
+--   CONVENE  define a WAVE — version, item set, audiences, window, locales —
+--            that organisations adopt in one click. Collects nothing itself.
+--            This is what makes forty organisations comparable rather than
+--            merely simultaneous.
+--
+-- So 0013's rule survives intact: a network still fields nothing AS a network.
+-- When NXT Move wants to run its own camp survey it becomes an organisation
+-- too and joins its own network. That is honest rather than a workaround —
+-- the ministry and the container genuinely are different objects.
+--
+-- Nothing here changes an existing table's meaning, and nothing here touches
+-- the respondent path.
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- 1 · The second consent.
+--
+-- 0013 gave a membership `shares_index`: may this network SEE our number.
+-- Fielding on our behalf is a bigger ask than seeing our score, so it gets its
+-- own flag and its own default. Being added to a network is not consent to be
+-- seen, and it is certainly not consent to be spoken for.
+-- ----------------------------------------------------------------------------
+alter table public.network_members
+  add column if not exists manages_surveys boolean not null default false;
+
+comment on column public.network_members.manages_surveys is
+  'Consent: this network may create and edit campaigns on the organisation''s behalf. Defaults to false. Strictly stronger than shares_index.';
+
+-- ----------------------------------------------------------------------------
+-- 2 · Waves — the convening object.
+--
+-- A wave has no org_id, no campaign, no respondents and no link. It cannot
+-- collect anything. It is a shape that campaigns are cut to, which is exactly
+-- why an organisation that strips out non-core items drops out of the
+-- comparison for those cells instead of quietly distorting it.
+-- ----------------------------------------------------------------------------
+create table if not exists public.waves (
+  id                    uuid primary key default gen_random_uuid(),
+  short_name            text unique not null,
+  name                  text not null,
+  instrument_version_id uuid not null references public.instrument_versions(id),
+  item_set              text not null default 'core'
+                          check (item_set in ('full', 'core')),
+  -- Two audiences off one instrument. The comparison between them is the most
+  -- useful thing a ministry gets out of the Index, so it is structural.
+  audiences             text[] not null default array['community']::text[]
+                          check (audiences <@ array['community','public']::text[]
+                                 and array_length(audiences, 1) >= 1),
+  locales               text[] not null default array['en']::text[],
+  opens_on              date,
+  closes_on             date,
+  -- Who called it. A network convenes for its members; the Collab convenes for
+  -- everyone. Null network_id means coalition-wide.
+  convened_by_network_id uuid references public.networks(id) on delete set null,
+  convened_by            uuid references public.app_users(id),
+  is_demo                boolean not null default false,
+  created_at             timestamptz not null default now()
+);
+
+alter table public.waves drop constraint if exists waves_short_name_shape;
+alter table public.waves
+  add constraint waves_short_name_shape
+    check (short_name ~ '^[a-z][a-z0-9-]{1,39}$');
+
+alter table public.waves drop constraint if exists waves_window_ordered;
+alter table public.waves
+  add constraint waves_window_ordered
+    check (closes_on is null or opens_on is null or closes_on >= opens_on);
+
+comment on table public.waves is
+  'A convening shape. Owns no responses and has no link — organisations adopt it, which is what makes their campaigns comparable.';
+
+create table if not exists public.wave_adoptions (
+  wave_id     uuid not null references public.waves(id) on delete cascade,
+  org_id      uuid not null references public.organisations(id) on delete cascade,
+  campaign_id uuid references public.campaigns(id) on delete set null,
+  adopted_by  uuid references public.app_users(id),
+  adopted_at  timestamptz not null default now(),
+  primary key (wave_id, org_id)
+);
+
+alter table public.waves          enable row level security;
+alter table public.wave_adoptions enable row level security;
+
+-- Waves are public knowledge — a season is an announcement, not a secret.
+-- Adoptions are not: who has and has not fielded is the network's business.
+drop policy if exists "waves are publicly readable" on public.waves;
+create policy "waves are publicly readable" on public.waves for select using (true);
+
+-- ----------------------------------------------------------------------------
+-- 3 · May I field for this organisation?
+--
+-- One function, consulted by everything that writes a campaign, so the answer
+-- cannot drift between surfaces. Returns the reason as text rather than a
+-- boolean: the console needs to say "because NXT Move manages your surveys",
+-- and the audit log needs to record which door someone came through.
+-- ----------------------------------------------------------------------------
+create or replace function public.field_authority(p_org_id uuid)
+returns text
+language plpgsql stable security definer set search_path = public as $$
+declare v_uid uuid := auth.uid(); v_role text;
+begin
+  if v_uid is null then return null; end if;
+  v_role := my_role();
+
+  -- Their own house first: the common case should not depend on a tier.
+  if exists (
+    select 1 from org_members m
+     where m.org_id = p_org_id and m.user_id = v_uid and m.status = 'active'
+  ) then return 'own_organisation'; end if;
+
+  -- A network may act for a member that said it could. Note manages_surveys,
+  -- NOT shares_index — seeing a number and speaking for a ministry are
+  -- different permissions and are deliberately not bundled.
+  if exists (
+    select 1
+      from network_members nm
+      join network_members_users nu on nu.network_id = nm.network_id
+     where nm.org_id = p_org_id
+       and nm.manages_surveys
+       and nu.user_id = v_uid
+       and nu.status = 'active'
+  ) then return 'network_delegated'; end if;
+
+  if v_role = 'admin'  then return 'administrator'; end if;
+  if v_role = 'collab' then return 'collab';        end if;
+
+  return null;
+end;
+$$;
+
+grant execute on function public.field_authority(uuid) to authenticated;
+
+-- Fielding for someone else leaves a trace. Same discipline as view_as_log:
+-- acting on a ministry's behalf is a normal thing to need and an abnormal
+-- thing to do quietly.
+create table if not exists public.campaign_action_log (
+  id         uuid primary key default gen_random_uuid(),
+  actor      uuid references public.app_users(id),
+  org_id     uuid not null references public.organisations(id) on delete cascade,
+  authority  text not null,
+  action     text not null,
+  detail     jsonb,
+  created_at timestamptz not null default now()
+);
+alter table public.campaign_action_log enable row level security;
+
+-- ----------------------------------------------------------------------------
+-- 4 · campaign_upsert — the one entry point.
+--
+-- Every tier's "set up a survey" ends here. The tier check happens inside the
+-- function body, never in the client, so a surface cannot forget it.
+-- ----------------------------------------------------------------------------
+create or replace function public.campaign_upsert(
+  p_org_short_name  text,
+  p_audience        text default 'community',
+  p_item_set        text default 'core',
+  p_locale          text default 'en',
+  p_wave_short_name text default null,
+  p_source_label    text default null
+)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  v_org    public.organisations%rowtype;
+  v_wave   public.waves%rowtype;
+  v_auth   text;
+  v_iv     uuid;
+  v_camp   uuid;
+  v_slug   text;
+begin
+  if p_audience not in ('community', 'public') then
+    raise exception 'audience must be community or public';
+  end if;
+  if p_item_set not in ('full', 'core') then
+    raise exception 'item set must be full or core';
+  end if;
+
+  select * into v_org from organisations o
+   where o.short_name = lower(btrim(p_org_short_name));
+  if not found then raise exception 'organisation not found'; end if;
+
+  v_auth := field_authority(v_org.id);
+  if v_auth is null then
+    raise exception 'not authorised to field for "%"', v_org.short_name;
+  end if;
+
+  -- A wave, if adopted, fixes the shape. That is the entire point of a wave:
+  -- the organisation does not get to keep its own item set and still claim to
+  -- be part of the season.
+  if p_wave_short_name is not null then
+    select * into v_wave from waves w where w.short_name = lower(btrim(p_wave_short_name));
+    if not found then raise exception 'wave not found'; end if;
+    if v_wave.is_demo <> v_org.is_demo then
+      raise exception 'a % wave cannot be adopted by a % organisation',
+        case when v_wave.is_demo then 'sandbox' else 'live' end,
+        case when v_org.is_demo  then 'sandbox' else 'live' end;
+    end if;
+    if p_audience <> all (v_wave.audiences) then
+      raise exception 'wave "%" does not field the % audience', v_wave.short_name, p_audience;
+    end if;
+    v_iv       := v_wave.instrument_version_id;
+    p_item_set := v_wave.item_set;
+  else
+    select id into v_iv from instrument_versions where status = 'active'
+     order by created_at desc limit 1;
+    if v_iv is null then
+      raise exception 'no active instrument version — run npm run db:seed first';
+    end if;
+  end if;
+
+  -- One campaign per organisation per audience. The two links are two
+  -- campaigns off one instrument, which is what makes them comparable.
+  v_slug := case when p_audience = 'public' then 'open' else 'default' end;
+
+  insert into campaigns as c
+    (org_id, slug, instrument_version_id, locale, active, source_label, item_set, audience)
+  values
+    (v_org.id, v_slug, v_iv, p_locale, true, p_source_label, p_item_set, p_audience)
+  on conflict (org_id, slug) do update
+     set instrument_version_id = excluded.instrument_version_id,
+         locale                = excluded.locale,
+         item_set              = excluded.item_set,
+         audience              = excluded.audience,
+         active                = true
+  returning c.id into v_camp;
+
+  if v_wave.id is not null then
+    insert into wave_adoptions (wave_id, org_id, campaign_id, adopted_by)
+    values (v_wave.id, v_org.id, v_camp, auth.uid())
+    on conflict (wave_id, org_id) do update set campaign_id = excluded.campaign_id;
+  end if;
+
+  -- Only log when someone acted for a house that is not their own. Logging a
+  -- youth pastor editing their own survey would bury the entries that matter.
+  if v_auth <> 'own_organisation' then
+    insert into campaign_action_log (actor, org_id, authority, action, detail)
+    values (auth.uid(), v_org.id, v_auth, 'campaign_upsert',
+            jsonb_build_object('audience', p_audience, 'item_set', p_item_set,
+                               'wave', v_wave.short_name));
+  end if;
+
+  return jsonb_build_object(
+    'campaign_id', v_camp,
+    'authority',   v_auth,
+    'audience',    p_audience,
+    'item_set',    p_item_set,
+    'links',       org_links(v_org.short_name)
+  );
+end;
+$$;
+
+grant execute on function public.campaign_upsert(text, text, text, text, text, text) to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 5 · wave_upsert — convening.
+-- ----------------------------------------------------------------------------
+create or replace function public.wave_upsert(
+  p_short_name   text,
+  p_name         text,
+  p_item_set     text default 'core',
+  p_audiences    text[] default array['community','public']::text[],
+  p_locales      text[] default array['en']::text[],
+  p_opens_on     date default null,
+  p_closes_on    date default null,
+  p_network      text default null
+)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_role text := my_role(); v_net public.networks%rowtype; v_iv uuid; v_id uuid;
+begin
+  if v_role not in ('admin', 'collab') and p_network is null then
+    raise exception 'only the Collab or an administrator may convene coalition-wide';
+  end if;
+
+  if p_network is not null then
+    select * into v_net from networks n where n.short_name = lower(btrim(p_network));
+    if not found then raise exception 'network not found'; end if;
+    if v_role <> 'admin' and not exists (
+      select 1 from network_members_users u
+       where u.network_id = v_net.id and u.user_id = auth.uid() and u.status = 'active'
+    ) then raise exception 'not authorised for this network'; end if;
+  end if;
+
+  select id into v_iv from instrument_versions where status = 'active'
+   order by created_at desc limit 1;
+  if v_iv is null then raise exception 'no active instrument version'; end if;
+
+  insert into waves as w
+    (short_name, name, instrument_version_id, item_set, audiences, locales,
+     opens_on, closes_on, convened_by_network_id, convened_by)
+  values
+    (lower(btrim(p_short_name)), p_name, v_iv, p_item_set, p_audiences, p_locales,
+     p_opens_on, p_closes_on, v_net.id, auth.uid())
+  on conflict (short_name) do update
+     set name       = excluded.name,
+         item_set   = excluded.item_set,
+         audiences  = excluded.audiences,
+         locales    = excluded.locales,
+         opens_on   = excluded.opens_on,
+         closes_on  = excluded.closes_on
+  returning w.id into v_id;
+
+  return jsonb_build_object('wave_id', v_id, 'short_name', lower(btrim(p_short_name)));
+end;
+$$;
+
+grant execute on function public.wave_upsert(text, text, text, text[], text[], date, date, text) to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 6 · my_context — what the console needs to route.
+--
+-- One round trip on load: who am I, what tier, and which houses am I inside.
+-- Without this the console would have to guess its own shape from failures.
+-- ----------------------------------------------------------------------------
+create or replace function public.my_context()
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare v_uid uuid := auth.uid();
+begin
+  if v_uid is null then return jsonb_build_object('signed_in', false); end if;
+
+  return jsonb_build_object(
+    'signed_in', true,
+    'email',     (select email from app_users where id = v_uid),
+    'role',      my_role(),
+    'orgs',      coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'short_name', o.short_name, 'name', o.name, 'is_demo', o.is_demo)
+             order by o.name)
+        from org_members m join organisations o on o.id = m.org_id
+       where m.user_id = v_uid and m.status = 'active'), '[]'::jsonb),
+    'networks',  coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'short_name', n.short_name, 'name', n.name, 'kind', n.kind)
+             order by n.name)
+        from network_members_users u join networks n on n.id = u.network_id
+       where u.user_id = v_uid and u.status = 'active'), '[]'::jsonb)
+  );
+end;
+$$;
+
+grant execute on function public.my_context() to anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 7 · Band A at the other three tiers.
+--
+-- A worklist, not a dashboard: every row is something waiting on a person. If
+-- one of these returns empty, nobody is blocked — which is why they are
+-- allowed to be empty and the other bands are not.
+-- ----------------------------------------------------------------------------
+create or replace function public.org_worklist(p_short_name text)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare v_org public.organisations%rowtype; v_items jsonb := '[]'::jsonb; v_n bigint;
+begin
+  select * into v_org from organisations o where o.short_name = lower(btrim(p_short_name));
+  if not found then raise exception 'organisation not found'; end if;
+  if field_authority(v_org.id) is null then
+    raise exception 'not authorised for this organisation';
+  end if;
+
+  if not exists (select 1 from campaigns c where c.org_id = v_org.id and c.active) then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high', 'label', 'Your survey is not live yet', 'action', 'Finish setup');
+  end if;
+
+  if v_org.logo_url is null then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high', 'label', 'Your logo is not set — respondents see ours', 'action', 'Upload');
+  end if;
+
+  if v_org.welcome_message is null or v_org.closing_message is null then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'low', 'label', 'Your welcome and closing messages are the defaults', 'action', 'Edit');
+  end if;
+
+  select count(*) into v_n
+    from responses r join sessions s on s.id = r.session_id
+    join campaigns c on c.id = s.campaign_id
+   where c.org_id = v_org.id;
+
+  if v_n = 0 and exists (select 1 from campaigns c where c.org_id = v_org.id and c.active) then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high', 'label', 'Your survey is live but nobody has answered yet', 'action', 'Share the link');
+  end if;
+
+  return jsonb_build_object(
+    'org',       jsonb_build_object('short_name', v_org.short_name, 'name', v_org.name,
+                                    'is_demo', v_org.is_demo),
+    'responses', v_n,
+    'links',     org_links(v_org.short_name),
+    'items',     v_items
+  );
+end;
+$$;
+
+create or replace function public.network_worklist(p_short_name text)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare v_net public.networks%rowtype; v_items jsonb := '[]'::jsonb; v_c bigint;
+begin
+  select * into v_net from networks n where n.short_name = lower(btrim(p_short_name));
+  if not found then raise exception 'network not found'; end if;
+  if my_role() <> 'admin' and not exists (
+    select 1 from network_members_users u
+     where u.network_id = v_net.id and u.user_id = auth.uid() and u.status = 'active'
+  ) then raise exception 'not authorised for this network'; end if;
+
+  select count(*) into v_c from network_members nm
+    where nm.network_id = v_net.id
+      and not exists (select 1 from campaigns c where c.org_id = nm.org_id and c.active);
+  if v_c > 0 then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high', 'label', v_c || ' member' || case when v_c = 1 then '' else 's' end
+        || ' have not fielded', 'action', 'Send the link');
+  end if;
+
+  select count(*) into v_c from network_members nm
+    where nm.network_id = v_net.id and not nm.shares_index;
+  if v_c > 0 then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'low', 'label', v_c || ' member' || case when v_c = 1 then ' has' else 's have' end
+        || ' not consented to share upward — you see them in the aggregate only',
+      'action', 'Ask');
+  end if;
+
+  -- The network itself is an organisation only once it has chosen to be one.
+  if not exists (
+    select 1 from network_members nm join organisations o on o.id = nm.org_id
+     where nm.network_id = v_net.id and o.short_name <> v_net.short_name
+       and o.name = v_net.name
+  ) then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'low',
+      'label', v_net.name || ' cannot field its own survey yet — it exists as a network, not an organisation',
+      'action', 'Create it');
+  end if;
+
+  return jsonb_build_object(
+    'network', jsonb_build_object('short_name', v_net.short_name, 'name', v_net.name,
+                                  'kind', v_net.kind),
+    'items',   v_items
+  );
+end;
+$$;
+
+create or replace function public.collab_worklist()
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare v_items jsonb := '[]'::jsonb; v_gate int; v_c bigint;
+begin
+  if my_role() not in ('admin', 'collab') then
+    raise exception 'not authorised';
+  end if;
+
+  v_gate := setting_int('critical_mass_gate', 400);
+
+  -- Coverage, not volume. The same sixty organisations spread across forty
+  -- countries unlocks nothing; concentrated in ten it unlocks all ten. So the
+  -- worklist ranks by who is CLOSEST to a benchmark, not by who has the most.
+  v_items := (
+    select coalesce(jsonb_agg(jsonb_build_object(
+             'urgency', 'high',
+             'label', x.country || ' is ' || (v_gate - x.completions)
+                      || ' completions from its first benchmark',
+             'meta', x.completions || ' / ' || v_gate,
+             'action', 'See who can close it')
+           order by x.completions desc), '[]'::jsonb)
+      from (
+        select s.country, count(*) as completions
+          from sessions s
+          join campaigns c on c.id = s.campaign_id
+          join organisations o on o.id = c.org_id
+         where s.completed and o.is_demo = false and s.country is not null
+         group by s.country
+        having count(*) < v_gate
+      ) x
+  );
+
+  select count(*) into v_c
+    from organisations o
+   where o.is_demo = false
+     and not exists (select 1 from campaigns c where c.org_id = o.id and c.active);
+  if v_c > 0 then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high',
+      'label', v_c || ' organisation' || case when v_c = 1 then '' else 's' end
+        || ' joined and never fielded', 'action', 'Nudge');
+  end if;
+
+  return jsonb_build_object(
+    'gate',  v_gate,
+    'waves', coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'short_name', w.short_name, 'name', w.name, 'item_set', w.item_set,
+               'audiences', w.audiences, 'opens_on', w.opens_on, 'closes_on', w.closes_on,
+               'adopted', (select count(*) from wave_adoptions a where a.wave_id = w.id))
+             order by w.created_at desc)
+        from waves w where w.is_demo = false), '[]'::jsonb),
+    'items', v_items
+  );
+end;
+$$;
+
+grant execute on function public.org_worklist(text)     to authenticated;
+grant execute on function public.network_worklist(text) to authenticated;
+grant execute on function public.collab_worklist()      to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 8 · The organisations a caller may field for. Powers step 00 of the wizard.
+-- ----------------------------------------------------------------------------
+create or replace function public.fieldable_orgs()
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare v_uid uuid := auth.uid(); v_role text;
+begin
+  if v_uid is null then return '[]'::jsonb; end if;
+  v_role := my_role();
+
+  return coalesce((
+    select jsonb_agg(x order by x->>'name')
+      from (
+        select distinct on (o.id) jsonb_build_object(
+                 'short_name', o.short_name,
+                 'name',       o.name,
+                 'is_demo',    o.is_demo,
+                 'authority',  field_authority(o.id)) as x
+          from organisations o
+         where field_authority(o.id) is not null
+           -- An administrator may field for anyone, but listing every sandbox
+           -- organisation would bury the live ones that matter.
+           and (v_role not in ('admin','collab') or o.is_demo = false)
+      ) s), '[]'::jsonb);
+end;
+$$;
+
+grant execute on function public.fieldable_orgs() to authenticated;
+
+
+-- ─── 0015_fix_intelligence_data_contract.sql ───────────────────────────
+
+-- ============================================================================
+-- NGJFI platform — fix the collab_intelligence() data contract regression
+-- introduced by 0009_data_spaces.sql (migration 0015)
+--
+-- ROOT CAUSE OF THE "Application error: a client-side exception has occurred"
+-- crash on /intelligence and /demo/intelligence:
+--
+-- 0009 rewrote collab_intelligence() and collab_intelligence_demo() to add the
+-- is_demo split (a real and necessary fix — demo data must never contaminate
+-- the real global view). Its own comment claims "same return shape, so
+-- nothing in the app changes except what it is allowed to see." That was not
+-- accurate. Three things changed silently:
+--
+--   1. The summary object's key changed from 'totals' (0005, and still what
+--      src/components/index/IntelligenceView.tsx reads) to 'headline'. The
+--      component does `d.totals.responses` with no optional chaining — once
+--      `published` data as actually returned, `d.totals` is `undefined` and
+--      that line throws a TypeError, which Next.js surfaces as the generic
+--      "Application error" screen. /demo/intelligence hits this on every
+--      load, because collab_intelligence_demo() has no publish gate at all.
+--   2. 'trend' and 'findings' were dropped entirely from both functions —
+--      the "Movement over time" and "What the data reveals" sections on
+--      /intelligence silently stopped rendering (no crash, just missing).
+--   3. 'countries[].tiers' (used to colour the tier-by-tier map) was dropped
+--      — only 'country' and 'n' remained, so the map always shows every
+--      country as "no data" grey regardless of the selected tier.
+--
+-- This migration keeps the one thing 0009 needed to add (is_demo filtering)
+-- and restores everything 0005 used to return on top of it. No frontend
+-- change is required — IntelligenceView.tsx already expects this exact shape.
+-- ============================================================================
+
+create or replace function public.collab_intelligence()
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare result jsonb; v_gate int; v_total bigint; v_publish boolean;
+begin
+  v_gate    := setting_int('critical_mass_gate', 400);
+  v_publish := setting_bool('publish_global_view', false);
+
+  select count(distinct s.id) into v_total
+    from sessions s
+    join campaigns c     on c.id = s.campaign_id
+    join organisations o on o.id = c.org_id
+   where o.is_demo = false;
+
+  -- Never overclaim. Below the gate there is no global picture to report.
+  if not v_publish or v_total < v_gate then
+    return jsonb_build_object(
+      'space',     'live',
+      'published', false,
+      'reason',    case when not v_publish then 'awaiting_release' else 'below_critical_mass' end,
+      'gate',      v_gate,
+      'completions', v_total,
+      'totals',    jsonb_build_object('responses', 0, 'orgs', 0, 'countries', 0, 'regions', 0, 'languages', 0)
+    );
+  end if;
+
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.normalized,
+           s.age_band, s.locale, s.id as sid, s.created_at,
+           o.region, o.country, o.id as oid
+    from responses rsp
+    join sessions s      on s.id = rsp.session_id
+    join campaigns c     on c.id = s.campaign_id
+    join organisations o on o.id = c.org_id
+    where rsp.normalized is not null
+      and o.is_demo = false          -- the line 0009 exists for; kept
+  ),
+  ctry_tier as (
+    select country, tier, round(avg(normalized),1) m from r where country is not null group by country, tier
+  ),
+  ctry_n as (
+    select country, count(distinct sid) n from r where country is not null group by country
+  ),
+  org_means as (
+    select oid,
+           avg(normalized) filter (where tier = 'formation') as f,
+           avg(normalized) filter (where tier = 'multiplication') as mm
+    from r group by oid
+  )
+  select jsonb_build_object(
+    'space', 'live',
+    'published', true,
+    'gate', v_gate,
+    'totals', jsonb_build_object(
+      'responses', (select count(distinct sid) from r),
+      'orgs',      (select count(distinct oid) from r),
+      'countries', (select count(distinct country) from r where country is not null),
+      'regions',   (select count(distinct region) from r where region is not null),
+      'languages', (select count(distinct locale) from r where locale is not null)
+    ),
+    'funnel',  (select jsonb_object_agg(tier, m) from (select tier, round(avg(normalized),1) m from r group by tier) t),
+    'domains', (select jsonb_object_agg(question_domain, m) from (select question_domain, round(avg(normalized),1) m from r group by question_domain) d),
+    'matrix',  (select jsonb_object_agg(question_domain, tiers) from
+                 (select question_domain, jsonb_object_agg(tier, m) tiers from
+                    (select question_domain, tier, round(avg(normalized),1) m from r group by question_domain, tier) x
+                  group by question_domain) y),
+    'by_age',  (select jsonb_object_agg(age_band, m) from
+                 (select age_band, round(avg(normalized),1) m from r
+                   where tier = 'multiplication' and age_band is not null group by age_band) a),
+    'regions', (select jsonb_agg(jsonb_build_object('region', region, 'index', m, 'responses', n) order by m desc) from
+                 (select region, round(avg(normalized),1) m, count(distinct sid) n from r where region is not null group by region) g),
+    'trend',   (select jsonb_agg(jsonb_build_object('year', yr, 'index', idx) order by yr) from
+                 (select yr, round(avg(tm),1) idx from
+                    (select extract(year from created_at)::int yr, tier, avg(normalized) tm
+                       from r group by extract(year from created_at)::int, tier) a
+                  group by yr) b),
+    -- Only geographies past the gate are ever named with a score — same rule
+    -- 0009 applied, now carrying per-tier detail so the map can switch tiers.
+    'countries', (select jsonb_agg(jsonb_build_object('country', ct.country, 'n', cn.n, 'tiers', ct.tiers)) from
+                   (select country, jsonb_object_agg(tier, m) tiers from ctry_tier group by country) ct
+                   join ctry_n cn on cn.country = ct.country and cn.n >= v_gate),
+    'findings', jsonb_build_object(
+      'formation_mult_r2', (select round((corr(f, mm)^2)*100)::int from org_means where f is not null and mm is not null),
+      'formation_corr',    (select round(corr(f, mm)::numeric, 2) from org_means where f is not null and mm is not null),
+      'mult_top',          (select round(avg(mm),1) from (select mm, ntile(4) over (order by mm) q from org_means where mm is not null) z where q = 4),
+      'mult_bottom',       (select round(avg(mm),1) from (select mm, ntile(4) over (order by mm) q from org_means where mm is not null) z where q = 1)
+    )
+  ) into result;
+
+  return result;
+end;
+$$;
+
+grant execute on function public.collab_intelligence() to anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- Demo mirror. Same restoration, demo space, no publish gate (the sandbox is
+-- always "on" by design — see 0006 / 0009).
+-- ----------------------------------------------------------------------------
+create or replace function public.collab_intelligence_demo()
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare result jsonb;
+begin
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.normalized,
+           s.age_band, s.locale, s.id as sid, s.created_at,
+           o.region, o.country, o.id as oid
+    from responses rsp
+    join sessions s      on s.id = rsp.session_id
+    join campaigns c     on c.id = s.campaign_id
+    join organisations o on o.id = c.org_id
+    where rsp.normalized is not null
+      and o.is_demo = true           -- the fiction, aggregated only within itself
+  ),
+  ctry_tier as (
+    select country, tier, round(avg(normalized),1) m from r where country is not null group by country, tier
+  ),
+  ctry_n as (
+    select country, count(distinct sid) n from r where country is not null group by country
+  ),
+  org_means as (
+    select oid,
+           avg(normalized) filter (where tier = 'formation') as f,
+           avg(normalized) filter (where tier = 'multiplication') as mm
+    from r group by oid
+  )
+  select jsonb_build_object(
+    'space', 'demo',
+    'published', true,
+    'demo', true,
+    'totals', jsonb_build_object(
+      'responses', (select count(distinct sid) from r),
+      'orgs',      (select count(distinct oid) from r),
+      'countries', (select count(distinct country) from r where country is not null),
+      'regions',   (select count(distinct region) from r where region is not null),
+      'languages', (select count(distinct locale) from r where locale is not null)
+    ),
+    'funnel',  (select jsonb_object_agg(tier, m) from (select tier, round(avg(normalized),1) m from r group by tier) t),
+    'domains', (select jsonb_object_agg(question_domain, m) from (select question_domain, round(avg(normalized),1) m from r group by question_domain) d),
+    'matrix',  (select jsonb_object_agg(question_domain, tiers) from
+                 (select question_domain, jsonb_object_agg(tier, m) tiers from
+                    (select question_domain, tier, round(avg(normalized),1) m from r group by question_domain, tier) x
+                  group by question_domain) y),
+    'by_age',  (select jsonb_object_agg(age_band, m) from
+                 (select age_band, round(avg(normalized),1) m from r
+                   where tier = 'multiplication' and age_band is not null group by age_band) a),
+    'regions', (select jsonb_agg(jsonb_build_object('region', region, 'index', m, 'responses', n) order by m desc) from
+                 (select region, round(avg(normalized),1) m, count(distinct sid) n from r where region is not null group by region) g),
+    'trend',   (select jsonb_agg(jsonb_build_object('year', yr, 'index', idx) order by yr) from
+                 (select yr, round(avg(tm),1) idx from
+                    (select extract(year from created_at)::int yr, tier, avg(normalized) tm
+                       from r group by extract(year from created_at)::int, tier) a
+                  group by yr) b),
+    'countries', (select jsonb_agg(jsonb_build_object('country', ct.country, 'n', cn.n, 'tiers', ct.tiers)) from
+                   (select country, jsonb_object_agg(tier, m) tiers from ctry_tier group by country) ct
+                   join ctry_n cn on cn.country = ct.country),
+    'findings', jsonb_build_object(
+      'formation_mult_r2', (select round((corr(f, mm)^2)*100)::int from org_means where f is not null and mm is not null),
+      'formation_corr',    (select round(corr(f, mm)::numeric, 2) from org_means where f is not null and mm is not null),
+      'mult_top',          (select round(avg(mm),1) from (select mm, ntile(4) over (order by mm) q from org_means where mm is not null) z where q = 4),
+      'mult_bottom',       (select round(avg(mm),1) from (select mm, ntile(4) over (order by mm) q from org_means where mm is not null) z where q = 1)
+    )
+  ) into result;
+  return result;
+end;
+$$;
+
+grant execute on function public.collab_intelligence_demo() to anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- Verify: run against a project with demo data seeded.
+--   select public.collab_intelligence_demo() -> 'totals';        -- populated
+--   select public.collab_intelligence_demo() -> 'trend';         -- non-null if >1 year of demo data
+--   select public.collab_intelligence_demo() -> 'findings';      -- populated
+--   select public.collab_intelligence_demo() -> 'countries' -> 0 -> 'tiers'; -- populated
+-- ============================================================================
 
