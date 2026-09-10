@@ -1,4 +1,4 @@
-import instrumentV1 from "@/data/instrument.v1.json";
+import instrumentV3 from "@/data/instrument.v3.json";
 import {
   failedAttentionChecks as failedChecks,
   inOrder,
@@ -29,7 +29,7 @@ export interface InstrumentOption {
 
 export interface InstrumentItem {
   key: string;
-  question_domain: "follow" | "mission" | "world" | "screener" | "journey" | "demographic";
+  question_domain: "follow" | "mission" | "world" | "screener" | "drivers" | "journey" | "exploration" | "demographic";
   tier: "exposure" | "response" | "formation" | "multiplication" | "na";
   type:
     | "likert_5"
@@ -55,6 +55,8 @@ export interface InstrumentItem {
   /** Quality-control item: `expected` is the value an attentive respondent gives. */
   attention_check?: { expected: number | string };
   max_length?: number;
+  /** multi_select only: cap how many options can be chosen at once ("select up to three"). Omit for no cap. */
+  max_select?: number;
   help?: LocalizedText;
   text: LocalizedText;
   options?: InstrumentOption[];
@@ -67,7 +69,7 @@ export interface Instrument {
   items: InstrumentItem[];
 }
 
-export const instrument = instrumentV1 as unknown as Instrument;
+export const instrument = instrumentV3 as unknown as Instrument;
 
 /**
  * How many questions each item set actually asks.
