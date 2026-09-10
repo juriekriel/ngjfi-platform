@@ -7,7 +7,7 @@
 -- Stands up a complete, empty database in one paste. Run it in a new Supabase
 -- project's SQL editor, top to bottom, then:
 --
---   1.  npm run db:seed            loads instrument v1 + the demo organisation
+--   1.  npm run db:seed            loads instrument v3 + the demo organisation
 --   2.  select public.data_space_report();
 --                                  verify the live space is empty before you
 --                                  point anything real at it
