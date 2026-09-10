@@ -1,4 +1,4 @@
-import instrumentV1 from "@/data/instrument.v1.json";
+import instrumentV2 from "@/data/instrument.v2.json";
 import {
   failedAttentionChecks as failedChecks,
   inOrder,
@@ -29,7 +29,7 @@ export interface InstrumentOption {
 
 export interface InstrumentItem {
   key: string;
-  question_domain: "follow" | "mission" | "world" | "screener" | "drivers" | "journey" | "demographic";
+  question_domain: "follow" | "mission" | "world" | "screener" | "drivers" | "journey" | "exploration" | "demographic";
   tier: "exposure" | "response" | "formation" | "multiplication" | "na";
   type:
     | "likert_5"
@@ -69,7 +69,7 @@ export interface Instrument {
   items: InstrumentItem[];
 }
 
-export const instrument = instrumentV1 as unknown as Instrument;
+export const instrument = instrumentV2 as unknown as Instrument;
 
 /**
  * How many questions each item set actually asks.
