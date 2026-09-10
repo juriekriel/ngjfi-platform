@@ -142,12 +142,13 @@ test("no single respondent path exceeds the agreed ceiling for a fielded set", (
   // stated ceiling (CLAUDE.md §4, "~6 minutes end to end"). Drivers/Journey
   // are now an explicit opt-in (continue_to_extras) rather than part of the
   // core flow, specifically so the REQUIRED path has a real number to hold
-  // to — 34, still over 20, still worth a look, but no longer a silent
-  // 41-question flow nobody chose to walk into.
+  // to — 32 (34 minus gender+city, removed for the approved metadata list),
+  // still over 20, still worth a look, but no longer a silent flow nobody
+  // chose to walk into.
   const core = visibleItems(committedCore).length;
   const withExtras = visibleItems(committed).length;
-  assert.equal(core, 34, `core (extras declined) path length changed to ${core} — update this number`);
-  assert.equal(withExtras, 42, `full (extras accepted) path length changed to ${withExtras} — update this number`);
+  assert.equal(core, 32, `core (extras declined) path length changed to ${core} — update this number`);
+  assert.equal(withExtras, 40, `full (extras accepted) path length changed to ${withExtras} — update this number`);
   for (const [name, answers] of Object.entries({ notEngaged, neverHeard })) {
     const n = visibleItems(answers).length;
     assert.ok(n <= 20, `the "${name}" (exploration) path asks ${n} questions — over the agreed ceiling`);
@@ -224,6 +225,48 @@ test("the exploration branch is entirely unscored", () => {
   }
 });
 
+test("every Index item is tagged internal or external, as real metadata not just a key name", () => {
+  // Scored + in an Index domain — excludes pray_frequency/scripture_frequency,
+  // which carry question_domain "follow" for reporting purposes but are
+  // scored: false and were never part of Matthew's Internal/External pairing.
+  const indexItems = instrument.items.filter(
+    (i) => i.scored && DOMAINS.includes(i.question_domain as (typeof DOMAINS)[number]),
+  );
+  assert.ok(indexItems.length > 0);
+  for (const i of indexItems) {
+    assert.ok(i.measure === "internal" || i.measure === "external", `"${i.key}" has no measure tag`);
+    assert.ok(i.key.endsWith(`_${i.measure}`), `"${i.key}"'s key and measure tag disagree`);
+  }
+});
+
+test("each matrix cell is exactly one internal + one external item — never more, never fewer", () => {
+  for (const d of DOMAINS) {
+    for (const t of TIERS) {
+      const cell = instrument.items.filter((i) => i.question_domain === d && i.tier === t && i.scored);
+      assert.equal(cell.length, 2, `${d}×${t} has ${cell.length} scored items, expected exactly 2`);
+      assert.deepEqual(cell.map((i) => i.measure).sort(), ["external", "internal"], `${d}×${t} isn't one of each`);
+    }
+  }
+});
+
+test("approved metadata only — no gender, no city, nothing outside the agreed list", () => {
+  assert.equal(instrument.items.find((i) => i.key === "gender"), undefined);
+  assert.equal(instrument.items.find((i) => i.key === "city"), undefined);
+  const sessionFields = instrument.items.map((i) => i.session_field).filter(Boolean);
+  for (const f of sessionFields) {
+    assert.ok(["age_band", "country"].includes(f as string), `unapproved session_field "${f}" found on an item`);
+  }
+});
+
+test("Drivers and Journey never reach the score — wrong domain, and scored: false besides", () => {
+  const extras = instrument.items.filter((i) => i.question_domain === "drivers" || i.question_domain === "journey");
+  assert.ok(extras.length > 0);
+  for (const i of extras) {
+    assert.equal(i.scored, false, `"${i.key}" is scored — Drivers/Journey must never feed the Index`);
+    assert.ok(!DOMAINS.includes(i.question_domain as (typeof DOMAINS)[number]), `"${i.key}" somehow carries an Index domain`);
+  }
+});
+
 
 test("branching genuinely shortens the survey", () => {
   // v2: everyone answers the same four unconditional screener items, then
@@ -275,7 +318,7 @@ test("every free-text item is unscored and length-capped", () => {
   const open = instrument.items.filter((i) => i.type === "open_text");
   assert.deepEqual(
     open.map((i) => i.key).sort(),
-    ["city", "country", "explore_describe_jesus", "who_is_jesus"],
+    ["country", "explore_describe_jesus", "who_is_jesus"],
     "a new open_text item showed up without an update here — confirm it belongs",
   );
   for (const item of open) {

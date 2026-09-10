@@ -51,7 +51,9 @@ export interface InstrumentItem {
   /** Only ask this item when the rule passes; otherwise skip it entirely. */
   show_if?: ShowIf;
   /** Also write the answer onto the session row (allow-listed column). */
-  session_field?: "age_band" | "gender" | "country" | "city";
+  session_field?: "age_band" | "country";
+  /** Index items only: does this measure an internal belief or an observable/external action? */
+  measure?: "internal" | "external";
   /** Quality-control item: `expected` is the value an attentive respondent gives. */
   attention_check?: { expected: number | string };
   max_length?: number;

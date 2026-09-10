@@ -9,6 +9,8 @@ type Item = { key: string; domain: string; tier: string; mean: number | null; n:
 type Dash = {
   org: { slug: string; name: string; verified: boolean };
   n: number;
+  suppressed?: boolean;
+  min_group_n?: number;
   index: number | null;
   tiers: Record<string, number | null>;
   domains: Record<string, number | null>;
@@ -165,7 +167,29 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
         </div>
       )}
       {!dash && <p className="text-sm text-slate">Loading…</p>}
-      {dash && (
+      {dash && dash.suppressed && (
+        <>
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-xl font-bold">{dash.org.name}</h2>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
+              {dash.n.toLocaleString()} responses {dash.org.verified ? "· verified" : ""}
+            </span>
+          </div>
+          <div className="mt-4 rounded-lg border-2 border-ink p-6">
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted">Not enough responses yet</p>
+            <h3 className="mt-2 text-lg font-semibold">
+              {dash.n} of {dash.min_group_n ?? 10} needed before we show a score.
+            </h3>
+            <p className="mt-3 max-w-lg text-sm leading-relaxed text-slate">
+              This isn&apos;t specific to your organisation — it&apos;s a floor the whole platform holds
+              to. Below this many respondents, any average risks being traceable back to one or two
+              real people, so nothing derived is shown until there&apos;s enough of a crowd to disappear
+              into. Your response count is real and visible either way.
+            </p>
+          </div>
+        </>
+      )}
+      {dash && !dash.suppressed && (
         <>
           <div className="flex items-baseline justify-between">
             <h2 className="text-xl font-bold">{dash.org.name}</h2>
