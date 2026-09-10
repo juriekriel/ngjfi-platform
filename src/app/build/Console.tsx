@@ -449,6 +449,7 @@ type Worklist = {
   organisations: {
     short_name: string; name: string; country: string | null;
     verified: boolean; has_brand: boolean; campaigns: number; responses: number;
+    status: "active" | "paused" | "closed";
   }[];
   clusters: { country: string; completions: number; orgs: number }[];
   instrument: { version: string; status: string; items: number } | null;
@@ -459,6 +460,47 @@ type Worklist = {
     global_view_published: boolean;
   };
 };
+
+/**
+ * Open / paused / closed, one click to change. The two non-active states are
+ * deliberately the same mechanism with different intent (see the migration
+ * comment) — this control does not distinguish them beyond the label, and
+ * closed is not styled as more severe than paused. Both stop new responses;
+ * neither touches a single row already collected.
+ */
+function StatusToggle({
+  current,
+  onChange,
+}: {
+  current: "active" | "paused" | "closed";
+  onChange: (status: "active" | "paused" | "closed") => void;
+}) {
+  const OPTIONS: { value: "active" | "paused" | "closed"; label: string }[] = [
+    { value: "active", label: "Open" },
+    { value: "paused", label: "Pause" },
+    { value: "closed", label: "Shut down" },
+  ];
+  return (
+    <span className="flex gap-1">
+      {OPTIONS.map((o) => (
+        <button
+          key={o.value}
+          onClick={() => o.value !== current && onChange(o.value)}
+          title={o.value === current ? `Currently ${o.label.toLowerCase()}` : `Set to ${o.label.toLowerCase()}`}
+          className={`tabular border px-2 py-1 text-[9.5px] uppercase tracking-[0.1em] ${
+            o.value === current
+              ? o.value === "active"
+                ? "border-emerald bg-emerald text-plate"
+                : "border-vermillion bg-vermillion text-plate"
+              : "border-rule-2 text-ink-2 hover:border-ink hover:text-ink"
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </span>
+  );
+}
 
 function AdminConsole() {
   const sb = useMemo(() => getSupabaseBrowser(), []);
@@ -484,6 +526,13 @@ function AdminConsole() {
     if (!sb) return;
     await sb.rpc("decide_access_request", { p_id: id, p_decision: decision });
     load();
+  }
+
+  async function setStatus(short_name: string, status: "active" | "paused" | "closed") {
+    if (!sb) return;
+    const { error } = await sb.rpc("set_org_status", { p_short_name: short_name, p_status: status });
+    if (error) setErr(error.message);
+    else load();
   }
 
   const pending: WorkItem[] = [
@@ -593,9 +642,12 @@ function AdminConsole() {
               <Rows>
                 {wl.organisations.map((o) => (
                   <Row key={o.short_name} label={o.name} meta={`${o.responses.toLocaleString()} responses`}>
-                    <Link href={`/${o.short_name}/dashboard`} className="tabular border border-rule-2 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-ink-2 no-underline hover:border-ink hover:text-ink">
-                      Open
-                    </Link>
+                    <span className="flex items-center gap-2">
+                      <StatusToggle current={o.status} onChange={(s) => setStatus(o.short_name, s)} />
+                      <Link href={`/${o.short_name}/dashboard`} className="tabular border border-rule-2 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-ink-2 no-underline hover:border-ink hover:text-ink">
+                        Open
+                      </Link>
+                    </span>
                   </Row>
                 ))}
               </Rows>
