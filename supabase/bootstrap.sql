@@ -7,7 +7,7 @@
 -- Stands up a complete, empty database in one paste. Run it in a new Supabase
 -- project's SQL editor, top to bottom, then:
 --
---   1.  npm run db:seed            loads instrument v1 + the demo organisation
+--   1.  npm run db:seed            loads instrument v3 + the demo organisation
 --   2.  select public.data_space_report();
 --                                  verify the live space is empty before you
 --                                  point anything real at it
@@ -34,6 +34,8 @@
 --   0013_networks.sql
 --   0014_waves_and_survey_setup.sql
 --   0015_fix_intelligence_data_contract.sql
+--   0016_org_activation_status.sql
+--   0017_org_benchmark_comparison.sql
 --   0018_regional_map_layer.sql
 -- ============================================================================
 
@@ -2899,6 +2901,359 @@ grant execute on function public.collab_intelligence_demo() to anon, authenticat
 --   select public.collab_intelligence_demo() -> 'findings';      -- populated
 --   select public.collab_intelligence_demo() -> 'countries' -> 0 -> 'tiers'; -- populated
 -- ============================================================================
+
+
+-- ─── 0016_org_activation_status.sql ────────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — organisation activation status (migration 0016)
+--
+-- Item 5 from the batch request: "toggle activation status (open, pause, or
+-- shut down access) for any organization space." campaigns already had an
+-- `active` flag (one campaign, one link), but nothing let an administrator
+-- pause an ORGANISATION as a whole — every campaign it owns, in one action,
+-- without having to find and flip each one.
+-- ============================================================================
+
+alter table public.organisations
+  add column if not exists status text not null default 'active'
+    check (status in ('active', 'paused', 'closed'));
+
+comment on column public.organisations.status is
+  'active: normal. paused: existing links stop accepting new sessions, reversible, org-visible. closed: same effect, intended as durable — the two are the same mechanism, status is the only difference.';
+
+-- ----------------------------------------------------------------------------
+-- start_session() now also refuses on behalf of a paused/closed organisation,
+-- not just an inactive campaign. Two different, distinguishable messages, so
+-- the frontend can tell a respondent something true rather than a generic
+-- failure -- and so this is not confused with the campaign-level `active`
+-- flag, which still means "this specific link," not "this organisation."
+-- ----------------------------------------------------------------------------
+create or replace function public.start_session(
+  p_campaign_id uuid,
+  p_age_band text default null,
+  p_gender   text default null,
+  p_country  text default null,
+  p_city     text default null,
+  p_locale   text default 'en',
+  p_consent  jsonb default '{}'::jsonb
+) returns uuid
+language plpgsql security definer set search_path = public as $$
+declare new_id uuid; v_org_status text;
+begin
+  if not exists (select 1 from campaigns c where c.id = p_campaign_id and c.active) then
+    raise exception 'campaign not found or inactive';
+  end if;
+
+  select o.status into v_org_status
+  from campaigns c join organisations o on o.id = c.org_id
+  where c.id = p_campaign_id;
+
+  if v_org_status = 'paused' then
+    raise exception 'organisation access is paused';
+  elsif v_org_status = 'closed' then
+    raise exception 'organisation access is closed';
+  end if;
+
+  insert into sessions (campaign_id, age_band, gender, country, city, locale, consent)
+  values (p_campaign_id, p_age_band, p_gender, p_country, p_city,
+          coalesce(p_locale,'en'), coalesce(p_consent,'{}'::jsonb))
+  returning id into new_id;
+  return new_id;
+end;
+$$;
+
+grant execute on function public.start_session(uuid,text,text,text,text,text,jsonb) to anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- Admin-only status changes. Same shape as set_user_role() and
+-- decide_access_request(): the check is the first line, and the action is
+-- logged nowhere special because my_role() itself is the audit trail --
+-- only an administrator's session can ever reach this branch.
+-- ----------------------------------------------------------------------------
+create or replace function public.set_org_status(p_short_name text, p_status text)
+returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if my_role() <> 'admin' then
+    raise exception 'only an administrator can change an organisation''s status';
+  end if;
+  if p_status not in ('active', 'paused', 'closed') then
+    raise exception 'status must be active, paused, or closed';
+  end if;
+  update organisations set status = p_status where short_name = p_short_name;
+  if not found then
+    raise exception 'no organisation with short_name %', p_short_name;
+  end if;
+end;
+$$;
+
+grant execute on function public.set_org_status(text, text) to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- admin_worklist() gains status per organisation, and a fourth item: any org
+-- an admin left paused/closed for more than a beat is worth a second look,
+-- the same way "has a live survey and no responses" already is.
+-- ----------------------------------------------------------------------------
+create or replace function public.admin_worklist()
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare result jsonb;
+begin
+  if my_role() <> 'admin' then
+    raise exception 'the worklist is for administrators';
+  end if;
+
+  select jsonb_build_object(
+    'access_requests', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id', a.id, 'email', a.email, 'reason', a.reason,
+        'status', a.status, 'created_at', a.created_at
+      ) order by a.created_at desc)
+      from access_requests a where a.status = 'requested'
+    ), '[]'::jsonb),
+
+    'people', coalesce((
+      select jsonb_agg(jsonb_build_object('email', u.email, 'role', au.role) order by u.email)
+      from app_users au join auth.users u on u.id = au.id
+    ), '[]'::jsonb),
+
+    -- Live organisations only. The 26 synthetic ones are not work.
+    'organisations', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'short_name', o.short_name, 'name', o.name, 'country', o.country,
+        'verified', o.verified, 'has_brand', (o.logo_url is not null or o.brand_color is not null),
+        'status', o.status,
+        'campaigns', (select count(*) from campaigns c where c.org_id = o.id),
+        'responses', (
+          select count(*) from responses r
+          join sessions s on s.id = r.session_id
+          join campaigns c on c.id = s.campaign_id
+          where c.org_id = o.id
+        )
+      ) order by o.name)
+      from organisations o where o.is_demo = false
+    ), '[]'::jsonb),
+
+    -- How close each country is to unlocking a benchmark for everyone in it.
+    -- Concentration is the constraint, so this is the number that steers effort.
+    'clusters', coalesce((
+      select jsonb_agg(jsonb_build_object('country', country, 'completions', n, 'orgs', orgs)
+                       order by n desc)
+      from (
+        select o.country, count(distinct s.id) n, count(distinct o.id) orgs
+        from organisations o
+        join campaigns c on c.org_id = o.id
+        join sessions s on s.campaign_id = c.id
+        where o.is_demo = false and o.country is not null
+        group by o.country
+      ) k
+    ), '[]'::jsonb),
+
+    'instrument', (
+      select jsonb_build_object('version', iv.version, 'status', iv.status,
+                                'items', (select count(*) from items i where i.instrument_version_id = iv.id))
+      from instrument_versions iv where iv.status = 'active' limit 1
+    ),
+
+    'settings', coalesce((
+      select jsonb_object_agg(key, value) from platform_settings
+    ), '{}'::jsonb),
+
+    'spaces', data_space_report()
+  ) into result;
+
+  return result;
+end;
+$$;
+
+grant execute on function public.admin_worklist() to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- org_worklist() gains the same status awareness. Paused/closed surfaces as a
+-- Band A item -- the console already renders exactly this shape for "your
+-- logo is not set" etc, so this needs no new UI, just a truthful item.
+-- ----------------------------------------------------------------------------
+create or replace function public.org_worklist(p_short_name text)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare v_org public.organisations%rowtype; v_items jsonb := '[]'::jsonb; v_n bigint;
+begin
+  select * into v_org from organisations o where o.short_name = lower(btrim(p_short_name));
+  if not found then raise exception 'organisation not found'; end if;
+  if field_authority(v_org.id) is null then
+    raise exception 'not authorised for this organisation';
+  end if;
+
+  if v_org.status = 'paused' then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high', 'label',
+      'Your access is paused by an administrator — your links stop accepting new responses until this is lifted',
+      'action', 'Contact an administrator');
+  elsif v_org.status = 'closed' then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high', 'label',
+      'Your access is closed by an administrator — your links no longer accept new responses',
+      'action', 'Contact an administrator');
+  end if;
+
+  if not exists (select 1 from campaigns c where c.org_id = v_org.id and c.active) then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high', 'label', 'Your survey is not live yet', 'action', 'Finish setup');
+  end if;
+
+  if v_org.logo_url is null then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high', 'label', 'Your logo is not set — respondents see ours', 'action', 'Upload');
+  end if;
+
+  if v_org.welcome_message is null or v_org.closing_message is null then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'low', 'label', 'Your welcome and closing messages are the defaults', 'action', 'Edit');
+  end if;
+
+  select count(*) into v_n
+    from responses r join sessions s on s.id = r.session_id
+    join campaigns c on c.id = s.campaign_id
+   where c.org_id = v_org.id;
+
+  if v_n = 0 and exists (select 1 from campaigns c where c.org_id = v_org.id and c.active) then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high', 'label', 'Your survey is live but nobody has answered yet', 'action', 'Share the link');
+  end if;
+
+  return jsonb_build_object(
+    'org',       jsonb_build_object('short_name', v_org.short_name, 'name', v_org.name,
+                                    'is_demo', v_org.is_demo, 'status', v_org.status),
+    'responses', v_n,
+    'links',     org_links(v_org.short_name),
+    'items',     v_items
+  );
+end;
+$$;
+
+grant execute on function public.org_worklist(text) to authenticated;
+
+
+-- ─── 0017_org_benchmark_comparison.sql ─────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — org-facing benchmark comparison (migration 0017)
+--
+-- Item 7 from the batch request: a comparison toggle on an org's own
+-- dashboard, contrasting their result against a country baseline and a
+-- global baseline. Same critical-mass discipline as collab_intelligence():
+-- a number is never shown for a geography that has not passed the gate, and
+-- every figure that IS shown carries its own n.
+--
+-- Deliberately excludes the requesting org's own responses from whichever
+-- baseline it is being compared against — "how do you compare to others",
+-- not "how do you compare to a pool you are already part of".
+-- ============================================================================
+
+create or replace function public.org_benchmark(p_org_slug text)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  v_uid uuid := auth.uid();
+  v_org public.organisations%rowtype;
+  v_gate int;
+  v_publish_global boolean;
+  v_country_n bigint;
+  v_country_tiers jsonb;
+  v_country_index numeric;
+  v_global_n bigint;
+  v_global_tiers jsonb;
+  v_global_index numeric;
+begin
+  select * into v_org from organisations where slug = p_org_slug;
+  if not found then raise exception 'org not found'; end if;
+
+  if v_uid is null or not exists (
+    select 1 from org_members m where m.org_id = v_org.id and m.user_id = v_uid and m.status = 'active'
+  ) then
+    raise exception 'not authorised for this organisation';
+  end if;
+
+  v_gate := setting_int('critical_mass_gate', 400);
+  v_publish_global := setting_bool('publish_global_view', false);
+
+  -- Country baseline: same country, live space, every org except this one.
+  if v_org.country is not null then
+    with country_r as (
+      select rsp.tier, rsp.normalized, s.id as sid
+      from responses rsp
+      join sessions s      on s.id = rsp.session_id
+      join campaigns c     on c.id = s.campaign_id
+      join organisations o on o.id = c.org_id
+      where o.is_demo = false
+        and o.country = v_org.country
+        and o.id <> v_org.id
+        and rsp.normalized is not null
+    )
+    select
+      (select count(distinct sid) from country_r),
+      (select jsonb_object_agg(tier, m) from (select tier, round(avg(normalized),1) m from country_r group by tier) t)
+    into v_country_n, v_country_tiers;
+  end if;
+
+  if v_country_n >= v_gate then
+    select round(avg(value::numeric),1) into v_country_index
+    from jsonb_each_text(coalesce(v_country_tiers, '{}'::jsonb))
+    where key in ('exposure','response','formation','multiplication');
+  else
+    v_country_tiers := null;
+  end if;
+
+  -- Global baseline: every country, live space, every org except this one —
+  -- gated on BOTH the critical-mass count and the separate publish_global_view
+  -- switch, matching collab_intelligence()'s own public-facing gate. A number
+  -- not fit to publish on /intelligence should not reach an org privately either.
+  if v_publish_global then
+    with global_r as (
+      select rsp.tier, rsp.normalized, s.id as sid
+      from responses rsp
+      join sessions s      on s.id = rsp.session_id
+      join campaigns c     on c.id = s.campaign_id
+      join organisations o on o.id = c.org_id
+      where o.is_demo = false
+        and o.id <> v_org.id
+        and rsp.normalized is not null
+    )
+    select
+      (select count(distinct sid) from global_r),
+      (select jsonb_object_agg(tier, m) from (select tier, round(avg(normalized),1) m from global_r group by tier) t)
+    into v_global_n, v_global_tiers;
+  end if;
+
+  if v_global_n >= v_gate then
+    select round(avg(value::numeric),1) into v_global_index
+    from jsonb_each_text(coalesce(v_global_tiers, '{}'::jsonb))
+    where key in ('exposure','response','formation','multiplication');
+  else
+    v_global_tiers := null;
+  end if;
+
+  return jsonb_build_object(
+    'gate', v_gate,
+    'country', jsonb_build_object(
+      'geography', v_org.country,
+      'available', v_country_n >= v_gate,
+      'n', coalesce(v_country_n, 0),
+      'index', v_country_index,
+      'tiers', v_country_tiers
+    ),
+    'global', jsonb_build_object(
+      'available', v_publish_global and v_global_n >= v_gate,
+      'n', coalesce(v_global_n, 0),
+      'index', v_global_index,
+      'tiers', v_global_tiers
+    )
+  );
+end;
+$$;
+
+grant execute on function public.org_benchmark(text) to authenticated;
 
 
 -- ─── 0018_regional_map_layer.sql ───────────────────────────────────────
