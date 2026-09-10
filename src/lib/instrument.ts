@@ -1,4 +1,4 @@
-import instrumentV2 from "@/data/instrument.v2.json";
+import instrumentV3 from "@/data/instrument.v3.json";
 import {
   failedAttentionChecks as failedChecks,
   inOrder,
@@ -69,7 +69,7 @@ export interface Instrument {
   items: InstrumentItem[];
 }
 
-export const instrument = instrumentV2 as unknown as Instrument;
+export const instrument = instrumentV3 as unknown as Instrument;
 
 /**
  * How many questions each item set actually asks.

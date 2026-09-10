@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { t, type AnswerValue, type InstrumentItem, type InstrumentOption, type Locale } from "@/lib/instrument";
 
-const LIKERT = ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"];
+const LIKERT = [
+  "Not at all true of me",
+  "A little true of me",
+  "Somewhat true of me",
+  "Mostly true of me",
+  "Completely true of me",
+];
 
 /**
  * The respondent question renderer — ONE implementation, used everywhere.

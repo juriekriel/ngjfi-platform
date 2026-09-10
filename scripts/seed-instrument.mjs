@@ -2,7 +2,7 @@
 // API, using the same SUPABASE_ACCESS_TOKEN that scripts/apply-migrations.mjs
 // reads. No service-role key required.
 //
-//   node scripts/seed-instrument.mjs           seeds src/data/instrument.v2.json
+//   node scripts/seed-instrument.mjs           seeds src/data/instrument.v3.json
 //   node scripts/seed-instrument.mjs v0        seeds a specific version file
 //
 // WHY THIS EXISTS ALONGSIDE db:seed
@@ -18,7 +18,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const REF = "whtbfhbhkhwfmeekvmxq";
-const version = process.argv[2] ?? "v2";
+const version = process.argv[2] ?? "v3";
 
 function token() {
   let raw = "";
