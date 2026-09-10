@@ -58,11 +58,12 @@ grant execute on function public.set_session_context(uuid, text, text) to anon, 
 -- set_session_context, above, not at session creation) -- keeping them would
 -- have been a live way to write metadata that no longer has a column.
 --
--- NOTE: this redefines start_session() from its 0002 form. If the
--- organisation-activation-status branch (adding organisations.status,
--- migration 0016 on that branch) merges independently, its own
--- redefinition needs the same gender/city removal applied to it too --
--- flagging so the two don't silently diverge.
+-- RECONCILED with migration 0016 (organisation activation status): that
+-- migration's own start_session() redefinition still had gender/city and
+-- runs before this one (16 < 19), so without this, 0019 would have silently
+-- reverted 0016's organisation-status check the moment both were applied in
+-- sequence. This version carries both: the pause/closed guard from 0016,
+-- and the gender/city removal from this migration.
 create or replace function public.start_session(
   p_campaign_id uuid,
   p_age_band text default null,
@@ -71,10 +72,20 @@ create or replace function public.start_session(
   p_consent  jsonb default '{}'::jsonb
 ) returns uuid
 language plpgsql security definer set search_path = public as $$
-declare new_id uuid;
+declare new_id uuid; v_org_status text;
 begin
   if not exists (select 1 from campaigns c where c.id = p_campaign_id and c.active) then
     raise exception 'campaign not found or inactive';
+  end if;
+
+  select o.status into v_org_status
+  from campaigns c join organisations o on o.id = c.org_id
+  where c.id = p_campaign_id;
+
+  if v_org_status = 'paused' then
+    raise exception 'organisation access is paused';
+  elsif v_org_status = 'closed' then
+    raise exception 'organisation access is closed';
   end if;
 
   insert into sessions (campaign_id, age_band, country, locale, consent)
@@ -161,11 +172,7 @@ begin
                           order by question_domain, tier) from
                  (select item_key, question_domain, tier, round(avg(normalized),1) m, count(distinct sid) n
                     from r group by item_key, question_domain, tier) z),
-    'trend',   (select jsonb_agg(jsonb_build_object('year', yr, 'index', idx) order by yr) from
-                 (select yr, round(avg(tm),1) idx from
-                    (select extract(year from created_at)::int yr, tier, avg(normalized) tm
-                       from r group by extract(year from created_at)::int, tier) a
-                  group by yr) b)
+    'trend',   blended_trend(v_org.id, v_org.is_demo)
   ) into result;
 
   result := result || jsonb_build_object('index',
@@ -262,11 +269,7 @@ begin
                  (select age_band, round(avg(normalized),1) m, count(distinct sid) n from r
                     where tier = 'multiplication' and age_band is not null
                     group by age_band having count(distinct sid) >= v_min_group_n) a),
-    'trend',   (select jsonb_agg(jsonb_build_object('year', yr, 'index', idx) order by yr) from
-                 (select yr, round(avg(tm),1) idx from
-                    (select extract(year from created_at)::int yr, tier, avg(normalized) tm
-                       from r group by extract(year from created_at)::int, tier) a
-                  group by yr) b),
+    'trend',   blended_trend(null, false),
     'countries', (select jsonb_agg(jsonb_build_object('country', ct.country, 'n', cn.n, 'tiers', ct.tiers)) from
                    (select country, jsonb_object_agg(tier, m) tiers from ctry_tier group by country) ct
                    join ctry_n cn on cn.country = ct.country and cn.n >= v_gate),
@@ -347,11 +350,7 @@ begin
                  (select age_band, round(avg(normalized),1) m, count(distinct sid) n from r
                     where tier = 'multiplication' and age_band is not null
                     group by age_band having count(distinct sid) >= v_min_group_n) a),
-    'trend',   (select jsonb_agg(jsonb_build_object('year', yr, 'index', idx) order by yr) from
-                 (select yr, round(avg(tm),1) idx from
-                    (select extract(year from created_at)::int yr, tier, avg(normalized) tm
-                       from r group by extract(year from created_at)::int, tier) a
-                  group by yr) b),
+    'trend',   blended_trend(null, true),
     'countries', (select jsonb_agg(jsonb_build_object('country', ct.country, 'n', cn.n, 'tiers', ct.tiers)) from
                    (select country, jsonb_object_agg(tier, m) tiers from ctry_tier group by country) ct
                    join ctry_n cn on cn.country = ct.country),
@@ -376,24 +375,32 @@ grant execute on function public.collab_intelligence_demo() to anon, authenticat
 
 -- ----------------------------------------------------------------------------
 -- 5. Retention: row-level data gone after 24 months, anonymous aggregate
--- kept. "Row-level" means sessions and responses -- individual answers tied
--- to one respondent's visit. Before deleting a batch, this folds its
+-- kept -- AND that aggregate is actually read by the trend charts, not just
+-- written. "Row-level" means sessions and responses -- individual answers
+-- tied to one respondent's visit. Before deleting a batch, this folds its
 -- contribution into a permanent, already-anonymous yearly aggregate (org +
--- year + domain + tier -> mean + n) so "movement over time" charts don't
--- lose years just because they've aged out. The merge is weighted by n, so
--- running this monthly and having it repeatedly touch the same org/year
--- bucket as more of that year ages past the cutoff stays mathematically
--- correct, not just additive.
+-- year + domain + tier -> mean + n) so "movement over time" keeps years that
+-- have aged out of the raw tables. The merge is weighted by n, so running
+-- this monthly and having it repeatedly touch the same org/year bucket as
+-- more of that year ages past the cutoff stays mathematically correct, not
+-- just additive.
+--
+-- is_demo is captured at archive time (not looked up live at read time)
+-- specifically so a trend query never needs to trust that an archived row's
+-- parent organisation still exists and is still correctly flagged -- the
+-- live/demo space split, which this platform treats as close to sacred, is
+-- baked into the row itself and survives independently.
 --
 -- Deliberately a callable function, not a database-level cron job — pg_cron
 -- may not be enabled on every tier, and Jurie should be able to see it run
 -- (or run it by hand) rather than have it fire silently. A scheduled
 -- workflow calling this via the Management API, the same pattern the repo
 -- already uses for the weekly keepalive, is the natural way to automate it
--- once someone wants that; not added here on spec alone.
+-- once someone wants that.
 -- ----------------------------------------------------------------------------
 create table if not exists public.retained_aggregates (
   org_id          uuid not null references public.organisations(id) on delete cascade,
+  is_demo         boolean not null,
   year            int not null,
   question_domain text not null,
   tier            text not null,
@@ -404,9 +411,8 @@ create table if not exists public.retained_aggregates (
 );
 
 alter table public.retained_aggregates enable row level security;
--- No policies: only ever read via a security-definer RPC (still to be
--- wired into trend queries — flagged in the PR, not silently skipped),
--- same posture as every other aggregate table on this platform.
+-- No policies: only ever read via the security-definer RPCs below, same
+-- posture as every other aggregate table on this platform.
 
 create or replace function public.purge_stale_respondent_data(p_cutoff_months int default 24)
 returns jsonb
@@ -422,18 +428,19 @@ begin
 
   with stale as (
     select rsp.question_domain, rsp.tier, rsp.normalized,
-           extract(year from s.created_at)::int as yr, c.org_id
+           extract(year from s.created_at)::int as yr, c.org_id, o.is_demo
     from responses rsp
-    join sessions s  on s.id = rsp.session_id
-    join campaigns c on c.id = s.campaign_id
+    join sessions s      on s.id = rsp.session_id
+    join campaigns c     on c.id = s.campaign_id
+    join organisations o on o.id = c.org_id
     where s.created_at < v_cutoff and rsp.normalized is not null
   ),
   agg as (
-    select org_id, yr, question_domain, tier, round(avg(normalized),1) m, count(*) n
-    from stale group by org_id, yr, question_domain, tier
+    select org_id, is_demo, yr, question_domain, tier, round(avg(normalized),1) m, count(*) n
+    from stale group by org_id, is_demo, yr, question_domain, tier
   )
-  insert into retained_aggregates (org_id, year, question_domain, tier, mean, n)
-  select org_id, yr, question_domain, tier, m, n from agg
+  insert into retained_aggregates (org_id, is_demo, year, question_domain, tier, mean, n)
+  select org_id, is_demo, yr, question_domain, tier, m, n from agg
   on conflict (org_id, year, question_domain, tier) do update
     set mean = round(
           ((retained_aggregates.mean * retained_aggregates.n) + (excluded.mean * excluded.n))
@@ -456,3 +463,58 @@ end;
 $$;
 
 grant execute on function public.purge_stale_respondent_data(int) to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- Shared helper: a year-by-year index trend, blending live responses with
+-- whatever's already been archived-and-deleted for the same years. One
+-- function, called from org_dashboard() (p_org_id set) and both
+-- collab_intelligence() variants (p_org_id null, p_is_demo chooses the
+-- space). Centralised so the three trend queries can't quietly drift apart
+-- the way start_session() just did across two branches.
+--
+-- DELIBERATELY NOT granted to anon/authenticated: it takes a raw org_id and
+-- has no authorisation check of its own -- that check belongs to whichever
+-- caller decided p_org_id was allowed. It only needs to be callable by the
+-- functions below, which reach it as their own (already security-definer)
+-- role, not as the original request's role -- granting it directly would
+-- let anyone read any organisation's trend by guessing a uuid.
+-- ----------------------------------------------------------------------------
+create or replace function public.blended_trend(p_org_id uuid, p_is_demo boolean)
+returns jsonb
+language sql stable security definer set search_path = public as $$
+  with live as (
+    select extract(year from s.created_at)::int as yr, rsp.question_domain as dom, rsp.tier,
+           avg(rsp.normalized) as m, count(*) as n
+    from responses rsp
+    join sessions s      on s.id = rsp.session_id
+    join campaigns c     on c.id = s.campaign_id
+    join organisations o on o.id = c.org_id
+    where rsp.normalized is not null
+      and o.is_demo = p_is_demo
+      and (p_org_id is null or o.id = p_org_id)
+    group by 1, 2, 3
+  ),
+  archived as (
+    select year as yr, question_domain as dom, tier, mean as m, n
+    from retained_aggregates
+    where is_demo = p_is_demo
+      and (p_org_id is null or org_id = p_org_id)
+  ),
+  combined as (
+    select yr, dom, tier, m, n from live
+    union all
+    select yr, dom, tier, m, n from archived
+  ),
+  yearly_tier as (
+    -- n-weighted, so a year straddling the retention cutoff (partly archived,
+    -- partly still live) still produces one correct mean, not two competing ones.
+    select yr, tier, sum(m * n) / nullif(sum(n), 0) as tm
+    from combined group by yr, tier
+  )
+  select coalesce(jsonb_agg(jsonb_build_object('year', yr, 'index', round(idx::numeric, 1)) order by yr), '[]'::jsonb)
+  from (select yr, avg(tm) as idx from yearly_tier group by yr) y;
+$$;
+
+-- No grant to anon/authenticated -- see note above. org_dashboard() and
+-- collab_intelligence()/_demo() already own or run as a role that can call
+-- it directly; that's the only path to it.

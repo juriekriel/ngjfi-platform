@@ -34,6 +34,7 @@
 --   0013_networks.sql
 --   0014_waves_and_survey_setup.sql
 --   0015_fix_intelligence_data_contract.sql
+--   0016_org_activation_status.sql
 --   0018_regional_map_layer.sql
 --   0019_privacy_and_metadata_compliance.sql
 -- ============================================================================
@@ -2902,6 +2903,238 @@ grant execute on function public.collab_intelligence_demo() to anon, authenticat
 -- ============================================================================
 
 
+-- ─── 0016_org_activation_status.sql ────────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — organisation activation status (migration 0016)
+--
+-- Item 5 from the batch request: "toggle activation status (open, pause, or
+-- shut down access) for any organization space." campaigns already had an
+-- `active` flag (one campaign, one link), but nothing let an administrator
+-- pause an ORGANISATION as a whole — every campaign it owns, in one action,
+-- without having to find and flip each one.
+-- ============================================================================
+
+alter table public.organisations
+  add column if not exists status text not null default 'active'
+    check (status in ('active', 'paused', 'closed'));
+
+comment on column public.organisations.status is
+  'active: normal. paused: existing links stop accepting new sessions, reversible, org-visible. closed: same effect, intended as durable — the two are the same mechanism, status is the only difference.';
+
+-- ----------------------------------------------------------------------------
+-- start_session() now also refuses on behalf of a paused/closed organisation,
+-- not just an inactive campaign. Two different, distinguishable messages, so
+-- the frontend can tell a respondent something true rather than a generic
+-- failure -- and so this is not confused with the campaign-level `active`
+-- flag, which still means "this specific link," not "this organisation."
+-- ----------------------------------------------------------------------------
+create or replace function public.start_session(
+  p_campaign_id uuid,
+  p_age_band text default null,
+  p_gender   text default null,
+  p_country  text default null,
+  p_city     text default null,
+  p_locale   text default 'en',
+  p_consent  jsonb default '{}'::jsonb
+) returns uuid
+language plpgsql security definer set search_path = public as $$
+declare new_id uuid; v_org_status text;
+begin
+  if not exists (select 1 from campaigns c where c.id = p_campaign_id and c.active) then
+    raise exception 'campaign not found or inactive';
+  end if;
+
+  select o.status into v_org_status
+  from campaigns c join organisations o on o.id = c.org_id
+  where c.id = p_campaign_id;
+
+  if v_org_status = 'paused' then
+    raise exception 'organisation access is paused';
+  elsif v_org_status = 'closed' then
+    raise exception 'organisation access is closed';
+  end if;
+
+  insert into sessions (campaign_id, age_band, gender, country, city, locale, consent)
+  values (p_campaign_id, p_age_band, p_gender, p_country, p_city,
+          coalesce(p_locale,'en'), coalesce(p_consent,'{}'::jsonb))
+  returning id into new_id;
+  return new_id;
+end;
+$$;
+
+grant execute on function public.start_session(uuid,text,text,text,text,text,jsonb) to anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- Admin-only status changes. Same shape as set_user_role() and
+-- decide_access_request(): the check is the first line, and the action is
+-- logged nowhere special because my_role() itself is the audit trail --
+-- only an administrator's session can ever reach this branch.
+-- ----------------------------------------------------------------------------
+create or replace function public.set_org_status(p_short_name text, p_status text)
+returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if my_role() <> 'admin' then
+    raise exception 'only an administrator can change an organisation''s status';
+  end if;
+  if p_status not in ('active', 'paused', 'closed') then
+    raise exception 'status must be active, paused, or closed';
+  end if;
+  update organisations set status = p_status where short_name = p_short_name;
+  if not found then
+    raise exception 'no organisation with short_name %', p_short_name;
+  end if;
+end;
+$$;
+
+grant execute on function public.set_org_status(text, text) to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- admin_worklist() gains status per organisation, and a fourth item: any org
+-- an admin left paused/closed for more than a beat is worth a second look,
+-- the same way "has a live survey and no responses" already is.
+-- ----------------------------------------------------------------------------
+create or replace function public.admin_worklist()
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare result jsonb;
+begin
+  if my_role() <> 'admin' then
+    raise exception 'the worklist is for administrators';
+  end if;
+
+  select jsonb_build_object(
+    'access_requests', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id', a.id, 'email', a.email, 'reason', a.reason,
+        'status', a.status, 'created_at', a.created_at
+      ) order by a.created_at desc)
+      from access_requests a where a.status = 'requested'
+    ), '[]'::jsonb),
+
+    'people', coalesce((
+      select jsonb_agg(jsonb_build_object('email', u.email, 'role', au.role) order by u.email)
+      from app_users au join auth.users u on u.id = au.id
+    ), '[]'::jsonb),
+
+    -- Live organisations only. The 26 synthetic ones are not work.
+    'organisations', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'short_name', o.short_name, 'name', o.name, 'country', o.country,
+        'verified', o.verified, 'has_brand', (o.logo_url is not null or o.brand_color is not null),
+        'status', o.status,
+        'campaigns', (select count(*) from campaigns c where c.org_id = o.id),
+        'responses', (
+          select count(*) from responses r
+          join sessions s on s.id = r.session_id
+          join campaigns c on c.id = s.campaign_id
+          where c.org_id = o.id
+        )
+      ) order by o.name)
+      from organisations o where o.is_demo = false
+    ), '[]'::jsonb),
+
+    -- How close each country is to unlocking a benchmark for everyone in it.
+    -- Concentration is the constraint, so this is the number that steers effort.
+    'clusters', coalesce((
+      select jsonb_agg(jsonb_build_object('country', country, 'completions', n, 'orgs', orgs)
+                       order by n desc)
+      from (
+        select o.country, count(distinct s.id) n, count(distinct o.id) orgs
+        from organisations o
+        join campaigns c on c.org_id = o.id
+        join sessions s on s.campaign_id = c.id
+        where o.is_demo = false and o.country is not null
+        group by o.country
+      ) k
+    ), '[]'::jsonb),
+
+    'instrument', (
+      select jsonb_build_object('version', iv.version, 'status', iv.status,
+                                'items', (select count(*) from items i where i.instrument_version_id = iv.id))
+      from instrument_versions iv where iv.status = 'active' limit 1
+    ),
+
+    'settings', coalesce((
+      select jsonb_object_agg(key, value) from platform_settings
+    ), '{}'::jsonb),
+
+    'spaces', data_space_report()
+  ) into result;
+
+  return result;
+end;
+$$;
+
+grant execute on function public.admin_worklist() to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- org_worklist() gains the same status awareness. Paused/closed surfaces as a
+-- Band A item -- the console already renders exactly this shape for "your
+-- logo is not set" etc, so this needs no new UI, just a truthful item.
+-- ----------------------------------------------------------------------------
+create or replace function public.org_worklist(p_short_name text)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare v_org public.organisations%rowtype; v_items jsonb := '[]'::jsonb; v_n bigint;
+begin
+  select * into v_org from organisations o where o.short_name = lower(btrim(p_short_name));
+  if not found then raise exception 'organisation not found'; end if;
+  if field_authority(v_org.id) is null then
+    raise exception 'not authorised for this organisation';
+  end if;
+
+  if v_org.status = 'paused' then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high', 'label',
+      'Your access is paused by an administrator — your links stop accepting new responses until this is lifted',
+      'action', 'Contact an administrator');
+  elsif v_org.status = 'closed' then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high', 'label',
+      'Your access is closed by an administrator — your links no longer accept new responses',
+      'action', 'Contact an administrator');
+  end if;
+
+  if not exists (select 1 from campaigns c where c.org_id = v_org.id and c.active) then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high', 'label', 'Your survey is not live yet', 'action', 'Finish setup');
+  end if;
+
+  if v_org.logo_url is null then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high', 'label', 'Your logo is not set — respondents see ours', 'action', 'Upload');
+  end if;
+
+  if v_org.welcome_message is null or v_org.closing_message is null then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'low', 'label', 'Your welcome and closing messages are the defaults', 'action', 'Edit');
+  end if;
+
+  select count(*) into v_n
+    from responses r join sessions s on s.id = r.session_id
+    join campaigns c on c.id = s.campaign_id
+   where c.org_id = v_org.id;
+
+  if v_n = 0 and exists (select 1 from campaigns c where c.org_id = v_org.id and c.active) then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high', 'label', 'Your survey is live but nobody has answered yet', 'action', 'Share the link');
+  end if;
+
+  return jsonb_build_object(
+    'org',       jsonb_build_object('short_name', v_org.short_name, 'name', v_org.name,
+                                    'is_demo', v_org.is_demo, 'status', v_org.status),
+    'responses', v_n,
+    'links',     org_links(v_org.short_name),
+    'items',     v_items
+  );
+end;
+$$;
+
+grant execute on function public.org_worklist(text) to authenticated;
+
+
 -- ─── 0018_regional_map_layer.sql ───────────────────────────────────────
 
 -- ============================================================================
@@ -3178,11 +3411,12 @@ grant execute on function public.set_session_context(uuid, text, text) to anon, 
 -- set_session_context, above, not at session creation) -- keeping them would
 -- have been a live way to write metadata that no longer has a column.
 --
--- NOTE: this redefines start_session() from its 0002 form. If the
--- organisation-activation-status branch (adding organisations.status,
--- migration 0016 on that branch) merges independently, its own
--- redefinition needs the same gender/city removal applied to it too --
--- flagging so the two don't silently diverge.
+-- RECONCILED with migration 0016 (organisation activation status): that
+-- migration's own start_session() redefinition still had gender/city and
+-- runs before this one (16 < 19), so without this, 0019 would have silently
+-- reverted 0016's organisation-status check the moment both were applied in
+-- sequence. This version carries both: the pause/closed guard from 0016,
+-- and the gender/city removal from this migration.
 create or replace function public.start_session(
   p_campaign_id uuid,
   p_age_band text default null,
@@ -3191,10 +3425,20 @@ create or replace function public.start_session(
   p_consent  jsonb default '{}'::jsonb
 ) returns uuid
 language plpgsql security definer set search_path = public as $$
-declare new_id uuid;
+declare new_id uuid; v_org_status text;
 begin
   if not exists (select 1 from campaigns c where c.id = p_campaign_id and c.active) then
     raise exception 'campaign not found or inactive';
+  end if;
+
+  select o.status into v_org_status
+  from campaigns c join organisations o on o.id = c.org_id
+  where c.id = p_campaign_id;
+
+  if v_org_status = 'paused' then
+    raise exception 'organisation access is paused';
+  elsif v_org_status = 'closed' then
+    raise exception 'organisation access is closed';
   end if;
 
   insert into sessions (campaign_id, age_band, country, locale, consent)
@@ -3281,11 +3525,7 @@ begin
                           order by question_domain, tier) from
                  (select item_key, question_domain, tier, round(avg(normalized),1) m, count(distinct sid) n
                     from r group by item_key, question_domain, tier) z),
-    'trend',   (select jsonb_agg(jsonb_build_object('year', yr, 'index', idx) order by yr) from
-                 (select yr, round(avg(tm),1) idx from
-                    (select extract(year from created_at)::int yr, tier, avg(normalized) tm
-                       from r group by extract(year from created_at)::int, tier) a
-                  group by yr) b)
+    'trend',   blended_trend(v_org.id, v_org.is_demo)
   ) into result;
 
   result := result || jsonb_build_object('index',
@@ -3382,11 +3622,7 @@ begin
                  (select age_band, round(avg(normalized),1) m, count(distinct sid) n from r
                     where tier = 'multiplication' and age_band is not null
                     group by age_band having count(distinct sid) >= v_min_group_n) a),
-    'trend',   (select jsonb_agg(jsonb_build_object('year', yr, 'index', idx) order by yr) from
-                 (select yr, round(avg(tm),1) idx from
-                    (select extract(year from created_at)::int yr, tier, avg(normalized) tm
-                       from r group by extract(year from created_at)::int, tier) a
-                  group by yr) b),
+    'trend',   blended_trend(null, false),
     'countries', (select jsonb_agg(jsonb_build_object('country', ct.country, 'n', cn.n, 'tiers', ct.tiers)) from
                    (select country, jsonb_object_agg(tier, m) tiers from ctry_tier group by country) ct
                    join ctry_n cn on cn.country = ct.country and cn.n >= v_gate),
@@ -3467,11 +3703,7 @@ begin
                  (select age_band, round(avg(normalized),1) m, count(distinct sid) n from r
                     where tier = 'multiplication' and age_band is not null
                     group by age_band having count(distinct sid) >= v_min_group_n) a),
-    'trend',   (select jsonb_agg(jsonb_build_object('year', yr, 'index', idx) order by yr) from
-                 (select yr, round(avg(tm),1) idx from
-                    (select extract(year from created_at)::int yr, tier, avg(normalized) tm
-                       from r group by extract(year from created_at)::int, tier) a
-                  group by yr) b),
+    'trend',   blended_trend(null, true),
     'countries', (select jsonb_agg(jsonb_build_object('country', ct.country, 'n', cn.n, 'tiers', ct.tiers)) from
                    (select country, jsonb_object_agg(tier, m) tiers from ctry_tier group by country) ct
                    join ctry_n cn on cn.country = ct.country),
@@ -3496,24 +3728,32 @@ grant execute on function public.collab_intelligence_demo() to anon, authenticat
 
 -- ----------------------------------------------------------------------------
 -- 5. Retention: row-level data gone after 24 months, anonymous aggregate
--- kept. "Row-level" means sessions and responses -- individual answers tied
--- to one respondent's visit. Before deleting a batch, this folds its
+-- kept -- AND that aggregate is actually read by the trend charts, not just
+-- written. "Row-level" means sessions and responses -- individual answers
+-- tied to one respondent's visit. Before deleting a batch, this folds its
 -- contribution into a permanent, already-anonymous yearly aggregate (org +
--- year + domain + tier -> mean + n) so "movement over time" charts don't
--- lose years just because they've aged out. The merge is weighted by n, so
--- running this monthly and having it repeatedly touch the same org/year
--- bucket as more of that year ages past the cutoff stays mathematically
--- correct, not just additive.
+-- year + domain + tier -> mean + n) so "movement over time" keeps years that
+-- have aged out of the raw tables. The merge is weighted by n, so running
+-- this monthly and having it repeatedly touch the same org/year bucket as
+-- more of that year ages past the cutoff stays mathematically correct, not
+-- just additive.
+--
+-- is_demo is captured at archive time (not looked up live at read time)
+-- specifically so a trend query never needs to trust that an archived row's
+-- parent organisation still exists and is still correctly flagged -- the
+-- live/demo space split, which this platform treats as close to sacred, is
+-- baked into the row itself and survives independently.
 --
 -- Deliberately a callable function, not a database-level cron job — pg_cron
 -- may not be enabled on every tier, and Jurie should be able to see it run
 -- (or run it by hand) rather than have it fire silently. A scheduled
 -- workflow calling this via the Management API, the same pattern the repo
 -- already uses for the weekly keepalive, is the natural way to automate it
--- once someone wants that; not added here on spec alone.
+-- once someone wants that.
 -- ----------------------------------------------------------------------------
 create table if not exists public.retained_aggregates (
   org_id          uuid not null references public.organisations(id) on delete cascade,
+  is_demo         boolean not null,
   year            int not null,
   question_domain text not null,
   tier            text not null,
@@ -3524,9 +3764,8 @@ create table if not exists public.retained_aggregates (
 );
 
 alter table public.retained_aggregates enable row level security;
--- No policies: only ever read via a security-definer RPC (still to be
--- wired into trend queries — flagged in the PR, not silently skipped),
--- same posture as every other aggregate table on this platform.
+-- No policies: only ever read via the security-definer RPCs below, same
+-- posture as every other aggregate table on this platform.
 
 create or replace function public.purge_stale_respondent_data(p_cutoff_months int default 24)
 returns jsonb
@@ -3542,18 +3781,19 @@ begin
 
   with stale as (
     select rsp.question_domain, rsp.tier, rsp.normalized,
-           extract(year from s.created_at)::int as yr, c.org_id
+           extract(year from s.created_at)::int as yr, c.org_id, o.is_demo
     from responses rsp
-    join sessions s  on s.id = rsp.session_id
-    join campaigns c on c.id = s.campaign_id
+    join sessions s      on s.id = rsp.session_id
+    join campaigns c     on c.id = s.campaign_id
+    join organisations o on o.id = c.org_id
     where s.created_at < v_cutoff and rsp.normalized is not null
   ),
   agg as (
-    select org_id, yr, question_domain, tier, round(avg(normalized),1) m, count(*) n
-    from stale group by org_id, yr, question_domain, tier
+    select org_id, is_demo, yr, question_domain, tier, round(avg(normalized),1) m, count(*) n
+    from stale group by org_id, is_demo, yr, question_domain, tier
   )
-  insert into retained_aggregates (org_id, year, question_domain, tier, mean, n)
-  select org_id, yr, question_domain, tier, m, n from agg
+  insert into retained_aggregates (org_id, is_demo, year, question_domain, tier, mean, n)
+  select org_id, is_demo, yr, question_domain, tier, m, n from agg
   on conflict (org_id, year, question_domain, tier) do update
     set mean = round(
           ((retained_aggregates.mean * retained_aggregates.n) + (excluded.mean * excluded.n))
@@ -3576,4 +3816,59 @@ end;
 $$;
 
 grant execute on function public.purge_stale_respondent_data(int) to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- Shared helper: a year-by-year index trend, blending live responses with
+-- whatever's already been archived-and-deleted for the same years. One
+-- function, called from org_dashboard() (p_org_id set) and both
+-- collab_intelligence() variants (p_org_id null, p_is_demo chooses the
+-- space). Centralised so the three trend queries can't quietly drift apart
+-- the way start_session() just did across two branches.
+--
+-- DELIBERATELY NOT granted to anon/authenticated: it takes a raw org_id and
+-- has no authorisation check of its own -- that check belongs to whichever
+-- caller decided p_org_id was allowed. It only needs to be callable by the
+-- functions below, which reach it as their own (already security-definer)
+-- role, not as the original request's role -- granting it directly would
+-- let anyone read any organisation's trend by guessing a uuid.
+-- ----------------------------------------------------------------------------
+create or replace function public.blended_trend(p_org_id uuid, p_is_demo boolean)
+returns jsonb
+language sql stable security definer set search_path = public as $$
+  with live as (
+    select extract(year from s.created_at)::int as yr, rsp.question_domain as dom, rsp.tier,
+           avg(rsp.normalized) as m, count(*) as n
+    from responses rsp
+    join sessions s      on s.id = rsp.session_id
+    join campaigns c     on c.id = s.campaign_id
+    join organisations o on o.id = c.org_id
+    where rsp.normalized is not null
+      and o.is_demo = p_is_demo
+      and (p_org_id is null or o.id = p_org_id)
+    group by 1, 2, 3
+  ),
+  archived as (
+    select year as yr, question_domain as dom, tier, mean as m, n
+    from retained_aggregates
+    where is_demo = p_is_demo
+      and (p_org_id is null or org_id = p_org_id)
+  ),
+  combined as (
+    select yr, dom, tier, m, n from live
+    union all
+    select yr, dom, tier, m, n from archived
+  ),
+  yearly_tier as (
+    -- n-weighted, so a year straddling the retention cutoff (partly archived,
+    -- partly still live) still produces one correct mean, not two competing ones.
+    select yr, tier, sum(m * n) / nullif(sum(n), 0) as tm
+    from combined group by yr, tier
+  )
+  select coalesce(jsonb_agg(jsonb_build_object('year', yr, 'index', round(idx::numeric, 1)) order by yr), '[]'::jsonb)
+  from (select yr, avg(tm) as idx from yearly_tier group by yr) y;
+$$;
+
+-- No grant to anon/authenticated -- see note above. org_dashboard() and
+-- collab_intelligence()/_demo() already own or run as a role that can call
+-- it directly; that's the only path to it.
 
