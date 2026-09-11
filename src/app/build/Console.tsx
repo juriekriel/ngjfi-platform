@@ -457,6 +457,7 @@ type Worklist = {
     live: { orgs: number; sessions: number; responses: number };
     demo: { orgs: number; sessions: number; responses: number };
     gate: number;
+    country_gate: number;
     global_view_published: boolean;
   };
 };
@@ -626,7 +627,8 @@ function AdminConsole() {
               </tbody>
             </table>
             <p className="margin-note mt-3">
-              Gate: <b>{wl.spaces.gate}</b> completions before a geography is named. Global view{" "}
+              Gate: <b>{wl.spaces.gate}</b> completions before an org or region is named,{" "}
+              <b>{wl.spaces.country_gate}</b> for a country. Global view{" "}
               {wl.spaces.global_view_published ? "published" : "not published"}. Instrument{" "}
               <b>{wl.instrument ? `${wl.instrument.version} · ${wl.instrument.items} items` : "not loaded"}</b>.
             </p>
@@ -692,7 +694,8 @@ function AdminConsole() {
             meta={wl?.instrument ? `${wl.instrument.version} · ${wl.instrument.items} items · ${wl.instrument.status}` : "not loaded"}
             tone={wl?.instrument ? "good" : "warn"}
           />
-          <Row label="Critical-mass gate" meta={`${wl?.spaces.gate ?? 400} completions`} />
+          <Row label="Critical-mass gate (org / region)" meta={`${wl?.spaces.gate ?? 400} completions`} />
+          <Row label="Critical-mass gate (country)" meta={`${wl?.spaces.country_gate ?? 2000} completions`} />
           <Row
             label="Global view published"
             meta={wl?.spaces.global_view_published ? "yes" : "no"}
