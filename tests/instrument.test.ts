@@ -249,6 +249,23 @@ test("each matrix cell is exactly one internal + one external item — never mor
   }
 });
 
+test("every item carries a section tag, distinct from question_domain and consistent with it", () => {
+  const KNOWN_SECTIONS = ["screener", "index", "driver", "journey", "demographic", "exploration"];
+  // question_domain -> the one section every item in that domain must carry.
+  const EXPECTED: Record<string, string> = {
+    follow: "index", mission: "index", world: "index",
+    drivers: "driver", journey: "journey",
+    screener: "screener", demographic: "demographic", exploration: "exploration",
+  };
+  assert.ok(instrument.items.length > 0);
+  for (const i of instrument.items) {
+    assert.ok(i.section, `"${i.key}" has no section tag`);
+    assert.ok(KNOWN_SECTIONS.includes(i.section as string), `"${i.key}" has an unknown section "${i.section}"`);
+    const expected = EXPECTED[i.question_domain as string];
+    assert.equal(i.section, expected, `"${i.key}": question_domain "${i.question_domain}" should be section "${expected}", got "${i.section}"`);
+  }
+});
+
 test("approved metadata only — no gender, no city, nothing outside the agreed list", () => {
   assert.equal(instrument.items.find((i) => i.key === "gender"), undefined);
   assert.equal(instrument.items.find((i) => i.key === "city"), undefined);

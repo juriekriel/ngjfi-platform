@@ -62,6 +62,12 @@ export interface InstrumentItem {
   help?: LocalizedText;
   text: LocalizedText;
   options?: InstrumentOption[];
+  /** Which part of the instrument this is — screener / index / driver / journey /
+   * demographic / exploration. Distinct from question_domain: question_domain
+   * carries the scoring dimension for Index items (follow/mission/world) and a
+   * routing label for everything else; section is the single, versioned answer
+   * to "which part of the instrument is this", per CLAUDE.md #3. */
+  section?: "screener" | "index" | "driver" | "journey" | "demographic" | "exploration";
 }
 
 export interface Instrument {
