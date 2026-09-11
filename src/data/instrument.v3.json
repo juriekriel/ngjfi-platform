@@ -5,7 +5,7 @@
     "en",
     "es"
   ],
-  "note": "Instrument v3 — supersedes v2's Index content (v2's routing and exploration branch are unchanged and carried forward; v1/v2 are archived, not deleted). Replaces the old belief/behaviour item set with Matthew's approved 24-item design: two items per cell (Internal/External), a uniform five-point 'how true is this of me' scale throughout, sourced from Youth_Collab_Survey_Working_Draft.docx. heard_story / someone_shared_with_me / seen_faith_do_good are retired — orientation alone now gates the Index (unchanged from v2), so a separate exposure-yes/no screen is redundant with Matthew's own Exposure-tier items. pray_frequency and scripture_frequency are kept verbatim per CLAUDE.md §3 (always measurable), even though Matthew's draft doesn't list them as separate items. Drivers and Journey are new, unscored, multi_select sections. Demographics (gender/country/city) are new, unconditional — asked regardless of branch. core (NGC12) is redefined as the External item from every one of the 12 cells — full coverage, unlike v1's 8-of-12 — and no longer includes the frequency items or a fixed 'four beliefs' set, since Matthew's items aren't propositional claims in the same way. Subject to researcher revision — never hard-code into UI or scoring. v3.1: tagged the 24 Index items internal/external as structured metadata (measure field), not just a key-name convention. Removed gender and city — approved metadata is organisation, country/region, age group, language, survey date, and instrument version; nothing else. v3.2: pray_frequency/scripture_frequency set to scored:false -- still asked, still stored, still reported as their own core-activities figure, but no longer blended into the follow×formation cell average. The matrix rule is exactly two items per cell (Matthew's Internal+External); these two are measured because CLAUDE.md §3 requires it, not because they belong to that cell's score.",
+  "note": "Instrument v3 — supersedes v2's Index content (v2's routing and exploration branch are unchanged and carried forward; v1/v2 are archived, not deleted). Replaces the old belief/behaviour item set with Matthew's approved 24-item design: two items per cell (Internal/External), a uniform five-point 'how true is this of me' scale throughout, sourced from Youth_Collab_Survey_Working_Draft.docx. heard_story / someone_shared_with_me / seen_faith_do_good are retired — orientation alone now gates the Index (unchanged from v2), so a separate exposure-yes/no screen is redundant with Matthew's own Exposure-tier items. pray_frequency and scripture_frequency are kept verbatim per CLAUDE.md §3 (always measurable), even though Matthew's draft doesn't list them as separate items. Drivers and Journey are new, unscored, multi_select sections. Demographics (gender/country/city) are new, unconditional — asked regardless of branch. core (NGC12) is redefined as the External item from every one of the 12 cells — full coverage, unlike v1's 8-of-12 — and no longer includes the frequency items or a fixed 'four beliefs' set, since Matthew's items aren't propositional claims in the same way. Subject to researcher revision — never hard-code into UI or scoring. v3.1: tagged the 24 Index items internal/external as structured metadata (measure field), not just a key-name convention. Removed gender and city — approved metadata is organisation, country/region, age group, language, survey date, and instrument version; nothing else. v3.2: pray_frequency/scripture_frequency set to scored:false -- still asked, still stored, still reported as their own core-activities figure, but no longer blended into the follow×formation cell average. The matrix rule is exactly two items per cell (Matthew's Internal+External); these two are measured because CLAUDE.md §3 requires it, not because they belong to that cell's score. v3.3: added an explicit `section` tag (screener/index/driver/journey/demographic/exploration) to every item, distinct from question_domain -- question_domain still carries the scoring dimension for Index items (follow/mission/world) and the routing label for everything else; section is the new, single answer to \"which part of the instrument is this\". `exploration` is this migration's own addition to the five named in the brief -- flagging for researchers to confirm or fold into `screener` instead, since the non-follower branch predates this tag and wasn't one of the five originally listed.",
   "core_note": "`core: true` marks the NGC12 — the memorable 12-item core that can be run alone.",
   "items": [
     {
@@ -42,7 +42,8 @@
           }
         }
       ],
-      "order": 10
+      "order": 10,
+      "section": "demographic"
     },
     {
       "key": "orientation",
@@ -105,7 +106,8 @@
           }
         }
       ],
-      "order": 50
+      "order": 50,
+      "section": "screener"
     },
     {
       "key": "explore_believe_god",
@@ -151,7 +153,8 @@
             "es": "No estoy seguro/a"
           }
         }
-      ]
+      ],
+      "section": "exploration"
     },
     {
       "key": "explore_open_experience",
@@ -197,7 +200,8 @@
             "es": "No estoy seguro/a"
           }
         }
-      ]
+      ],
+      "section": "exploration"
     },
     {
       "key": "explore_had_experience",
@@ -243,7 +247,8 @@
             "es": "No estoy seguro/a"
           }
         }
-      ]
+      ],
+      "section": "exploration"
     },
     {
       "key": "explore_influences",
@@ -352,7 +357,8 @@
             "es": "Otra"
           }
         }
-      ]
+      ],
+      "section": "exploration"
     },
     {
       "key": "explore_heard_about_jesus",
@@ -375,7 +381,8 @@
       "text": {
         "en": "Outside of a school lesson, has anyone or anything ever talked to you about who Jesus is?",
         "es": "Fuera de una clase escolar, ¿alguien o algo te ha hablado sobre quién es Jesús?"
-      }
+      },
+      "section": "exploration"
     },
     {
       "key": "explore_who_talked",
@@ -455,7 +462,8 @@
             "es": "Otra"
           }
         }
-      ]
+      ],
+      "section": "exploration"
     },
     {
       "key": "explore_pray",
@@ -501,7 +509,8 @@
             "es": "No estoy seguro/a"
           }
         }
-      ]
+      ],
+      "section": "exploration"
     },
     {
       "key": "explore_pray_to",
@@ -581,7 +590,8 @@
             "es": "Otro"
           }
         }
-      ]
+      ],
+      "section": "exploration"
     },
     {
       "key": "explore_open_to_prayer",
@@ -627,7 +637,8 @@
             "es": "No estoy seguro/a"
           }
         }
-      ]
+      ],
+      "section": "exploration"
     },
     {
       "key": "explore_open_to_gathering",
@@ -673,7 +684,8 @@
             "es": "No estoy seguro/a"
           }
         }
-      ]
+      ],
+      "section": "exploration"
     },
     {
       "key": "explore_describe_jesus",
@@ -701,7 +713,8 @@
       "help": {
         "en": "There is no right answer, and this is anonymous. Please don't include your name or anyone else's.",
         "es": "No hay respuesta correcta y es anónimo. Por favor no incluyas tu nombre ni el de nadie más."
-      }
+      },
+      "section": "exploration"
     },
     {
       "key": "who_is_jesus",
@@ -729,7 +742,8 @@
       "help": {
         "en": "There is no right answer, and this is anonymous. Please don't include your name or anyone else's.",
         "es": "No hay respuesta correcta y es anónimo. Por favor no incluyas tu nombre ni el de nadie más."
-      }
+      },
+      "section": "screener"
     },
     {
       "key": "attention_check",
@@ -755,7 +769,8 @@
       "text": {
         "en": "So we know you're reading carefully, please choose \"A little true of me\" for this one.",
         "es": "Para saber que estás leyendo con atención, elige \"Un poco cierto de mí\" en esta."
-      }
+      },
+      "section": "screener"
     },
     {
       "key": "follow_exposure_internal",
@@ -779,7 +794,8 @@
         "en": "I want to keep learning more about who Jesus is and what he taught.",
         "es": "Quiero seguir aprendiendo más sobre quién es Jesús y lo que enseñó."
       },
-      "measure": "internal"
+      "measure": "internal",
+      "section": "index"
     },
     {
       "key": "follow_exposure_external",
@@ -804,7 +820,8 @@
         "en": "I have had opportunities to learn what Jesus taught and why it matters.",
         "es": "He tenido oportunidades de aprender lo que Jesús enseñó y por qué importa."
       },
-      "measure": "external"
+      "measure": "external",
+      "section": "index"
     },
     {
       "key": "follow_response_internal",
@@ -828,7 +845,8 @@
         "en": "I believe forgiveness of sins is only possible through faith in Jesus.",
         "es": "Creo que el perdón de los pecados solo es posible por la fe en Jesús."
       },
-      "measure": "internal"
+      "measure": "internal",
+      "section": "index"
     },
     {
       "key": "follow_response_external",
@@ -853,7 +871,8 @@
         "en": "I have chosen to follow Jesus, whom I believe is God.",
         "es": "He decidido seguir a Jesús, a quien creo que es Dios."
       },
-      "measure": "external"
+      "measure": "external",
+      "section": "index"
     },
     {
       "key": "follow_formation_internal",
@@ -877,7 +896,8 @@
         "en": "The Bible challenges me to reconsider my choices and behavior.",
         "es": "La Biblia me desafía a reconsiderar mis decisiones y comportamiento."
       },
-      "measure": "internal"
+      "measure": "internal",
+      "section": "index"
     },
     {
       "key": "follow_formation_external",
@@ -902,7 +922,8 @@
         "en": "I engage in forms of prayer that bring me into personal engagement with God.",
         "es": "Practico formas de oración que me acercan personalmente a Dios."
       },
-      "measure": "external"
+      "measure": "external",
+      "section": "index"
     },
     {
       "key": "follow_multiplication_internal",
@@ -926,7 +947,8 @@
         "en": "I believe the gospel is good news in my life and worth sharing with people who aren't Christians.",
         "es": "Creo que el evangelio es buenas noticias en mi vida y vale la pena compartirlo con quienes no son cristianos."
       },
-      "measure": "internal"
+      "measure": "internal",
+      "section": "index"
     },
     {
       "key": "follow_multiplication_external",
@@ -951,7 +973,8 @@
         "en": "In the last six months, I have shared something about Jesus with someone who doesn't follow him.",
         "es": "En los últimos seis meses, he compartido algo sobre Jesús con alguien que no lo sigue."
       },
-      "measure": "external"
+      "measure": "external",
+      "section": "index"
     },
     {
       "key": "mission_exposure_internal",
@@ -975,7 +998,8 @@
         "en": "I understand what it means to take part in Jesus' mission.",
         "es": "Entiendo lo que significa participar en la misión de Jesús."
       },
-      "measure": "internal"
+      "measure": "internal",
+      "section": "index"
     },
     {
       "key": "mission_exposure_external",
@@ -1000,7 +1024,8 @@
         "en": "I currently have someone helping me follow Jesus.",
         "es": "Actualmente tengo a alguien que me ayuda a seguir a Jesús."
       },
-      "measure": "external"
+      "measure": "external",
+      "section": "index"
     },
     {
       "key": "mission_response_internal",
@@ -1024,7 +1049,8 @@
         "en": "I believe sharing the message of Jesus is part of following him.",
         "es": "Creo que compartir el mensaje de Jesús es parte de seguirlo."
       },
-      "measure": "internal"
+      "measure": "internal",
+      "section": "index"
     },
     {
       "key": "mission_response_external",
@@ -1049,7 +1075,8 @@
         "en": "I have accepted taking part in Jesus' mission as my responsibility as a follower of Jesus.",
         "es": "He aceptado participar en la misión de Jesús como mi responsabilidad como seguidor suyo."
       },
-      "measure": "external"
+      "measure": "external",
+      "section": "index"
     },
     {
       "key": "mission_formation_internal",
@@ -1073,7 +1100,8 @@
         "en": "Serving others as part of a Christian community is an important part of how I follow Jesus.",
         "es": "Servir a otros como parte de una comunidad cristiana es una parte importante de cómo sigo a Jesús."
       },
-      "measure": "internal"
+      "measure": "internal",
+      "section": "index"
     },
     {
       "key": "mission_formation_external",
@@ -1098,7 +1126,8 @@
         "en": "I try to show people who are not Christians how following Jesus shapes my daily life.",
         "es": "Trato de mostrarles a quienes no son cristianos cómo seguir a Jesús da forma a mi vida diaria."
       },
-      "measure": "external"
+      "measure": "external",
+      "section": "index"
     },
     {
       "key": "mission_multiplication_internal",
@@ -1122,7 +1151,8 @@
         "en": "I want to invite other people to join me in activities connected to Jesus' mission.",
         "es": "Quiero invitar a otras personas a unirse a actividades conectadas con la misión de Jesús."
       },
-      "measure": "internal"
+      "measure": "internal",
+      "section": "index"
     },
     {
       "key": "mission_multiplication_external",
@@ -1147,7 +1177,8 @@
         "en": "I have helped someone else grow in their following of Jesus.",
         "es": "He ayudado a alguien más a crecer en su seguimiento de Jesús."
       },
-      "measure": "external"
+      "measure": "external",
+      "section": "index"
     },
     {
       "key": "world_exposure_internal",
@@ -1171,7 +1202,8 @@
         "en": "I believe following Jesus leads to real good for people and the world.",
         "es": "Creo que seguir a Jesús produce un bien real para las personas y el mundo."
       },
-      "measure": "internal"
+      "measure": "internal",
+      "section": "index"
     },
     {
       "key": "world_exposure_external",
@@ -1196,7 +1228,8 @@
         "en": "I make choices that direct my life toward something bigger than just myself.",
         "es": "Tomo decisiones que orientan mi vida hacia algo más grande que yo mismo/a."
       },
-      "measure": "external"
+      "measure": "external",
+      "section": "index"
     },
     {
       "key": "world_response_internal",
@@ -1220,7 +1253,8 @@
         "en": "I believe my faith is about more than my personal life. It should make a difference in the world.",
         "es": "Creo que mi fe es más que mi vida personal. Debería hacer una diferencia en el mundo."
       },
-      "measure": "internal"
+      "measure": "internal",
+      "section": "index"
     },
     {
       "key": "world_response_external",
@@ -1245,7 +1279,8 @@
         "en": "Following Jesus makes a real difference in how I treat people and respond to needs around me.",
         "es": "Seguir a Jesús hace una diferencia real en cómo trato a las personas y respondo a las necesidades a mi alrededor."
       },
-      "measure": "external"
+      "measure": "external",
+      "section": "index"
     },
     {
       "key": "world_formation_internal",
@@ -1269,7 +1304,8 @@
         "en": "I seek to do God's will in my day-to-day life, even when it is different from my own.",
         "es": "Busco hacer la voluntad de Dios en mi vida diaria, incluso cuando es diferente de la mía."
       },
-      "measure": "internal"
+      "measure": "internal",
+      "section": "index"
     },
     {
       "key": "world_formation_external",
@@ -1294,7 +1330,8 @@
         "en": "Becoming a more loving person to everyone around me is something I work on every day.",
         "es": "Convertirme en una persona más amorosa con todos a mi alrededor es algo en lo que trabajo cada día."
       },
-      "measure": "external"
+      "measure": "external",
+      "section": "index"
     },
     {
       "key": "world_multiplication_internal",
@@ -1318,7 +1355,8 @@
         "en": "I believe followers of Jesus should work together to make positive changes in their communities.",
         "es": "Creo que los seguidores de Jesús deben trabajar juntos para lograr cambios positivos en sus comunidades."
       },
-      "measure": "internal"
+      "measure": "internal",
+      "section": "index"
     },
     {
       "key": "world_multiplication_external",
@@ -1343,7 +1381,8 @@
         "en": "I encourage other Christians to connect their faith with the way they live and serve.",
         "es": "Animo a otros cristianos a conectar su fe con la forma en que viven y sirven."
       },
-      "measure": "external"
+      "measure": "external",
+      "section": "index"
     },
     {
       "key": "pray_frequency",
@@ -1400,7 +1439,8 @@
       "text": {
         "en": "I pray to God.",
         "es": "Oro a Dios."
-      }
+      },
+      "section": "index"
     },
     {
       "key": "scripture_frequency",
@@ -1457,7 +1497,8 @@
       "text": {
         "en": "I read or hear scripture.",
         "es": "Leo o escucho las Escrituras."
-      }
+      },
+      "section": "index"
     },
     {
       "key": "continue_to_extras",
@@ -1496,7 +1537,8 @@
       "text": {
         "en": "That's the main set — thank you. Want to help us understand your journey a bit more? A few optional questions, about two more minutes.",
         "es": "Ese es el conjunto principal — gracias. ¿Quieres ayudarnos a entender un poco más tu camino? Algunas preguntas opcionales, unos dos minutos más."
-      }
+      },
+      "section": "screener"
     },
     {
       "key": "driver_sources_of_belief",
@@ -1598,7 +1640,8 @@
             "es": "Otra"
           }
         }
-      ]
+      ],
+      "section": "driver"
     },
     {
       "key": "driver_conditions_for_growth",
@@ -1678,7 +1721,8 @@
             "es": "Ninguna de estas es cierta para mí actualmente."
           }
         }
-      ]
+      ],
+      "section": "driver"
     },
     {
       "key": "driver_confidence_and_agency",
@@ -1772,7 +1816,8 @@
             "es": "Otra"
           }
         }
-      ]
+      ],
+      "section": "driver"
     },
     {
       "key": "driver_relational_risk",
@@ -1859,7 +1904,8 @@
             "es": "Otra"
           }
         }
-      ]
+      ],
+      "section": "driver"
     },
     {
       "key": "journey_encounter_and_response",
@@ -1981,7 +2027,8 @@
             "es": "Otra"
           }
         }
-      ]
+      ],
+      "section": "journey"
     },
     {
       "key": "journey_continued_formation",
@@ -2103,7 +2150,8 @@
             "es": "Otra"
           }
         }
-      ]
+      ],
+      "section": "journey"
     },
     {
       "key": "journey_participation_in_mission",
@@ -2190,7 +2238,8 @@
             "es": "Otra"
           }
         }
-      ]
+      ],
+      "section": "journey"
     },
     {
       "key": "journey_multiplication",
@@ -2291,7 +2340,8 @@
             "es": "Otra"
           }
         }
-      ]
+      ],
+      "section": "journey"
     },
     {
       "key": "country",
@@ -2305,7 +2355,8 @@
       "text": {
         "en": "In which country do you live?",
         "es": "¿En qué país vives?"
-      }
+      },
+      "section": "demographic"
     }
   ]
 }
