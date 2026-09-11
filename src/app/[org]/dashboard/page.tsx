@@ -22,7 +22,7 @@ type Dash = {
 type BenchmarkScope = { available: boolean; n: number; index: number | null; tiers?: Record<string, number | null> | null };
 type Benchmark = {
   gate: number;
-  country: BenchmarkScope & { geography: string | null };
+  country: BenchmarkScope & { geography: string | null; gate: number };
   global: BenchmarkScope;
 };
 type CompareMode = "mine" | "country" | "global";
@@ -209,7 +209,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                 title={
                   bench.country.available
                     ? undefined
-                    : `Not enough data yet in ${bench.country.geography ?? "your country"} (${bench.country.n}/${bench.gate})`
+                    : `Not enough data yet in ${bench.country.geography ?? "your country"} (${bench.country.n}/${bench.country.gate})`
                 }
                 onClick={() => setCompare("country")}
               />

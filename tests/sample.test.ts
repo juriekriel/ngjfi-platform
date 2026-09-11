@@ -174,6 +174,34 @@ test("the critical-mass gate is data, never a constant in code", () => {
   }
 });
 
+test("the country-level critical-mass gate is its own versioned setting, separate from and higher than the org/region gate", () => {
+  const sql = src("../supabase/migrations/0020_country_critical_mass_tier.sql");
+  assert.match(sql, /platform_settings/);
+  assert.match(sql, /country_critical_mass_gate/);
+  assert.match(sql, /'2000'::jsonb/, "the seeded default must be a config value, not just a comment");
+  // Same hard-coding guard as the org/region gate — 2000 must never leak into
+  // application code as a literal either.
+  for (const f of ["../src/lib/model.ts", "../src/components/index/IntelligenceView.tsx"]) {
+    assert.ok(!/\b2000\b/.test(src(f)), `${f} hard-codes the country gate — it must read platform_settings`);
+  }
+  // The country array in collab_intelligence() must be gated on the country
+  // threshold, not silently reusing the org/region one.
+  const intel = sql.slice(
+    sql.indexOf("function public.collab_intelligence()"),
+    sql.indexOf("function public.org_benchmark("),
+  );
+  assert.match(
+    intel,
+    /cn\.n\s*>=\s*v_country_gate/,
+    "collab_intelligence()'s countries[] must use v_country_gate, not the shared v_gate",
+  );
+  assert.match(
+    intel,
+    /rn\.n\s*>=\s*v_gate/,
+    "regions[] stays on the org/region gate — coarser than a country, unchanged",
+  );
+});
+
 test("the separation is verifiable with a live query, not by reading SQL", () => {
   const sql = src("../supabase/migrations/0009_data_spaces.sql");
   assert.match(sql, /function public\.data_space_report\(\)/);
