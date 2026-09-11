@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
+import { instrument, t } from "@/lib/instrument";
 
 type Intel = {
   /** Set by the database, not the client — which enforced space produced this. */
@@ -21,6 +22,10 @@ type Intel = {
   trend: { year: number; index: number }[] | null;
   countries: { country: string; n: number; tiers: Record<string, number | null> }[] | null;
   findings: { formation_mult_r2: number | null; formation_corr: number | null; mult_top: number | null; mult_bottom: number | null };
+  /** Drivers/Journey — unscored option-selection rates, reported alongside the
+   * Index and never blended into funnel/domains/matrix above. Below
+   * min_group_n, `options` is null but `n` is still shown. */
+  insights?: Record<string, { n: number; options: Record<string, number> | null }>;
 };
 
 const TIERS = ["exposure", "response", "formation", "multiplication"];
@@ -28,6 +33,15 @@ const TIER_LABEL: Record<string, string> = { exposure: "Exposure", response: "Re
 const DOMAINS = ["follow", "mission", "world"];
 const DOMAIN_LABEL: Record<string, string> = { follow: "Follow Jesus", mission: "Participate in mission", world: "World looks different" };
 const AGE_LABEL: Record<string, string> = { "13_17": "13–17", "18_22": "18–22", "23_30": "23–30" };
+// Drivers/Journey, in instrument order — derived, never hard-coded.
+const INSIGHT_ITEMS = instrument.items
+  .filter((i) => i.question_domain === "drivers" || i.question_domain === "journey")
+  .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  .map((i) => ({
+    key: i.key,
+    label: t(i.text, "en"),
+    options: (i.options ?? []).map((o) => ({ value: String(o.value), label: t(o.text, "en") })),
+  }));
 
 // rough geographic tile layout for the demo countries
 const TILES: Record<string, { c: number; r: number; code: string }> = {
@@ -332,6 +346,51 @@ export default function IntelligenceView({
               </div>
             </section>
           </div>
+
+          {/* Drivers & Journey — unscored, reported alongside the Index above,
+              never blended into funnel/domains/matrix (CLAUDE.md #6, #9). */}
+          {d.insights && Object.keys(d.insights).length > 0 && (
+            <section className="mt-6 rounded-xl border border-ink bg-card p-6">
+              <h2 className="font-sans text-xl font-semibold">Drivers &amp; journey</h2>
+              <p className="mt-1 text-sm text-slate">
+                Not part of the Index score — reported on their own, across the whole Collab.
+              </p>
+              <div className="mt-4 grid gap-6 md:grid-cols-2">
+                {INSIGHT_ITEMS.map((item) => {
+                  const agg = d.insights?.[item.key];
+                  if (!agg) return null;
+                  return (
+                    <div key={item.key}>
+                      <div className="flex items-baseline justify-between gap-3">
+                        <span className="text-sm font-medium">{item.label}</span>
+                        <span className="shrink-0 font-mono text-[11px] text-muted">n {agg.n}</span>
+                      </div>
+                      {agg.options ? (
+                        <div className="mt-2 space-y-2">
+                          {item.options.map((o) => {
+                            const count = agg.options?.[o.value] ?? 0;
+                            const pct = agg.n > 0 ? Math.round((count / agg.n) * 100) : 0;
+                            return (
+                              <div key={o.value} className="flex items-center gap-3 text-sm">
+                                <span className="w-40 shrink-0 truncate" title={o.label}>{o.label}</span>
+                                <div className="h-2 flex-1 rounded bg-paper-deep"><div className="h-full rounded bg-violet" style={{ width: `${pct}%` }} /></div>
+                                <b className="w-10 text-right font-serif">{pct}%</b>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="mt-2 text-sm text-slate">Not enough data yet.</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="mt-4 font-mono text-[9px] uppercase tracking-wider text-muted">
+                Respondents could pick more than one — shares don&apos;t sum to 100%.
+              </p>
+            </section>
+          )}
 
           <p className="mt-8 font-mono text-[10px] uppercase tracking-wider text-muted">
             Of those who completed the Index — never a whole population. · <Link href="/" className="text-accent">home</Link>

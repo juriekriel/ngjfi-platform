@@ -6,6 +6,10 @@ import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { instrument, t } from "@/lib/instrument";
 
 type Item = { key: string; domain: string; tier: string; mean: number | null; n: number };
+/** Drivers/Journey are unscored (option-selection rates, not means) — reported
+ * alongside the Index, never blended into it. Below min_group_n, `options`
+ * is null but `n` is still shown, same suppression style as everything else. */
+type InsightAgg = { n: number; options: Record<string, number> | null };
 type Dash = {
   org: { slug: string; name: string; verified: boolean };
   n: number;
@@ -17,6 +21,7 @@ type Dash = {
   matrix: Record<string, Record<string, number | null>>;
   items: Item[];
   trend?: { year: number; index: number }[] | null;
+  insights?: Record<string, InsightAgg>;
 };
 
 type BenchmarkScope = { available: boolean; n: number; index: number | null; tiers?: Record<string, number | null> | null };
@@ -38,6 +43,18 @@ const DOMAIN_LABEL: Record<string, string> = {
 const ITEM_LABEL: Record<string, string> = Object.fromEntries(
   instrument.items.map((i) => [i.key, t(i.text, "en")]),
 );
+// Drivers/Journey, in instrument order. Derived from the instrument, never
+// hard-coded, so a researcher adding or reordering an item here needs no
+// frontend change — same principle as ITEM_LABEL above.
+const INSIGHT_ITEMS = instrument.items
+  .filter((i) => i.question_domain === "drivers" || i.question_domain === "journey")
+  .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  .map((i) => ({
+    key: i.key,
+    domain: i.question_domain,
+    label: t(i.text, "en"),
+    options: (i.options ?? []).map((o) => ({ value: String(o.value), label: t(o.text, "en") })),
+  }));
 // Responses bind to the instrument version they were captured under, so a
 // dashboard can legitimately contain keys from an archived version. Fall back to
 // the key rather than rendering a blank row.
@@ -329,6 +346,52 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
               </tbody>
             </table>
           </div>
+
+          {/* Drivers & Journey — unscored insight layers, reported separately from
+              the Index above, never blended into it (CLAUDE.md #6, #9). */}
+          {dash.insights && Object.keys(dash.insights).length > 0 && (
+            <div className="mt-4 rounded-lg border border-rule bg-paper p-4">
+              <div className="font-mono text-[9px] uppercase tracking-wider text-muted">
+                Drivers &amp; journey — not part of the Index score
+              </div>
+              <div className="mt-3 space-y-4">
+                {INSIGHT_ITEMS.map((item) => {
+                  const agg = dash.insights?.[item.key];
+                  if (!agg) return null;
+                  return (
+                    <div key={item.key}>
+                      <div className="flex items-baseline justify-between gap-3">
+                        <span className="text-sm font-medium">{item.label}</span>
+                        <span className="shrink-0 font-mono text-[10px] text-muted">n {agg.n}</span>
+                      </div>
+                      {agg.options ? (
+                        <div className="mt-1.5 space-y-1">
+                          {item.options.map((o) => {
+                            const count = agg.options?.[o.value] ?? 0;
+                            const pct = agg.n > 0 ? Math.round((count / agg.n) * 100) : 0;
+                            return (
+                              <div key={o.value} className="flex items-center gap-2 text-xs">
+                                <span className="w-44 shrink-0 truncate text-slate" title={o.label}>{o.label}</span>
+                                <div className="h-2 flex-1 rounded bg-paper-deep">
+                                  <div className="h-full rounded bg-bench" style={{ width: `${pct}%` }} />
+                                </div>
+                                <b className="w-9 shrink-0 text-right font-mono text-[10px]">{pct}%</b>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="mt-1 font-mono text-[10px] text-muted">Not enough data yet.</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="mt-3 font-mono text-[9px] uppercase tracking-wider text-muted">
+                Respondents could pick more than one — shares don&apos;t sum to 100%.
+              </p>
+            </div>
+          )}
 
           <p className="mt-6 font-mono text-[9px] uppercase tracking-wider text-muted">
             Aggregates only — never individual responses. Of those who completed the Index.

@@ -202,6 +202,41 @@ test("the country-level critical-mass gate is its own versioned setting, separat
   );
 });
 
+test("Drivers/Journey are reported as aggregate option rates, gated, and structurally kept out of the score", () => {
+  const sql = src("../supabase/migrations/0021_insight_layer_reporting.sql");
+  assert.match(sql, /function public\.insight_aggregates\(/);
+
+  const helper = sql.slice(
+    sql.indexOf("function public.insight_aggregates("),
+    sql.indexOf("function public.org_dashboard("),
+  );
+  // Scoped to the insight domains only — never pulls in Index items.
+  assert.match(helper, /question_domain in \('drivers', 'journey'\)/);
+  // No mean/score math anywhere in this function — option COUNTS only, and it
+  // never even reads the `normalized` column (which is null for these items
+  // anyway, since they're unscored) or writes to tiers/domains/matrix/index.
+  assert.ok(!/normalized/.test(helper), "insight_aggregates() must not touch the scored column at all");
+  for (const key of ["'tiers'", "'domains'", "'matrix'", "'index'"]) {
+    assert.ok(!helper.includes(key),
+      `insight_aggregates() must never write a ${key} key — it is reported alongside the Index, not folded into it`);
+  }
+  // The min_group_n floor: n is always returned, options only once that
+  // item's own n clears the floor — same suppression style as everywhere else.
+  assert.match(helper, /'n',\s*item_n\.n/);
+  assert.match(helper, /case when item_n\.n >= p_min_group_n/);
+
+  // All three callers must actually wire it in, with the org/space they're
+  // each scoped to — not a shared/leaked scope.
+  assert.match(sql, /insight_aggregates\(v_org\.id, v_org\.is_demo, v_min_group_n\)/, "org_dashboard() must scope insights to its own org");
+  assert.match(sql, /insight_aggregates\(null, false, v_min_group_n\)/, "collab_intelligence() must scope insights to the live space, not one org");
+  assert.match(sql, /insight_aggregates\(null, true, v_min_group_n\)/, "collab_intelligence_demo() must scope insights to the demo space");
+
+  // Never granted directly — same posture as blended_trend(), reached only
+  // through the three functions above which already enforce who sees what.
+  assert.ok(!/grant execute on function public\.insight_aggregates/.test(sql),
+    "insight_aggregates() must not be independently callable — it has no authorisation check of its own");
+});
+
 test("the separation is verifiable with a live query, not by reading SQL", () => {
   const sql = src("../supabase/migrations/0009_data_spaces.sql");
   assert.match(sql, /function public\.data_space_report\(\)/);
