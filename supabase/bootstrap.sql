@@ -40,7 +40,7 @@
 --   0019_privacy_and_metadata_compliance.sql
 --   0020_country_critical_mass_tier.sql
 --   0021_insight_layer_reporting.sql
---   0022_worklist_country_source.sql
+--   0023_reconcile_demo_dashboard.sql
 -- ============================================================================
 
 
@@ -4785,102 +4785,107 @@ $$;
 grant execute on function public.collab_intelligence_demo() to anon, authenticated;
 
 
--- ─── 0022_worklist_country_source.sql ──────────────────────────────────
+-- ─── 0023_reconcile_demo_dashboard.sql ─────────────────────────────────
 
 -- ============================================================================
--- The Jesus Index — collab_worklist() country source, reconciled (migration 0022)
+-- The Jesus Index — reconcile org_dashboard_demo() with org_dashboard() (migration 0023)
 --
--- Flagged in the review that produced migrations 0020/0021 and left for a
--- separate change: collab_worklist() ranked countries by sessions.country
--- (the respondent's own self-reported demographic answer) while every other
--- geography query on the platform — collab_intelligence()'s countries[],
--- org_benchmark()'s country baseline, the regions rollups — uses
--- organisations.country (the organisation's registered country).
+-- Flagged during the Drivers/Journey reporting review and left for a
+-- separate change: org_dashboard_demo() (the signed-out /demo/dashboard
+-- preview) was never updated when migration 0019 fixed org_dashboard() —
+-- it drifted on three points:
 --
--- Two different things were both called "country" and silently disagreed:
--- a Kenyan respondent answering a UK-registered ministry's survey while
--- travelling would count toward Kenya in the worklist ("Kenya needs 40 more
--- completions") but toward the UK everywhere else the platform names a
--- country. Concentration is the whole point of this worklist's ranking
--- ("the same sixty organisations spread across forty countries unlocks
--- nothing; concentrated in ten it unlocks all ten") — a worklist counting a
--- different "country" than the gate it's steering toward can recommend
--- effort that never actually closes the gap collab_intelligence() checks.
+--   1. No min_group_n floor. A demo org with a handful of synthetic
+--      responses could still show a derived score, which is exactly the
+--      suppression 0019 added everywhere else on the platform.
+--   2. The same n-counting bug 0019 fixed in org_dashboard(): 'n' was
+--      count(*) over response ROWS (one row per item answered), not
+--      count(distinct session) — a 3-respondent demo org answering a
+--      24-item Index reported n=72, not 3.
+--   3. Trend computed inline from raw responses instead of via
+--      blended_trend(), so a demo org's "movement over time" ignores
+--      the retention-archive blending every other trend chart already
+--      gets.
 --
--- Fix: collab_worklist() now uses organisations.country, matching
--- collab_intelligence() and org_benchmark(). This is the only change —
--- ranking logic, the "never fielded" nudge, and the returned shape are
--- otherwise identical to the version in migration 0014.
---
--- Deliberately NOT a schema change: sessions.country (the respondent's own
--- answer) still exists and is still collected — this migration only changes
--- which "country" collab_worklist() reads for its own ranking, to agree with
--- the rest of the platform. Whether a future rollup should ever use the
--- respondent's self-reported country instead of the organisation's is a
--- separate, larger question this migration deliberately does not settle.
+-- Fix: org_dashboard_demo()'s body is now structurally identical to
+-- org_dashboard()'s (post-0021), with only the is_demo guard and the anon
+-- grant kept — both of which are this function's entire reason to exist as
+-- a separate sibling rather than reusing org_dashboard() directly. This
+-- includes migration 0021's 'insights' key (Drivers/Journey option rates),
+-- now that 0021 has merged — the demo preview should show the same panels
+-- the real dashboard does, not a strict subset of them.
 -- ============================================================================
 
-create or replace function public.collab_worklist()
+create or replace function public.org_dashboard_demo(p_org_slug text)
 returns jsonb
-language plpgsql stable security definer set search_path = public as $$
-declare v_items jsonb := '[]'::jsonb; v_gate int; v_c bigint;
+language plpgsql security definer set search_path = public as $$
+declare
+  v_org public.organisations%rowtype; result jsonb;
+  v_n bigint; v_min_group_n int;
 begin
-  if my_role() not in ('admin', 'collab') then
-    raise exception 'not authorised';
+  select * into v_org from organisations where slug = p_org_slug;
+  if not found then raise exception 'org not found'; end if;
+  if not coalesce(v_org.is_demo, false) then
+    raise exception 'demo preview is only available for demo organisations';
   end if;
 
-  v_gate := setting_int('country_critical_mass_gate', 2000);
+  v_min_group_n := setting_int('min_group_n', 10);
 
-  -- Coverage, not volume. The same sixty organisations spread across forty
-  -- countries unlocks nothing; concentrated in ten it unlocks all ten. So the
-  -- worklist ranks by who is CLOSEST to a benchmark, not by who has the most.
-  --
-  -- o.country, not s.country: this must count completions the same way
-  -- collab_intelligence()'s countries[] does, or "Kenya is 40 away" can
-  -- describe a gap that closing doesn't actually close.
-  v_items := (
-    select coalesce(jsonb_agg(jsonb_build_object(
-             'urgency', 'high',
-             'label', x.country || ' is ' || (v_gate - x.completions)
-                      || ' completions from its first benchmark',
-             'meta', x.completions || ' / ' || v_gate,
-             'action', 'See who can close it')
-           order by x.completions desc), '[]'::jsonb)
-      from (
-        select o.country, count(*) as completions
-          from sessions s
-          join campaigns c on c.id = s.campaign_id
-          join organisations o on o.id = c.org_id
-         where s.completed and o.is_demo = false and o.country is not null
-         group by o.country
-        having count(*) < v_gate
-      ) x
-  );
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.created_at, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+  )
+  select count(distinct sid) into v_n from r;
 
-  select count(*) into v_c
-    from organisations o
-   where o.is_demo = false
-     and not exists (select 1 from campaigns c where c.org_id = o.id and c.active);
-  if v_c > 0 then
-    v_items := v_items || jsonb_build_object(
-      'urgency', 'high',
-      'label', v_c || ' organisation' || case when v_c = 1 then '' else 's' end
-        || ' joined and never fielded', 'action', 'Nudge');
+  -- Same suppression as org_dashboard(): n is real and always shown,
+  -- everything derived from it is not, below the floor.
+  if v_n < v_min_group_n then
+    return jsonb_build_object(
+      'demo', true,
+      'org', jsonb_build_object('slug', v_org.slug, 'name', v_org.name, 'verified', v_org.verified),
+      'n', v_n,
+      'suppressed', true,
+      'min_group_n', v_min_group_n,
+      'index', null, 'tiers', '{}'::jsonb, 'domains', '{}'::jsonb, 'matrix', '{}'::jsonb,
+      'items', '[]'::jsonb, 'trend', null, 'insights', '{}'::jsonb
+    );
   end if;
 
-  return jsonb_build_object(
-    'gate',  v_gate,
-    'waves', coalesce((
-      select jsonb_agg(jsonb_build_object(
-               'short_name', w.short_name, 'name', w.name, 'item_set', w.item_set,
-               'audiences', w.audiences, 'opens_on', w.opens_on, 'closes_on', w.closes_on,
-               'adopted', (select count(*) from wave_adoptions a where a.wave_id = w.id))
-             order by w.created_at desc)
-        from waves w where w.is_demo = false), '[]'::jsonb),
-    'items', v_items
-  );
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.created_at, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+  )
+  select jsonb_build_object(
+    'demo', true,
+    'org', jsonb_build_object('slug', v_org.slug, 'name', v_org.name, 'verified', v_org.verified),
+    'n', v_n,
+    'suppressed', false,
+    'tiers',   (select jsonb_object_agg(tier, m) from (select tier, round(avg(normalized),1) m from r group by tier) t),
+    'domains', (select jsonb_object_agg(question_domain, m) from (select question_domain, round(avg(normalized),1) m from r group by question_domain) d),
+    'matrix',  (select jsonb_object_agg(question_domain, tiers) from
+                 (select question_domain, jsonb_object_agg(tier, m) tiers from
+                    (select question_domain, tier, round(avg(normalized),1) m from r group by question_domain, tier) x
+                  group by question_domain) y),
+    'items',   (select jsonb_agg(jsonb_build_object('key', item_key, 'domain', question_domain, 'tier', tier, 'mean', m, 'n', n)
+                          order by question_domain, tier) from
+                 (select item_key, question_domain, tier, round(avg(normalized),1) m, count(distinct sid) n
+                    from r group by item_key, question_domain, tier) z),
+    'trend',   blended_trend(v_org.id, v_org.is_demo),
+    'insights', insight_aggregates(v_org.id, v_org.is_demo, v_min_group_n)
+  ) into result;
+
+  result := result || jsonb_build_object('index',
+    (select round(avg(value::numeric),1) from jsonb_each_text(coalesce(result->'tiers','{}'::jsonb))
+       where key in ('exposure','response','formation','multiplication')));
+  return result;
 end;
 $$;
 
-grant execute on function public.collab_worklist() to authenticated;
+grant execute on function public.org_dashboard_demo(text) to anon, authenticated;
 

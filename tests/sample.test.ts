@@ -237,20 +237,30 @@ test("Drivers/Journey are reported as aggregate option rates, gated, and structu
     "insight_aggregates() must not be independently callable — it has no authorisation check of its own");
 });
 
-test("collab_worklist() ranks countries the same way collab_intelligence() names them", () => {
-  const sql = src("../supabase/migrations/0022_worklist_country_source.sql");
-  const fn = sql.slice(
-    sql.indexOf("create or replace function public.collab_worklist()"),
-  );
-  // Must read the organisation's own country, matching collab_intelligence()
-  // and org_benchmark() — not the respondent's self-reported one, which is a
-  // different column (sessions.country) tracking a different thing.
-  assert.match(fn, /select o\.country, count\(\*\) as completions/);
-  assert.match(fn, /group by o\.country/);
-  // Check the query's own FROM/GROUP BY, not the prose explaining the fix
-  // (which legitimately mentions "sessions.country" as the thing NOT used).
-  assert.ok(!/select s\.country,/.test(fn), "collab_worklist() must not select sessions.country for its ranking");
-  assert.ok(!/group by s\.country/.test(fn), "collab_worklist() must not group by sessions.country");
+test("org_dashboard_demo() was reconciled with org_dashboard()'s privacy, counting, and insights", () => {
+  const sql = src("../supabase/migrations/0023_reconcile_demo_dashboard.sql");
+  const fn = sql.slice(sql.indexOf("create or replace function public.org_dashboard_demo("));
+
+  // The min_group_n floor org_dashboard() already had — must exist here too.
+  assert.match(fn, /v_min_group_n\s*:=\s*setting_int\('min_group_n', 10\)/);
+  assert.match(fn, /if v_n < v_min_group_n then/);
+
+  // The n-counting fix: distinct sessions, not response rows.
+  assert.match(fn, /count\(distinct sid\) into v_n/);
+  assert.ok(!/'n',\s*\(select count\(\*\) from r\)/.test(fn), "must not regress to counting response rows as n");
+
+  // Trend via the shared, retention-aware helper, not computed inline.
+  assert.match(fn, /blended_trend\(v_org\.id, v_org\.is_demo\)/);
+
+  // insight_aggregates() landed with 0021 after this fix was first drafted —
+  // the demo preview should show the same Drivers/Journey panel the real
+  // dashboard does, not a stale subset of it.
+  assert.match(fn, /insight_aggregates\(v_org\.id, v_org\.is_demo, v_min_group_n\)/);
+
+  // Still demo-only and still anon-reachable — the two properties that make
+  // this function a distinct sibling rather than a redundant copy.
+  assert.match(fn, /if not coalesce\(v_org\.is_demo, false\) then/);
+  assert.match(sql, /grant execute on function public\.org_dashboard_demo\(text\) to anon, authenticated/);
 });
 
 test("the separation is verifiable with a live query, not by reading SQL", () => {
