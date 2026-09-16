@@ -60,3 +60,11 @@ waiting on.
 - Sending a file body that is much shorter than the current one raises a warning
   in the PR — usually the sign of an edit built on a stale copy.
 - Every submission is recorded, with who sent it and which paths it touched.
+
+## If the publisher is unreachable
+
+`502 upstream unavailable` means the Mac Studio hosting JFI Publish is asleep or
+offline. Nothing is lost and nothing is half-done — the request never reached the
+service. Wait and try again, or tell Jurie.
+
+This is the one standing dependency: publishing needs that machine awake.
