@@ -36,12 +36,22 @@ So the credential lives in one place instead — a small service on the Mac Stud
 If CI fails, nothing is merged and the site is untouched. The branch stays open
 so you can read the failing step and try again.
 
-## The one thing it does not do
+## Database migrations
 
-Netlify deploys the application. It does **not** run database migrations. A
-change under `supabase/migrations/` ships the SQL file to the repo, and the SQL
-still has to be applied to the Supabase project by hand. The publisher flags
-this in its response rather than letting it pass unnoticed.
+They are applied for you, and the ordering is deliberate.
+
+A change under `supabase/migrations/` is applied to Supabase **after CI goes
+green and before the merge**. A database ahead of the application is harmless —
+the new columns simply sit unused. An application ahead of its database is a
+broken site. So if a migration fails, nothing merges, and production stays on
+the old code against the old schema, which is at least a consistent pair.
+
+`public.schema_migrations` records what has run. A migration file that is edited
+after it has been applied is refused outright: the repo and the database then
+disagree about history, and guessing which is right is how you lose data.
+
+`GET /api/migrations` shows what the database has and what `main` is still
+waiting on.
 
 ## Guardrails
 
