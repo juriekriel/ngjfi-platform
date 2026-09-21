@@ -122,7 +122,7 @@ export default function DemoHub() {
             </Link>
             <Link href="/join" className="border-t-2 border-emerald pt-3 no-underline">
               <p className="figcap">Ready</p>
-              <p className="mt-2 text-[18px] leading-snug text-emerald">Join a cohort →</p>
+              <p className="mt-2 text-[18px] leading-snug text-emerald">Join the Index →</p>
             </Link>
           </div>
         </section>

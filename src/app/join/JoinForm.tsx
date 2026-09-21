@@ -91,7 +91,7 @@ export default function JoinForm() {
         <h2 className="mt-3 text-[26px] leading-tight">Thank you — that helps more than you think.</h2>
         <p className="mt-4 text-[16px] leading-relaxed text-ink-2">
           Once a month you will get <b>Field Notes</b>: what we decided, what broke, and what we still
-          have not figured out. When your country&apos;s cohort opens, you will be among the first to
+          have not figured out. When your country&apos;s round opens, you will be among the first to
           know.
         </p>
         <p className="mt-4 text-[16px] leading-relaxed text-ink-2">
@@ -109,10 +109,10 @@ export default function JoinForm() {
     return (
       <form onSubmit={submitShape} className="border-2 border-ink p-6">
         <p className="figcap">Optional · about three minutes</p>
-        <h2 className="mt-3 text-[24px] leading-tight">Want to be in the first cohort?</h2>
+        <h2 className="mt-3 text-[24px] leading-tight">Want to be in the first round?</h2>
         <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
           Seven more questions. We are not collecting these to score you — we genuinely cannot place
-          you in a country cohort without knowing where you work, and we cannot tell you what the
+          you in a country round without knowing where you work, and we cannot tell you what the
           dashboard should show without knowing what decision you would make with it.
         </p>
 
@@ -184,7 +184,7 @@ export default function JoinForm() {
   return (
     <form onSubmit={submitExpress} className="border-2 border-ink p-6">
       <p className="figcap">Three fields · about thirty seconds</p>
-      <h2 className="mt-3 text-[24px] leading-tight">Join the first cohort</h2>
+      <h2 className="mt-3 text-[24px] leading-tight">Join the first round</h2>
 
       <div className="mt-5 space-y-4">
         <div>
@@ -211,7 +211,7 @@ export default function JoinForm() {
 
       <button type="submit" disabled={busy}
         className="tabular mt-6 w-full border-2 border-emerald bg-emerald px-5 py-3 text-[11px] uppercase tracking-[0.14em] text-plate disabled:opacity-50">
-        {busy ? "Saving…" : "Join the first cohort →"}
+        {busy ? "Saving…" : "Join the first round →"}
       </button>
       <p className="margin-note mt-3">
         For organisations and churches. No obligation. We will ask a few optional questions next —

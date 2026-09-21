@@ -573,7 +573,7 @@ function BeatNext() {
             href="/join"
             className="tabular border-2 border-emerald bg-emerald px-4 py-3 text-[11px] uppercase tracking-[0.14em] text-plate no-underline hover:bg-emerald-deep"
           >
-            Join the first cohort →
+            Join the first round →
           </Link>
           <Link
             href="/learn"

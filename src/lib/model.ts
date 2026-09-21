@@ -95,11 +95,13 @@ export const INK = token("ink");
 export const PLATE = token("plate");
 export const MUTED = token("muted");
 export const EMERALD = token("emerald");
+export const GREEN = token("green");
 export const NAVY = token("navy");
+export const VIOLET = token("violet");
 export const VERMILLION = token("vermillion");
 export const RULE = token("rule");
 
-/** Emerald wash for heat cells. Colour only ever means something. */
+/** Coral wash for heat cells — the brand colour, at intensity = score. */
 export const heat = (v: number | null | undefined): string =>
   v === null || v === undefined
     ? "transparent"
@@ -109,12 +111,17 @@ export const heat = (v: number | null | undefined): string =>
 export const fig = (n: number | null | undefined): string =>
   n === null || n === undefined ? "—" : String(n);
 
-/** Signed delta with the semantic arrow. Vermillion is reserved for "down". */
+/**
+ * Signed delta with the semantic arrow. "Up" is GREEN, not the brand colour —
+ * coral sits too close to vermillion's hue for the two to stay legible as
+ * opposites in the same view. Vermillion is reserved for "down", full stop.
+ * See docs/PALETTE.md.
+ */
 export const delta = (d: number | null | undefined) =>
   d === null || d === undefined
     ? { text: "—", colour: MUTED }
     : d >= 0
-      ? { text: `▲ ${d.toFixed(1)}`, colour: EMERALD }
+      ? { text: `▲ ${d.toFixed(1)}`, colour: GREEN }
       : { text: `▼ ${Math.abs(d).toFixed(1)}`, colour: VERMILLION };
 
 /** The shape every dashboard surface consumes — live RPC or sample alike. */

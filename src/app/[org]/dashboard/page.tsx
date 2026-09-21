@@ -1,9 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { instrument, t } from "@/lib/instrument";
+import { DashboardTabs, ViewToggle } from "@/components/index/DashboardTabs";
+import ScoreMatrix from "@/components/index/ScoreMatrix";
+import WorldHeatMap, { type MapCountry } from "@/components/index/WorldHeatMap";
+import LinksPanel from "@/components/index/LinksPanel";
 
 type Item = { key: string; domain: string; tier: string; mean: number | null; n: number };
 /** Drivers/Journey are unscored (option-selection rates, not means) — reported
@@ -113,10 +116,28 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
   // organisation is flagged is_demo. Real orgs never reach this state.
   const [demoPreview, setDemoPreview] = useState(false);
 
+  // Two switchable views instead of one long scroll (locked Phase 2 brief).
+  // Matrix is the J12 scoring grid; Heat map is the same real-world map
+  // Collab Intelligence shows — an org sees the same Collab-wide picture for
+  // context, never a fabricated per-org geography. mapTier picks which of
+  // the four tiers the map colours by; showDetail reveals the rest (trend,
+  // per-item table, drivers/journey, exploration index) below the toggle.
+  const [view, setView] = useState<"matrix" | "heatmap">("matrix");
+  const [mapTier, setMapTier] = useState("formation");
+  const [showDetail, setShowDetail] = useState(false);
+  const [collabCountries, setCollabCountries] = useState<MapCountry[]>([]);
+
   const load = useCallback(async () => {
     if (!sb) return;
     const { data: s } = await sb.auth.getSession();
     setAuthed(Boolean(s.session));
+
+    // The heat map's data — public, gated server-side (country_critical_mass_gate,
+    // migration 0020), so it's safe to read regardless of sign-in state.
+    sb.rpc("collab_intelligence").then(({ data }) => {
+      const countries = (data as { countries?: MapCountry[] } | null)?.countries;
+      if (countries) setCollabCountries(countries);
+    });
 
     if (!s.session) {
       // No sign-in: offer the public preview, which the database only serves for
@@ -294,38 +315,64 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
             </div>
           </div>
 
-          {/* by question + matrix */}
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <div className="rounded-lg border border-rule bg-paper p-4">
-              <div className="font-mono text-[9px] uppercase tracking-wider text-muted">By question</div>
-              <div className="mt-3 space-y-2.5">
-                {DOMAINS.map((dk) => (
-                  <div key={dk} className="text-sm">
-                    <div className="flex justify-between"><span>{DOMAIN_LABEL[dk]}</span><b>{fmt(dash.domains?.[dk])}</b></div>
-                    <div className="mt-1 h-2 rounded bg-paper-deep"><div className="h-full rounded bg-bench" style={{ width: `${dash.domains?.[dk] ?? 0}%` }} /></div>
-                  </div>
+          {/* Two switchable views — Matrix or Heat map — instead of a long
+              scroll (locked Phase 2 brief). Compare-to-Collab (the pills
+              above) overlays onto the Matrix only, and only at this org's
+              own total ("house") level — there is no room-level view yet. */}
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <ViewToggle view={view} onChange={setView} />
+            {view === "heatmap" && (
+              <div className="flex flex-wrap gap-1">
+                {TIERS.map((tk) => (
+                  <button
+                    key={tk}
+                    onClick={() => setMapTier(tk)}
+                    className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-wider ${
+                      mapTier === tk ? "border-ink bg-ink text-paper" : "border-rule text-slate"
+                    }`}
+                  >
+                    {TIER_LABEL[tk]}
+                  </button>
                 ))}
               </div>
-            </div>
-            <div className="rounded-lg border border-rule bg-paper p-4">
-              <div className="font-mono text-[9px] uppercase tracking-wider text-muted">Questions × tiers</div>
-              <table className="mt-3 w-full border-separate border-spacing-1 text-center text-xs">
-                <thead><tr><th /></tr></thead>
-                <tbody>
-                  {DOMAINS.map((dk) => (
-                    <tr key={dk}>
-                      <td className="text-left text-[11px]">{DOMAIN_LABEL[dk]}</td>
-                      {TIERS.map((tk) => {
-                        const v = dash.matrix?.[dk]?.[tk] ?? null;
-                        return <td key={tk} className="rounded py-2 font-semibold" style={{ background: green(v), color: v !== null && v >= 55 ? "#fff" : "#22252b" }}>{fmt(v)}</td>;
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            )}
           </div>
 
+          <div className="mt-3 rounded-lg border border-rule bg-paper p-4">
+            {view === "matrix" ? (
+              // org_benchmark() only returns a tier-level baseline (see the
+              // "The journey" bars above, which already mark it per tier) —
+              // not a full domain×tier matrix, so there's nothing accurate
+              // to overlay per cell here yet. Compare-to-Collab stays visible
+              // via the pills + journey bars while viewing the Matrix.
+              <ScoreMatrix matrix={dash.matrix} />
+            ) : (
+              <>
+                <p className="mb-3 text-xs text-slate">
+                  The same picture Collab Intelligence shows — nations coloured by score once a country
+                  has cleared its own benchmark threshold.
+                </p>
+                <WorldHeatMap countries={collabCountries} tier={mapTier} />
+              </>
+            )}
+          </div>
+
+          {!demoPreview && (
+            <div className="mt-4">
+              <LinksPanel sb={sb} orgSlug={slug} />
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setShowDetail((v) => !v)}
+            className="mt-4 font-mono text-[9px] uppercase tracking-wider text-accent"
+          >
+            {showDetail ? "Hide more detail ▲" : "Show more detail ▾"}
+          </button>
+
+          {showDetail && (
+          <>
           {/* trend over waves */}
           {dash.trend && dash.trend.length > 1 && (
             <div className="mt-4 rounded-lg border border-rule bg-paper p-4">
@@ -408,6 +455,8 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                 Respondents could pick more than one — shares don&apos;t sum to 100%.
               </p>
             </div>
+          )}
+          </>
           )}
 
           <p className="mt-6 font-mono text-[9px] uppercase tracking-wider text-muted">
@@ -528,9 +577,9 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
 function Shell({ slug, children }: { slug: string; children: React.ReactNode }) {
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
-      <div className="flex items-center justify-between">
-        <div className="font-mono text-[10px] uppercase tracking-widest text-muted">{slug} · org dashboard</div>
-        <Link href="/intelligence" className="font-mono text-[10px] uppercase tracking-widest text-accent">Collab Intelligence →</Link>
+      <div className="font-mono text-[10px] uppercase tracking-widest text-muted">{slug} · org dashboard</div>
+      <div className="mt-3">
+        <DashboardTabs active="dashboard" orgSlug={slug} />
       </div>
       <div className="mt-4 rounded-xl border border-rule bg-card p-6">{children}</div>
     </main>

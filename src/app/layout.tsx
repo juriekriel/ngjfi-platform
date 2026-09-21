@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Newsreader, IBM_Plex_Mono, Inter } from "next/font/google";
+import { Newsreader, JetBrains_Mono, Inter_Tight } from "next/font/google";
 import "./globals.css";
 import PrototypeBanner from "@/components/PrototypeBanner";
 
@@ -7,6 +7,11 @@ import PrototypeBanner from "@/components/PrototypeBanner";
  * Three voices, bound once. Self-hosted by next/font — no webfont CDN round
  * trip, which is the difference between usable and unusable on a mid-range
  * Android over 3G at a camp.
+ *
+ * Brand Proof № 3: Inter Tight carries body copy AND controls now (the
+ * almanac's "every sentence is serif" rule is gone). Newsreader stays loaded
+ * for exactly one use — the ".wordmark" masthead lockup — not as a second
+ * voice for general text. Mono moves from IBM Plex Mono to JetBrains Mono.
  */
 const serif = Newsreader({
   subsets: ["latin"],
@@ -15,17 +20,17 @@ const serif = Newsreader({
   weight: ["300", "400", "500", "600", "700"],
   style: ["normal", "italic"],
 });
-const mono = IBM_Plex_Mono({
+const mono = JetBrains_Mono({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-mono",
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
 });
-const ui = Inter({
+const ui = Inter_Tight({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-ui",
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
