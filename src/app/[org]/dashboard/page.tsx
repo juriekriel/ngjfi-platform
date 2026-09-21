@@ -22,6 +22,19 @@ type Dash = {
   items: Item[];
   trend?: { year: number; index: number }[] | null;
   insights?: Record<string, InsightAgg>;
+  /**
+   * The Exploration Index — v4's parallel figure for respondents who took the
+   * Unengaged branch (migration 0026). Absent from org_dashboard_demo(), so
+   * always optional. A SEPARATE figure with its own n and its own
+   * suppression state — never summed, averaged, or otherwise blended with
+   * index/tiers/domains/matrix above (CLAUDE.md non-negotiable on scoring).
+   */
+  exploration_n?: number;
+  exploration_suppressed?: boolean;
+  exploration_index?: number | null;
+  exploration_tiers?: Record<string, number | null>;
+  exploration_domains?: Record<string, number | null>;
+  exploration_matrix?: Record<string, Record<string, number | null>>;
 };
 
 type BenchmarkScope = { available: boolean; n: number; index: number | null; tiers?: Record<string, number | null> | null };
@@ -62,6 +75,10 @@ const labelFor = (key: string) => ITEM_LABEL[key] ?? key;
 const fmt = (n: number | null | undefined) => (n === null || n === undefined ? "—" : String(n));
 const green = (v: number | null) =>
   v === null || v === undefined ? "transparent" : `rgba(63,157,114,${Math.max(0.08, v / 100)})`;
+// The Exploration Index's own colour — violet, never the Index's emerald/coral,
+// so the two figures never look like the same measure at a glance.
+const violet = (v: number | null) =>
+  v === null || v === undefined ? "transparent" : `rgba(139,92,246,${Math.max(0.08, v / 100)})`;
 
 /** One pill in the compare-to row. Disabled (not hidden) below the gate, so
  * an org can see the comparison exists and roughly how far off it is. */
@@ -397,6 +414,112 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
             Aggregates only — never individual responses. Of those who completed the Index.
           </p>
         </>
+      )}
+
+      {/* The Exploration Index — v4's parallel figure for the Unengaged branch
+          (migration 0026). Rendered independently of the block above: the two
+          figures are suppressed on their own separate n, so an org can clear
+          one gate without clearing the other. Never shown as part of, or
+          combined with, the Index score above. */}
+      {dash && typeof dash.exploration_n === "number" && dash.exploration_n > 0 && (
+        <div className="mt-6 rounded-lg border-2 border-violet bg-paper p-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <div className="font-mono text-[9px] uppercase tracking-wider text-violet">
+              The Exploration Index — not the Index score
+            </div>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
+              n = {dash.exploration_n.toLocaleString()}
+            </span>
+          </div>
+          <p className="mt-1.5 max-w-lg text-xs leading-relaxed text-slate">
+            A separate, equally-structured measure for respondents who don&apos;t yet identify as
+            followers of Jesus. Same 3×4 model, same math as the Index above — never summed,
+            averaged, or otherwise blended with it.
+          </p>
+
+          {dash.exploration_suppressed ? (
+            <p className="mt-4 text-sm text-slate">
+              {dash.exploration_n} of {dash.min_group_n ?? 10} needed before we show a score.
+            </p>
+          ) : (
+            <>
+              <div className="mt-4 grid gap-4 sm:grid-cols-[160px_1fr]">
+                <div className="rounded-lg border border-rule bg-paper-deep p-4">
+                  <div className="font-mono text-[9px] uppercase tracking-wider text-muted">Exploration score</div>
+                  <div className="mt-2 text-4xl font-bold text-violet">{fmt(dash.exploration_index)}</div>
+                </div>
+                <div className="rounded-lg border border-rule bg-paper-deep p-4">
+                  <div className="font-mono text-[9px] uppercase tracking-wider text-muted">The journey</div>
+                  <div className="mt-2 space-y-1.5">
+                    {TIERS.map((tk) => (
+                      <div key={tk} className="flex items-center gap-2 text-xs">
+                        <span className="w-24 shrink-0 text-slate">{TIER_LABEL[tk]}</span>
+                        <div className="h-2.5 flex-1 rounded bg-paper">
+                          <div
+                            className="h-full rounded bg-navy"
+                            style={{ width: `${dash.exploration_tiers?.[tk] ?? 0}%` }}
+                          />
+                        </div>
+                        <b className="w-7 text-right">{fmt(dash.exploration_tiers?.[tk])}</b>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="rounded-lg border border-rule bg-paper-deep p-4">
+                  <div className="font-mono text-[9px] uppercase tracking-wider text-muted">By question</div>
+                  <div className="mt-3 space-y-2.5">
+                    {DOMAINS.map((dk) => (
+                      <div key={dk} className="text-sm">
+                        <div className="flex justify-between">
+                          <span>{DOMAIN_LABEL[dk]}</span>
+                          <b>{fmt(dash.exploration_domains?.[dk])}</b>
+                        </div>
+                        <div className="mt-1 h-2 rounded bg-paper">
+                          <div
+                            className="h-full rounded bg-navy"
+                            style={{ width: `${dash.exploration_domains?.[dk] ?? 0}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-rule bg-paper-deep p-4">
+                  <div className="font-mono text-[9px] uppercase tracking-wider text-muted">Questions × tiers</div>
+                  <table className="mt-3 w-full border-separate border-spacing-1 text-center text-xs">
+                    <thead><tr><th /></tr></thead>
+                    <tbody>
+                      {DOMAINS.map((dk) => (
+                        <tr key={dk}>
+                          <td className="text-left text-[11px]">{DOMAIN_LABEL[dk]}</td>
+                          {TIERS.map((tk) => {
+                            const v = dash.exploration_matrix?.[dk]?.[tk] ?? null;
+                            return (
+                              <td
+                                key={tk}
+                                className="rounded py-2 font-semibold"
+                                style={{ background: violet(v), color: v !== null && v >= 55 ? "#fff" : "#22252b" }}
+                              >
+                                {fmt(v)}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+
+          <p className="mt-4 font-mono text-[9px] uppercase tracking-wider text-violet">
+            Aggregates only — never individual responses. Of those who completed the Index. Never blended with the Index score.
+          </p>
+        </div>
       )}
     </Shell>
   );
