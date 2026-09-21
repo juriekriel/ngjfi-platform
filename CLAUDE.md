@@ -101,15 +101,17 @@ A working platform is already live — see **`NGJFI_Session_Context.md`** for th
 
 ## 8. Design system
 
-**An almanac, not an app** (Brand Proof № 2, Aug 2026). As if the Index had been printed annually since long before it had a website. Density is credibility: airy hero sections say marketing, set tables say measurement.
+**Brand Proof № 3** (Sep 2026) — white ground, coral as the single working colour, rounded corners and soft shadows back in. This replaced the earlier "almanac" system (Brand Proof № 2, Aug 2026 — warm paper, square corners, no shadows, all-serif body copy); if you're picturing that version, you're thinking of the old one. Density is still credibility — the almanac's numbered figures, hairline rules and asymmetric grid stay — but the surface is no longer trying to look printed.
 
-**Do not restate these values in a component.** They live in `tailwind.config.ts` and `globals.css`, and every surface reads them from there — that is why the whole platform re-skinned from one file.
+**Do not restate these values in a component.** They live in `tailwind.config.ts` and `globals.css` (`:root`), and every surface reads them from there — that is why the whole platform re-skins from one file. See `docs/PALETTE.md` for the reasoning behind the warm rotation.
 
-- **Paper** `#FAF7F1` · **Plate** `#FFFDF8` · **Ink** `#1B1F27` · **Ink-2** `#4C5260` · **Rules** `#D9D2C4`
-- **Emerald** `#0B8A60` — the single working colour · **Navy** `#35639C` — levels · **Vermillion** `#B5451B` — semantic "down" only, never decoration
-- **The rule of voices:** if it's a sentence, it's **Newsreader**. If it's a number, it's **IBM Plex Mono**, tabular. If it's a control, it's **Inter**. No exceptions — that's what makes it a system, and it's enforced by a global CSS selector, not by discipline.
-- **Refused:** gradients · glassmorphism · rounded cards · shadows · scroll-triggered animation · emoji as icons · the centered hero with three feature cards. `borderRadius` and `boxShadow` collapse to nothing in the Tailwind config, so these cannot be written even by accident.
-- **Kept:** hairline and double rules · numbered figures with captions · footnotes and sources · asymmetric grid with marginalia · square corners · a colophon.
+- **Ground:** Paper `#FFFFFF` (page) / `#F5F6F8` (paper-deep) · Plate `#FFFFFF` (cards) · Ink `#22252B` · Ink-2 `#5B6270` · Rules `#E2E5EA` / `#D7DBE2`
+- **Coral** `#FF7A47` — the single working colour: chrome, marks, the tier ramp (the code token is still named `emerald`, kept stable on purpose — only the value moved, see `tailwind.config.ts`) · **Green** `#3F9D72` — "up" only, deliberately kept off the brand hue · **Navy** `#2F80C4` — levels and benchmarks, never anything else · **Violet** `#8B5CF6` — a domain accent (Follow), never a semantic · **Vermillion** `#C8283B` — "down" only, never decoration
+- **The tier ramp:** one hue (coral), four lightnesses — Exposure `#FDECE2` → Response `#FFB894` → Formation `#FF9464` → Multiplication `#FF7A47`. Lightness alone encodes journey depth, so the heat grid reads as a progression, not four unrelated categories.
+- **The rule of voices, updated:** everything is the grotesk now — **Inter Tight** carries body copy AND controls (the almanac's "every sentence is serif" rule is gone). **Newsreader** is kept for exactly one use, the `.wordmark` masthead lockup, not a second voice for general text. Numbers are still tabular mono, now **JetBrains Mono** (moved from IBM Plex Mono).
+- **Rounded corners and soft shadows are back.** The almanac's collapse-to-0 is gone — the scale lives in `tailwind.config.ts` (`borderRadius` / `boxShadow`).
+- **Still refused:** gradients · glassmorphism · scroll-triggered animation · emoji as icons · the centered hero with three feature cards.
+- **Still kept:** hairline and double rules · numbered figures with captions · footnotes and sources · asymmetric grid with marginalia · a colophon.
 - **UX:** mobile-first respondent flow; progressive disclosure; white-label cleanly overrides org-facing surfaces.
 
 ---
