@@ -26,6 +26,18 @@ type Intel = {
    * Index and never blended into funnel/domains/matrix above. Below
    * min_group_n, `options` is null but `n` is still shown. */
   insights?: Record<string, { n: number; options: Record<string, number> | null }>;
+  /**
+   * The Exploration Index — v4's parallel figure for the Unengaged branch
+   * (migration 0026), across every organisation. A SEPARATE figure with its
+   * own n — never summed, averaged, or otherwise blended with
+   * funnel/domains/matrix/index above. Optional: absent from any response
+   * captured before this field existed.
+   */
+  exploration_n?: number;
+  exploration_index?: number | null;
+  exploration_funnel?: Record<string, number | null>;
+  exploration_domains?: Record<string, number | null>;
+  exploration_matrix?: Record<string, Record<string, number | null>>;
 };
 
 const TIERS = ["exposure", "response", "formation", "multiplication"];
@@ -57,6 +69,11 @@ const level = (v: number | null | undefined) =>
   v === null || v === undefined ? "#e6e8ec" : v >= 58 ? "#3f9d72" : v >= 42 ? "#e0993f" : "#d65349";
 const fmt = (v: number | null | undefined) => (v === null || v === undefined ? "—" : String(v));
 const greenCell = (v: number | null) => (v === null || v === undefined ? "transparent" : `rgba(63,157,114,${Math.max(0.08, v / 100)})`);
+// The Exploration Index's own colour. This design system aliases the "violet"
+// Tailwind token to --c-navy (tailwind.config.ts), so its heat cells read
+// that same variable directly rather than a separate hard-coded hex — same
+// pattern as greenCell() above, just never the Index's own emerald/coral.
+const navyCell = (v: number | null) => (v === null || v === undefined ? "transparent" : `rgb(var(--c-navy) / ${Math.max(0.08, v / 100)})`);
 
 export default function IntelligenceView({
   space = "live",
@@ -231,6 +248,86 @@ export default function IntelligenceView({
               </table>
             </div>
           </section>
+
+          {/* The Exploration Index — v4's parallel figure for the Unengaged
+              branch (migration 0026), aggregated across the whole Collab.
+              Rendered only when the field is present in the RPC response
+              (older captures won't have it) and there's at least one
+              respondent in it. Never shown as part of, or combined with, the
+              funnel/domains/matrix above. */}
+          {typeof d.exploration_n === "number" && d.exploration_n > 0 && (
+            <section className="mt-6 rounded-xl border-2 border-navy bg-card p-6">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="font-sans text-xl font-semibold text-navy">The Exploration Index</h2>
+                <span className="font-mono text-[10px] uppercase tracking-wider text-muted">n = {d.exploration_n.toLocaleString()}</span>
+              </div>
+              <p className="mt-1 max-w-2xl text-sm text-slate">
+                A separate, equally-structured measure across every organisation, for respondents who
+                don&apos;t yet identify as followers of Jesus. Same 3×4 model, same math as the Index
+                above — never summed, averaged, or otherwise blended with it.
+              </p>
+
+              <div className="mt-5 flex items-end gap-6">
+                <div className="flex flex-col">
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-muted">Exploration score</span>
+                  <span className="mt-1 font-serif text-4xl font-black text-navy">{fmt(d.exploration_index)}</span>
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                {TIERS.map((tk) => {
+                  const v = d.exploration_funnel?.[tk] ?? null;
+                  return (
+                    <div key={tk} className="flex items-center gap-3">
+                      <span className="w-28 shrink-0 font-mono text-[10px] uppercase tracking-wider text-muted">{TIER_LABEL[tk]}</span>
+                      <div className="h-9 flex-1 rounded bg-paper-deep">
+                        <div className="flex h-full items-center rounded bg-navy pl-3 text-sm font-semibold text-white" style={{ width: `${v ?? 0}%` }}>
+                          {fmt(v)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-6 grid gap-6 md:grid-cols-2">
+                <div>
+                  <h3 className="font-mono text-[9px] uppercase tracking-wider text-muted">By question</h3>
+                  <div className="mt-3 space-y-3">
+                    {DOMAINS.map((dk) => (
+                      <div key={dk} className="text-sm">
+                        <div className="flex justify-between"><span>{DOMAIN_LABEL[dk]}</span><b>{fmt(d.exploration_domains?.[dk])}</b></div>
+                        <div className="mt-1 h-2 rounded bg-paper-deep"><div className="h-full rounded bg-navy" style={{ width: `${d.exploration_domains?.[dk] ?? 0}%` }} /></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-mono text-[9px] uppercase tracking-wider text-muted">Questions × tiers</h3>
+                  <div className="mt-3 overflow-x-auto">
+                    <table className="w-full border-separate border-spacing-1 text-center">
+                      <thead><tr><th className="w-1/4" />{TIERS.map((tk) => (<th key={tk} className="font-mono text-[8.5px] uppercase tracking-wider text-muted">{TIER_LABEL[tk]}</th>))}</tr></thead>
+                      <tbody>
+                        {DOMAINS.map((dk) => (
+                          <tr key={dk}>
+                            <td className="text-left font-serif text-sm font-medium">{DOMAIN_LABEL[dk]}</td>
+                            {TIERS.map((tk) => {
+                              const v = d.exploration_matrix?.[dk]?.[tk] ?? null;
+                              return <td key={tk} className="rounded py-3 font-sans text-base font-bold" style={{ background: navyCell(v), color: v !== null && v >= 55 ? "#fff" : "#22252b" }}>{fmt(v)}</td>;
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <p className="mt-5 font-mono text-[9px] uppercase tracking-wider text-navy">
+                Of those who took this branch — never a whole population. Never blended with the Index above.
+              </p>
+            </section>
+          )}
 
           {/* map */}
           {d.countries && (
