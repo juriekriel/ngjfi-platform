@@ -47,6 +47,21 @@ export interface Item {
   reverse_scored?: boolean;
   /** points: number of ordered steps (likert_5 → 5, frequency → 4 by default). */
   scale?: { points?: number };
+  /**
+   * Which parallel branch of the instrument this item belongs to. Items with
+   * branch: "unengaged" score into explorationIndex/explorationTiers/
+   * explorationDomains/explorationMatrix below — a completely separate
+   * accumulator from index/tiers/domains/matrix. Omitted or "engaged" means
+   * "this is (or behaves like) the official Index."
+   *
+   * This split exists because the v4 instrument gives non-followers a
+   * parallel 24-item item set using the SAME domain×tier cells as the
+   * official Index (see instrument.v4.json's version note) — but the two
+   * branches ask different questions of different populations, and must
+   * never be averaged together into one number. Never remove this filter
+   * without a deliberate, versioned scoring decision.
+   */
+  branch?: "engaged" | "unengaged";
 }
 
 export type RawValue = number | string | boolean | string[] | null | undefined;
@@ -119,6 +134,18 @@ export interface ScoreResult {
   domains: Record<string, number | null>;
   /** matrix[domain][tier] */
   matrix: Record<string, Record<string, number | null>>;
+  /**
+   * The Exploration Index — computed identically to index/tiers/domains/
+   * matrix above, but only from items tagged branch: "unengaged". Always
+   * present (never merged into the fields above); null/empty when nobody in
+   * this batch of responses answered any unengaged-branch item. See the
+   * `branch` field on Item for why these must stay separate.
+   */
+  explorationN: number;
+  explorationIndex: number | null;
+  explorationTiers: Record<string, number | null>;
+  explorationDomains: Record<string, number | null>;
+  explorationMatrix: Record<string, Record<string, number | null>>;
 }
 
 /**
@@ -133,53 +160,75 @@ export function computeScores(
   const itemByKey = new Map<string, Item>();
   for (const it of items) itemByKey.set(it.key, it);
 
-  // Collect normalised, scored datapoints tagged by tier + domain.
+  // Collect normalised, scored datapoints tagged by tier + domain — split
+  // into two entirely disjoint accumulators by branch. `points` feeds the
+  // official Index exactly as before; `explorationPoints` feeds the
+  // Exploration Index and is never read by the index/tiers/domains/matrix
+  // computation below.
   type Point = { tier: Tier; domain: QuestionDomain; value: number };
   const points: Point[] = [];
+  const explorationPoints: Point[] = [];
 
   for (const r of responses) {
     const item = itemByKey.get(r.key);
     if (!item || !item.scored) continue;
     const norm = normalizeValue(item, r.value);
     if (norm === null) continue;
-    points.push({ tier: item.tier, domain: item.question_domain, value: norm });
+    const point = { tier: item.tier, domain: item.question_domain, value: norm };
+    if (item.branch === "unengaged") explorationPoints.push(point);
+    else points.push(point);
   }
 
-  const tiers: Record<string, number | null> = {};
-  for (const t of SCORE_TIERS) {
-    const m = mean(points.filter((p) => p.tier === t).map((p) => p.value));
-    tiers[t] = m === null ? null : round1(m);
-  }
+  type Reduced = {
+    tiers: Record<string, number | null>;
+    domains: Record<string, number | null>;
+    matrix: Record<string, Record<string, number | null>>;
+    index: number | null;
+  };
 
-  const domains: Record<string, number | null> = {};
-  for (const d of SCORE_DOMAINS) {
-    const m = mean(points.filter((p) => p.domain === d).map((p) => p.value));
-    domains[d] = m === null ? null : round1(m);
-  }
-
-  const matrix: Record<string, Record<string, number | null>> = {};
-  for (const d of SCORE_DOMAINS) {
-    matrix[d] = {};
+  function reduce(pts: Point[]): Reduced {
+    const tiers: Record<string, number | null> = {};
     for (const t of SCORE_TIERS) {
-      const m = mean(
-        points.filter((p) => p.domain === d && p.tier === t).map((p) => p.value),
-      );
-      matrix[d][t] = m === null ? null : round1(m);
+      const m = mean(pts.filter((p) => p.tier === t).map((p) => p.value));
+      tiers[t] = m === null ? null : round1(m);
     }
+
+    const domains: Record<string, number | null> = {};
+    for (const d of SCORE_DOMAINS) {
+      const m = mean(pts.filter((p) => p.domain === d).map((p) => p.value));
+      domains[d] = m === null ? null : round1(m);
+    }
+
+    const matrix: Record<string, Record<string, number | null>> = {};
+    for (const d of SCORE_DOMAINS) {
+      matrix[d] = {};
+      for (const t of SCORE_TIERS) {
+        const m = mean(pts.filter((p) => p.domain === d && p.tier === t).map((p) => p.value));
+        matrix[d][t] = m === null ? null : round1(m);
+      }
+    }
+
+    // Index = mean of the available tier scores (spec default; researchers may weight later).
+    const tierVals = SCORE_TIERS.map((t) => tiers[t]).filter((v): v is number => v !== null);
+    const index = tierVals.length ? round1(mean(tierVals) as number) : null;
+
+    return { tiers, domains, matrix, index };
   }
 
-  // Index = mean of the available tier scores (spec default; researchers may weight later).
-  const tierVals = SCORE_TIERS.map((t) => tiers[t]).filter(
-    (v): v is number => v !== null,
-  );
-  const index = tierVals.length ? round1(mean(tierVals) as number) : null;
+  const official = reduce(points);
+  const exploration = reduce(explorationPoints);
 
   return {
     scoringVersion: opts.scoringVersion ?? SCORING_VERSION,
     n: points.length,
-    index,
-    tiers,
-    domains,
-    matrix,
+    index: official.index,
+    tiers: official.tiers,
+    domains: official.domains,
+    matrix: official.matrix,
+    explorationN: explorationPoints.length,
+    explorationIndex: exploration.index,
+    explorationTiers: exploration.tiers,
+    explorationDomains: exploration.domains,
+    explorationMatrix: exploration.matrix,
   };
 }

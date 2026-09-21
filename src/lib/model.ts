@@ -136,4 +136,17 @@ export interface DashboardData {
   items: DashboardItem[];
   trend?: { year: number; index: number }[] | null;
   demo?: boolean;
+  /**
+   * The Exploration Index — v4's parallel figure for respondents who took the
+   * Unengaged branch (see instrument.v4.json's version note and
+   * src/lib/scoring.ts). Always a SEPARATE figure with its own sample size;
+   * never averaged, summed or otherwise blended with `index`/`n` above.
+   * Optional because it's absent from org_dashboard_demo() and any RPC
+   * response captured before this field existed.
+   */
+  explorationN?: number;
+  explorationIndex?: number | null;
+  explorationTiers?: Record<string, number | null>;
+  explorationDomains?: Record<string, number | null>;
+  explorationMatrix?: Record<string, Record<string, number | null>>;
 }

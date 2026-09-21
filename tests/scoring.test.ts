@@ -82,6 +82,43 @@ test("computeScores: tiers, domains, matrix, index, n", () => {
   assert.equal(r.scoringVersion, "v0.1.0");
 });
 
+test("computeScores: branch:\"unengaged\" items feed explorationIndex, never index — and vice versa", () => {
+  const items: Item[] = [
+    { key: "e1", question_domain: "follow", tier: "response", type: "likert_5", scored: true, branch: "engaged" },
+    { key: "e2", question_domain: "mission", tier: "exposure", type: "likert_5", scored: true }, // branch omitted == engaged
+    { key: "u1", question_domain: "follow", tier: "response", type: "likert_5", scored: true, branch: "unengaged" },
+    { key: "u2", question_domain: "mission", tier: "exposure", type: "likert_5", scored: true, branch: "unengaged" },
+  ];
+  const responses: RawResponse[] = [
+    { key: "e1", value: 5 },  // 100 -> official
+    { key: "e2", value: 1 },  // 0   -> official
+    { key: "u1", value: 3 },  // 50  -> exploration
+    { key: "u2", value: 5 },  // 100 -> exploration
+  ];
+
+  const r = computeScores(items, responses);
+
+  // Official figures see only the engaged-branch points.
+  assert.equal(r.n, 2);
+  assert.equal(r.tiers.response, 100);
+  assert.equal(r.tiers.exposure, 0);
+  assert.equal(r.tiers.formation, null);
+  assert.ok(near(r.index, 50)); // mean(100, 0)
+
+  // Exploration figures see only the unengaged-branch points, computed the
+  // identical way — and never touch the official numbers above.
+  assert.equal(r.explorationN, 2);
+  assert.equal(r.explorationTiers.response, 50);
+  assert.equal(r.explorationTiers.exposure, 100);
+  assert.ok(near(r.explorationIndex as number, 75)); // mean(50, 100)
+
+  // A batch with no unengaged-branch responses at all reports an honest null,
+  // not a zero standing in for "we don't know".
+  const officialOnly = computeScores(items, responses.filter((r) => r.key.startsWith("e")));
+  assert.equal(officialOnly.explorationN, 0);
+  assert.equal(officialOnly.explorationIndex, null);
+});
+
 test("computeScores: empty responses are low-n safe", () => {
   const items: Item[] = [
     { key: "a", question_domain: "follow", tier: "response", type: "likert_5", scored: true },
