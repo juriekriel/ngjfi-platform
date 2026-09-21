@@ -123,7 +123,7 @@ export default function LearnPage() {
               </p>
               <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
                 Read across a row and you learn how far one question has travelled. Read down a column
-                and you learn what an entire cohort has and has not yet reached. The narrowing between
+                and you learn what an entire group has and has not yet reached. The narrowing between
                 columns is the diagnosis.
               </p>
               <p className="margin-note mt-5 border-l-2 border-rule pl-3">
@@ -147,7 +147,7 @@ export default function LearnPage() {
           <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
             Rebrands cost trust precisely when a longitudinal measure is accruing it. The Index begins
             with the next generation; it does not end there — so no generation appears in the name.
-            Editions carry the cohort instead.
+            Editions carry the age range instead.
           </p>
           <div className="mt-6 overflow-x-auto">
             <table className="w-full min-w-[560px] text-left">
@@ -238,7 +238,7 @@ export default function LearnPage() {
             </Link>
             <Link href="/join" className="border-t-2 border-emerald pt-3 no-underline">
               <p className="figcap">When you are ready</p>
-              <p className="mt-2 text-[18px] leading-snug text-emerald">Join a cohort →</p>
+              <p className="mt-2 text-[18px] leading-snug text-emerald">Join the Index →</p>
               <p className="margin-note mt-1">For organisations and churches.</p>
             </Link>
           </div>

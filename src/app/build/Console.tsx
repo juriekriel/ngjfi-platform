@@ -509,6 +509,7 @@ function AdminConsole() {
   const [nets, setNets] = useState<{ short_name: string; name: string; kind: string }[]>([]);
   const [wizard, setWizard] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!sb) return;
@@ -646,6 +647,16 @@ function AdminConsole() {
                   <Row key={o.short_name} label={o.name} meta={`${o.responses.toLocaleString()} responses`}>
                     <span className="flex items-center gap-2">
                       <StatusToggle current={o.status} onChange={(s) => setStatus(o.short_name, s)} />
+                      <button
+                        onClick={() => setSelectedOrg(selectedOrg === o.short_name ? null : o.short_name)}
+                        className={`tabular border px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] ${
+                          selectedOrg === o.short_name
+                            ? "border-ink bg-ink text-paper"
+                            : "border-rule-2 text-ink-2 hover:border-ink hover:text-ink"
+                        }`}
+                      >
+                        Links &amp; access
+                      </button>
                       <Link href={`/${o.short_name}/dashboard`} className="tabular border border-rule-2 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-ink-2 no-underline hover:border-ink hover:text-ink">
                         Open
                       </Link>
@@ -672,6 +683,7 @@ function AdminConsole() {
             )}
           </div>
         </div>
+        {selectedOrg && <OrgDetailPanel shortName={selectedOrg} />}
         <div className="mt-5">
           <p className="figcap">People</p>
           <Rows>
@@ -708,6 +720,167 @@ function AdminConsole() {
           fifteen others.
         </p>
       </Band>
+    </div>
+  );
+}
+
+/**
+ * The links-and-access detail for one organisation — opened from a "Links &
+ * access" button on its row in Band D, rather than a separate page, so
+ * staff can flip between organisations without losing their place in the
+ * roll. Three RPCs, each already scoped and authorised on its own:
+ * admin_org_detail() (new, migration 0029) for countries/responses/members,
+ * org_links() (migration 0011, public) for the two fixed Community/Open
+ * URLs, org_distribution_links() (migration 0028, widened in 0029) for any
+ * named rooms. No password field — there are none on this platform; "Resend
+ * link" below calls Supabase Auth's own one-time email sign-in directly.
+ */
+type OrgDetail = {
+  org: { slug: string; short_name: string | null; name: string; website_domain: string | null; verified: boolean; status: string };
+  responses: number;
+  countries: string[];
+  countries_count: number;
+  members: { name: string; email: string; role: string; status: string }[];
+};
+type FixedLinks = { community: { url: string; label: string; note: string }; public: { url: string; label: string; note: string } };
+type RoomLink = { id: string; name: string; slug: string; status: "scheduled" | "active" | "ended"; n: number; places: string[]; places_total: number };
+
+function OrgDetailPanel({ shortName }: { shortName: string }) {
+  const sb = useMemo(() => getSupabaseBrowser(), []);
+  const [detail, setDetail] = useState<OrgDetail | null>(null);
+  const [fixed, setFixed] = useState<FixedLinks | null>(null);
+  const [rooms, setRooms] = useState<RoomLink[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+  const [sent, setSent] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!sb) return;
+    let cancelled = false;
+    setDetail(null);
+    setFixed(null);
+    setRooms([]);
+    setErr(null);
+    (async () => {
+      const [d, f, r] = await Promise.all([
+        sb.rpc("admin_org_detail", { p_org_slug: shortName }),
+        sb.rpc("org_links", { p_short_name: shortName }),
+        sb.rpc("org_distribution_links", { p_org_slug: shortName }),
+      ]);
+      if (cancelled) return;
+      if (d.error) setErr(d.error.message);
+      else setDetail(d.data as OrgDetail);
+      if (f.data) setFixed(f.data as FixedLinks);
+      if (r.data) setRooms(r.data as RoomLink[]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [sb, shortName]);
+
+  async function resendLink(email: string) {
+    if (!sb) return;
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/${shortName}/dashboard` : undefined },
+    });
+    setSent(error ? null : email);
+    if (error) setErr(error.message);
+  }
+
+  const linkCount = (fixed ? 2 : 0) + rooms.length;
+  const activeLinkCount = (fixed ? 2 : 0) + rooms.filter((r) => r.status === "active").length;
+
+  return (
+    <div className="mt-5 border-2 border-ink p-5">
+      {err && <Trouble message={err} />}
+      {!detail && !err && <p className="text-[14px] text-ink-2">Loading…</p>}
+
+      {detail && (
+        <>
+          <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-rule pb-3">
+            <div>
+              <p className="text-[16px] font-semibold text-ink">
+                {detail.org.name}
+                {detail.org.verified && <span className="ml-2 text-emerald">✓ verified</span>}
+              </p>
+              <p className="margin-note mt-0.5">{detail.org.website_domain ?? "no domain on file"}</p>
+            </div>
+          </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <div className="border border-rule bg-plate px-4 py-3">
+              <p className="figcap">Links activated</p>
+              <p className="tabular mt-1 text-[22px] font-semibold text-ink">{linkCount}</p>
+              <p className="mt-0.5 text-[12px] text-ink-2">{activeLinkCount} active right now</p>
+            </div>
+            <div className="border border-rule bg-plate px-4 py-3">
+              <p className="figcap">Countries reached</p>
+              <p className="tabular mt-1 text-[22px] font-semibold text-ink">{detail.countries_count}</p>
+              <p className="mt-0.5 truncate text-[12px] text-ink-2" title={detail.countries.join(", ")}>
+                {detail.countries.length ? detail.countries.join(", ") : "no responses yet"}
+              </p>
+            </div>
+            <div className="border border-rule bg-plate px-4 py-3">
+              <p className="figcap">Total responses</p>
+              <p className="tabular mt-1 text-[22px] font-semibold text-emerald">{detail.responses.toLocaleString()}</p>
+              <p className="mt-0.5 text-[12px] text-ink-2">of those who completed the Index</p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-6 md:grid-cols-2">
+            <div>
+              <p className="figcap">Admin access</p>
+              {detail.members.length ? (
+                <Rows>
+                  {detail.members.map((m) => (
+                    <Row key={m.email} label={m.name} meta={`${m.role} · ${m.status}`}>
+                      <button
+                        onClick={() => resendLink(m.email)}
+                        className="tabular border border-rule-2 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-ink-2 hover:border-ink hover:text-ink"
+                      >
+                        {sent === m.email ? "Link sent" : "Resend link"}
+                      </button>
+                    </Row>
+                  ))}
+                </Rows>
+              ) : (
+                <p className="mt-2 text-[14px] leading-relaxed text-ink-2">
+                  Nobody has signed in yet. Anyone with a{" "}
+                  <span className="tabular">@{detail.org.website_domain ?? "…"}</span> email can claim
+                  access from their own dashboard sign-in screen — there is no invite to send from here.
+                </p>
+              )}
+              <p className="margin-note mt-3 border-l-2 border-rule pl-3">
+                No passwords exist on JFINDX. &quot;Resend link&quot; sends a fresh one-time sign-in
+                email via Supabase Auth — the same link a person would request themselves.
+              </p>
+            </div>
+
+            <div>
+              <p className="figcap">Survey links</p>
+              <ul className="border-t border-ink">
+                {fixed && (
+                  <>
+                    <LinkRow url={fixed.community.url} label={fixed.community.label} note={fixed.community.note} />
+                    <LinkRow url={fixed.public.url} label={fixed.public.label} note={fixed.public.note} />
+                  </>
+                )}
+                {rooms.map((r) => (
+                  <LinkRow
+                    key={r.id}
+                    url={`https://jfindx.org/${shortName}/l/${r.slug}`}
+                    label={`${r.name} · ${r.status}`}
+                    note={`n = ${r.n.toLocaleString()} · ${r.places.length ? r.places.join(" · ") : "no responses yet"}${
+                      r.places_total > r.places.length ? ` +${r.places_total - r.places.length} more` : ""
+                    }`}
+                  />
+                ))}
+                {!fixed && !rooms.length && <p className="py-3 text-[14px] text-ink-2">No links yet.</p>}
+              </ul>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

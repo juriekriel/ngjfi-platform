@@ -15,15 +15,15 @@ export function Masthead({ edition }: { edition?: string }) {
             stands alone where there is no wordmark (favicon, app icon, survey
             header, QR sticker). */}
         <Link href="/" className="no-underline">
-          <span className="text-[19px] leading-none tracking-tight">
+          <span className="wordmark text-[19px] leading-none tracking-tight">
             The <span className="italic">Jesus</span>{" "}
             <span className="tabular text-[15px] uppercase tracking-[0.18em]">Index</span>
           </span>
         </Link>
         <nav className="flex flex-wrap items-center gap-x-5 gap-y-1">
-          <NavLink href="/learn">Learn</NavLink>
+          <NavLink href="/learn">What is the Index?</NavLink>
           <NavLink href="/tour">How it works</NavLink>
-          <NavLink href="/demo">Sandbox</NavLink>
+          <NavLink href="/intelligence">A global picture</NavLink>
           <NavLink href="/join">Join</NavLink>
           <Link
             href="/access"
@@ -126,17 +126,17 @@ export function Colophon() {
             <p className="figcap mb-1">Explore</p>
             <FootLink href="/learn">Why this exists</FootLink>
             <FootLink href="/tour">How it will work</FootLink>
-            <FootLink href="/demo">The sandbox</FootLink>
-            <FootLink href="/join">Join a cohort</FootLink>
+            <FootLink href="/intelligence">A global picture</FootLink>
+            <FootLink href="/join">Join the Index</FootLink>
             <FootLink href="/access">Early access</FootLink>
           </nav>
           <div>
             <p className="figcap mb-1">Colophon</p>
             <p className="margin-note">
-              Set in <b>Newsreader</b> and <b>IBM&nbsp;Plex&nbsp;Mono</b>, with Inter for controls.
-              Instrument <span className="tabular">v1</span> · scoring{" "}
-              <span className="tabular">v0.1.0</span>. Built in the open at{" "}
-              <span className="tabular">github.com/juriekriel/ngjfi-platform</span>.
+              Set in <b>Inter&nbsp;Tight</b>, with <b>JetBrains&nbsp;Mono</b> for figures and{" "}
+              <b>Newsreader</b> for the wordmark alone. Instrument{" "}
+              <span className="tabular">v1</span> · scoring <span className="tabular">v0.1.0</span>.
+              Built in the open at <span className="tabular">github.com/juriekriel/ngjfi-platform</span>.
             </p>
           </div>
         </div>

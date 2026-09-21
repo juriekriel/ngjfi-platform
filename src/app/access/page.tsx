@@ -30,7 +30,7 @@ export default function AccessPage() {
             <p className="mt-2 max-w-measure text-[16px] leading-relaxed text-ink-2">
               Not secrecy. A public date that slips is a credibility event with thirty-plus partner
               organisations; the same slip discussed inside the build room is just a Tuesday. So the
-              public page uses sequence — <i>cohorts are forming</i> — and the calendar lives in here.
+              public page uses sequence — <i>rounds are opening</i> — and the calendar lives in here.
             </p>
             <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
               There is a second reason. Until the research panel locks the instrument,{" "}

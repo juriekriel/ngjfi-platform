@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { instrument, t } from "@/lib/instrument";
+import ScoreMatrix from "@/components/index/ScoreMatrix";
+import WorldHeatMap from "@/components/index/WorldHeatMap";
 
 type Intel = {
   /** Set by the database, not the client — which enforced space produced this. */
@@ -55,20 +57,9 @@ const INSIGHT_ITEMS = instrument.items
     options: (i.options ?? []).map((o) => ({ value: String(o.value), label: t(o.text, "en") })),
   }));
 
-// rough geographic tile layout for the demo countries
-const TILES: Record<string, { c: number; r: number; code: string }> = {
-  Canada: { c: 2, r: 1, code: "CA" }, "United States": { c: 2, r: 2, code: "US" }, Mexico: { c: 2, r: 3, code: "MX" },
-  Colombia: { c: 3, r: 4, code: "CO" }, Peru: { c: 3, r: 5, code: "PE" }, Brazil: { c: 4, r: 5, code: "BR" }, Argentina: { c: 3, r: 7, code: "AR" },
-  Sweden: { c: 7, r: 1, code: "SE" }, "United Kingdom": { c: 6, r: 2, code: "UK" }, Germany: { c: 7, r: 2, code: "DE" }, France: { c: 6, r: 3, code: "FR" },
-  Egypt: { c: 8, r: 4, code: "EG" }, Nigeria: { c: 6, r: 5, code: "NG" }, Uganda: { c: 7, r: 5, code: "UG" }, Kenya: { c: 8, r: 5, code: "KE" }, "South Africa": { c: 7, r: 7, code: "ZA" },
-  Kazakhstan: { c: 10, r: 2, code: "KZ" }, Nepal: { c: 11, r: 3, code: "NP" }, India: { c: 11, r: 4, code: "IN" },
-  Japan: { c: 13, r: 2, code: "JP" }, "South Korea": { c: 13, r: 3, code: "KR" },
-  Vietnam: { c: 12, r: 5, code: "VN" }, Indonesia: { c: 12, r: 6, code: "ID" }, Philippines: { c: 13, r: 5, code: "PH" }, "Papua New Guinea": { c: 13, r: 6, code: "PG" },
-};
 const level = (v: number | null | undefined) =>
   v === null || v === undefined ? "#e6e8ec" : v >= 58 ? "#3f9d72" : v >= 42 ? "#e0993f" : "#d65349";
 const fmt = (v: number | null | undefined) => (v === null || v === undefined ? "—" : String(v));
-const greenCell = (v: number | null) => (v === null || v === undefined ? "transparent" : `rgba(63,157,114,${Math.max(0.08, v / 100)})`);
 // The Exploration Index's own colour. This design system aliases the "violet"
 // Tailwind token to --c-navy (tailwind.config.ts), so its heat cells read
 // that same variable directly rather than a separate hard-coded hex — same
@@ -120,7 +111,7 @@ export default function IntelligenceView({
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
             Nothing published yet
           </p>
-          <h2 className="mt-3 text-2xl leading-tight">Cohorts are forming.</h2>
+          <h2 className="mt-3 text-2xl leading-tight">Rounds are opening.</h2>
           <p className="mt-4 max-w-2xl leading-relaxed text-slate">
             This is the live view — real organisations, real respondents, and{" "}
             <b>no synthetic data has ever been in it</b>. It stays empty on purpose. Publishing a
@@ -147,7 +138,7 @@ export default function IntelligenceView({
               See the sandbox instead →
             </a>
             <a href="/join" className="font-mono border-2 border-accent bg-accent px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-plate no-underline">
-              Join a cohort →
+              Join the Index →
             </a>
           </div>
         </div>
@@ -227,25 +218,13 @@ export default function IntelligenceView({
             </section>
           )}
 
-          {/* heat grid */}
+          {/* the J12 — Questions × Tiers, one shared component with the org
+              dashboard so the two surfaces read identically */}
           <section className="mt-6 rounded-xl border border-ink bg-card p-6">
             <h2 className="font-sans text-xl font-semibold">Questions × tiers</h2>
             <p className="mt-1 text-sm text-slate">Every domain read at every depth — darker is stronger.</p>
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full border-separate border-spacing-1 text-center">
-                <thead><tr><th className="w-1/4" />{TIERS.map((tk) => (<th key={tk} className="font-mono text-[8.5px] uppercase tracking-wider text-muted">{TIER_LABEL[tk]}</th>))}</tr></thead>
-                <tbody>
-                  {DOMAINS.map((dk) => (
-                    <tr key={dk}>
-                      <td className="text-left font-serif text-sm font-medium">{DOMAIN_LABEL[dk]}</td>
-                      {TIERS.map((tk) => {
-                        const v = d.matrix?.[dk]?.[tk] ?? null;
-                        return <td key={tk} className="rounded py-3 font-sans text-base font-bold" style={{ background: greenCell(v), color: v !== null && v >= 55 ? "#fff" : "#22252b" }}>{fmt(v)}</td>;
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="mt-4">
+              <ScoreMatrix matrix={d.matrix} />
             </div>
           </section>
 
@@ -361,23 +340,8 @@ export default function IntelligenceView({
                 </div>
               </div>
               {mapView === "countries" ? (
-                <div className="mt-5 overflow-x-auto">
-                  <div className="grid gap-1.5" style={{ gridTemplateColumns: "repeat(13, minmax(34px, 1fr))", gridAutoRows: "40px", minWidth: 560 }}>
-                    {(d.countries || []).map((c) => {
-                      const pos = TILES[c.country];
-                      if (!pos) return null;
-                      const v = c.tiers?.[tier] ?? null;
-                      const dark = v !== null && v !== undefined;
-                      return (
-                        <div key={c.country} title={`${c.country} · ${TIER_LABEL[tier]}: ${fmt(v)} (n=${c.n})`}
-                          className="flex flex-col items-center justify-center rounded"
-                          style={{ gridColumn: pos.c, gridRow: pos.r, background: level(v), color: dark ? "#fff" : "#9aa0a8" }}>
-                          <span className="font-mono text-[10px] font-semibold leading-none">{pos.code}</span>
-                          <span className="text-[9px] font-semibold leading-none opacity-90">{fmt(v)}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+                <div className="mt-5">
+                  <WorldHeatMap countries={d.countries || []} tier={tier} />
                 </div>
               ) : (
                 // Regions have no pixel-perfect geography to place them at, and
@@ -402,12 +366,18 @@ export default function IntelligenceView({
                   )}
                 </div>
               )}
-              <div className="mt-4 flex flex-wrap gap-4 font-mono text-[9px] uppercase tracking-wider text-muted">
-                <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ background: "#3f9d72" }} /> Strong · 58+</span>
-                <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ background: "#e0993f" }} /> Emerging · 42–57</span>
-                <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ background: "#d65349" }} /> Early · under 42</span>
-                <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded border border-rule" style={{ background: "#e6e8ec" }} /> No data</span>
-              </div>
+              {/* The countries view carries its own gradient legend (WorldHeatMap,
+                  matching the J12 matrix's coral ramp). The regions view still
+                  uses the three-bucket level() colouring, so it keeps its own
+                  legend here. */}
+              {mapView === "regions" && (
+                <div className="mt-4 flex flex-wrap gap-4 font-mono text-[9px] uppercase tracking-wider text-muted">
+                  <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ background: "#3f9d72" }} /> Strong · 58+</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ background: "#e0993f" }} /> Emerging · 42–57</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ background: "#d65349" }} /> Early · under 42</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded border border-rule" style={{ background: "#e6e8ec" }} /> No data</span>
+                </div>
+              )}
             </section>
           )}
 

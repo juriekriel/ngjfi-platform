@@ -47,9 +47,17 @@ const CAMPAIGN_SLUG = { community: "default", public: "open" } as const;
 export default function Survey({
   slug,
   audience = "community",
+  distributionLinkSlug,
 }: {
   slug: string;
   audience?: "community" | "public";
+  /**
+   * Which distribution link ("room") this respondent came through, if any —
+   * see migration 0028. Optional: the two fixed audience links above pass
+   * nothing, exactly as before. start_session() resolves and validates the
+   * slug itself (org match + active window), so nothing else here changes.
+   */
+  distributionLinkSlug?: string;
 }) {
   const locale: Locale = "en";
   const [itemSet, setItemSet] = useState<"full" | "core">("full");
@@ -120,6 +128,7 @@ export default function Survey({
       const { data, error } = await sb.rpc("start_session", {
         p_campaign_id: campaignId,
         p_locale: locale,
+        p_distribution_link_slug: distributionLinkSlug ?? null,
       });
       if (error) setError("Could not start the session — check Supabase setup.");
       else setSessionId(data as string);

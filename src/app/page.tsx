@@ -27,7 +27,7 @@ export default function Home() {
                 J. The rising rule carries the same gesture and terminates in the
                 same cross, which is what FIG. 06 is for. */}
             <div>
-              <h1 className="text-[42px] leading-[0.98] tracking-tight sm:text-[56px]">
+              <h1 className="wordmark text-[42px] leading-[0.98] tracking-tight sm:text-[56px]">
                 The <span className="italic">Jesus</span>{" "}
                 <span className="tabular text-[36px] uppercase tracking-[0.14em] sm:text-[48px]">
                   Index
@@ -59,7 +59,7 @@ export default function Home() {
                 href="/join"
                 className="tabular border-2 border-emerald bg-emerald px-5 py-3 text-[11px] uppercase tracking-[0.14em] text-plate no-underline hover:bg-emerald-deep"
               >
-                Join the first cohort →
+                Join the Index →
               </Link>
               <Link
                 href="/tour"
@@ -74,8 +74,8 @@ export default function Home() {
             <J12Grid className="mx-auto max-w-[280px]" />
             <p className="margin-note mt-5 border-l-2 border-emerald pl-3">
               Twelve questions. Three about the person, four about how deep it has gone — and the
-              instrument inherits the disciples, not a demographic, which is why it can outlive its
-              first cohort.
+              instrument inherits the disciples, not a demographic, which is why it can outlive
+              whoever takes it first.
             </p>
           </aside>
         </section>
@@ -138,7 +138,7 @@ export default function Home() {
               </p>
               <p className="mt-4 max-w-measure text-[16.5px] leading-relaxed text-ink-2">
                 The colour deepens as the journey does. Read across a row to see how far one question
-                has travelled; read down a column to see what a whole cohort has and has not reached.
+                has travelled; read down a column to see what a whole group has and has not reached.
               </p>
               <p className="margin-note mt-5 border-l-2 border-rule pl-3">
                 Plain language here, scores in the product — same component, so the explanation can
@@ -233,21 +233,21 @@ export default function Home() {
             />
             <Door
               n="03"
-              kicker="Try it"
+              kicker="See it, global"
               accent
-              title="Explore the sandbox — with the numbers"
-              body="This is where the figures live. Take the survey as a young person, open a sample ministry's dashboard, read the global view. Every number in it is invented, and it behaves exactly like the real thing."
-              cta="Open the sandbox"
-              href="/demo"
-              note="Invented data. Nothing in it is research."
+              title="A global picture of where the movement stands"
+              body="Every organisation's results roll up into one shared view — a heat map by country, the same J12 matrix at the scale of the whole Collab. See where momentum is strong, and where it hasn't reached yet."
+              cta="See the global picture"
+              href="/intelligence"
+              note="Benchmarks stay hidden below the response threshold."
             />
             <Door
               n="04"
               kicker="Join it"
               accent
-              title="Bring your organisation into a cohort"
-              body="We open in small groups, country by country, so each one reaches the sample size a benchmark actually needs. Tell us where you work and we will tell you which cohort you fit."
-              cta="Join the first cohort"
+              title="Bring your organisation into the Index"
+              body="Run it under your own name, then see your results next to your country and the world once enough organisations near you have joined too. Tell us where you work and we'll get you set up."
+              cta="Join the Index"
               href="/join"
               note="For organisations and churches. About 30 seconds."
             />
@@ -279,12 +279,12 @@ export default function Home() {
         <section className="border-t-2 border-ink py-12">
           <div className="grid items-end gap-8 md:grid-cols-[1.4fr_1fr]">
             <div>
-              <h2 className="text-[30px] leading-tight">Cohorts are forming now.</h2>
+              <h2 className="text-[30px] leading-tight">Organisations are joining now.</h2>
               <p className="mt-3 max-w-measure text-[17px] leading-relaxed text-ink-2">
-                Small groups, country by country, each one large enough to give you a benchmark worth
-                having. Your own results appear the moment you run the Index — a national comparison
-                appears once enough organisations near you have taken part. Which is the best reason
-                to bring the people you already work alongside.
+                From every region, each one adding to a benchmark worth having. Your own results
+                appear the moment you run the Index — a national comparison appears once enough
+                organisations near you have taken part. Which is the best reason to bring the people
+                you already work alongside.
               </p>
             </div>
             <div className="flex flex-col gap-3">
@@ -292,13 +292,13 @@ export default function Home() {
                 href="/join"
                 className="tabular border-2 border-emerald bg-emerald px-5 py-3 text-center text-[12px] uppercase tracking-[0.14em] text-plate no-underline hover:bg-emerald-deep"
               >
-                Join the first cohort →
+                Join the Index →
               </Link>
               <Link
-                href="/demo"
+                href="/intelligence"
                 className="tabular border border-ink px-5 py-3 text-center text-[12px] uppercase tracking-[0.14em] text-ink no-underline hover:bg-ink hover:text-paper"
               >
-                Explore the sandbox first →
+                See the global picture first →
               </Link>
             </div>
           </div>
