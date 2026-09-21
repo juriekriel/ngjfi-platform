@@ -27,7 +27,7 @@ function TabLink({ href, label, active }: { href: string; label: string; active:
   return (
     <Link
       href={href}
-      className={`-mb-px border-b-2 pb-2.5 font-mono text-[11px] uppercase tracking-[0.14em] no-underline ${
+      className={`-mb-px border-b-2 pb-2.5 text-[14px] font-semibold no-underline ${
         active ? "border-accent text-ink" : "border-transparent text-muted hover:text-slate"
       }`}
     >
@@ -57,7 +57,7 @@ function ToggleButton({ label, active, onClick }: { label: string; active: boole
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors ${
+      className={`rounded-full px-4 py-1.5 text-[13px] font-semibold transition-colors ${
         active ? "bg-card text-ink shadow-sm" : "text-muted hover:text-slate"
       }`}
     >

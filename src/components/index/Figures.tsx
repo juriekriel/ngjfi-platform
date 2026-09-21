@@ -351,7 +351,7 @@ export function J12Grid({ className = "" }: { className?: string }) {
             <div
               key={i}
               aria-hidden="true"
-              className="aspect-square"
+              className="aspect-square rounded-md"
               style={{
                 background: on ? TIER_TINT[TIERS[c]].bg : "transparent",
                 border: on ? "none" : `1px solid ${RULE}`,

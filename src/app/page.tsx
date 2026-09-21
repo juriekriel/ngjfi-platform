@@ -57,13 +57,13 @@ export default function Home() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/join"
-                className="tabular border-2 border-emerald bg-emerald px-5 py-3 text-[11px] uppercase tracking-[0.14em] text-plate no-underline hover:bg-emerald-deep"
+                className="rounded-lg border-2 border-emerald bg-emerald px-5 py-3 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
               >
                 Join the Index →
               </Link>
               <Link
                 href="/tour"
-                className="tabular border border-ink px-5 py-3 text-[11px] uppercase tracking-[0.14em] text-ink no-underline hover:bg-ink hover:text-paper"
+                className="rounded-lg border border-ink px-5 py-3 text-[14px] font-semibold text-ink no-underline hover:bg-ink hover:text-paper"
               >
                 See how it works →
               </Link>
@@ -114,7 +114,7 @@ export default function Home() {
                 {/* The four cards walk the tier ramp, so this block cannot drift
                     from the heat grid: both read TIER_TINT. */}
                 <div
-                  className="flex h-[74px] items-end p-3"
+                  className="flex h-[74px] items-end rounded-xl p-3"
                   style={{ background: TIER_TINT[c.tier].bg, color: TIER_TINT[c.tier].fg }}
                 >
                   <span className="tabular text-[26px] leading-none">{c.n}</span>
@@ -290,13 +290,13 @@ export default function Home() {
             <div className="flex flex-col gap-3">
               <Link
                 href="/join"
-                className="tabular border-2 border-emerald bg-emerald px-5 py-3 text-center text-[12px] uppercase tracking-[0.14em] text-plate no-underline hover:bg-emerald-deep"
+                className="rounded-lg border-2 border-emerald bg-emerald px-5 py-3 text-center text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
               >
                 Join the Index →
               </Link>
               <Link
                 href="/intelligence"
-                className="tabular border border-ink px-5 py-3 text-center text-[12px] uppercase tracking-[0.14em] text-ink no-underline hover:bg-ink hover:text-paper"
+                className="rounded-lg border border-ink px-5 py-3 text-center text-[14px] font-semibold text-ink no-underline hover:bg-ink hover:text-paper"
               >
                 See the global picture first →
               </Link>

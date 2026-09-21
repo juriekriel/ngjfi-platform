@@ -86,7 +86,7 @@ export default function JoinForm() {
 
   if (stage === "done")
     return (
-      <div className="border-2 border-ink p-6">
+      <div className="rounded-xl border-2 border-ink p-6">
         <p className="figcap">You are on the list</p>
         <h2 className="mt-3 text-[26px] leading-tight">Thank you — that helps more than you think.</h2>
         <p className="mt-4 text-[16px] leading-relaxed text-ink-2">
@@ -107,7 +107,7 @@ export default function JoinForm() {
 
   if (stage === "shape")
     return (
-      <form onSubmit={submitShape} className="border-2 border-ink p-6">
+      <form onSubmit={submitShape} className="rounded-xl border-2 border-ink p-6">
         <p className="figcap">Optional · about three minutes</p>
         <h2 className="mt-3 text-[24px] leading-tight">Want to be in the first round?</h2>
         <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
@@ -169,11 +169,11 @@ export default function JoinForm() {
 
         <div className="mt-6 flex flex-wrap gap-3">
           <button type="submit" disabled={busy}
-            className="tabular border-2 border-emerald bg-emerald px-5 py-2.5 text-[11px] uppercase tracking-[0.14em] text-plate disabled:opacity-50">
+            className="rounded-lg border-2 border-emerald bg-emerald px-5 py-2.5 text-[14px] font-semibold text-plate disabled:opacity-50">
             {busy ? "Saving…" : "Send it →"}
           </button>
           <button type="button" onClick={() => setStage("done")}
-            className="tabular border border-rule px-5 py-2.5 text-[11px] uppercase tracking-[0.14em] text-ink-2 hover:border-ink hover:text-ink">
+            className="rounded-lg border border-rule px-5 py-2.5 text-[14px] font-semibold text-ink-2 hover:border-ink hover:text-ink">
             Skip this
           </button>
         </div>
@@ -182,7 +182,7 @@ export default function JoinForm() {
     );
 
   return (
-    <form onSubmit={submitExpress} className="border-2 border-ink p-6">
+    <form onSubmit={submitExpress} className="rounded-xl border-2 border-ink p-6">
       <p className="figcap">Three fields · about thirty seconds</p>
       <h2 className="mt-3 text-[24px] leading-tight">Join the first round</h2>
 
@@ -210,7 +210,7 @@ export default function JoinForm() {
       {error && <p className="mt-4 text-[14px] leading-snug text-vermillion">{error}</p>}
 
       <button type="submit" disabled={busy}
-        className="tabular mt-6 w-full border-2 border-emerald bg-emerald px-5 py-3 text-[11px] uppercase tracking-[0.14em] text-plate disabled:opacity-50">
+        className="mt-6 w-full rounded-lg border-2 border-emerald bg-emerald px-5 py-3 text-[14px] font-semibold text-plate disabled:opacity-50">
         {busy ? "Saving…" : "Join the first round →"}
       </button>
       <p className="margin-note mt-3">

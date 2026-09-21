@@ -90,7 +90,7 @@ export default function Console() {
         <Band letter="—" title="Not signed in" gloss="The Index is the working engine behind jfindx.org. It needs a ministry email and a one-time sign-in link.">
           <Link
             href="/access"
-            className="tabular inline-block border-2 border-ink bg-ink px-5 py-3 text-[11px] uppercase tracking-[0.14em] text-paper no-underline"
+            className="inline-block rounded-lg bg-ink px-5 py-3 text-[14px] font-semibold text-paper no-underline hover:bg-ink/90"
           >
             Sign in →
           </Link>
@@ -115,10 +115,10 @@ export default function Console() {
             attach you, then reload this page.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
-            <Link href="/build/wireframes" className="tabular border border-ink px-4 py-2.5 text-[11px] uppercase tracking-[0.14em] text-ink no-underline">
+            <Link href="/build/wireframes" className="rounded-lg border border-rule-2 px-4 py-2.5 text-[14px] font-semibold text-ink no-underline hover:border-ink">
               What the console will do →
             </Link>
-            <Link href="/demo" className="tabular border border-rule px-4 py-2.5 text-[11px] uppercase tracking-[0.14em] text-ink-2 no-underline">
+            <Link href="/demo" className="rounded-lg border border-rule px-4 py-2.5 text-[14px] font-semibold text-ink-2 no-underline hover:border-ink hover:text-ink">
               The sandbox →
             </Link>
           </div>
@@ -213,7 +213,7 @@ function OrgConsole({ short, name }: { short: string; name: string }) {
             </Rows>
             <Link
               href={`/${short}/dashboard`}
-              className="tabular mt-4 inline-block border border-ink px-4 py-2.5 text-[11px] uppercase tracking-[0.14em] text-ink no-underline hover:bg-ink hover:text-paper"
+              className="mt-4 inline-block rounded-lg bg-ink px-4 py-2.5 text-[14px] font-semibold text-paper no-underline hover:bg-ink/90"
             >
               Open the full dashboard →
             </Link>
@@ -424,7 +424,7 @@ function CollabConsole() {
       <Band letter="C" title="The reading" gloss="The pooled picture — live space only, never the sandbox. Every figure carries its sample size, and no geography is named until it passes the gate." figure="live space">
         <Link
           href="/intelligence"
-          className="tabular inline-block border border-ink px-4 py-2.5 text-[11px] uppercase tracking-[0.14em] text-ink no-underline hover:bg-ink hover:text-paper"
+          className="inline-block rounded-lg bg-ink px-4 py-2.5 text-[14px] font-semibold text-paper no-underline hover:bg-ink/90"
         >
           Open Collab Intelligence →
         </Link>
@@ -488,7 +488,7 @@ function StatusToggle({
           key={o.value}
           onClick={() => o.value !== current && onChange(o.value)}
           title={o.value === current ? `Currently ${o.label.toLowerCase()}` : `Set to ${o.label.toLowerCase()}`}
-          className={`tabular border px-2 py-1 text-[9.5px] uppercase tracking-[0.1em] ${
+          className={`rounded-md border px-2.5 py-1 text-[12px] font-semibold ${
             o.value === current
               ? o.value === "active"
                 ? "border-emerald bg-emerald text-plate"
@@ -554,9 +554,9 @@ function AdminConsole() {
 
       <Band letter="A" title="Waiting on you" gloss="A worklist, not a dashboard. If nothing is on it, nobody is blocked on you." figure={`${pending.length} item${pending.length === 1 ? "" : "s"}`}>
         {wl?.access_requests.length ? (
-          <ul className="border-t border-ink">
+          <ul className="divide-y divide-rule rounded-xl border border-rule bg-plate px-4 shadow-sm sm:px-5">
             {wl.access_requests.map((a) => (
-              <li key={a.id} className="flex flex-wrap items-baseline justify-between gap-3 border-b border-rule py-3">
+              <li key={a.id} className="flex flex-wrap items-baseline justify-between gap-3 py-3.5">
                 <div className="min-w-0">
                   <p className="text-[15.5px]">
                     <span className="mr-2 text-vermillion">▲</span>
@@ -565,10 +565,10 @@ function AdminConsole() {
                   {a.reason && <p className="margin-note mt-0.5">{a.reason}</p>}
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => decide(a.id, "approved")} className="tabular border-2 border-emerald bg-emerald px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] text-plate">
+                  <button onClick={() => decide(a.id, "approved")} className="rounded-lg bg-emerald px-3.5 py-1.5 text-[13px] font-semibold text-plate hover:bg-emerald-deep">
                     Approve
                   </button>
-                  <button onClick={() => decide(a.id, "declined")} className="tabular border border-rule px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] text-ink-2">
+                  <button onClick={() => decide(a.id, "declined")} className="rounded-lg border border-rule-2 px-3.5 py-1.5 text-[13px] font-semibold text-ink-2 hover:border-ink hover:text-ink">
                     Decline
                   </button>
                 </div>
@@ -604,25 +604,25 @@ function AdminConsole() {
       <Band letter="C" title="The reading" gloss="The only console that sees both data spaces at once, side by side, always labelled. This is where a claim could escape unlabelled, so this is where the guard rails are loudest." figure="both spaces">
         {wl && (
           <>
-            <table className="w-full text-left">
+            <table className="w-full rounded-xl border border-rule bg-plate text-left shadow-sm">
               <thead>
                 <tr className="figcap">
-                  <th className="border-b border-ink pb-2 font-normal">Space</th>
-                  <th className="border-b border-ink pb-2 text-right font-normal">Orgs</th>
-                  <th className="border-b border-ink pb-2 text-right font-normal">Sessions</th>
-                  <th className="border-b border-ink pb-2 text-right font-normal">Responses</th>
+                  <th className="border-b border-rule px-4 pb-2 pt-4 font-normal">Space</th>
+                  <th className="border-b border-rule pb-2 pt-4 text-right font-normal">Orgs</th>
+                  <th className="border-b border-rule pb-2 pt-4 text-right font-normal">Sessions</th>
+                  <th className="border-b border-rule px-4 pb-2 pt-4 text-right font-normal">Responses</th>
                 </tr>
               </thead>
               <tbody>
-                {(["live", "demo"] as const).map((k) => (
-                  <tr key={k} className="border-b border-rule">
-                    <th scope="row" className="py-2.5 text-left text-[15px] font-normal">
+                {(["live", "demo"] as const).map((k, i) => (
+                  <tr key={k} className={i === 0 ? "border-b border-rule" : ""}>
+                    <th scope="row" className="px-4 py-2.5 text-left text-[15px] font-normal">
                       {k === "live" ? "Live" : "Sandbox"}
                       <span className="ml-2 italic text-muted">{k === "live" ? "published" : "never published"}</span>
                     </th>
                     <td className="tabular py-2.5 text-right text-[15px]">{wl.spaces[k].orgs.toLocaleString()}</td>
                     <td className="tabular py-2.5 text-right text-[15px]">{wl.spaces[k].sessions.toLocaleString()}</td>
-                    <td className="tabular py-2.5 text-right text-[15px]">{wl.spaces[k].responses.toLocaleString()}</td>
+                    <td className="tabular px-4 py-2.5 text-right text-[15px]">{wl.spaces[k].responses.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -649,7 +649,7 @@ function AdminConsole() {
                       <StatusToggle current={o.status} onChange={(s) => setStatus(o.short_name, s)} />
                       <button
                         onClick={() => setSelectedOrg(selectedOrg === o.short_name ? null : o.short_name)}
-                        className={`tabular border px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] ${
+                        className={`rounded-md border px-2.5 py-1 text-[12.5px] font-semibold ${
                           selectedOrg === o.short_name
                             ? "border-ink bg-ink text-paper"
                             : "border-rule-2 text-ink-2 hover:border-ink hover:text-ink"
@@ -657,7 +657,7 @@ function AdminConsole() {
                       >
                         Links &amp; access
                       </button>
-                      <Link href={`/${o.short_name}/dashboard`} className="tabular border border-rule-2 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-ink-2 no-underline hover:border-ink hover:text-ink">
+                      <Link href={`/${o.short_name}/dashboard`} className="rounded-md border border-rule-2 px-2.5 py-1 text-[12.5px] font-semibold text-ink-2 no-underline hover:border-ink hover:text-ink">
                         Open
                       </Link>
                     </span>
@@ -791,52 +791,56 @@ function OrgDetailPanel({ shortName }: { shortName: string }) {
   const activeLinkCount = (fixed ? 2 : 0) + rooms.filter((r) => r.status === "active").length;
 
   return (
-    <div className="mt-5 border-2 border-ink p-5">
+    <div className="mt-5 rounded-2xl border border-rule bg-plate p-5 shadow-sm sm:p-6">
       {err && <Trouble message={err} />}
       {!detail && !err && <p className="text-[14px] text-ink-2">Loading…</p>}
 
       {detail && (
         <>
-          <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-rule pb-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-rule pb-4">
             <div>
-              <p className="text-[16px] font-semibold text-ink">
+              <p className="text-[18px] font-bold text-ink">
                 {detail.org.name}
-                {detail.org.verified && <span className="ml-2 text-emerald">✓ verified</span>}
+                {detail.org.verified && (
+                  <span className="ml-2 rounded-full bg-emerald/10 px-2.5 py-0.5 align-middle text-[11px] font-semibold text-emerald-deep">
+                    Verified
+                  </span>
+                )}
               </p>
-              <p className="margin-note mt-0.5">{detail.org.website_domain ?? "no domain on file"}</p>
+              <p className="mt-0.5 text-[13px] text-muted">{detail.org.website_domain ?? "no domain on file"}</p>
             </div>
           </div>
 
-          <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            <div className="border border-rule bg-plate px-4 py-3">
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-rule bg-paper-deep px-4 py-3.5">
               <p className="figcap">Links activated</p>
-              <p className="tabular mt-1 text-[22px] font-semibold text-ink">{linkCount}</p>
-              <p className="mt-0.5 text-[12px] text-ink-2">{activeLinkCount} active right now</p>
+              <p className="tabular mt-1.5 text-[26px] font-bold text-ink">{linkCount}</p>
+              <p className="mt-0.5 text-[12px] text-muted">{activeLinkCount} active right now</p>
             </div>
-            <div className="border border-rule bg-plate px-4 py-3">
+            <div className="rounded-xl border border-rule bg-paper-deep px-4 py-3.5">
               <p className="figcap">Countries reached</p>
-              <p className="tabular mt-1 text-[22px] font-semibold text-ink">{detail.countries_count}</p>
-              <p className="mt-0.5 truncate text-[12px] text-ink-2" title={detail.countries.join(", ")}>
+              <p className="tabular mt-1.5 text-[26px] font-bold text-ink">{detail.countries_count}</p>
+              <p className="mt-0.5 truncate text-[12px] text-muted" title={detail.countries.join(", ")}>
                 {detail.countries.length ? detail.countries.join(", ") : "no responses yet"}
               </p>
             </div>
-            <div className="border border-rule bg-plate px-4 py-3">
+            <div className="rounded-xl border border-rule bg-paper-deep px-4 py-3.5">
               <p className="figcap">Total responses</p>
-              <p className="tabular mt-1 text-[22px] font-semibold text-emerald">{detail.responses.toLocaleString()}</p>
-              <p className="mt-0.5 text-[12px] text-ink-2">of those who completed the Index</p>
+              <p className="tabular mt-1.5 text-[26px] font-bold text-emerald">{detail.responses.toLocaleString()}</p>
+              <p className="mt-0.5 text-[12px] text-muted">of those who completed the Index</p>
             </div>
           </div>
 
-          <div className="mt-5 grid gap-6 md:grid-cols-2">
+          <div className="mt-6 grid gap-6 md:grid-cols-2">
             <div>
-              <p className="figcap">Admin access</p>
+              <p className="figcap mb-2">Admin access</p>
               {detail.members.length ? (
                 <Rows>
                   {detail.members.map((m) => (
                     <Row key={m.email} label={m.name} meta={`${m.role} · ${m.status}`}>
                       <button
                         onClick={() => resendLink(m.email)}
-                        className="tabular border border-rule-2 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-ink-2 hover:border-ink hover:text-ink"
+                        className="rounded-lg border border-rule-2 px-3 py-1.5 text-[13px] font-semibold text-ink-2 hover:border-ink hover:text-ink"
                       >
                         {sent === m.email ? "Link sent" : "Resend link"}
                       </button>
@@ -844,7 +848,7 @@ function OrgDetailPanel({ shortName }: { shortName: string }) {
                   ))}
                 </Rows>
               ) : (
-                <p className="mt-2 text-[14px] leading-relaxed text-ink-2">
+                <p className="rounded-xl border border-rule bg-paper-deep p-4 text-[14px] leading-relaxed text-ink-2">
                   Nobody has signed in yet. Anyone with a{" "}
                   <span className="tabular">@{detail.org.website_domain ?? "…"}</span> email can claim
                   access from their own dashboard sign-in screen — there is no invite to send from here.
@@ -857,26 +861,29 @@ function OrgDetailPanel({ shortName }: { shortName: string }) {
             </div>
 
             <div>
-              <p className="figcap">Survey links</p>
-              <ul className="border-t border-ink">
-                {fixed && (
-                  <>
-                    <LinkRow url={fixed.community.url} label={fixed.community.label} note={fixed.community.note} />
-                    <LinkRow url={fixed.public.url} label={fixed.public.label} note={fixed.public.note} />
-                  </>
-                )}
-                {rooms.map((r) => (
-                  <LinkRow
-                    key={r.id}
-                    url={`https://jfindx.org/${shortName}/l/${r.slug}`}
-                    label={`${r.name} · ${r.status}`}
-                    note={`n = ${r.n.toLocaleString()} · ${r.places.length ? r.places.join(" · ") : "no responses yet"}${
-                      r.places_total > r.places.length ? ` +${r.places_total - r.places.length} more` : ""
-                    }`}
-                  />
-                ))}
-                {!fixed && !rooms.length && <p className="py-3 text-[14px] text-ink-2">No links yet.</p>}
-              </ul>
+              <p className="figcap mb-2">Survey links</p>
+              {fixed || rooms.length ? (
+                <Rows>
+                  {fixed && (
+                    <>
+                      <LinkRow url={fixed.community.url} label={fixed.community.label} note={fixed.community.note} />
+                      <LinkRow url={fixed.public.url} label={fixed.public.label} note={fixed.public.note} />
+                    </>
+                  )}
+                  {rooms.map((r) => (
+                    <LinkRow
+                      key={r.id}
+                      url={`https://jfindx.org/${shortName}/l/${r.slug}`}
+                      label={`${r.name} · ${r.status}`}
+                      note={`n = ${r.n.toLocaleString()} · ${r.places.length ? r.places.join(" · ") : "no responses yet"}${
+                        r.places_total > r.places.length ? ` +${r.places_total - r.places.length} more` : ""
+                      }`}
+                    />
+                  ))}
+                </Rows>
+              ) : (
+                <p className="rounded-xl border border-rule bg-paper-deep p-4 text-[14px] text-ink-2">No links yet.</p>
+              )}
             </div>
           </div>
         </>
@@ -916,10 +923,10 @@ function Shell({
     <>
       <Masthead edition={`The Index${tier ? ` · ${tier}` : ""} · working engine · not public`} />
       <main className="mx-auto max-w-5xl px-5 py-10">
-        <div className="border-b border-ink pb-4">
+        <div className="border-b border-rule pb-5">
           <p className="figcap">The engine</p>
-          <h1 className="mt-2 text-[34px] leading-tight">
-            The <span className="italic">Index</span>
+          <h1 className="mt-2 text-[32px] font-bold leading-tight text-ink">
+            The Index
             {tier && <span className="text-ink-2"> · {tier}</span>}
           </h1>
           <p className="mt-2 max-w-measure text-[15px] leading-relaxed text-ink-2">
@@ -933,9 +940,9 @@ function Shell({
                 <button
                   key={key(h)}
                   onClick={() => onScope(h)}
-                  className={`tabular px-3.5 py-2 text-[10px] uppercase tracking-[0.14em] ${
+                  className={`rounded-lg px-3.5 py-2 text-[13.5px] font-semibold ${
                     scope && key(scope) === key(h)
-                      ? "border-2 border-ink bg-ink text-paper"
+                      ? "bg-ink text-paper"
                       : "border border-rule-2 text-ink-2 hover:border-ink hover:text-ink"
                   }`}
                 >
@@ -947,7 +954,7 @@ function Shell({
 
           <Link
             href="/build/wireframes"
-            className="tabular mt-4 inline-block border border-rule-2 px-3.5 py-2 text-[10px] uppercase tracking-[0.14em] text-ink-2 no-underline hover:border-ink hover:text-ink"
+            className="mt-4 inline-block rounded-lg border border-rule-2 px-3.5 py-2 text-[13.5px] font-semibold text-ink-2 no-underline hover:border-ink hover:text-ink"
           >
             The console spec — all four tiers →
           </Link>
