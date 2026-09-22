@@ -20,12 +20,16 @@ export function Masthead({ edition }: { edition?: string }) {
           <span className="text-[18px] font-bold tracking-tight text-ink">JFINDX</span>
         </Link>
         <nav className="flex flex-wrap items-center gap-x-6 gap-y-1.5">
-          <NavLink href="/learn">What is the Index</NavLink>
-          <NavLink href="/tour">How it works</NavLink>
+          <NavLink href="/learn">What is the JFINDX?</NavLink>
+          <NavLink href="/tour">How does it work?</NavLink>
+          <NavLink href="/history">How did we get here?</NavLink>
           <NavLink href="/intelligence">A Global Picture</NavLink>
-          <NavLink href="/organisation">Your Organisation</NavLink>
-          <NavLink href="/history">How did we get here</NavLink>
-          <NavLink href="/access">Sign in</NavLink>
+          <Link
+            href="/access"
+            className="rounded-lg bg-violet px-4 py-2 text-[14px] font-semibold text-plate no-underline hover:opacity-90"
+          >
+            Sign in to Your Organisation
+          </Link>
           <Link
             href="/join"
             className="rounded-lg bg-emerald px-4 py-2 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
@@ -42,6 +46,25 @@ export function Masthead({ edition }: { edition?: string }) {
         </div>
       )}
     </header>
+  );
+}
+
+/**
+ * The colophon — CLAUDE.md's design system lists one among the things
+ * Brand Proof № 3 "still keeps" from the almanac, but nothing had actually
+ * built it yet. Deliberately spare: a hairline rule, the mark, and one line
+ * — not a sitemap. Exported so any page can carry it, not just the homepage.
+ */
+export function Footer() {
+  return (
+    <footer className="border-t border-rule">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2.5 px-5 py-6 sm:px-8">
+        <RisingMark className="h-5 w-5 shrink-0" />
+        <p className="text-[13px] text-ink-2">
+          Built by the Next Gen Global Collab. To see everyone in the next gen follow Jesus.
+        </p>
+      </div>
+    </footer>
   );
 }
 

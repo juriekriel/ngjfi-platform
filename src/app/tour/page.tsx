@@ -10,7 +10,7 @@ export const metadata = {
 export default function TourPage() {
   return (
     <>
-      <Masthead edition="§ Walkthrough · rendered by the live product · sample figures" />
+      <Masthead />
       <main className="mx-auto max-w-5xl px-5">
         <Walkthrough />
       </main>

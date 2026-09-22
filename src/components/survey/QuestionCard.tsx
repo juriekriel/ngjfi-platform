@@ -56,19 +56,31 @@ export function Question({
       {!item.help && <div className="mb-3" />}
 
       {item.type === "likert_5" && (
-        <div className="flex gap-2">
+        // Five full-width rows, not five cramped columns — the previous
+        // layout squeezed each label into an 8px sliver of a fifth of the
+        // screen width, unreadable on exactly the cheap phones this survey
+        // has to work on. A number badge plus the full label, one per row,
+        // matches how yes_no/single_select already read below.
+        <div className="flex flex-col gap-2">
           {[1, 2, 3, 4, 5].map((n) => (
             <button
               key={n}
               disabled={busy}
               onClick={() => onChoose(n)}
-              className="flex-1 rounded-xl border-2 py-3 text-center"
+              className="flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition"
               style={style(n)}
             >
-              <span className="block text-lg font-bold">{n}</span>
-              <span className="mt-1 block text-[8px] uppercase leading-tight text-muted">
-                {LIKERT[n - 1]}
+              <span
+                className="flex h-7 w-7 flex-none items-center justify-center rounded-full border-2 text-[13px] font-bold"
+                style={
+                  isSel(n)
+                    ? { borderColor: brand, background: brand, color: "#ffffff" }
+                    : { borderColor: "#c7cbd4" }
+                }
+              >
+                {n}
               </span>
+              <span>{LIKERT[n - 1]}</span>
             </button>
           ))}
         </div>

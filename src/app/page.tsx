@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Masthead, RisingRule } from "@/components/site/Chrome";
+import { Footer, Masthead, RisingRule } from "@/components/site/Chrome";
 import LiveSnapshot from "@/components/site/LiveSnapshot";
 import { J12Grid } from "@/components/index/Figures";
 
@@ -65,7 +65,8 @@ export default function Home() {
           <aside className="md:pt-4">
             <J12Grid className="mx-auto max-w-[280px]" />
             <p className="margin-note mt-5 border-l-2 border-emerald pl-3">
-              Twelve questions. Three about the person, four about how deep it has gone.{" "}
+              Three questions, four tiers — one shared model, adapting to where each person already
+              is.{" "}
               <Link href="/learn" className="text-emerald no-underline hover:underline">
                 What is the Index →
               </Link>
@@ -103,6 +104,8 @@ export default function Home() {
           </div>
         </section>
       </main>
+
+      <Footer />
     </>
   );
 }
