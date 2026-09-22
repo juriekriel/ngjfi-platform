@@ -17,6 +17,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import ScoreMatrix from "@/components/index/ScoreMatrix";
 import WorldHeatMap, { type MapCountry } from "@/components/index/WorldHeatMap";
+import MapTierToggle from "@/components/index/MapTierToggle";
 import { TIERS, TIER_LABEL } from "@/lib/model";
 
 type Dash = {
@@ -61,19 +62,7 @@ export default function ExportPage() {
             <input type="checkbox" checked={overlay} onChange={(e) => setOverlay(e.target.checked)} />
             With Collab overlay
           </label>
-          <div className="flex gap-1">
-            {TIERS.map((tk) => (
-              <button
-                key={tk}
-                onClick={() => setTier(tk)}
-                className={`rounded-md border px-2.5 py-1 text-[13px] font-semibold ${
-                  tier === tk ? "border-ink bg-ink text-paper" : "border-rule text-slate"
-                }`}
-              >
-                {TIER_LABEL[tk]}
-              </button>
-            ))}
-          </div>
+          <MapTierToggle tier={tier} onChange={setTier} />
           <button
             type="button"
             onClick={() => window.print()}

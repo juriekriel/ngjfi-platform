@@ -6,6 +6,7 @@ import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { instrument, t } from "@/lib/instrument";
 import ScoreMatrix from "@/components/index/ScoreMatrix";
 import WorldHeatMap from "@/components/index/WorldHeatMap";
+import MapTierToggle from "@/components/index/MapTierToggle";
 import { GREEN, NAVY, VIOLET, VERMILLION } from "@/lib/model";
 
 type Intel = {
@@ -341,14 +342,7 @@ export default function IntelligenceView({
                       </button>
                     ))}
                   </div>
-                  <div className="flex flex-wrap gap-1">
-                    {TIERS.map((tk) => (
-                      <button key={tk} onClick={() => setTier(tk)}
-                        className={`rounded-md border px-3 py-1.5 text-[13px] font-semibold ${tier === tk ? "border-ink bg-ink text-paper" : "border-rule text-slate"}`}>
-                        {TIER_LABEL[tk]}
-                      </button>
-                    ))}
-                  </div>
+                  <MapTierToggle tier={tier} onChange={setTier} className="rounded-md px-3 py-1.5 text-[13px]" />
                 </div>
               </div>
               {mapView === "countries" ? (

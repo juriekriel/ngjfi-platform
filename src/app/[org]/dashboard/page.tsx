@@ -6,6 +6,7 @@ import { instrument, t } from "@/lib/instrument";
 import { DashboardTabs, ViewToggle } from "@/components/index/DashboardTabs";
 import ScoreMatrix from "@/components/index/ScoreMatrix";
 import WorldHeatMap, { type MapCountry } from "@/components/index/WorldHeatMap";
+import MapTierToggle from "@/components/index/MapTierToggle";
 import LinksPanel from "@/components/index/LinksPanel";
 import ConsultingQuestion from "@/components/index/ConsultingQuestion";
 import { exportItemsCsv } from "@/lib/exportCsv";
@@ -412,19 +413,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             <ViewToggle view={view} onChange={setView} />
             {view === "heatmap" && (
-              <div className="flex flex-wrap gap-1">
-                {TIERS.map((tk) => (
-                  <button
-                    key={tk}
-                    onClick={() => setMapTier(tk)}
-                    className={`rounded-full border px-3 py-1 text-[13px] font-semibold ${
-                      mapTier === tk ? "border-ink bg-ink text-paper" : "border-rule text-slate"
-                    }`}
-                  >
-                    {TIER_LABEL[tk]}
-                  </button>
-                ))}
-              </div>
+              <MapTierToggle tier={mapTier} onChange={setMapTier} className="rounded-full px-3 py-1 text-[13px]" />
             )}
           </div>
 
