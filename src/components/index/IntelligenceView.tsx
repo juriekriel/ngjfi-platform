@@ -107,7 +107,7 @@ export default function IntelligenceView({
       {!d && !err && <p className="mt-6 text-sm text-slate">Loading…</p>}
 
       {d?.published === false && (
-        <div className="mt-8 border-2 border-ink p-6">
+        <div className="mt-8 rounded-xl border-2 border-ink p-6">
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
             Nothing published yet
           </p>
@@ -134,10 +134,10 @@ export default function IntelligenceView({
             )}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <a href="/demo" className="font-mono border border-ink px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-ink no-underline">
+            <a href="/demo" className="rounded-lg border border-ink px-4 py-2 text-[14px] font-semibold text-ink no-underline">
               See the sandbox instead →
             </a>
-            <a href="/join" className="font-mono border-2 border-accent bg-accent px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-plate no-underline">
+            <a href="/join" className="rounded-lg border-2 border-accent bg-accent px-4 py-2 text-[14px] font-semibold text-plate no-underline">
               Join the Index →
             </a>
           </div>
@@ -324,7 +324,7 @@ export default function IntelligenceView({
                   <div className="flex gap-1 rounded border border-rule p-0.5">
                     {(["countries", "regions"] as const).map((v) => (
                       <button key={v} onClick={() => setMapView(v)}
-                        className={`rounded px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider ${mapView === v ? "bg-ink text-paper" : "text-slate"}`}>
+                        className={`rounded-md px-2.5 py-1 text-[13px] font-semibold ${mapView === v ? "bg-ink text-paper" : "text-slate"}`}>
                         {v === "countries" ? "Countries" : "Regions"}
                       </button>
                     ))}
@@ -332,7 +332,7 @@ export default function IntelligenceView({
                   <div className="flex flex-wrap gap-1">
                     {TIERS.map((tk) => (
                       <button key={tk} onClick={() => setTier(tk)}
-                        className={`rounded border px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider ${tier === tk ? "border-ink bg-ink text-paper" : "border-rule text-slate"}`}>
+                        className={`rounded-md border px-3 py-1.5 text-[13px] font-semibold ${tier === tk ? "border-ink bg-ink text-paper" : "border-rule text-slate"}`}>
                         {TIER_LABEL[tk]}
                       </button>
                     ))}

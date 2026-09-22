@@ -327,7 +327,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                   <button
                     key={tk}
                     onClick={() => setMapTier(tk)}
-                    className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-wider ${
+                    className={`rounded-full border px-3 py-1 text-[13px] font-semibold ${
                       mapTier === tk ? "border-ink bg-ink text-paper" : "border-rule text-slate"
                     }`}
                   >
@@ -366,7 +366,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
           <button
             type="button"
             onClick={() => setShowDetail((v) => !v)}
-            className="mt-4 font-mono text-[9px] uppercase tracking-wider text-accent"
+            className="mt-4 text-[13px] font-semibold text-accent"
           >
             {showDetail ? "Hide more detail ▲" : "Show more detail ▾"}
           </button>

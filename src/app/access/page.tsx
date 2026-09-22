@@ -41,7 +41,7 @@ export default function AccessPage() {
 
             <div className="mt-9 border-t-2 border-ink pt-4">
               <p className="figcap">What is behind the door</p>
-              <ul className="mt-3 space-y-2.5">
+              <ul className="mt-3 divide-y divide-rule rounded-xl border border-rule bg-plate px-4 shadow-sm sm:px-5">
                 {[
                   ["Now", "Current phase, what is in flight, who holds what."],
                   ["Roadmap", "Phases with owners, real dates and status. The internal truth."],
@@ -50,7 +50,7 @@ export default function AccessPage() {
                   ["Coverage", "Real waitlist counts, cluster assembly, who is ready to invite."],
                   ["Building", "Repo, CI, deploy previews, database, the runbook."],
                 ].map(([h, p]) => (
-                  <li key={h} className="grid grid-cols-[7.5rem_1fr] gap-3 border-b border-rule pb-2.5">
+                  <li key={h} className="grid grid-cols-[7.5rem_1fr] items-baseline gap-3 py-3">
                     <span className="tabular text-[10px] uppercase tracking-[0.14em] text-muted">{h}</span>
                     <span className="text-[15px] leading-snug text-ink-2">{p}</span>
                   </li>

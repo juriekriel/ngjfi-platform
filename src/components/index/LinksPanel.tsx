@@ -66,7 +66,7 @@ export default function LinksPanel({ sb, orgSlug }: { sb: SupabaseClient; orgSlu
         </div>
         <button
           onClick={() => setEditing("new")}
-          className="rounded-full border border-accent px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-accent"
+          className="rounded-lg bg-emerald px-3.5 py-1.5 text-[13px] font-semibold text-plate hover:bg-emerald-deep"
         >
           + New link
         </button>
@@ -91,7 +91,7 @@ export default function LinksPanel({ sb, orgSlug }: { sb: SupabaseClient; orgSlu
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-sm font-semibold text-ink">{l.name}</span>
-                <span className={`rounded-full px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider ${STATUS_STYLE[l.status]}`}>
+                <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${STATUS_STYLE[l.status]}`}>
                   {STATUS_LABEL[l.status]}
                 </span>
               </div>

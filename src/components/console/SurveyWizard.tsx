@@ -101,7 +101,7 @@ export default function SurveyWizard({
   const chosen = orgs?.find((o) => o.short_name === org);
 
   return (
-    <div className="border-2 border-ink bg-plate p-5 sm:p-6">
+    <div className="rounded-2xl border-2 border-ink bg-plate p-5 shadow-sm sm:p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-rule pb-3">
         <h3 className="text-[21px] leading-tight">Set up a survey</h3>
         <p className="figcap">
@@ -148,7 +148,7 @@ export default function SurveyWizard({
                       setOrg(o.short_name);
                       setStep(1);
                     }}
-                    className="tabular border border-ink px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-ink hover:bg-ink hover:text-paper"
+                    className="rounded-md border border-ink px-2.5 py-1 text-[13px] font-semibold text-ink hover:bg-ink hover:text-paper"
                   >
                     Choose
                   </button>
@@ -186,7 +186,7 @@ export default function SurveyWizard({
               <button
                 key={o.k}
                 onClick={() => setItemSet(o.k)}
-                className={`border-2 p-4 text-left ${
+                className={`rounded-xl border-2 p-4 text-left ${
                   itemSet === o.k ? "border-ink bg-paper-deep" : "border-rule hover:border-ink"
                 }`}
               >
@@ -247,7 +247,7 @@ export default function SurveyWizard({
               >
                 <button
                   onClick={() => toggleAudience(a.k)}
-                  className={`tabular border px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] ${
+                  className={`rounded-md border px-2.5 py-1 text-[13px] font-semibold ${
                     audiences.has(a.k)
                       ? "border-emerald bg-emerald text-plate"
                       : "border-rule-2 text-ink-2 hover:border-ink hover:text-ink"
@@ -265,7 +265,7 @@ export default function SurveyWizard({
                 <button
                   key={l}
                   onClick={() => setLocale(l)}
-                  className={`tabular border px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] ${
+                  className={`rounded-md border px-3 py-1.5 text-[13px] font-semibold ${
                     locale === l ? "border-ink bg-ink text-paper" : "border-rule-2 text-ink-2"
                   }`}
                 >
@@ -367,7 +367,7 @@ export default function SurveyWizard({
             )}
             <button
               onClick={onCancel}
-              className="tabular text-[10px] uppercase tracking-[0.14em] text-muted hover:text-ink"
+              className="text-[13px] font-semibold text-muted hover:text-ink"
             >
               Cancel
             </button>

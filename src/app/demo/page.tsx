@@ -42,7 +42,7 @@ export default function DemoHub() {
               covers the same ground in six beats.
             </p>
           </div>
-          <aside className="self-end border-2 border-ink p-5">
+          <aside className="self-end rounded-xl border-2 border-ink p-5 shadow-sm">
             <p className="tabular text-[10px] uppercase tracking-[0.16em] text-vermillion">
               Read this first
             </p>
@@ -73,13 +73,13 @@ export default function DemoHub() {
                   <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
                     <Link
                       href={`/${o.slug}`}
-                      className="tabular text-[10px] uppercase tracking-[0.14em] text-ink no-underline hover:underline"
+                      className="text-[13px] font-semibold text-ink no-underline hover:underline"
                     >
                       Take the survey →
                     </Link>
                     <Link
                       href={`/${o.slug}/dashboard`}
-                      className="tabular text-[10px] uppercase tracking-[0.14em] text-emerald no-underline hover:underline"
+                      className="text-[13px] font-semibold text-emerald no-underline hover:underline"
                     >
                       Open the dashboard →
                     </Link>
@@ -94,7 +94,7 @@ export default function DemoHub() {
                 </p>
                 <Link
                   href="/demo/intelligence"
-                  className="tabular mt-3 inline-block text-[10px] uppercase tracking-[0.14em] text-emerald no-underline hover:underline"
+                  className="mt-3 inline-block text-[13px] font-semibold text-emerald no-underline hover:underline"
                 >
                   Read the global view →
                 </Link>
