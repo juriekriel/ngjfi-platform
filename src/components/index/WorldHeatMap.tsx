@@ -1,5 +1,5 @@
 import { COUNTRY_CODE_BY_NAME, WORLD_CENTROIDS, WORLD_FEATURES, WORLD_VIEWBOX } from "@/data/worldGeo";
-import { fig, heat } from "@/lib/model";
+import { fig, tierHeat } from "@/lib/model";
 
 export type MapCountry = {
   /** Free-text country name, exactly as stored on organisations/sessions. */
@@ -15,7 +15,8 @@ export type MapCountry = {
  * The real global heat map — real Natural Earth geometry (src/data/worldGeo.ts,
  * ported from the locked demo), coloured by the same coral ramp as the J12
  * matrix (`heat()` in src/lib/model.ts), one shared component for the org
- * dashboard and Collab Intelligence.
+ * dashboard and Collab Intelligence. Fill and legend take the selected tier's
+ * own hue (tierHeat), matching MapTierToggle.
  *
  * A country is only ever coloured here if it is present in `countries` — the
  * server already enforces the country-level critical-mass gate
@@ -55,7 +56,7 @@ export default function WorldHeatMap({
             <path
               key={i}
               d={f.d}
-              fill={active && score != null ? heat(score) : "#e2e5ea"}
+              fill={active && score != null ? tierHeat(tier, score) : "#e2e5ea"}
               stroke="#ffffff"
               strokeWidth={f.c ? 0.9 : 0.6}
             />
@@ -97,7 +98,9 @@ export default function WorldHeatMap({
         <span>1</span>
         <span
           className="h-2.5 w-32 rounded-full"
-          style={{ background: `linear-gradient(90deg, ${heat(1.2)}, ${heat(2.2)}, ${heat(3.4)}, ${heat(4.7)})` }}
+          style={{
+            background: `linear-gradient(90deg, ${tierHeat(tier, 1.2)}, ${tierHeat(tier, 2.2)}, ${tierHeat(tier, 3.4)}, ${tierHeat(tier, 4.7)})`,
+          }}
         />
         <span>5</span>
         <span className="ml-2 inline-flex items-center gap-1.5">

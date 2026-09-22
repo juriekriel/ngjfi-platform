@@ -79,6 +79,21 @@
   --c-tier-response: 255 184 148; /* #FFB894 */
   --c-tier-formation: 255 148 100; /* #FF9464 */
   --c-tier-multiplication: 255 122 71; /* #FF7A47 */
+
+  /* Map-only tier hues. The world map (and ONLY the world map + its tier
+   * toggle and legend) gives each tier its own hue, so switching tiers is
+   * legible at a glance. Chosen by the Collab (Sept 2026) — these share hues
+   * with green / violet / blue / red used elsewhere; on the map they mean
+   * "which tier", never up/down or benchmark. See docs/PALETTE.md §6.
+   * --fg is the text colour for a filled button, chosen for WCAG AA. */
+  --c-map-exposure: 46 131 88;         /* #2E8358 — green  · white 4.7:1 */
+  --c-map-exposure-fg: 255 255 255;
+  --c-map-response: 144 32 253;        /* #9020FD — violet · white 5.5:1 */
+  --c-map-response-fg: 255 255 255;
+  --c-map-formation: 74 108 194;       /* #4A6CC2 — blue   · white 5.0:1 */
+  --c-map-formation-fg: 255 255 255;
+  --c-map-multiplication: 188 46 58;   /* #BC2E3A — red    · white 5.9:1 */
+  --c-map-multiplication-fg: 255 255 255;
 }
 
 body {

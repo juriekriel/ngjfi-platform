@@ -140,3 +140,30 @@ of how it looks.
 Edit the `:root` block in `src/app/globals.css`. Nothing else. If you find yourself
 writing a hex value in a component, the system has been broken — put it in `:root` and
 reference it.
+
+---
+
+## 6. Map-only tier hues (Sept 2026)
+
+The world map gives each tier its own hue, so switching tiers is readable at a
+glance. The tier toggle, the country fill and the 1–5 legend all use the same
+colour, which comes from `tierMapColour()` / `tierHeat()` in `src/lib/model.ts`.
+
+| Tier | Token | Hex | Button text |
+|---|---|---|---|
+| Exposure | `--c-map-exposure` | `#2E8358` green | white, 4.7:1 |
+| Response | `--c-map-response` | `#9020FD` violet | white, 5.5:1 |
+| Formation | `--c-map-formation` | `#4A6CC2` blue | white, 5.0:1 |
+| Multiplication | `--c-map-multiplication` | `#BC2E3A` red | white, 5.9:1 |
+
+**Scope is the map only.** The J12 matrix and heat grid keep the single-hue depth
+ramp (`--c-tier-*`) from §2, where depth-as-lightness is the point.
+
+**Known trade-off, accepted:** these hues overlap green ("up"), navy (benchmarks),
+violet (Follow) and vermillion ("down"). On the map they mean *which tier* and nothing
+else. Keep delta arrows and benchmark marks off the map view so the two readings never
+share a screen. The green was deepened from the supplied `#3A9866` to `#2E8358` so white
+button text passes AA.
+
+The Collab Intelligence **Regions** view still uses its three-bucket
+strong / emerging / early colouring, and is unchanged by this.

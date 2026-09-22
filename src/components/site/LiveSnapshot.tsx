@@ -18,7 +18,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import WorldHeatMap from "@/components/index/WorldHeatMap";
-import { TIERS, TIER_LABEL } from "@/lib/model";
+import MapTierToggle from "@/components/index/MapTierToggle";
 
 type Totals = { orgs: number; responses: number };
 type Intel = {
@@ -74,20 +74,7 @@ export default function LiveSnapshot() {
       <div className="mt-9">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule pb-2">
           <p className="figcap">A global view of Jesus-Following</p>
-          <div className="flex flex-wrap gap-1">
-            {TIERS.map((tk) => (
-              <button
-                key={tk}
-                type="button"
-                onClick={() => setTier(tk)}
-                className={`rounded-md border px-2.5 py-1 text-[12.5px] font-semibold ${
-                  tier === tk ? "border-ink bg-ink text-paper" : "border-rule text-ink-2 hover:border-ink"
-                }`}
-              >
-                {TIER_LABEL[tk]}
-              </button>
-            ))}
-          </div>
+          <MapTierToggle tier={tier} onChange={setTier} className="rounded-md px-2.5 py-1 text-[12.5px]" />
         </div>
         <div className="mt-5">
           <WorldHeatMap countries={intel?.countries ?? []} tier={tier} />

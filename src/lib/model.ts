@@ -113,6 +113,28 @@ export const heat = (v: number | null | undefined): string =>
     ? "transparent"
     : `rgb(var(--c-emerald) / ${Math.max(0.06, Math.min(0.92, v / 5.5))})`;
 
+/**
+ * Map-only tier hues (see the --c-map-* block in globals.css and
+ * docs/PALETTE.md §6). The world map, its tier toggle and its legend all read
+ * from here, so the button you press is the colour the countries fill with.
+ * Tiers are looked up by key, so an unknown tier falls back to coral rather
+ * than breaking — a new tier added in config still renders.
+ */
+const mapVar = (tier: string) => (TIERS as readonly string[]).includes(tier) ? `map-${tier}` : "emerald";
+
+/** Solid tier colour, e.g. for a selected button or a legend swatch. */
+export const tierMapColour = (tier: string): string => `rgb(var(--c-${mapVar(tier)}))`;
+
+/** Text colour that meets AA on a solid tierMapColour() fill. */
+export const tierMapInk = (tier: string): string =>
+  (TIERS as readonly string[]).includes(tier) ? `rgb(var(--c-map-${tier}-fg))` : INK;
+
+/** Same intensity curve as heat(), but in the tier's own hue. */
+export const tierHeat = (tier: string, v: number | null | undefined): string =>
+  v === null || v === undefined
+    ? "transparent"
+    : `rgb(var(--c-${mapVar(tier)}) / ${Math.max(0.06, Math.min(0.92, v / 5.5))})`;
+
 /** A figure, or an em dash. Never a zero standing in for "we don't know". */
 export const fig = (n: number | null | undefined): string =>
   n === null || n === undefined ? "—" : String(n);
