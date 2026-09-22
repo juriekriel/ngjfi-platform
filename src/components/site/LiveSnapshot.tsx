@@ -49,7 +49,7 @@ export default function LiveSnapshot() {
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <div>
           <p className="figcap">Live on the platform</p>
-          <h2 className="mt-2 text-[28px] leading-tight">Not a demo. This is who has joined.</h2>
+          <h2 className="mt-2 text-[28px] leading-tight">See who&apos;s part of it.</h2>
         </div>
         <Link href="/intelligence" className="text-[14px] font-semibold text-emerald no-underline hover:underline">
           See the full global picture →
@@ -73,7 +73,7 @@ export default function LiveSnapshot() {
 
       <div className="mt-9">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule pb-2">
-          <p className="figcap">The world, by {TIER_LABEL[tier]?.toLowerCase()}</p>
+          <p className="figcap">A global view of Jesus-Following</p>
           <div className="flex flex-wrap gap-1">
             {TIERS.map((tk) => (
               <button

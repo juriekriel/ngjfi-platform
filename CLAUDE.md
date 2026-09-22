@@ -73,7 +73,7 @@ When in doubt: ask "would this still work if we added a 45–65 cohort tomorrow?
 
 A working platform is already live — see **`NGJFI_Session_Context.md`** for the full handover.
 
-- **Live:** `ngjfi-platform.netlify.app` — respondent survey `/[org]`, org dashboard `/[org]/dashboard` (+ `/[org]/dashboard/export` for print/PDF), marketing site (`/`, `/learn`, `/tour`, `/history`, `/organization`, `/join`, `/access`), Collab Intelligence `/intelligence`
+- **Live:** `ngjfi-platform.netlify.app` — respondent survey `/[org]`, org dashboard `/[org]/dashboard` (+ `/[org]/dashboard/export` for print/PDF), marketing site (`/`, `/learn`, `/tour`, `/history`, `/organisation`, `/join`, `/access`), Collab Intelligence `/intelligence`
 - **Repo:** `github.com/juriekriel/ngjfi-platform` (public)
 - **Stack:** Next.js (App Router) + TypeScript + Tailwind · Supabase (Postgres + RLS + Auth) · Netlify
 - **Built:** multi-tenant schema + RLS, anonymous-write RPCs, tested scoring engine, versioned v4 instrument (EN/ES), magic-link auth with **ministry website-domain verification**, funnel / heat-grid / findings / world map / trends, CI with PR previews
