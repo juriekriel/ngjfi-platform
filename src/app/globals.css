@@ -69,6 +69,7 @@
   --c-green: 63 157 114; /* #3F9D72 — "up" only */
   --c-navy: 47 128 196; /* #2F80C4 — blue */
   --c-violet: 139 92 246; /* #8B5CF6 */
+  --c-violet-deep: 124 58 237; /* #7C3AED — for button gradients only */
   --c-vermillion: 200 40 59; /* #C8283B — "down" only, clear of coral's hue */
 
   /* The tier ramp. Hue is constant; LIGHTNESS alone encodes journey depth,

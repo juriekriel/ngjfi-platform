@@ -272,7 +272,7 @@ export default function Survey({
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-slate">
               {org?.welcome_message ??
-                `${orgName} is learning how to walk with young people as they follow Jesus. Your honest answers help. It takes about 6 minutes and is completely anonymous.`}
+                `${orgName} is learning how to walk with young people as they follow Jesus. Your honest answers help. It takes about 7 minutes and is completely anonymous.`}
             </p>
             <button
               onClick={begin}

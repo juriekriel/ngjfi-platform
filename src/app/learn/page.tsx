@@ -22,10 +22,9 @@ export default function LearnPage() {
               A shared instrument for measuring Jesus-following, given away for free.
             </h1>
             <p className="mt-6 max-w-measure text-[18px] leading-relaxed text-ink-2">
-              Twelve questions. About four minutes. Run under your own organisation&apos;s name,
-              telling you where your people actually are on the journey — and, because hundreds of
-              other organisations run the same twelve questions, how that compares to your country
-              and the world.
+              About seven minutes. Run under your own organisation&apos;s name, telling you where
+              your people actually are on the journey — and, because hundreds of other organisations
+              run the same shared instrument, how that compares to your country and the world.
             </p>
           </div>
           <aside className="self-end">

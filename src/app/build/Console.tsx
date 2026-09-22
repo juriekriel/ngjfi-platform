@@ -166,7 +166,7 @@ function OrgConsole({ short, name }: { short: string; name: string }) {
         <Worklist items={wl?.items ?? []} empty="Nothing pending. Your survey is set up and running." />
       </Band>
 
-      <Band letter="B" title="Surveys" gloss="Your survey, your brand, your links. About four minutes on a phone." figure={short}>
+      <Band letter="B" title="Surveys" gloss="Your survey, your brand, your links. About seven minutes on a phone." figure={short}>
         {wizard ? (
           <SurveyWizard
             fixedOrg={short}
