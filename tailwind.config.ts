@@ -42,6 +42,7 @@ const config: Config = {
         // One working colour (now coral) — chrome, marks, the tier ramp.
         emerald: c("emerald"),
         "emerald-deep": c("emerald-deep"),
+        "emerald-deeper": c("emerald-deeper"),
         accent: c("emerald"),
         "accent-soft": c("emerald-deep"),
         moss: c("emerald"),
@@ -57,6 +58,7 @@ const config: Config = {
         // A domain accent (Follow), never a semantic.
         violet: c("violet"),
         "violet-deep": c("violet-deep"),
+        "violet-deeper": c("violet-deeper"),
 
         // Semantic only: vermillion means "down". Never styling.
         vermillion: c("vermillion"),

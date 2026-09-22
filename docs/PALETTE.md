@@ -156,8 +156,12 @@ colour, which comes from `tierMapColour()` / `tierHeat()` in `src/lib/model.ts`.
 | Formation | `--c-map-formation` | `#4A6CC2` blue | white, 5.0:1 |
 | Multiplication | `--c-map-multiplication` | `#BC2E3A` red | white, 5.9:1 |
 
-**Scope is the map only.** The J12 matrix and heat grid keep the single-hue depth
-ramp (`--c-tier-*`) from §2, where depth-as-lightness is the point.
+**Scope: the map, and the model matrix.** The plain-language 3 × 4 (`<Matrix phrases />`
+on /learn, /tour, /history) also uses these hues (Sept 2026, Collab request), stepping
+light → dark across the tiers via `tierMatrixTint()`: Exposure 20% tint, Response 45%
+tint (ink text), Formation and Multiplication full hue (white text). All AA.
+The scored heat grid, the J12 mark and the other `TIER_TINT` surfaces keep the
+single-hue coral depth ramp (`--c-tier-*`) from §2.
 
 **Known trade-off, accepted:** these hues overlap green ("up"), navy (benchmarks),
 violet (Follow) and vermillion ("down"). On the map they mean *which tier* and nothing

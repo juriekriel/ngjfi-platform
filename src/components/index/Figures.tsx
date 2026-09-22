@@ -20,6 +20,7 @@ import {
   RULE,
   TIERS,
   TIER_TINT,
+  tierMatrixTint,
   TIER_GLOSS,
   TIER_LABEL,
   VERMILLION,
@@ -216,7 +217,7 @@ export function Matrix({
               </th>
               {TIERS.map((tk) => {
                 const v = matrix?.[dk]?.[tk] ?? null;
-                const tint = TIER_TINT[tk];
+                const tint = tierMatrixTint(tk);
                 return (
                   <td
                     key={tk}

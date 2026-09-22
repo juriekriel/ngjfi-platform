@@ -6,8 +6,9 @@ import { J12Grid } from "@/components/index/Figures";
 /**
  * jfindx.org — the front page.
  *
- * Kept deliberately short: the title, one paragraph, the J12, and three doors
- * out. Everything the old page explained at length — what you get out of it,
+ * Kept deliberately short: the title, one paragraph, the J12, and one door
+ * out (the masthead already carries Sign in and Join on every page, so the
+ * hero no longer repeats them). Everything the old page explained at length — what you get out of it,
  * what it measures, why crowdsourcing changes what's possible, the five ways
  * in — now lives on the page built for it (Your Organisation, How it works,
  * How did we get here, Join), reachable from the nav on every single screen.
@@ -46,18 +47,6 @@ export default function Home() {
                 className="rounded-lg border-2 border-emerald bg-emerald px-5 py-3 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
               >
                 See how it works →
-              </Link>
-              <Link
-                href="/join"
-                className="rounded-lg border border-ink px-5 py-3 text-[14px] font-semibold text-ink no-underline hover:bg-ink hover:text-paper"
-              >
-                Join the Index →
-              </Link>
-              <Link
-                href="/organisation"
-                className="rounded-lg border border-ink px-5 py-3 text-[14px] font-semibold text-ink no-underline hover:bg-ink hover:text-paper"
-              >
-                Your Organisation →
               </Link>
             </div>
           </div>
