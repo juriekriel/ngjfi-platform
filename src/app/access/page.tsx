@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Colophon, Masthead } from "@/components/site/Chrome";
+import { Masthead } from "@/components/site/Chrome";
 import AccessForm from "./AccessForm";
 
 export const metadata = {
@@ -15,7 +15,7 @@ export default function AccessPage() {
       <main className="mx-auto max-w-5xl px-5">
         <section className="grid gap-10 border-b border-ink py-10 md:grid-cols-[1.15fr_1fr] md:gap-14">
           <div>
-            <p className="figcap">Door 05 · for those building it</p>
+            <p className="figcap">For those building it</p>
             <h1 className="mt-3 text-[36px] leading-[1.05] tracking-tight sm:text-[44px]">
               The build room.
             </h1>
@@ -61,7 +61,7 @@ export default function AccessPage() {
             <p className="margin-note mt-7 border-l-2 border-rule pl-3">
               If you are here to run the Index rather than build it, you want{" "}
               <Link href="/join" className="underline decoration-rule underline-offset-2">
-                door 04
+                Join the Index
               </Link>{" "}
               instead — that is the one that opens.
             </p>
@@ -72,7 +72,6 @@ export default function AccessPage() {
           </div>
         </section>
       </main>
-      <Colophon />
     </>
   );
 }

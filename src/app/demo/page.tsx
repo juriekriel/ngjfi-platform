@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Colophon, Masthead } from "@/components/site/Chrome";
+import { Masthead } from "@/components/site/Chrome";
 import { Plate } from "@/components/index/Figures";
 
 export const metadata = {
@@ -128,7 +128,6 @@ export default function DemoHub() {
         </section>
       </main>
 
-      <Colophon />
     </>
   );
 }

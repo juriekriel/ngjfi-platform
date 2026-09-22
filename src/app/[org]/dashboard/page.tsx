@@ -7,6 +7,8 @@ import { DashboardTabs, ViewToggle } from "@/components/index/DashboardTabs";
 import ScoreMatrix from "@/components/index/ScoreMatrix";
 import WorldHeatMap, { type MapCountry } from "@/components/index/WorldHeatMap";
 import LinksPanel from "@/components/index/LinksPanel";
+import ConsultingQuestion from "@/components/index/ConsultingQuestion";
+import { exportItemsCsv } from "@/lib/exportCsv";
 
 type Item = { key: string; domain: string; tier: string; mean: number | null; n: number };
 /** Drivers/Journey are unscored (option-selection rates, not means) — reported
@@ -38,7 +40,12 @@ type Dash = {
   exploration_tiers?: Record<string, number | null>;
   exploration_domains?: Record<string, number | null>;
   exploration_matrix?: Record<string, Record<string, number | null>>;
+  /** Present on org_dashboard_season() responses; absent from plain org_dashboard(). */
+  season?: { start: string | null; end: string | null };
 };
+
+/** One entry from org_seasons() — drives the season-picker dropdown. */
+type Season = { label: string; start: string | null; end: string | null; n: number };
 
 type BenchmarkScope = { available: boolean; n: number; index: number | null; tiers?: Record<string, number | null> | null };
 type Benchmark = {
@@ -77,11 +84,11 @@ const INSIGHT_ITEMS = instrument.items
 const labelFor = (key: string) => ITEM_LABEL[key] ?? key;
 const fmt = (n: number | null | undefined) => (n === null || n === undefined ? "—" : String(n));
 const green = (v: number | null) =>
-  v === null || v === undefined ? "transparent" : `rgba(63,157,114,${Math.max(0.08, v / 100)})`;
+  v === null || v === undefined ? "transparent" : `rgba(63,157,114,${Math.max(0.08, v / 5.5)})`;
 // The Exploration Index's own colour — violet, never the Index's emerald/coral,
 // so the two figures never look like the same measure at a glance.
 const violet = (v: number | null) =>
-  v === null || v === undefined ? "transparent" : `rgba(139,92,246,${Math.max(0.08, v / 100)})`;
+  v === null || v === undefined ? "transparent" : `rgba(139,92,246,${Math.max(0.08, v / 5.5)})`;
 
 /** One pill in the compare-to row. Disabled (not hidden) below the gate, so
  * an org can see the comparison exists and roughly how far off it is. */
@@ -127,6 +134,14 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
   const [showDetail, setShowDetail] = useState(false);
   const [collabCountries, setCollabCountries] = useState<MapCountry[]>([]);
 
+  // The season picker (org_seasons()/org_dashboard_season(), migration 0030).
+  // seasons[0] is always "All time" (start/end both null) — see the RPC's own
+  // contract. seasonIdx indexes into it; -1 means "not chosen yet" (before
+  // org_seasons() has returned), which the UI treats the same as "All time".
+  const [seasons, setSeasons] = useState<Season[] | null>(null);
+  const [seasonIdx, setSeasonIdx] = useState(0);
+  const [exporting, setExporting] = useState<"all" | "season" | null>(null);
+
   const load = useCallback(async () => {
     if (!sb) return;
     const { data: s } = await sb.auth.getSession();
@@ -149,13 +164,32 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
     }
 
     setDemoPreview(false);
-    const { data, error } = await sb.rpc("org_dashboard", { p_org_slug: slug });
+    // org_dashboard_season() with both bounds null is behaviourally identical
+    // to org_dashboard() (see migration 0030) — using it here, always, means
+    // there's one code path for "All time" and every named season, instead of
+    // two dashboard RPCs to keep in sync.
+    const { data, error } = await sb.rpc("org_dashboard_season", {
+      p_org_slug: slug, p_season_start: null, p_season_end: null,
+    });
     if (error) { setNeedsClaim(true); } else { setDash(data as Dash); setNeedsClaim(false); }
     const { data: b } = await sb.rpc("org_benchmark", { p_org_slug: slug });
     if (b) setBench(b as Benchmark);
+    const { data: sea, error: seaErr } = await sb.rpc("org_seasons", { p_org_slug: slug });
+    if (!seaErr && sea) setSeasons(sea as Season[]);
+    setSeasonIdx(0);
   }, [sb, slug]);
 
   useEffect(() => { load(); }, [load]);
+
+  const changeSeason = useCallback(async (idx: number) => {
+    if (!sb || !seasons?.[idx]) return;
+    setSeasonIdx(idx);
+    const picked = seasons[idx];
+    const { data, error } = await sb.rpc("org_dashboard_season", {
+      p_org_slug: slug, p_season_start: picked.start, p_season_end: picked.end,
+    });
+    if (!error && data) setDash(data as Dash);
+  }, [sb, slug, seasons]);
 
   async function signIn() {
     if (!sb || !email) return;
@@ -246,12 +280,68 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
       )}
       {dash && !dash.suppressed && (
         <>
-          <div className="flex items-baseline justify-between">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-xl font-bold">{dash.org.name}</h2>
             <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
               {dash.n.toLocaleString()} responses {dash.org.verified ? "· verified" : ""}
             </span>
           </div>
+
+          {!demoPreview && seasons && seasons.length > 1 && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-wider text-muted">Season:</span>
+              <select
+                value={seasonIdx}
+                onChange={(e) => changeSeason(Number(e.target.value))}
+                className="rounded-lg border border-rule bg-paper px-2.5 py-1.5 text-[13px] font-semibold text-ink"
+              >
+                {seasons.map((se, i) => (
+                  <option key={se.label} value={i}>
+                    {se.label} ({se.n.toLocaleString()})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {!demoPreview && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-wider text-muted">Export:</span>
+              <button
+                type="button"
+                disabled={exporting !== null}
+                onClick={async () => {
+                  setExporting("all");
+                  const { data } = await sb.rpc("org_dashboard_season", {
+                    p_org_slug: slug, p_season_start: null, p_season_end: null,
+                  });
+                  if (data) exportItemsCsv(data as Dash, `${slug}-all-time`);
+                  setExporting(null);
+                }}
+                className="rounded-lg border border-rule px-3 py-1.5 text-[13px] font-semibold text-ink disabled:opacity-50"
+              >
+                All data (CSV)
+              </button>
+              {seasons && seasonIdx > 0 && (
+                <button
+                  type="button"
+                  disabled={exporting !== null}
+                  onClick={() => {
+                    exportItemsCsv(dash, `${slug}-${seasons[seasonIdx].label}`);
+                  }}
+                  className="rounded-lg border border-rule px-3 py-1.5 text-[13px] font-semibold text-ink disabled:opacity-50"
+                >
+                  This season (CSV)
+                </button>
+              )}
+              <a
+                href={`/${slug}/dashboard/export?tier=${mapTier}`}
+                className="rounded-lg border border-rule px-3 py-1.5 text-[13px] font-semibold text-ink no-underline"
+              >
+                Heat map + Matrix (PDF) →
+              </a>
+            </div>
+          )}
 
           {bench && (
             <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -299,11 +389,11 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                   <div key={tk} className="flex items-center gap-2 text-xs">
                     <span className="w-24 shrink-0 text-slate">{TIER_LABEL[tk]}</span>
                     <div className="relative h-2.5 flex-1 rounded bg-paper-deep">
-                      <div className="h-full rounded" style={{ width: `${dash.tiers?.[tk] ?? 0}%`, background: tk === "multiplication" ? "#ff7a47" : "#3f9d72" }} />
+                      <div className="h-full rounded" style={{ width: `${((dash.tiers?.[tk] ?? 0) / 5) * 100}%`, background: tk === "multiplication" ? "#ff7a47" : "#3f9d72" }} />
                       {baseline?.tiers?.[tk] != null && (
                         <div
                           className="absolute top-0 h-full w-[2px] bg-ink"
-                          style={{ left: `${baseline.tiers[tk]}%` }}
+                          style={{ left: `${((baseline.tiers[tk] ?? 0) / 5) * 100}%` }}
                           title={`${baselineLabel} average: ${baseline.tiers[tk]}`}
                         />
                       )}
@@ -381,7 +471,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                 {dash.trend.map((p) => (
                   <div key={p.year} className="flex flex-col items-center gap-1">
                     <div className="text-xs font-bold">{p.index}</div>
-                    <div className="w-10 rounded-t bg-moss" style={{ height: `${Math.max(6, (p.index / 100) * 90)}px` }} />
+                    <div className="w-10 rounded-t bg-moss" style={{ height: `${Math.max(6, (p.index / 5) * 90)}px` }} />
                     <div className="font-mono text-[10px] text-muted">{p.year}</div>
                   </div>
                 ))}
@@ -461,7 +551,10 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
 
           <p className="mt-6 font-mono text-[9px] uppercase tracking-wider text-muted">
             Aggregates only — never individual responses. Of those who completed the Index.
+            {seasons && seasonIdx > 0 && " The benchmark above compares to the Collab's all-time baseline, not this season alone."}
           </p>
+
+          {!demoPreview && <ConsultingQuestion sb={sb} orgSlug={slug} />}
         </>
       )}
 
@@ -506,7 +599,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                         <div className="h-2.5 flex-1 rounded bg-paper">
                           <div
                             className="h-full rounded bg-navy"
-                            style={{ width: `${dash.exploration_tiers?.[tk] ?? 0}%` }}
+                            style={{ width: `${((dash.exploration_tiers?.[tk] ?? 0) / 5) * 100}%` }}
                           />
                         </div>
                         <b className="w-7 text-right">{fmt(dash.exploration_tiers?.[tk])}</b>
@@ -529,7 +622,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                         <div className="mt-1 h-2 rounded bg-paper">
                           <div
                             className="h-full rounded bg-navy"
-                            style={{ width: `${dash.exploration_domains?.[dk] ?? 0}%` }}
+                            style={{ width: `${((dash.exploration_domains?.[dk] ?? 0) / 5) * 100}%` }}
                           />
                         </div>
                       </div>
@@ -550,7 +643,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                               <td
                                 key={tk}
                                 className="rounded py-2 font-semibold"
-                                style={{ background: violet(v), color: v !== null && v >= 55 ? "#fff" : "#22252b" }}
+                                style={{ background: violet(v), color: v !== null && v >= 3.2 ? "#fff" : "#22252b" }}
                               >
                                 {fmt(v)}
                               </td>

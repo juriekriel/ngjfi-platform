@@ -197,9 +197,9 @@ function BeatPhone() {
           nothing written to a database.
         </p>
         <p className="margin-note mt-5 border-l-2 border-rule pl-3">
-          Age is a band, never a birthdate. There is no location beyond a country. Consent — including
-          parental consent — is handled by the organisation, locally, before anyone reaches this
-          screen.
+          Respondents are anonymous — no name, no email, no location beyond a country, age as a band.
+          We report only on those who have completed the Index. Consent — including parental consent —
+          is handled by the organisation, locally, before anyone reaches this screen.
         </p>
       </div>
 
@@ -533,7 +533,7 @@ function BeatCollab() {
 function BeatNext() {
   const d = sampleDashboard();
   const weakest = TIERS.reduce((lo, tk) =>
-    (d.tiers[tk] ?? 100) < (d.tiers[lo] ?? 100) ? tk : lo,
+    (d.tiers[tk] ?? 6) < (d.tiers[lo] ?? 6) ? tk : lo,
   TIERS[0]);
 
   return (

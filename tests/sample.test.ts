@@ -96,15 +96,28 @@ test("the landing page renders live components and carries no fabricated scores"
   const home = src("../src/app/page.tsx");
   assert.match(home, /from "@\/components\/index\/Figures"/);
 
-  // Deliberate: the front page shows the MODEL, never sample results. A
-  // fabricated number is a poor thing to lead with even when it is labelled —
-  // it invites a visitor to read the demo as the product. Scores live behind
-  // door 03, where the context travels with them.
+  // Deliberate: the front page never pulls sample/fabricated results. Before
+  // the production-readiness round this meant "show the plain-language
+  // Matrix, not a scored one"; the round simplified the page down to the
+  // hero + J12 + a live snapshot (LiveSnapshot.tsx), which shows REAL counts
+  // and the REAL heat map via platform_totals()/collab_intelligence() rather
+  // than either sample data or a fabricated score — so the assertion now
+  // checks the homepage and the component it renders for real data don't
+  // import the sample generator, instead of requiring a specific figure.
   assert.ok(
     !/from "@\/lib\/sample"/.test(home),
     "the landing page must not pull sample results — send people to /demo for numbers",
   );
-  assert.match(home, /<Matrix phrases \/>/, "the model grid must be the plain-language variant");
+  const liveSnapshot = src("../src/components/site/LiveSnapshot.tsx");
+  assert.ok(
+    !/from "@\/lib\/sample"/.test(liveSnapshot),
+    "the homepage's live snapshot must read real data (platform_totals/collab_intelligence), never the sample generator",
+  );
+  assert.match(
+    liveSnapshot,
+    /rpc\("platform_totals"\)/,
+    "the live snapshot must call the real, ungated platform_totals() RPC",
+  );
 });
 
 test("the mark never sits beside the typed wordmark", () => {
@@ -123,13 +136,17 @@ test("the mark never sits beside the typed wordmark", () => {
   }
 });
 
-test("every public surface carries the never-overclaim label", () => {
-  const banner = src("../src/components/PrototypeBanner.tsx");
-  assert.match(banner, /sample data/i);
-  const layout = src("../src/app/layout.tsx");
-  assert.match(layout, /PrototypeBanner/, "the banner must be mounted in the root layout");
-  assert.match(layout, /index: false/, "the prototype must stay out of search results");
-});
+// <PrototypeBanner> and the noindex flag existed for one situation: every
+// figure on the platform being synthetic. The production-readiness round
+// that deleted the demo dataset and prepared the site for real orgs removed
+// them deliberately, on request — running real data behind a banner that
+// says "sample data, not yet real" would itself be an overclaim in the
+// other direction. The underlying non-negotiable (never report on more than
+// "those who have completed the Index," always show n) is still enforced
+// structurally in the score-display components themselves — see
+// IndexPlate's "n = … · among those who completed the Index" caption in
+// src/components/index/Figures.tsx — which is why it doesn't need a
+// site-wide banner to hold it up.
 
 test("waitlist contact data is kept separate from respondent data", () => {
   const sql = src("../supabase/migrations/0008_waitlist_and_access.sql");

@@ -57,7 +57,7 @@ function Bar({ value, colour = EMERALD }: { value: number | null; colour?: strin
     <div className="h-[9px] w-full border-b border-rule bg-paper-deep">
       <div
         className="h-full"
-        style={{ width: `${Math.max(0, Math.min(100, value ?? 0))}%`, background: colour }}
+        style={{ width: `${Math.max(0, Math.min(100, ((value ?? 0) / 5) * 100))}%`, background: colour }}
       />
     </div>
   );
@@ -240,7 +240,7 @@ export function Matrix({
 
 export function TrendPlate({ trend }: { trend: { year: number; index: number }[] }) {
   if (!trend?.length) return null;
-  const max = Math.max(...trend.map((p) => p.index), 100);
+  const max = Math.max(...trend.map((p) => p.index), 5);
   return (
     <div className="flex items-end gap-6 border-b border-ink pb-0 pt-2">
       {trend.map((p, idx) => {

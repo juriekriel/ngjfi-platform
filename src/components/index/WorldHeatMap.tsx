@@ -94,12 +94,12 @@ export default function WorldHeatMap({
       </svg>
 
       <div className="mt-3 flex flex-wrap items-center gap-3 font-mono text-[9px] uppercase tracking-wider text-muted">
-        <span>0</span>
+        <span>1</span>
         <span
           className="h-2.5 w-32 rounded-full"
-          style={{ background: `linear-gradient(90deg, ${heat(4)}, ${heat(30)}, ${heat(60)}, ${heat(92)})` }}
+          style={{ background: `linear-gradient(90deg, ${heat(1.2)}, ${heat(2.2)}, ${heat(3.4)}, ${heat(4.7)})` }}
         />
-        <span>100</span>
+        <span>5</span>
         <span className="ml-2 inline-flex items-center gap-1.5">
           <span className="h-3 w-3 rounded border border-rule" style={{ background: "#e2e5ea" }} />
           No data, or below n ≥ 2,000

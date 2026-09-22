@@ -101,11 +101,17 @@ export const VIOLET = token("violet");
 export const VERMILLION = token("vermillion");
 export const RULE = token("rule");
 
-/** Coral wash for heat cells — the brand colour, at intensity = score. */
+/**
+ * Coral wash for heat cells — the brand colour, at intensity = score.
+ * Scores are 1-5 (see supabase/migrations/0029_score_scale_1_to_5.sql);
+ * divide by 5.5 rather than 5 for the same slight headroom the old /110
+ * (rather than /100) divisor gave on the 0-100 scale, so a perfect 5 still
+ * reads as strong rather than maxed-out/oversaturated.
+ */
 export const heat = (v: number | null | undefined): string =>
   v === null || v === undefined
     ? "transparent"
-    : `rgb(var(--c-emerald) / ${Math.max(0.06, Math.min(0.92, v / 110))})`;
+    : `rgb(var(--c-emerald) / ${Math.max(0.06, Math.min(0.92, v / 5.5))})`;
 
 /** A figure, or an em dash. Never a zero standing in for "we don't know". */
 export const fig = (n: number | null | undefined): string =>

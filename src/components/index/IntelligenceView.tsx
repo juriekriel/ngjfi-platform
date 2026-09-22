@@ -58,13 +58,13 @@ const INSIGHT_ITEMS = instrument.items
   }));
 
 const level = (v: number | null | undefined) =>
-  v === null || v === undefined ? "#e6e8ec" : v >= 58 ? "#3f9d72" : v >= 42 ? "#e0993f" : "#d65349";
+  v === null || v === undefined ? "#e6e8ec" : v >= 3.3 ? "#3f9d72" : v >= 2.7 ? "#e0993f" : "#d65349";
 const fmt = (v: number | null | undefined) => (v === null || v === undefined ? "—" : String(v));
 // The Exploration Index's own colour. This design system aliases the "violet"
 // Tailwind token to --c-navy (tailwind.config.ts), so its heat cells read
 // that same variable directly rather than a separate hard-coded hex — same
 // pattern as greenCell() above, just never the Index's own emerald/coral.
-const navyCell = (v: number | null) => (v === null || v === undefined ? "transparent" : `rgb(var(--c-navy) / ${Math.max(0.08, v / 100)})`);
+const navyCell = (v: number | null) => (v === null || v === undefined ? "transparent" : `rgb(var(--c-navy) / ${Math.max(0.08, v / 5.5)})`);
 
 export default function IntelligenceView({
   space = "live",
@@ -164,7 +164,7 @@ export default function IntelligenceView({
                 {d.trend.map((p) => (
                   <div key={p.year} className="flex flex-col items-center gap-1">
                     <div className="text-sm font-bold">{p.index}</div>
-                    <div className="w-12 rounded-t bg-moss" style={{ height: `${Math.max(8, (p.index / 100) * 120)}px` }} />
+                    <div className="w-12 rounded-t bg-moss" style={{ height: `${Math.max(8, (p.index / 5) * 120)}px` }} />
                     <div className="font-mono text-[10px] text-muted">{p.year}</div>
                   </div>
                 ))}
@@ -185,7 +185,7 @@ export default function IntelligenceView({
                   <div key={tk} className="flex items-center gap-3">
                     <span className="w-28 shrink-0 font-mono text-[10px] uppercase tracking-wider text-muted">{TIER_LABEL[tk]}</span>
                     <div className="h-9 flex-1 rounded bg-paper-deep">
-                      <div className="flex h-full items-center rounded pl-3 text-sm font-semibold text-white" style={{ width: `${v ?? 0}%`, background: tk === "multiplication" ? "#ff7a47" : "#3f9d72" }}>{fmt(d.funnel?.[tk])}</div>
+                      <div className="flex h-full items-center rounded pl-3 text-sm font-semibold text-white" style={{ width: `${((v ?? 0) / 5) * 100}%`, background: tk === "multiplication" ? "#ff7a47" : "#3f9d72" }}>{fmt(d.funnel?.[tk])}</div>
                     </div>
                     <span className="w-10 shrink-0 font-mono text-[10px] text-accent">{drop !== null ? drop : ""}</span>
                   </div>
@@ -210,7 +210,7 @@ export default function IntelligenceView({
                 </div>
                 <div className="bg-card p-5">
                   <div className="font-serif text-3xl font-black text-accent">
-                    {f.mult_top && f.mult_bottom ? (f.mult_top / Math.max(1, f.mult_bottom)).toFixed(1) : "—"}×
+                    {f.mult_top && f.mult_bottom ? ((f.mult_top - 1) / Math.max(0.01, f.mult_bottom - 1)).toFixed(1) : "—"}×
                   </div>
                   <div className="mt-2 text-sm text-slate">higher multiplication where formation runs deep — the engine of reproduction.</div>
                 </div>
@@ -260,7 +260,7 @@ export default function IntelligenceView({
                     <div key={tk} className="flex items-center gap-3">
                       <span className="w-28 shrink-0 font-mono text-[10px] uppercase tracking-wider text-muted">{TIER_LABEL[tk]}</span>
                       <div className="h-9 flex-1 rounded bg-paper-deep">
-                        <div className="flex h-full items-center rounded bg-navy pl-3 text-sm font-semibold text-white" style={{ width: `${v ?? 0}%` }}>
+                        <div className="flex h-full items-center rounded bg-navy pl-3 text-sm font-semibold text-white" style={{ width: `${((v ?? 0) / 5) * 100}%` }}>
                           {fmt(v)}
                         </div>
                       </div>
@@ -276,7 +276,7 @@ export default function IntelligenceView({
                     {DOMAINS.map((dk) => (
                       <div key={dk} className="text-sm">
                         <div className="flex justify-between"><span>{DOMAIN_LABEL[dk]}</span><b>{fmt(d.exploration_domains?.[dk])}</b></div>
-                        <div className="mt-1 h-2 rounded bg-paper-deep"><div className="h-full rounded bg-navy" style={{ width: `${d.exploration_domains?.[dk] ?? 0}%` }} /></div>
+                        <div className="mt-1 h-2 rounded bg-paper-deep"><div className="h-full rounded bg-navy" style={{ width: `${((d.exploration_domains?.[dk] ?? 0) / 5) * 100}%` }} /></div>
                       </div>
                     ))}
                   </div>
@@ -292,7 +292,7 @@ export default function IntelligenceView({
                             <td className="text-left font-serif text-sm font-medium">{DOMAIN_LABEL[dk]}</td>
                             {TIERS.map((tk) => {
                               const v = d.exploration_matrix?.[dk]?.[tk] ?? null;
-                              return <td key={tk} className="rounded py-3 font-sans text-base font-bold" style={{ background: navyCell(v), color: v !== null && v >= 55 ? "#fff" : "#22252b" }}>{fmt(v)}</td>;
+                              return <td key={tk} className="rounded py-3 font-sans text-base font-bold" style={{ background: navyCell(v), color: v !== null && v >= 3.2 ? "#fff" : "#22252b" }}>{fmt(v)}</td>;
                             })}
                           </tr>
                         ))}
@@ -372,9 +372,9 @@ export default function IntelligenceView({
                   legend here. */}
               {mapView === "regions" && (
                 <div className="mt-4 flex flex-wrap gap-4 font-mono text-[9px] uppercase tracking-wider text-muted">
-                  <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ background: "#3f9d72" }} /> Strong · 58+</span>
-                  <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ background: "#e0993f" }} /> Emerging · 42–57</span>
-                  <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ background: "#d65349" }} /> Early · under 42</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ background: "#3f9d72" }} /> Strong · 3.3+</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ background: "#e0993f" }} /> Emerging · 2.7–3.2</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded" style={{ background: "#d65349" }} /> Early · under 2.7</span>
                   <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded border border-rule" style={{ background: "#e6e8ec" }} /> No data</span>
                 </div>
               )}
@@ -389,7 +389,7 @@ export default function IntelligenceView({
                 {(d.regions || []).map((r) => (
                   <div key={r.region} className="flex items-center gap-3 text-sm">
                     <span className="w-40 shrink-0">{r.region}</span>
-                    <div className="h-2 flex-1 rounded bg-paper-deep"><div className="h-full rounded bg-moss" style={{ width: `${r.index ?? 0}%` }} /></div>
+                    <div className="h-2 flex-1 rounded bg-paper-deep"><div className="h-full rounded bg-moss" style={{ width: `${((r.index ?? 0) / 5) * 100}%` }} /></div>
                     <b className="w-8 text-right font-serif">{fmt(r.index)}</b>
                     <span className="w-16 text-right font-mono text-[11px] text-muted">{r.n?.toLocaleString?.() ?? r.n}</span>
                   </div>
@@ -405,7 +405,7 @@ export default function IntelligenceView({
                   return (
                     <div key={ak} className="flex items-center gap-3 text-sm">
                       <span className="w-16 shrink-0 font-mono text-[11px] text-slate">{AGE_LABEL[ak]}</span>
-                      <div className="h-3 flex-1 rounded bg-paper-deep"><div className="h-full rounded bg-accent" style={{ width: `${v ?? 0}%` }} /></div>
+                      <div className="h-3 flex-1 rounded bg-paper-deep"><div className="h-full rounded bg-accent" style={{ width: `${((v ?? 0) / 5) * 100}%` }} /></div>
                       <b className="w-10 text-right font-serif">{fmt(d.by_age?.[ak])}</b>
                     </div>
                   );
