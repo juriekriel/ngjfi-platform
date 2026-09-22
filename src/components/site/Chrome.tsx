@@ -23,10 +23,12 @@ export function Masthead({ edition }: { edition?: string }) {
           />
           <span className="text-[18px] font-bold tracking-tight text-ink">JFINDX</span>
         </Link>
-        <nav className="flex flex-wrap items-center gap-x-7 gap-y-1.5">
-          <NavLink href="/learn">What is the Index?</NavLink>
+        <nav className="flex flex-wrap items-center gap-x-6 gap-y-1.5">
+          <NavLink href="/learn">What is the Index</NavLink>
           <NavLink href="/tour">How it works</NavLink>
-          <NavLink href="/intelligence">A global picture</NavLink>
+          <NavLink href="/intelligence">A Global Picture</NavLink>
+          <NavLink href="/organization">Your Organization</NavLink>
+          <NavLink href="/history">How did we get here</NavLink>
           <NavLink href="/access">Sign in</NavLink>
           <Link
             href="/join"
@@ -102,59 +104,6 @@ export function RisingRule({ className = "" }: { className?: string }) {
         <rect x="483" y="7" width="19" height="5" rx="1.5" />
       </g>
     </svg>
-  );
-}
-
-/** The colophon. Almanacs have one; template sites don't. */
-export function Colophon() {
-  return (
-    <footer className="mt-20 border-t-2 border-ink">
-      <div className="mx-auto max-w-5xl px-5 py-8">
-        <div className="grid gap-8 md:grid-cols-[1.4fr_1fr_1fr]">
-          <div>
-            <p className="text-[15px] leading-snug">
-              <span className="italic">The Jesus Index</span> — a global measure of Jesus-following.
-            </p>
-            <p className="margin-note mt-2 max-w-measure">
-              A project of the <b>Next Gen Global Collab</b>. Backbone organisation:{" "}
-              <b>NXT&nbsp;Move</b>. Survey and intelligence infrastructure: <b>Eido Research</b>.
-              Research direction: <b>Dr.&nbsp;Matthew Niermann</b>, with{" "}
-              <b>Ulrich Lombard</b> coordinating.
-            </p>
-          </div>
-          <nav className="flex flex-col gap-1.5">
-            <p className="figcap mb-1">Explore</p>
-            <FootLink href="/learn">Why this exists</FootLink>
-            <FootLink href="/tour">How it will work</FootLink>
-            <FootLink href="/intelligence">A global picture</FootLink>
-            <FootLink href="/join">Join the Index</FootLink>
-            <FootLink href="/access">Early access</FootLink>
-          </nav>
-          <div>
-            <p className="figcap mb-1">Colophon</p>
-            <p className="margin-note">
-              Set in <b>Inter&nbsp;Tight</b>, with <b>JetBrains&nbsp;Mono</b> for figures and{" "}
-              <b>Newsreader</b> for the wordmark alone. Instrument{" "}
-              <span className="tabular">v1</span> · scoring <span className="tabular">v0.1.0</span>.
-              Built in the open at <span className="tabular">github.com/juriekriel/ngjfi-platform</span>.
-            </p>
-          </div>
-        </div>
-        <p className="figcap mt-8 border-t border-rule pt-4 leading-relaxed">
-          Respondents are anonymous — no name, no email, no location beyond a country, age as a band.
-          We report only on those who have completed the Index. Every figure currently on this site is
-          synthetic sample data and must not be quoted.
-        </p>
-      </div>
-    </footer>
-  );
-}
-
-function FootLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link href={href} className="text-[14px] text-ink-2 no-underline hover:text-ink">
-      {children}
-    </Link>
   );
 }
 

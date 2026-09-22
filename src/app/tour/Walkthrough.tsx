@@ -197,9 +197,9 @@ function BeatPhone() {
           nothing written to a database.
         </p>
         <p className="margin-note mt-5 border-l-2 border-rule pl-3">
-          Age is a band, never a birthdate. There is no location beyond a country. Consent — including
-          parental consent — is handled by the organisation, locally, before anyone reaches this
-          screen.
+          Respondents are anonymous — no name, no email, no location beyond a country, age as a band.
+          We report only on those who have completed the Index. Consent — including parental consent —
+          is handled by the organisation, locally, before anyone reaches this screen.
         </p>
       </div>
 

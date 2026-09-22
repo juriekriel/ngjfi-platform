@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
-import { Colophon, Masthead } from "@/components/site/Chrome";
+import { Masthead } from "@/components/site/Chrome";
 import { Action, Awaiting, Band, LinkRow, Row, Rows, Trouble, Worklist, type WorkItem } from "@/components/console/Bands";
 import SurveyWizard from "@/components/console/SurveyWizard";
 
@@ -961,7 +961,6 @@ function Shell({
         </div>
         <div className="mt-9">{children}</div>
       </main>
-      <Colophon />
     </>
   );
 }

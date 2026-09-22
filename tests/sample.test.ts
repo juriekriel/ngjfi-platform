@@ -96,15 +96,28 @@ test("the landing page renders live components and carries no fabricated scores"
   const home = src("../src/app/page.tsx");
   assert.match(home, /from "@\/components\/index\/Figures"/);
 
-  // Deliberate: the front page shows the MODEL, never sample results. A
-  // fabricated number is a poor thing to lead with even when it is labelled —
-  // it invites a visitor to read the demo as the product. Scores live behind
-  // door 03, where the context travels with them.
+  // Deliberate: the front page never pulls sample/fabricated results. Before
+  // the production-readiness round this meant "show the plain-language
+  // Matrix, not a scored one"; the round simplified the page down to the
+  // hero + J12 + a live snapshot (LiveSnapshot.tsx), which shows REAL counts
+  // and the REAL heat map via platform_totals()/collab_intelligence() rather
+  // than either sample data or a fabricated score — so the assertion now
+  // checks the homepage and the component it renders for real data don't
+  // import the sample generator, instead of requiring a specific figure.
   assert.ok(
     !/from "@\/lib\/sample"/.test(home),
     "the landing page must not pull sample results — send people to /demo for numbers",
   );
-  assert.match(home, /<Matrix phrases \/>/, "the model grid must be the plain-language variant");
+  const liveSnapshot = src("../src/components/site/LiveSnapshot.tsx");
+  assert.ok(
+    !/from "@\/lib\/sample"/.test(liveSnapshot),
+    "the homepage's live snapshot must read real data (platform_totals/collab_intelligence), never the sample generator",
+  );
+  assert.match(
+    liveSnapshot,
+    /rpc\("platform_totals"\)/,
+    "the live snapshot must call the real, ungated platform_totals() RPC",
+  );
 });
 
 test("the mark never sits beside the typed wordmark", () => {

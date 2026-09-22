@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Colophon, Masthead } from "@/components/site/Chrome";
+import { Masthead } from "@/components/site/Chrome";
 import { Plate } from "@/components/index/Figures";
 
 /**
@@ -916,7 +916,6 @@ export default function Wireframes() {
         </div>
       </main>
 
-      <Colophon />
     </>
   );
 }

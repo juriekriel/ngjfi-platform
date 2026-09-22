@@ -1,4 +1,5 @@
-import { Colophon, Masthead } from "@/components/site/Chrome";
+import Link from "next/link";
+import { Masthead } from "@/components/site/Chrome";
 import JoinForm from "./JoinForm";
 
 export const metadata = {
@@ -14,7 +15,7 @@ export default function JoinPage() {
       <main className="mx-auto max-w-5xl px-5">
         <section className="grid gap-10 border-b border-ink py-10 md:grid-cols-[1.15fr_1fr] md:gap-14">
           <div>
-            <p className="figcap">Door 04 · for organisations and churches</p>
+            <p className="figcap">For organisations and churches</p>
             <h1 className="mt-3 text-[36px] leading-[1.05] tracking-tight sm:text-[44px]">
               We&apos;re opening, country by country.
             </h1>
@@ -96,8 +97,25 @@ export default function JoinPage() {
             ))}
           </dl>
         </section>
+
+        <section className="border-t-2 border-ink py-10">
+          <p className="figcap">Not ready yet?</p>
+          <div className="mt-5 grid gap-6 sm:grid-cols-3">
+            <Link href="/learn" className="border-t-2 border-rule pt-3 no-underline">
+              <p className="text-[17px] leading-snug text-ink">What is the Index →</p>
+              <p className="margin-note mt-1">The short version, two minutes.</p>
+            </Link>
+            <Link href="/tour" className="border-t-2 border-rule pt-3 no-underline">
+              <p className="text-[17px] leading-snug text-ink">See how it works →</p>
+              <p className="margin-note mt-1">A guided walk through the real product.</p>
+            </Link>
+            <Link href="/intelligence" className="border-t-2 border-rule pt-3 no-underline">
+              <p className="text-[17px] leading-snug text-ink">A global picture →</p>
+              <p className="margin-note mt-1">See where the movement stands first.</p>
+            </Link>
+          </div>
+        </section>
       </main>
-      <Colophon />
     </>
   );
 }
