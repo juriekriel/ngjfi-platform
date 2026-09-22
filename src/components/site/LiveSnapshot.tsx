@@ -45,7 +45,7 @@ export default function LiveSnapshot() {
   }, [sb]);
 
   return (
-    <section className="border-t-2 border-ink py-12">
+    <section className="border-t border-rule py-12">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <div>
           <p className="figcap">Live on the platform</p>

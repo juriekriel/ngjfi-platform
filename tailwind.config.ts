@@ -56,6 +56,7 @@ const config: Config = {
 
         // A domain accent (Follow), never a semantic.
         violet: c("violet"),
+        "violet-deep": c("violet-deep"),
 
         // Semantic only: vermillion means "down". Never styling.
         vermillion: c("vermillion"),

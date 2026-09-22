@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Question } from "@/components/survey/QuestionCard";
 import {
@@ -73,7 +73,7 @@ const LINK_STATUS_STYLE: Record<"active" | "scheduled", string> = {
 
 const BEATS = [
   { id: "model", kicker: "The model", title: "One grid, two lenses" },
-  { id: "phone", kicker: "The respondent", title: "Four minutes, on any phone" },
+  { id: "phone", kicker: "The respondent", title: "Seven minutes, on any phone" },
   { id: "adapt", kicker: "The instrument", title: "It stops asking what it shouldn't" },
   { id: "org", kicker: "The ministry", title: "What lands on your dashboard" },
   { id: "collab", kicker: "The coalition", title: "What the whole movement sees" },
@@ -84,16 +84,26 @@ export default function Walkthrough() {
   const [beat, setBeat] = useState(0);
   const b = BEATS[beat];
 
+  // Lets a link (e.g. the QR code on "the respondent" step) deep-link
+  // straight to a given step, by id, via the URL hash — #adapt opens
+  // "the instrument" step with the live survey demo already showing.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash.replace("#", "");
+    const idx = BEATS.findIndex((x) => x.id === hash);
+    if (idx !== -1) setBeat(idx);
+  }, []);
+
   return (
     <>
       <section className="border-b border-ink py-8">
-        <p className="figcap">A guided walk · six beats</p>
+        <p className="figcap">A guided walk · six steps</p>
         <h1 className="mt-3 text-[36px] leading-[1.05] tracking-tight sm:text-[44px]">
           How the Index will work.
         </h1>
         <p className="mt-5 max-w-measure text-[17px] leading-relaxed text-ink-2">
           Every screen in this walkthrough is the real product, running on invented figures. Click
-          through it, or jump to whichever beat you came for.
+          through it, or jump to whichever step you came for.
         </p>
       </section>
 
@@ -177,7 +187,7 @@ function BeatModel() {
         </p>
         <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
           Every item in the survey carries exactly one question and one tier. That single tagging
-          decision is what lets a four-minute survey be read two completely different ways — by what
+          decision is what lets a seven-minute survey be read two completely different ways — by what
           you are asking about, or by how far it has travelled.
         </p>
         <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
@@ -189,7 +199,7 @@ function BeatModel() {
           here the cells hold plain language instead of scores.
         </p>
       </div>
-      <Plate label="The J12 · the model" figure="Beat 01">
+      <Plate label="The J12 · the model" figure="Step 01">
         <Matrix phrases />
       </Plate>
     </div>
@@ -216,26 +226,67 @@ function PhoneFrame({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * The origin used to build the QR code's target URL. Rendering starts from
+ * this fixed fallback (so server and client agree on the first paint, no
+ * hydration mismatch) and is replaced with the real `window.location.origin`
+ * once mounted — so the QR code correctly points at whichever deploy it is
+ * actually showing on (a Netlify preview, not just the eventual jfindx.org).
+ */
+const FALLBACK_ORIGIN = "https://jfindx.org";
+
 function BeatPhone() {
+  const [origin, setOrigin] = useState(FALLBACK_ORIGIN);
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+  const demoUrl = `${origin}/tour#adapt`;
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(demoUrl)}`;
+
   return (
-    <div>
-      <p className="max-w-measure text-[17px] leading-relaxed">
-        A young person reaches this from a QR code on a camp wall or a link in a group chat.{" "}
-        <b>No account, no name, no email.</b> One question per screen, so it works on a cheap phone
-        on a bad connection.
-      </p>
-      <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
-        It carries the organisation&apos;s own brand — their logo, their colour, their words. The
-        Index sits in the footer. To the respondent it is their youth group asking, because it is.
-      </p>
-      <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
-        The next beat lets you try the actual survey component yourself, end to end.
-      </p>
-      <p className="margin-note mt-5 border-l-2 border-rule pl-3">
-        Respondents are anonymous — no name, no email, no location beyond a country, age as a band.
-        We report only on those who have completed the Index. Consent — including parental consent —
-        is handled by the organisation, locally, before anyone reaches this screen.
-      </p>
+    <div className="grid gap-8 md:grid-cols-[1.4fr_1fr] md:gap-12">
+      <div>
+        <p className="max-w-measure text-[17px] leading-relaxed">
+          A young person reaches this from a QR code on a camp wall or a link in a group chat.{" "}
+          <b>No account, no name, no email.</b> One question per screen, so it works on a cheap phone
+          on a bad connection.
+        </p>
+        <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
+          It carries the organisation&apos;s own brand — their logo, their colour, their words. The
+          Index sits in the footer. To the respondent it is their youth group asking, because it is.
+        </p>
+        <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
+          The next step lets you try the actual survey component yourself, end to end.
+        </p>
+        <p className="margin-note mt-5 border-l-2 border-rule pl-3">
+          Respondents are anonymous — no name, no email, no location beyond a country, age as a band.
+          We report only on those who have completed the Index. Consent — including parental consent —
+          is handled by the organisation, locally, before anyone reaches this screen.
+        </p>
+      </div>
+      <div>
+        <Plate label="Try it on your own phone" figure="Step 02">
+          <div className="flex flex-col items-center gap-3 p-5">
+            <img
+              src={qrSrc}
+              alt="QR code linking to a demo of the respondent survey"
+              width={200}
+              height={200}
+              className="rounded-lg border border-rule"
+            />
+            <p className="text-center text-[13px] leading-snug text-ink-2">
+              Scan it with your own phone, or{" "}
+              <Link href="/tour#adapt" className="font-semibold text-emerald no-underline hover:underline">
+                try it on this screen →
+              </Link>
+            </p>
+          </div>
+        </Plate>
+        <p className="figcap mt-3 leading-relaxed">
+          Opens the same in-memory survey demo used in the next step — nothing scanned here is ever
+          written to a database.
+        </p>
+      </div>
     </div>
   );
 }
@@ -306,7 +357,7 @@ function SurveyDemo() {
               </h1>
               <p className="mt-3 text-sm leading-relaxed text-ink-2">
                 {SAMPLE_ORG.name} is learning how to walk with young people as they follow Jesus.
-                Your honest answers help. It takes about 6 minutes and is completely anonymous.
+                Your honest answers help. It takes about 7 minutes and is completely anonymous.
               </p>
               <button
                 onClick={() => setI(0)}
@@ -437,9 +488,33 @@ function BeatAdapt() {
       </div>
 
       <div>
+        <p className="figcap">Try it yourself</p>
+        <h3 className="mt-2 text-[19px] leading-tight">
+          This is not a picture of the survey — it is the survey component.
+        </h3>
+        <p className="mt-2 max-w-measure text-[14.5px] leading-relaxed text-ink-2">
+          Mounted here with nothing written to a database. Walk it end to end and watch it stop
+          asking questions your own answers have already made meaningless.
+        </p>
+        <div className="mt-5">
+          <SurveyDemo />
+        </div>
+      </div>
+    </div>
+
+    <div className="mt-14 border-t-2 border-ink pt-8">
+      <p className="figcap">The live branching rules</p>
+      <h3 className="mt-2 text-[21px] leading-tight">
+        Skipped items are not stored.
+      </h3>
+      <p className="mt-3 max-w-measure text-[16px] leading-relaxed text-ink-2">
+        Because visibility is a pure function of the instrument plus the answers, we can always
+        recompute what someone was asked — so nothing is lost by not writing a row.
+      </p>
+      <div className="mt-6">
         <Plate
           label={`Asked: ${shown.length} of ${all.length} questions`}
-          figure="Beat 03 · live branching rules"
+          figure="Step 03 · live branching rules"
         >
           <ol className="columns-1 gap-x-8 sm:columns-2">
             {all.map((it) => {
@@ -460,25 +535,6 @@ function BeatAdapt() {
             })}
           </ol>
         </Plate>
-        <p className="figcap mt-3 leading-relaxed">
-          Skipped items are not stored. Because visibility is a pure function of the instrument plus
-          the answers, we can always recompute what someone was asked — so nothing is lost by not
-          writing a row.
-        </p>
-      </div>
-    </div>
-
-    <div className="mt-14 border-t-2 border-ink pt-8">
-      <p className="figcap">Try it yourself</p>
-      <h3 className="mt-2 text-[21px] leading-tight">
-        This is not a picture of the survey — it is the survey component.
-      </h3>
-      <p className="mt-3 max-w-measure text-[16px] leading-relaxed text-ink-2">
-        Mounted here with nothing written to a database. Walk it end to end and watch it stop
-        asking questions your own answers have already made meaningless.
-      </p>
-      <div className="mt-6">
-        <SurveyDemo />
       </div>
     </div>
     </div>
@@ -636,7 +692,7 @@ function BeatCollab() {
           caption="Fig. — the composite the whole coalition watches"
         />
         <div className="mt-7">
-          <Plate label="Reporting regions" figure="Beat 05">
+          <Plate label="Reporting regions" figure="Step 05">
             <table className="w-full text-left">
               <caption className="sr-only">Participation by region</caption>
               <thead>
@@ -669,7 +725,7 @@ function BeatCollab() {
           </Plate>
         </div>
         <div className="mt-7">
-          <Plate label="The funnel, globally" figure="Beat 05 · ii">
+          <Plate label="The funnel, globally" figure="Step 05 · ii">
             <JourneyFunnel tiers={d.tiers} />
           </Plate>
         </div>
@@ -706,8 +762,8 @@ function BeatNext() {
           period, in as many places as possible.
         </p>
         <p className="mt-6 max-w-measure text-[16px] leading-relaxed">
-          And because everyone is running the same twelve questions, you finally see your answer next
-          to your country and the world, instead of alone.
+          And because everyone is running the same shared instrument, you finally see your answer
+          next to your country and the world, instead of alone.
         </p>
       </div>
 

@@ -118,7 +118,7 @@ export default function OrgWelcomePage({ params }: { params: { org: string } }) 
         >
           Take the Index →
         </Link>
-        <p className="mt-3 text-[13px] text-ink-2">About 6 minutes, on your phone. No name, no email.</p>
+        <p className="mt-3 text-[13px] text-ink-2">About 7 minutes, on your phone. No name, no email.</p>
 
         <div className="mt-16 border-t border-rule pt-10 text-left">
           <div className="flex items-center gap-3">

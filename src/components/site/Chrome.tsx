@@ -26,13 +26,13 @@ export function Masthead({ edition }: { edition?: string }) {
           <NavLink href="/intelligence">A Global Picture</NavLink>
           <Link
             href="/access"
-            className="rounded-lg bg-violet px-4 py-2 text-[14px] font-semibold text-plate no-underline hover:opacity-90"
+            className="rounded-lg bg-gradient-to-r from-violet to-violet-deep px-4 py-2 text-[14px] font-semibold text-plate no-underline hover:opacity-90"
           >
             Sign in to Your Organisation
           </Link>
           <Link
             href="/join"
-            className="rounded-lg bg-emerald px-4 py-2 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
+            className="rounded-lg bg-gradient-to-r from-emerald to-emerald-deep px-4 py-2 text-[14px] font-semibold text-plate no-underline hover:opacity-90"
           >
             Join the JFINDX
           </Link>
@@ -61,7 +61,7 @@ export function Footer() {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2.5 px-5 py-6 sm:px-8">
         <RisingMark className="h-5 w-5 shrink-0" />
         <p className="text-[13px] text-ink-2">
-          Built by the Next Gen Global Collab. To see everyone in the next gen follow Jesus.
+          Built by the Next Gen Global Collab, to see everyone in the next generation follow Jesus.
         </p>
       </div>
     </footer>

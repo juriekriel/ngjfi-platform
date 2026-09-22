@@ -59,7 +59,7 @@ export default function HistoryPage() {
           </div>
           <aside className="self-end">
             <p className="margin-note border-l-2 border-emerald pl-3">
-              Six eras. Open one to read the beats, the arguments, and what each decision changed.
+              Six eras. Open one to read the steps, the arguments, and what each decision changed.
               Nothing here is marketing copy — it is compiled from the working documents, the meeting
               notes and the build sessions.
             </p>
@@ -214,7 +214,7 @@ export default function HistoryPage() {
             <Link href="/tour" className="border-t-2 border-ink pt-3 no-underline">
               <p className="figcap">Or</p>
               <p className="mt-2 text-[18px] leading-snug">See how it works →</p>
-              <p className="margin-note mt-1">A guided walk, one beat at a time.</p>
+              <p className="margin-note mt-1">A guided walk, one step at a time.</p>
             </Link>
             <Link href="/join" className="border-t-2 border-emerald pt-3 no-underline">
               <p className="figcap">When you are ready</p>

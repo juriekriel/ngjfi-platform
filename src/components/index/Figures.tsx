@@ -396,7 +396,7 @@ export function J12Grid({ className = "" }: { className?: string }) {
         })}
       </div>
       <figcaption className="figcap mt-3 leading-relaxed">
-        The J12 — twelve items, one shared instrument
+        The J12 — one shared instrument
       </figcaption>
     </figure>
   );

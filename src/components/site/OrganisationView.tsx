@@ -37,7 +37,7 @@ const CARDS = [
   {
     n: "03",
     h: "Benchmarked, not isolated",
-    p: "The same twelve questions everywhere means your number finally means something next to your country and the globe.",
+    p: "The same shared instrument everywhere means your number finally means something next to your country and the globe.",
     tier: "formation",
   },
   {

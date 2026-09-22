@@ -4,7 +4,7 @@ import Walkthrough from "./Walkthrough";
 export const metadata = {
   title: "How it will work — The Jesus Index",
   description:
-    "A guided walk through the whole platform, one beat at a time: what a young person sees, what a ministry gets back, and what the Collab sees across every organisation.",
+    "A guided walk through the whole platform, one step at a time: what a young person sees, what a ministry gets back, and what the Collab sees across every organisation.",
 };
 
 export default function TourPage() {

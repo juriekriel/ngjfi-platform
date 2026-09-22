@@ -6,6 +6,7 @@ import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { instrument, t } from "@/lib/instrument";
 import ScoreMatrix from "@/components/index/ScoreMatrix";
 import WorldHeatMap from "@/components/index/WorldHeatMap";
+import { GREEN, NAVY, VIOLET, VERMILLION } from "@/lib/model";
 
 type Intel = {
   /** Set by the database, not the client — which enforced space produced this. */
@@ -44,6 +45,17 @@ type Intel = {
 
 const TIERS = ["exposure", "response", "formation", "multiplication"];
 const TIER_LABEL: Record<string, string> = { exposure: "Exposure", response: "Response", formation: "Formation", multiplication: "Multiplication" };
+// The journey funnel's own bar colours — deliberately not the shared coral
+// TIER_TINT ramp (that one stays "lightness = depth" everywhere else on the
+// platform). Here each tier is a distinct category rather than a gradient,
+// and coral is left out on purpose since the rest of this page already reads
+// as "coral = the accent" — four different, already-semantic tones instead.
+const FUNNEL_TIER_COLOUR: Record<string, string> = {
+  exposure: GREEN,
+  response: NAVY,
+  formation: VIOLET,
+  multiplication: VERMILLION,
+};
 const DOMAINS = ["follow", "mission", "world"];
 const DOMAIN_LABEL: Record<string, string> = { follow: "Follow Jesus", mission: "Participate in mission", world: "World looks different" };
 const AGE_LABEL: Record<string, string> = { "13_17": "13–17", "18_22": "18–22", "23_30": "23–30" };
@@ -185,7 +197,7 @@ export default function IntelligenceView({
                   <div key={tk} className="flex items-center gap-3">
                     <span className="w-28 shrink-0 font-mono text-[10px] uppercase tracking-wider text-muted">{TIER_LABEL[tk]}</span>
                     <div className="h-9 flex-1 rounded bg-paper-deep">
-                      <div className="flex h-full items-center rounded pl-3 text-sm font-semibold text-white" style={{ width: `${((v ?? 0) / 5) * 100}%`, background: tk === "multiplication" ? "#ff7a47" : "#3f9d72" }}>{fmt(d.funnel?.[tk])}</div>
+                      <div className="flex h-full items-center rounded pl-3 text-sm font-semibold text-white" style={{ width: `${((v ?? 0) / 5) * 100}%`, background: FUNNEL_TIER_COLOUR[tk] }}>{fmt(d.funnel?.[tk])}</div>
                     </div>
                     <span className="w-10 shrink-0 font-mono text-[10px] text-accent">{drop !== null ? drop : ""}</span>
                   </div>
