@@ -22,6 +22,7 @@ export default function JoinForm() {
   const [stage, setStage] = useState<"express" | "shape" | "done">("express");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [shapeError, setShapeError] = useState<string | null>(null);
 
   const [email, setEmail] = useState("");
   const [org, setOrg] = useState("");
@@ -40,7 +41,15 @@ export default function JoinForm() {
     e.preventDefault();
     setError(null);
     setBusy(true);
-    if (sb) {
+    if (!sb) {
+      // Supabase isn't configured in this environment — this must be visible,
+      // never a silent "success" that leaves the visitor believing they're on
+      // the list when nothing was ever attempted.
+      setBusy(false);
+      setError("Sign-up isn't wired up in this environment yet — nothing was saved. Please email us directly.");
+      return;
+    }
+    try {
       const { error } = await sb.rpc("waitlist_join", {
         p_email: email.trim(),
         p_org_name: org.trim(),
@@ -54,6 +63,12 @@ export default function JoinForm() {
         );
         return;
       }
+    } catch {
+      // A thrown network error behaves the same as an RPC error above — never
+      // silently advance to the next stage on a failure we didn't see coming.
+      setBusy(false);
+      setError("We could not reach the server just now. Check your connection and try again.");
+      return;
     }
     setBusy(false);
     setStage("shape");
@@ -61,9 +76,15 @@ export default function JoinForm() {
 
   async function submitShape(e: React.FormEvent) {
     e.preventDefault();
+    setShapeError(null);
     setBusy(true);
-    if (sb) {
-      await sb.rpc("waitlist_qualify", {
+    if (!sb) {
+      setBusy(false);
+      setShapeError("This part isn't wired up in this environment yet — nothing extra was saved, but you're already on the list.");
+      return;
+    }
+    try {
+      const { error } = await sb.rpc("waitlist_qualify", {
         p_email: email.trim(),
         p_payload: {
           countries: countries.split(",").map((s) => s.trim()).filter(Boolean),
@@ -75,6 +96,21 @@ export default function JoinForm() {
           is_collab_member: collabMember === "yes" ? true : collabMember === "no" ? false : null,
         },
       });
+      // This track was silently discarded on failure before — the two most
+      // useful free-text fields on the whole site (measures_today,
+      // decision_it_changes) were lost with no sign anything went wrong.
+      // Surface it instead, and let the visitor retry rather than lose it.
+      if (error) {
+        setBusy(false);
+        setShapeError(
+          "We could not save that just now — your spot on the list is safe, but these answers weren't recorded. Try again, or skip for now.",
+        );
+        return;
+      }
+    } catch {
+      setBusy(false);
+      setShapeError("We could not reach the server just now. Try again, or skip for now.");
+      return;
     }
     setBusy(false);
     setStage("done");
@@ -123,11 +159,16 @@ export default function JoinForm() {
               onChange={(e) => setCountries(e.target.value)} placeholder="Argentina, Uruguay" />
           </div>
           <div>
-            <label className={label} htmlFor="reach">Roughly how many 13–30s do you reach in a year?</label>
+            <label className={label} htmlFor="reach">
+              Roughly how many different 13–30-year-olds are part of your programs in a year?
+            </label>
             <select id="reach" className={`${field} mt-1.5`} value={reach} onChange={(e) => setReach(e.target.value)}>
               <option value="">Select a band</option>
               {REACH_BANDS.map((b) => <option key={b} value={b}>{b}</option>)}
             </select>
+            <p className="margin-note mt-1">
+              A rough headcount of people, not events or attendances — your best estimate is fine.
+            </p>
           </div>
           <div>
             <label className={label} htmlFor="langs">What languages would you need?</label>
@@ -167,6 +208,8 @@ export default function JoinForm() {
           </div>
         </div>
 
+        {shapeError && <p className="mt-4 text-[14px] leading-snug text-vermillion">{shapeError}</p>}
+
         <div className="mt-6 flex flex-wrap gap-3">
           <button type="submit" disabled={busy}
             className="rounded-lg border-2 border-emerald bg-emerald px-5 py-2.5 text-[14px] font-semibold text-plate disabled:opacity-50">
@@ -193,8 +236,13 @@ export default function JoinForm() {
             onChange={(e) => setEmail(e.target.value)} placeholder="you@yourministry.org" />
         </div>
         <div>
-          <label className={label} htmlFor="org">Organisation</label>
-          <input id="org" required className={`${field} mt-1.5`} value={org} onChange={(e) => setOrg(e.target.value)} />
+          <label className={label} htmlFor="org">Organisation, church or ministry name</label>
+          <input id="org" required className={`${field} mt-1.5`} value={org} onChange={(e) => setOrg(e.target.value)}
+            placeholder="e.g. Riverside Youth, First Baptist Dallas, Young Life Argentina" />
+          <p className="margin-note mt-1">
+            Whatever you&apos;d call it — a local church, a youth ministry, a network, an NGO. No
+            wrong answer here.
+          </p>
         </div>
         <div>
           <label className={label} htmlFor="role">Your role</label>

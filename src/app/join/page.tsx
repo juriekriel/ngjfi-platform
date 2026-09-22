@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Masthead } from "@/components/site/Chrome";
 import JoinForm from "./JoinForm";
+import CoverageMap from "@/components/site/CoverageMap";
 
 export const metadata = {
   title: "Join the Index — The Jesus Index",
@@ -75,6 +76,10 @@ export default function JoinPage() {
           <div className="md:sticky md:top-24 md:self-start">
             <JoinForm />
           </div>
+        </section>
+
+        <section className="py-10">
+          <CoverageMap />
         </section>
 
         <section className="py-10">

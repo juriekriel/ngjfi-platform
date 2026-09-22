@@ -453,6 +453,17 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
             </div>
           )}
 
+          {!demoPreview && (
+            <p className="mt-4 text-[13px] text-slate">
+              Sharing on social media or a flyer? Your public landing page — branding, no survey
+              questions on it yet — is at{" "}
+              <a href={`/${slug}/welcome`} target="_blank" rel="noreferrer" className="font-semibold text-accent">
+                jfindx.org/{slug}/welcome
+              </a>
+              .
+            </p>
+          )}
+
           <button
             type="button"
             onClick={() => setShowDetail((v) => !v)}
