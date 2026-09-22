@@ -330,36 +330,61 @@ export function IntegrityNote({ extra }: { extra?: string }) {
 
 /**
  * The five colours used everywhere else on the platform (see globals.css /
- * CLAUDE.md's design system), in one fixed order. Defined here rather than
- * pulled in as a new export from lib/model — this is the only place the full
- * five-colour set is used together as a *palette* rather than as individual
- * semantic tokens (green = up, vermillion = down, navy = levels, violet = a
- * domain accent, emerald = the brand's working colour).
+ * CLAUDE.md's design system), ordered light → dark by relative luminance
+ * rather than in their usual semantic-token order — this is the only place
+ * the five are read as a *gradient* rather than as individual semantic
+ * tokens (green = up, vermillion = down, navy = levels, violet = a domain
+ * accent, emerald = the brand's working colour).
  */
-const PLATFORM_PALETTE = [EMERALD, NAVY, GREEN, VIOLET, VERMILLION];
+const PLATFORM_GRADIENT = [EMERALD, GREEN, VIOLET, NAVY, VERMILLION];
 
 /**
- * The J12's own diagram: twelve cells, one colour from the platform's full
- * five-colour palette in each — not a fabricated figure, just the shape of
- * "twelve items, drawn from everywhere." Used where the front page needs a
- * visual anchor that carries the idea without putting a single number on
- * screen. Twelve items, twelve disciples, one shared instrument.
+ * The J12's own diagram: a cross of six lit cells inside a 4×3 grid — one
+ * column of three running down, one row of four running across, sharing a
+ * corner — each cell a different step of the five-colour gradient above
+ * (one colour repeats, closing the loop). The other six cells stay empty.
+ * Round One's cross-grid, re-read with the platform's own palette instead
+ * of a single hue. Used where the front page needs a visual anchor that
+ * carries the idea without putting a single number on screen.
  */
 export function J12Grid({ className = "" }: { className?: string }) {
   const COLS = 4;
   const ROWS = 3;
+  // Vertical arm down column 1, horizontal arm across row 1 — six lit cells,
+  // read in a fixed order (top of the vertical arm round to the bottom of
+  // it) so the gradient has a single, consistent direction.
+  const LIT_ORDER: [number, number][] = [
+    [0, 1],
+    [1, 0],
+    [1, 1],
+    [1, 2],
+    [1, 3],
+    [2, 1],
+  ];
+  const colourAt = (r: number, c: number) => {
+    const i = LIT_ORDER.findIndex(([lr, lc]) => lr === r && lc === c);
+    return i === -1 ? null : PLATFORM_GRADIENT[i % PLATFORM_GRADIENT.length];
+  };
 
   return (
     <figure className={className}>
       <div className="grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
-        {Array.from({ length: ROWS * COLS }, (_, i) => (
-          <div
-            key={i}
-            aria-hidden="true"
-            className="aspect-square rounded-md"
-            style={{ background: PLATFORM_PALETTE[i % PLATFORM_PALETTE.length] }}
-          />
-        ))}
+        {Array.from({ length: ROWS * COLS }, (_, i) => {
+          const r = Math.floor(i / COLS);
+          const c = i % COLS;
+          const colour = colourAt(r, c);
+          return (
+            <div
+              key={i}
+              aria-hidden="true"
+              className="aspect-square rounded-md"
+              style={{
+                background: colour ?? "transparent",
+                border: colour ? "none" : `1px solid ${RULE}`,
+              }}
+            />
+          );
+        })}
       </div>
       <figcaption className="figcap mt-3 leading-relaxed">
         The J12 — twelve items, one shared instrument
@@ -415,22 +440,40 @@ export function BranchDiagram({ className = "" }: { className?: string }) {
         />
       </svg>
 
-      <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-5">
         {BRANCH_TRACKS.map((track) => (
           <div key={track.key}>
-            <p className="text-center text-[13.5px] font-semibold leading-snug text-ink">
+            <p className="text-center text-[12.5px] font-semibold leading-snug text-ink">
               {track.label}
             </p>
-            <div className="mt-2.5 grid grid-cols-4 gap-[3px]">
-              {TIERS.map((tk) => (
-                <div
-                  key={tk}
-                  className="rounded-md px-0.5 py-2.5 text-center text-[8.5px] font-semibold uppercase leading-[1.15] tracking-normal"
-                  style={{ background: TIER_TINT[tk].bg, color: TIER_TINT[tk].fg }}
-                >
-                  {TIER_LABEL[tk]}
-                </div>
-              ))}
+            {/* Stacked, not side by side — one tier flowing into the next, the
+                way a respondent actually moves through them, rather than four
+                tiers competing for width in a row (which is what was clipping
+                "Multiplication" on narrow phones). Putting the two TRACKS side
+                by side instead is what actually saves horizontal room: each
+                column only has to be wide enough for one label, not four. */}
+            <div className="mt-2.5 flex flex-col items-stretch">
+              {TIERS.flatMap((tk, i) => {
+                const block = (
+                  <div
+                    key={tk}
+                    className="rounded-md px-2 py-1.5 text-center text-[11px] font-semibold uppercase tracking-[0.02em]"
+                    style={{ background: TIER_TINT[tk].bg, color: TIER_TINT[tk].fg }}
+                  >
+                    {TIER_LABEL[tk]}
+                  </div>
+                );
+                if (i === 0) return [block];
+                return [
+                  <div
+                    key={`${tk}-connector`}
+                    aria-hidden="true"
+                    className="mx-auto h-2 w-[2px]"
+                    style={{ background: RULE }}
+                  />,
+                  block,
+                ];
+              })}
             </div>
             <p className="figcap mt-2 text-center">{track.note}</p>
           </div>

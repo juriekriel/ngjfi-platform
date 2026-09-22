@@ -13,6 +13,7 @@ import {
   Plate,
   TrendPlate,
 } from "@/components/index/Figures";
+import WorldHeatMap, { type MapCountry } from "@/components/index/WorldHeatMap";
 import {
   instrument,
   nextVisibleIndex,
@@ -23,6 +24,39 @@ import {
 } from "@/lib/instrument";
 import { SAMPLE_ORG, itemLabel, sampleDashboard, sampleTierCounts } from "@/lib/sample";
 import { EMERALD, MUTED, TIERS, TIER_LABEL, fig } from "@/lib/model";
+
+/**
+ * Where this sample org's own respondents happen to be from — a per-org map,
+ * scoped to one organisation's audience, distinct from the Collab-wide map
+ * shown later in BeatCollab. Hand-written sample data, same pattern as
+ * REGIONS below: illustrative, not derived from the instrument, because
+ * there is no per-country breakdown in DashboardData to draw from honestly.
+ */
+const ORG_MAP_SAMPLE: MapCountry[] = [
+  { country: "Argentina", n: 812, tiers: { exposure: 4.4, response: 4.0, formation: 3.6, multiplication: 2.1 } },
+  { country: "Peru", n: 261, tiers: { exposure: 4.2, response: 3.8, formation: 3.3, multiplication: 1.9 } },
+  { country: "Colombia", n: 131, tiers: { exposure: 4.1, response: 3.6, formation: 3.0, multiplication: 1.7 } },
+];
+
+/**
+ * A read-only preview of the org dashboard's distribution-links panel
+ * (src/components/index/LinksPanel.tsx) — hand-styled rather than that
+ * component itself. LinksPanel always calls a live RPC on mount and offers
+ * create/edit actions; neither makes sense in a sales preview with no real
+ * org signed in, and stubbing a fake SupabaseClient just to satisfy its
+ * prop type would be more fragile than it's worth. This mirrors its visual
+ * language (name, status pill, response count, places) with fixed sample
+ * data instead.
+ */
+const SAMPLE_LINKS = [
+  { name: "Camp 2026", status: "active" as const, n: 340, places: "Córdoba · Rosario" },
+  { name: "Youth group — default", status: "active" as const, n: 812, places: "Buenos Aires +6 more" },
+  { name: "Winter retreat", status: "scheduled" as const, n: 0, places: "No responses yet" },
+];
+const LINK_STATUS_STYLE: Record<"active" | "scheduled", string> = {
+  active: "bg-[rgb(var(--c-green)/0.14)] text-green",
+  scheduled: "bg-[rgb(var(--c-emerald)/0.12)] text-emerald",
+};
 
 /**
  * The guided walkthrough.
@@ -164,6 +198,24 @@ function BeatModel() {
 
 /* ── 02 · the real survey component ───────────────────────────────────── */
 
+/**
+ * A device frame, tour-only. The actual respondent survey at /[org] never
+ * wraps itself in a phone mockup — on a real phone that would be a phone
+ * inside a phone — this exists purely so a visitor browsing on a laptop
+ * immediately reads "this is what shows up on someone's phone" rather than
+ * mistaking it for an ordinary card on the page.
+ */
+function PhoneFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mx-auto w-full max-w-[320px] rounded-[2.25rem] border-[10px] border-ink bg-ink shadow-xl">
+      <div className="flex justify-center py-1.5">
+        <div className="h-1.5 w-16 rounded-full bg-ink-2" />
+      </div>
+      <div className="overflow-hidden rounded-[1.5rem] bg-plate">{children}</div>
+    </div>
+  );
+}
+
 function BeatPhone() {
   const items = useMemo(() => orderedItems(), []);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
@@ -203,7 +255,7 @@ function BeatPhone() {
         </p>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-rule bg-plate">
+      <PhoneFrame>
         <div className="px-5 py-4" style={{ background: SAMPLE_ORG.brand }}>
           <div className="flex items-center gap-3">
             <div
@@ -221,7 +273,7 @@ function BeatPhone() {
           </div>
         </div>
 
-        <div className="p-5">
+        <div className="max-h-[420px] overflow-y-auto p-5">
           {!done ? (
             <Question
               item={items[i]}
@@ -260,7 +312,7 @@ function BeatPhone() {
         <p className="figcap border-t border-rule px-5 py-3">
           Live component · answers are held in memory only
         </p>
-      </div>
+      </PhoneFrame>
     </div>
   );
 }
@@ -430,6 +482,40 @@ function BeatOrg() {
           <div className="mt-7">
             <Plate label="Per-question detail" figure="v">
               <ItemLedger items={d.items.slice(0, 8)} labelFor={itemLabel} />
+            </Plate>
+          </div>
+          <div className="mt-7">
+            <Plate label="Where it's coming from" figure="vi">
+              <WorldHeatMap countries={ORG_MAP_SAMPLE} tier="multiplication" />
+              <p className="margin-note mt-2">
+                An organisation&apos;s own respondents, by country — never compared to the Collab at
+                this scope. That comparison lives on the Matrix above and the global picture, not here.
+              </p>
+            </Plate>
+          </div>
+          <div className="mt-7">
+            <Plate label="Links active" figure="vii">
+              <p className="margin-note">
+                Every organisation gets its own shareable links — one per camp, campus or group — each
+                tracked separately but still rolling into the total above.
+              </p>
+              <div className="mt-3 space-y-2">
+                {SAMPLE_LINKS.map((l) => (
+                  <div key={l.name} className="rounded-lg border border-rule bg-paper p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-[14px] font-semibold text-ink">{l.name}</span>
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold capitalize ${LINK_STATUS_STYLE[l.status]}`}
+                      >
+                        {l.status}
+                      </span>
+                    </div>
+                    <p className="tabular mt-1 text-[11px] text-muted">
+                      {l.n.toLocaleString()} {l.n === 1 ? "response" : "responses"} · {l.places}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </Plate>
           </div>
           <IntegrityNote extra="Sample data — synthetic, labelled, never quoted." />
