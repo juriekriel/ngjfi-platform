@@ -6,6 +6,7 @@ import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { Masthead } from "@/components/site/Chrome";
 import { Action, Awaiting, Band, LinkRow, Row, Rows, Trouble, Worklist, type WorkItem } from "@/components/console/Bands";
 import SurveyWizard from "@/components/console/SurveyWizard";
+import ConsultingRepository from "@/components/console/ConsultingRepository";
 
 /**
  * The Index — the authenticated engine, at every tier.
@@ -428,6 +429,7 @@ function CollabConsole() {
         >
           Open Collab Intelligence →
         </Link>
+        <ConsultingRepository />
       </Band>
 
       <Band letter="D" title="The roll" gloss="Cohorts, countries and the coverage arithmetic. Concentration beats count: sixty organisations across forty countries unlocks nothing; the same sixty across ten unlocks all ten." figure={`gate ${wl?.gate ?? 400}`}>

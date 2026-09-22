@@ -7,6 +7,8 @@ import { DashboardTabs, ViewToggle } from "@/components/index/DashboardTabs";
 import ScoreMatrix from "@/components/index/ScoreMatrix";
 import WorldHeatMap, { type MapCountry } from "@/components/index/WorldHeatMap";
 import LinksPanel from "@/components/index/LinksPanel";
+import ConsultingQuestion from "@/components/index/ConsultingQuestion";
+import { exportItemsCsv } from "@/lib/exportCsv";
 
 type Item = { key: string; domain: string; tier: string; mean: number | null; n: number };
 /** Drivers/Journey are unscored (option-selection rates, not means) — reported
@@ -38,7 +40,12 @@ type Dash = {
   exploration_tiers?: Record<string, number | null>;
   exploration_domains?: Record<string, number | null>;
   exploration_matrix?: Record<string, Record<string, number | null>>;
+  /** Present on org_dashboard_season() responses; absent from plain org_dashboard(). */
+  season?: { start: string | null; end: string | null };
 };
+
+/** One entry from org_seasons() — drives the season-picker dropdown. */
+type Season = { label: string; start: string | null; end: string | null; n: number };
 
 type BenchmarkScope = { available: boolean; n: number; index: number | null; tiers?: Record<string, number | null> | null };
 type Benchmark = {
@@ -127,6 +134,14 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
   const [showDetail, setShowDetail] = useState(false);
   const [collabCountries, setCollabCountries] = useState<MapCountry[]>([]);
 
+  // The season picker (org_seasons()/org_dashboard_season(), migration 0030).
+  // seasons[0] is always "All time" (start/end both null) — see the RPC's own
+  // contract. seasonIdx indexes into it; -1 means "not chosen yet" (before
+  // org_seasons() has returned), which the UI treats the same as "All time".
+  const [seasons, setSeasons] = useState<Season[] | null>(null);
+  const [seasonIdx, setSeasonIdx] = useState(0);
+  const [exporting, setExporting] = useState<"all" | "season" | null>(null);
+
   const load = useCallback(async () => {
     if (!sb) return;
     const { data: s } = await sb.auth.getSession();
@@ -149,13 +164,32 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
     }
 
     setDemoPreview(false);
-    const { data, error } = await sb.rpc("org_dashboard", { p_org_slug: slug });
+    // org_dashboard_season() with both bounds null is behaviourally identical
+    // to org_dashboard() (see migration 0030) — using it here, always, means
+    // there's one code path for "All time" and every named season, instead of
+    // two dashboard RPCs to keep in sync.
+    const { data, error } = await sb.rpc("org_dashboard_season", {
+      p_org_slug: slug, p_season_start: null, p_season_end: null,
+    });
     if (error) { setNeedsClaim(true); } else { setDash(data as Dash); setNeedsClaim(false); }
     const { data: b } = await sb.rpc("org_benchmark", { p_org_slug: slug });
     if (b) setBench(b as Benchmark);
+    const { data: sea, error: seaErr } = await sb.rpc("org_seasons", { p_org_slug: slug });
+    if (!seaErr && sea) setSeasons(sea as Season[]);
+    setSeasonIdx(0);
   }, [sb, slug]);
 
   useEffect(() => { load(); }, [load]);
+
+  const changeSeason = useCallback(async (idx: number) => {
+    if (!sb || !seasons?.[idx]) return;
+    setSeasonIdx(idx);
+    const picked = seasons[idx];
+    const { data, error } = await sb.rpc("org_dashboard_season", {
+      p_org_slug: slug, p_season_start: picked.start, p_season_end: picked.end,
+    });
+    if (!error && data) setDash(data as Dash);
+  }, [sb, slug, seasons]);
 
   async function signIn() {
     if (!sb || !email) return;
@@ -246,12 +280,68 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
       )}
       {dash && !dash.suppressed && (
         <>
-          <div className="flex items-baseline justify-between">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-xl font-bold">{dash.org.name}</h2>
             <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
               {dash.n.toLocaleString()} responses {dash.org.verified ? "· verified" : ""}
             </span>
           </div>
+
+          {!demoPreview && seasons && seasons.length > 1 && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-wider text-muted">Season:</span>
+              <select
+                value={seasonIdx}
+                onChange={(e) => changeSeason(Number(e.target.value))}
+                className="rounded-lg border border-rule bg-paper px-2.5 py-1.5 text-[13px] font-semibold text-ink"
+              >
+                {seasons.map((se, i) => (
+                  <option key={se.label} value={i}>
+                    {se.label} ({se.n.toLocaleString()})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {!demoPreview && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-wider text-muted">Export:</span>
+              <button
+                type="button"
+                disabled={exporting !== null}
+                onClick={async () => {
+                  setExporting("all");
+                  const { data } = await sb.rpc("org_dashboard_season", {
+                    p_org_slug: slug, p_season_start: null, p_season_end: null,
+                  });
+                  if (data) exportItemsCsv(data as Dash, `${slug}-all-time`);
+                  setExporting(null);
+                }}
+                className="rounded-lg border border-rule px-3 py-1.5 text-[13px] font-semibold text-ink disabled:opacity-50"
+              >
+                All data (CSV)
+              </button>
+              {seasons && seasonIdx > 0 && (
+                <button
+                  type="button"
+                  disabled={exporting !== null}
+                  onClick={() => {
+                    exportItemsCsv(dash, `${slug}-${seasons[seasonIdx].label}`);
+                  }}
+                  className="rounded-lg border border-rule px-3 py-1.5 text-[13px] font-semibold text-ink disabled:opacity-50"
+                >
+                  This season (CSV)
+                </button>
+              )}
+              <a
+                href={`/${slug}/dashboard/export?tier=${mapTier}`}
+                className="rounded-lg border border-rule px-3 py-1.5 text-[13px] font-semibold text-ink no-underline"
+              >
+                Heat map + Matrix (PDF) →
+              </a>
+            </div>
+          )}
 
           {bench && (
             <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -461,7 +551,10 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
 
           <p className="mt-6 font-mono text-[9px] uppercase tracking-wider text-muted">
             Aggregates only — never individual responses. Of those who completed the Index.
+            {seasons && seasonIdx > 0 && " The benchmark above compares to the Collab's all-time baseline, not this season alone."}
           </p>
+
+          {!demoPreview && <ConsultingQuestion sb={sb} orgSlug={slug} />}
         </>
       )}
 
