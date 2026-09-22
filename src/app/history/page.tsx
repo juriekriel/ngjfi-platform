@@ -138,7 +138,7 @@ export default function HistoryPage() {
               <p className="max-w-measure text-[16px] leading-relaxed text-ink-2">
                 The three questions are <i>what</i> we measure. The four tiers are <i>how deep it has
                 gone</i>. Every item in the instrument carries exactly one of each, which is what makes
-                a single four-minute survey readable through two completely different lenses.
+                a single seven-minute survey readable through two completely different lenses.
               </p>
               <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
                 Read across a row and you learn how far one question has travelled. Read down a column
