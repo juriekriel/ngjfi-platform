@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * "Your Organization" — the tab that used to be the homepage's "What you get
+ * "Your Organisation" — the tab that used to be the homepage's "What you get
  * out of it" section, now with somewhere of its own to live and a second job:
  * once you're signed in, it's your entry point straight to your own
  * dashboard(s), instead of another explainer you already know.
@@ -48,7 +48,7 @@ const CARDS = [
   },
 ] as const;
 
-export default function OrganizationView() {
+export default function OrganisationView() {
   const sb = useMemo(() => getSupabaseBrowser(), []);
   const [ctx, setCtx] = useState<Context | null>(null);
 

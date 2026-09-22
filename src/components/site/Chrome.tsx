@@ -23,7 +23,7 @@ export function Masthead({ edition }: { edition?: string }) {
           <NavLink href="/learn">What is the Index</NavLink>
           <NavLink href="/tour">How it works</NavLink>
           <NavLink href="/intelligence">A Global Picture</NavLink>
-          <NavLink href="/organization">Your Organization</NavLink>
+          <NavLink href="/organisation">Your Organisation</NavLink>
           <NavLink href="/history">How did we get here</NavLink>
           <NavLink href="/access">Sign in</NavLink>
           <Link

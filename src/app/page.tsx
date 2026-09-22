@@ -9,7 +9,7 @@ import { J12Grid } from "@/components/index/Figures";
  * Kept deliberately short: the title, one paragraph, the J12, and three doors
  * out. Everything the old page explained at length — what you get out of it,
  * what it measures, why crowdsourcing changes what's possible, the five ways
- * in — now lives on the page built for it (Your Organization, How it works,
+ * in — now lives on the page built for it (Your Organisation, How it works,
  * How did we get here, Join), reachable from the nav on every single screen.
  * A front page's job is to get someone to the right door fast, not to be the
  * whole book.
@@ -54,10 +54,10 @@ export default function Home() {
                 Join the Index →
               </Link>
               <Link
-                href="/organization"
+                href="/organisation"
                 className="rounded-lg border border-ink px-5 py-3 text-[14px] font-semibold text-ink no-underline hover:bg-ink hover:text-paper"
               >
-                Your Organization →
+                Your Organisation →
               </Link>
             </div>
           </div>
@@ -81,10 +81,9 @@ export default function Home() {
             <div>
               <h2 className="text-[30px] leading-tight">Organisations are joining now.</h2>
               <p className="mt-3 max-w-measure text-[17px] leading-relaxed text-ink-2">
-                From every region, each one adding to a benchmark worth having. Your own results
-                appear the moment you run the Index — a national comparison appears once enough
-                organisations near you have taken part. Which is the best reason to bring the people
-                you already work alongside.
+                Your own results appear the moment you run the Index, with a national comparison
+                appears once enough organisations near you have taken part. So, who should join you
+                next?
               </p>
             </div>
             <div className="flex flex-col gap-3">

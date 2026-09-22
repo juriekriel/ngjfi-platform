@@ -14,6 +14,7 @@ import {
   DOMAIN_LABEL,
   DOMAIN_SHORT,
   EMERALD,
+  GREEN,
   MATRIX_PHRASE,
   NAVY,
   RULE,
@@ -21,6 +22,8 @@ import {
   TIER_TINT,
   TIER_GLOSS,
   TIER_LABEL,
+  VERMILLION,
+  VIOLET,
   delta,
   fig,
   heat,
@@ -326,42 +329,137 @@ export function IntegrityNote({ extra }: { extra?: string }) {
 /* ── 08 · the J12 diagram ─────────────────────────────────────────────── */
 
 /**
- * The J12's own diagram: twelve cells, six of them lit — a cross among the
- * twelve. Round One's cross-grid, re-read; the geometry gained a second meaning
- * by changing nothing.
- *
- * Used where the front page needs a visual anchor that carries the idea without
- * putting a single fabricated figure on screen. Twelve items, twelve disciples,
- * one shape.
+ * The five colours used everywhere else on the platform (see globals.css /
+ * CLAUDE.md's design system), in one fixed order. Defined here rather than
+ * pulled in as a new export from lib/model — this is the only place the full
+ * five-colour set is used together as a *palette* rather than as individual
+ * semantic tokens (green = up, vermillion = down, navy = levels, violet = a
+ * domain accent, emerald = the brand's working colour).
+ */
+const PLATFORM_PALETTE = [EMERALD, NAVY, GREEN, VIOLET, VERMILLION];
+
+/**
+ * The J12's own diagram: twelve cells, one colour from the platform's full
+ * five-colour palette in each — not a fabricated figure, just the shape of
+ * "twelve items, drawn from everywhere." Used where the front page needs a
+ * visual anchor that carries the idea without putting a single number on
+ * screen. Twelve items, twelve disciples, one shared instrument.
  */
 export function J12Grid({ className = "" }: { className?: string }) {
   const COLS = 4;
   const ROWS = 3;
-  // Vertical bar down column 1, horizontal bar across row 1 → exactly six cells.
-  const lit = (r: number, c: number) => c === 1 || r === 1;
 
   return (
     <figure className={className}>
       <div className="grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
-        {Array.from({ length: ROWS * COLS }, (_, i) => {
-          const r = Math.floor(i / COLS);
-          const c = i % COLS;
-          const on = lit(r, c);
-          return (
-            <div
-              key={i}
-              aria-hidden="true"
-              className="aspect-square rounded-md"
-              style={{
-                background: on ? TIER_TINT[TIERS[c]].bg : "transparent",
-                border: on ? "none" : `1px solid ${RULE}`,
-              }}
-            />
-          );
-        })}
+        {Array.from({ length: ROWS * COLS }, (_, i) => (
+          <div
+            key={i}
+            aria-hidden="true"
+            className="aspect-square rounded-md"
+            style={{ background: PLATFORM_PALETTE[i % PLATFORM_PALETTE.length] }}
+          />
+        ))}
       </div>
       <figcaption className="figcap mt-3 leading-relaxed">
-        The J12 — twelve items, and a cross among them
+        The J12 — twelve items, one shared instrument
+      </figcaption>
+    </figure>
+  );
+}
+
+/* ── 09 · the branching diagram ───────────────────────────────────────── */
+
+/**
+ * The shape of the survey itself — one screener, two honest tracks, the same
+ * four tiers asked of both, one optional last step. Deliberately schematic:
+ * this draws the *philosophy* (nobody is asked to answer as something they
+ * are not; depth is measured the same way regardless of where someone
+ * starts), not the real branching engine's full rule set. For the live rules
+ * themselves, actually evaluated against the real instrument, see the
+ * "It stops asking what it shouldn't" beat on /tour — this figure and that
+ * one are answering different questions on purpose.
+ *
+ * The two tracks mirror src/data/instrument.v4.json's own `branch: "engaged"
+ * | "unengaged"` split: someone already following Jesus feeds the official
+ * Index; everyone else — exploring, undecided, or following something else —
+ * feeds a separate Exploration Index that is never blended with it (see the
+ * branch field's own comment in src/lib/instrument.ts). Both are asked
+ * across the same four tiers, worded for where they actually are.
+ */
+const BRANCH_TRACKS = [
+  { key: "following", label: "Already following Jesus", note: "feeds the Index" },
+  { key: "exploring", label: "Not yet — exploring, undecided, or another faith", note: "feeds the Exploration Index, kept apart" },
+] as const;
+
+export function BranchDiagram({ className = "" }: { className?: string }) {
+  return (
+    <figure className={className}>
+      <div className="flex justify-center">
+        <div className="rounded-lg border-2 border-ink px-4 py-2 text-center text-[13px] font-semibold leading-snug text-ink">
+          One question: where are you right now?
+        </div>
+      </div>
+
+      <svg
+        viewBox="0 0 200 44"
+        className="mx-auto mt-1 block h-11 w-full max-w-[260px]"
+        aria-hidden="true"
+      >
+        <path
+          d="M 100 0 L 100 14 M 100 14 L 30 40 M 100 14 L 170 40"
+          fill="none"
+          stroke={RULE}
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+      </svg>
+
+      <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+        {BRANCH_TRACKS.map((track) => (
+          <div key={track.key}>
+            <p className="text-center text-[13.5px] font-semibold leading-snug text-ink">
+              {track.label}
+            </p>
+            <div className="mt-2.5 grid grid-cols-4 gap-[3px]">
+              {TIERS.map((tk) => (
+                <div
+                  key={tk}
+                  className="rounded-md px-1 py-2.5 text-center text-[9.5px] font-semibold uppercase tracking-[0.03em]"
+                  style={{ background: TIER_TINT[tk].bg, color: TIER_TINT[tk].fg }}
+                >
+                  {TIER_LABEL[tk]}
+                </div>
+              ))}
+            </div>
+            <p className="figcap mt-2 text-center">{track.note}</p>
+          </div>
+        ))}
+      </div>
+
+      <svg
+        viewBox="0 0 200 30"
+        className="mx-auto mt-1 block h-[26px] w-full max-w-[260px]"
+        aria-hidden="true"
+      >
+        <path
+          d="M 30 0 L 100 26 M 170 0 L 100 26"
+          fill="none"
+          stroke={RULE}
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+      </svg>
+
+      <div className="flex justify-center">
+        <div className="rounded-lg border border-rule bg-paper-deep px-4 py-2 text-center text-[12.5px] leading-snug text-ink-2">
+          Optional — a few more questions about their own journey
+        </div>
+      </div>
+
+      <figcaption className="figcap mt-4 leading-relaxed">
+        One screener, two honest tracks, the same four tiers asked of both — then an optional last
+        step for anyone willing to say more.
       </figcaption>
     </figure>
   );

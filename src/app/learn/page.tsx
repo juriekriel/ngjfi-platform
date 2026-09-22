@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Masthead } from "@/components/site/Chrome";
-import { Matrix, Plate } from "@/components/index/Figures";
+import { BranchDiagram, Matrix, Plate } from "@/components/index/Figures";
 
 export const metadata = {
   title: "What is the Index — The Jesus Index",
@@ -61,6 +61,32 @@ export default function LearnPage() {
           </div>
         </section>
 
+        {/* how someone moves through it */}
+        <section className="border-t-2 border-ink py-10">
+          <div className="grid gap-9 md:grid-cols-[1fr_1.7fr] md:gap-12">
+            <div>
+              <p className="figcap">How someone moves through it</p>
+              <h2 className="mt-2 text-[27px] leading-tight">
+                Nobody is asked to answer as something they are not.
+              </h2>
+              <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
+                One opening question sorts a respondent onto one of two honest tracks — already
+                following Jesus, or not yet. From there both tracks are asked across the same four
+                tiers, worded for where they actually are, so the depth of the journey is always
+                measured the same way.
+              </p>
+              <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
+                Someone exploring never contributes to the official Index — their answers feed a
+                separate Exploration Index instead, kept apart from it entirely. At the end, anyone
+                willing can add a few optional questions about their own journey.
+              </p>
+            </div>
+            <Plate label="The two tracks · the model" figure="Fig. 02">
+              <BranchDiagram />
+            </Plate>
+          </div>
+        </section>
+
         {/* how it runs */}
         <section className="border-t-2 border-ink py-10">
           <div className="grid gap-8 sm:grid-cols-3">
@@ -115,7 +141,7 @@ export default function LearnPage() {
         {/* onward */}
         <section className="py-10">
           <div className="grid gap-4 sm:grid-cols-3">
-            <Link href="/organization" className="border-t-2 border-ink pt-3 no-underline">
+            <Link href="/organisation" className="border-t-2 border-ink pt-3 no-underline">
               <p className="figcap">For your organisation</p>
               <p className="mt-2 text-[18px] leading-snug">What you get out of it →</p>
               <p className="margin-note mt-1">A diagnosis, benchmarked, under your own brand.</p>
