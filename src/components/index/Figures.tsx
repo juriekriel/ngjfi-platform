@@ -365,6 +365,11 @@ export function J12Grid({ className = "" }: { className?: string }) {
     const i = LIT_ORDER.findIndex(([lr, lc]) => lr === r && lc === c);
     return i === -1 ? null : PLATFORM_GRADIENT[i % PLATFORM_GRADIENT.length];
   };
+  // Every colour here is `rgb(var(--c-name))`, not a hex literal (see
+  // src/lib/model.ts's token()), so a light tint needs the CSS Color 4
+  // `/ alpha` syntax rather than a hex-alpha suffix — inserted just before
+  // the closing paren.
+  const lighten = (colour: string, alpha: number) => `${colour.slice(0, -1)} / ${alpha})`;
 
   return (
     <figure className={className}>
@@ -383,7 +388,7 @@ export function J12Grid({ className = "" }: { className?: string }) {
                 // hue (left = light, right = dark) rather than a flat fill —
                 // the five colours stay exactly what they were, only how each
                 // box renders them changes.
-                background: colour ? `linear-gradient(to right, ${colour}33, ${colour})` : "transparent",
+                background: colour ? `linear-gradient(to right, ${lighten(colour, 0.22)}, ${colour})` : "transparent",
                 border: colour ? "none" : `1px solid ${RULE}`,
               }}
             />
