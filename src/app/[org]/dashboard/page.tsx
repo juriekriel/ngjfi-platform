@@ -1,9 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { instrument, t } from "@/lib/instrument";
+import { DashboardTabs, ViewToggle } from "@/components/index/DashboardTabs";
+import ScoreMatrix from "@/components/index/ScoreMatrix";
+import WorldHeatMap, { type MapCountry } from "@/components/index/WorldHeatMap";
+import LinksPanel from "@/components/index/LinksPanel";
+import ConsultingQuestion from "@/components/index/ConsultingQuestion";
+import { exportItemsCsv } from "@/lib/exportCsv";
 
 type Item = { key: string; domain: string; tier: string; mean: number | null; n: number };
 /** Drivers/Journey are unscored (option-selection rates, not means) — reported
@@ -22,7 +27,25 @@ type Dash = {
   items: Item[];
   trend?: { year: number; index: number }[] | null;
   insights?: Record<string, InsightAgg>;
+  /**
+   * The Exploration Index — v4's parallel figure for respondents who took the
+   * Unengaged branch (migration 0026). Absent from org_dashboard_demo(), so
+   * always optional. A SEPARATE figure with its own n and its own
+   * suppression state — never summed, averaged, or otherwise blended with
+   * index/tiers/domains/matrix above (CLAUDE.md non-negotiable on scoring).
+   */
+  exploration_n?: number;
+  exploration_suppressed?: boolean;
+  exploration_index?: number | null;
+  exploration_tiers?: Record<string, number | null>;
+  exploration_domains?: Record<string, number | null>;
+  exploration_matrix?: Record<string, Record<string, number | null>>;
+  /** Present on org_dashboard_season() responses; absent from plain org_dashboard(). */
+  season?: { start: string | null; end: string | null };
 };
+
+/** One entry from org_seasons() — drives the season-picker dropdown. */
+type Season = { label: string; start: string | null; end: string | null; n: number };
 
 type BenchmarkScope = { available: boolean; n: number; index: number | null; tiers?: Record<string, number | null> | null };
 type Benchmark = {
@@ -61,7 +84,11 @@ const INSIGHT_ITEMS = instrument.items
 const labelFor = (key: string) => ITEM_LABEL[key] ?? key;
 const fmt = (n: number | null | undefined) => (n === null || n === undefined ? "—" : String(n));
 const green = (v: number | null) =>
-  v === null || v === undefined ? "transparent" : `rgba(63,157,114,${Math.max(0.08, v / 100)})`;
+  v === null || v === undefined ? "transparent" : `rgba(63,157,114,${Math.max(0.08, v / 5.5)})`;
+// The Exploration Index's own colour — violet, never the Index's emerald/coral,
+// so the two figures never look like the same measure at a glance.
+const violet = (v: number | null) =>
+  v === null || v === undefined ? "transparent" : `rgba(139,92,246,${Math.max(0.08, v / 5.5)})`;
 
 /** One pill in the compare-to row. Disabled (not hidden) below the gate, so
  * an org can see the comparison exists and roughly how far off it is. */
@@ -96,10 +123,36 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
   // organisation is flagged is_demo. Real orgs never reach this state.
   const [demoPreview, setDemoPreview] = useState(false);
 
+  // Two switchable views instead of one long scroll (locked Phase 2 brief).
+  // Matrix is the J12 scoring grid; Heat map is the same real-world map
+  // Collab Intelligence shows — an org sees the same Collab-wide picture for
+  // context, never a fabricated per-org geography. mapTier picks which of
+  // the four tiers the map colours by; showDetail reveals the rest (trend,
+  // per-item table, drivers/journey, exploration index) below the toggle.
+  const [view, setView] = useState<"matrix" | "heatmap">("matrix");
+  const [mapTier, setMapTier] = useState("formation");
+  const [showDetail, setShowDetail] = useState(false);
+  const [collabCountries, setCollabCountries] = useState<MapCountry[]>([]);
+
+  // The season picker (org_seasons()/org_dashboard_season(), migration 0030).
+  // seasons[0] is always "All time" (start/end both null) — see the RPC's own
+  // contract. seasonIdx indexes into it; -1 means "not chosen yet" (before
+  // org_seasons() has returned), which the UI treats the same as "All time".
+  const [seasons, setSeasons] = useState<Season[] | null>(null);
+  const [seasonIdx, setSeasonIdx] = useState(0);
+  const [exporting, setExporting] = useState<"all" | "season" | null>(null);
+
   const load = useCallback(async () => {
     if (!sb) return;
     const { data: s } = await sb.auth.getSession();
     setAuthed(Boolean(s.session));
+
+    // The heat map's data — public, gated server-side (country_critical_mass_gate,
+    // migration 0020), so it's safe to read regardless of sign-in state.
+    sb.rpc("collab_intelligence").then(({ data }) => {
+      const countries = (data as { countries?: MapCountry[] } | null)?.countries;
+      if (countries) setCollabCountries(countries);
+    });
 
     if (!s.session) {
       // No sign-in: offer the public preview, which the database only serves for
@@ -111,13 +164,32 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
     }
 
     setDemoPreview(false);
-    const { data, error } = await sb.rpc("org_dashboard", { p_org_slug: slug });
+    // org_dashboard_season() with both bounds null is behaviourally identical
+    // to org_dashboard() (see migration 0030) — using it here, always, means
+    // there's one code path for "All time" and every named season, instead of
+    // two dashboard RPCs to keep in sync.
+    const { data, error } = await sb.rpc("org_dashboard_season", {
+      p_org_slug: slug, p_season_start: null, p_season_end: null,
+    });
     if (error) { setNeedsClaim(true); } else { setDash(data as Dash); setNeedsClaim(false); }
     const { data: b } = await sb.rpc("org_benchmark", { p_org_slug: slug });
     if (b) setBench(b as Benchmark);
+    const { data: sea, error: seaErr } = await sb.rpc("org_seasons", { p_org_slug: slug });
+    if (!seaErr && sea) setSeasons(sea as Season[]);
+    setSeasonIdx(0);
   }, [sb, slug]);
 
   useEffect(() => { load(); }, [load]);
+
+  const changeSeason = useCallback(async (idx: number) => {
+    if (!sb || !seasons?.[idx]) return;
+    setSeasonIdx(idx);
+    const picked = seasons[idx];
+    const { data, error } = await sb.rpc("org_dashboard_season", {
+      p_org_slug: slug, p_season_start: picked.start, p_season_end: picked.end,
+    });
+    if (!error && data) setDash(data as Dash);
+  }, [sb, slug, seasons]);
 
   async function signIn() {
     if (!sb || !email) return;
@@ -208,12 +280,68 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
       )}
       {dash && !dash.suppressed && (
         <>
-          <div className="flex items-baseline justify-between">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-xl font-bold">{dash.org.name}</h2>
             <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
               {dash.n.toLocaleString()} responses {dash.org.verified ? "· verified" : ""}
             </span>
           </div>
+
+          {!demoPreview && seasons && seasons.length > 1 && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-wider text-muted">Season:</span>
+              <select
+                value={seasonIdx}
+                onChange={(e) => changeSeason(Number(e.target.value))}
+                className="rounded-lg border border-rule bg-paper px-2.5 py-1.5 text-[13px] font-semibold text-ink"
+              >
+                {seasons.map((se, i) => (
+                  <option key={se.label} value={i}>
+                    {se.label} ({se.n.toLocaleString()})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {!demoPreview && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-wider text-muted">Export:</span>
+              <button
+                type="button"
+                disabled={exporting !== null}
+                onClick={async () => {
+                  setExporting("all");
+                  const { data } = await sb.rpc("org_dashboard_season", {
+                    p_org_slug: slug, p_season_start: null, p_season_end: null,
+                  });
+                  if (data) exportItemsCsv(data as Dash, `${slug}-all-time`);
+                  setExporting(null);
+                }}
+                className="rounded-lg border border-rule px-3 py-1.5 text-[13px] font-semibold text-ink disabled:opacity-50"
+              >
+                All data (CSV)
+              </button>
+              {seasons && seasonIdx > 0 && (
+                <button
+                  type="button"
+                  disabled={exporting !== null}
+                  onClick={() => {
+                    exportItemsCsv(dash, `${slug}-${seasons[seasonIdx].label}`);
+                  }}
+                  className="rounded-lg border border-rule px-3 py-1.5 text-[13px] font-semibold text-ink disabled:opacity-50"
+                >
+                  This season (CSV)
+                </button>
+              )}
+              <a
+                href={`/${slug}/dashboard/export?tier=${mapTier}`}
+                className="rounded-lg border border-rule px-3 py-1.5 text-[13px] font-semibold text-ink no-underline"
+              >
+                Heat map + Matrix (PDF) →
+              </a>
+            </div>
+          )}
 
           {bench && (
             <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -261,11 +389,11 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                   <div key={tk} className="flex items-center gap-2 text-xs">
                     <span className="w-24 shrink-0 text-slate">{TIER_LABEL[tk]}</span>
                     <div className="relative h-2.5 flex-1 rounded bg-paper-deep">
-                      <div className="h-full rounded" style={{ width: `${dash.tiers?.[tk] ?? 0}%`, background: tk === "multiplication" ? "#ff7a47" : "#3f9d72" }} />
+                      <div className="h-full rounded" style={{ width: `${((dash.tiers?.[tk] ?? 0) / 5) * 100}%`, background: tk === "multiplication" ? "#ff7a47" : "#3f9d72" }} />
                       {baseline?.tiers?.[tk] != null && (
                         <div
                           className="absolute top-0 h-full w-[2px] bg-ink"
-                          style={{ left: `${baseline.tiers[tk]}%` }}
+                          style={{ left: `${((baseline.tiers[tk] ?? 0) / 5) * 100}%` }}
                           title={`${baselineLabel} average: ${baseline.tiers[tk]}`}
                         />
                       )}
@@ -277,38 +405,75 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
             </div>
           </div>
 
-          {/* by question + matrix */}
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <div className="rounded-lg border border-rule bg-paper p-4">
-              <div className="font-mono text-[9px] uppercase tracking-wider text-muted">By question</div>
-              <div className="mt-3 space-y-2.5">
-                {DOMAINS.map((dk) => (
-                  <div key={dk} className="text-sm">
-                    <div className="flex justify-between"><span>{DOMAIN_LABEL[dk]}</span><b>{fmt(dash.domains?.[dk])}</b></div>
-                    <div className="mt-1 h-2 rounded bg-paper-deep"><div className="h-full rounded bg-bench" style={{ width: `${dash.domains?.[dk] ?? 0}%` }} /></div>
-                  </div>
+          {/* Two switchable views — Matrix or Heat map — instead of a long
+              scroll (locked Phase 2 brief). Compare-to-Collab (the pills
+              above) overlays onto the Matrix only, and only at this org's
+              own total ("house") level — there is no room-level view yet. */}
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <ViewToggle view={view} onChange={setView} />
+            {view === "heatmap" && (
+              <div className="flex flex-wrap gap-1">
+                {TIERS.map((tk) => (
+                  <button
+                    key={tk}
+                    onClick={() => setMapTier(tk)}
+                    className={`rounded-full border px-3 py-1 text-[13px] font-semibold ${
+                      mapTier === tk ? "border-ink bg-ink text-paper" : "border-rule text-slate"
+                    }`}
+                  >
+                    {TIER_LABEL[tk]}
+                  </button>
                 ))}
               </div>
-            </div>
-            <div className="rounded-lg border border-rule bg-paper p-4">
-              <div className="font-mono text-[9px] uppercase tracking-wider text-muted">Questions × tiers</div>
-              <table className="mt-3 w-full border-separate border-spacing-1 text-center text-xs">
-                <thead><tr><th /></tr></thead>
-                <tbody>
-                  {DOMAINS.map((dk) => (
-                    <tr key={dk}>
-                      <td className="text-left text-[11px]">{DOMAIN_LABEL[dk]}</td>
-                      {TIERS.map((tk) => {
-                        const v = dash.matrix?.[dk]?.[tk] ?? null;
-                        return <td key={tk} className="rounded py-2 font-semibold" style={{ background: green(v), color: v !== null && v >= 55 ? "#fff" : "#22252b" }}>{fmt(v)}</td>;
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            )}
           </div>
 
+          <div className="mt-3 rounded-lg border border-rule bg-paper p-4">
+            {view === "matrix" ? (
+              // org_benchmark() only returns a tier-level baseline (see the
+              // "The journey" bars above, which already mark it per tier) —
+              // not a full domain×tier matrix, so there's nothing accurate
+              // to overlay per cell here yet. Compare-to-Collab stays visible
+              // via the pills + journey bars while viewing the Matrix.
+              <ScoreMatrix matrix={dash.matrix} />
+            ) : (
+              <>
+                <p className="mb-3 text-xs text-slate">
+                  The same picture Collab Intelligence shows — nations coloured by score once a country
+                  has cleared its own benchmark threshold.
+                </p>
+                <WorldHeatMap countries={collabCountries} tier={mapTier} />
+              </>
+            )}
+          </div>
+
+          {!demoPreview && (
+            <div className="mt-4">
+              <LinksPanel sb={sb} orgSlug={slug} />
+            </div>
+          )}
+
+          {!demoPreview && (
+            <p className="mt-4 text-[13px] text-slate">
+              Sharing on social media or a flyer? Your public landing page — branding, no survey
+              questions on it yet — is at{" "}
+              <a href={`/${slug}/welcome`} target="_blank" rel="noreferrer" className="font-semibold text-accent">
+                jfindx.org/{slug}/welcome
+              </a>
+              .
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setShowDetail((v) => !v)}
+            className="mt-4 text-[13px] font-semibold text-accent"
+          >
+            {showDetail ? "Hide more detail ▲" : "Show more detail ▾"}
+          </button>
+
+          {showDetail && (
+          <>
           {/* trend over waves */}
           {dash.trend && dash.trend.length > 1 && (
             <div className="mt-4 rounded-lg border border-rule bg-paper p-4">
@@ -317,7 +482,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                 {dash.trend.map((p) => (
                   <div key={p.year} className="flex flex-col items-center gap-1">
                     <div className="text-xs font-bold">{p.index}</div>
-                    <div className="w-10 rounded-t bg-moss" style={{ height: `${Math.max(6, (p.index / 100) * 90)}px` }} />
+                    <div className="w-10 rounded-t bg-moss" style={{ height: `${Math.max(6, (p.index / 5) * 90)}px` }} />
                     <div className="font-mono text-[10px] text-muted">{p.year}</div>
                   </div>
                 ))}
@@ -392,11 +557,122 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
               </p>
             </div>
           )}
+          </>
+          )}
 
           <p className="mt-6 font-mono text-[9px] uppercase tracking-wider text-muted">
             Aggregates only — never individual responses. Of those who completed the Index.
+            {seasons && seasonIdx > 0 && " The benchmark above compares to the Collab's all-time baseline, not this season alone."}
           </p>
+
+          {!demoPreview && <ConsultingQuestion sb={sb} orgSlug={slug} />}
         </>
+      )}
+
+      {/* The Exploration Index — v4's parallel figure for the Unengaged branch
+          (migration 0026). Rendered independently of the block above: the two
+          figures are suppressed on their own separate n, so an org can clear
+          one gate without clearing the other. Never shown as part of, or
+          combined with, the Index score above. */}
+      {dash && typeof dash.exploration_n === "number" && dash.exploration_n > 0 && (
+        <div className="mt-6 rounded-lg border-2 border-violet bg-paper p-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <div className="font-mono text-[9px] uppercase tracking-wider text-violet">
+              The Exploration Index — not the Index score
+            </div>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
+              n = {dash.exploration_n.toLocaleString()}
+            </span>
+          </div>
+          <p className="mt-1.5 max-w-lg text-xs leading-relaxed text-slate">
+            A separate, equally-structured measure for respondents who don&apos;t yet identify as
+            followers of Jesus. Same 3×4 model, same math as the Index above — never summed,
+            averaged, or otherwise blended with it.
+          </p>
+
+          {dash.exploration_suppressed ? (
+            <p className="mt-4 text-sm text-slate">
+              {dash.exploration_n} of {dash.min_group_n ?? 10} needed before we show a score.
+            </p>
+          ) : (
+            <>
+              <div className="mt-4 grid gap-4 sm:grid-cols-[160px_1fr]">
+                <div className="rounded-lg border border-rule bg-paper-deep p-4">
+                  <div className="font-mono text-[9px] uppercase tracking-wider text-muted">Exploration score</div>
+                  <div className="mt-2 text-4xl font-bold text-violet">{fmt(dash.exploration_index)}</div>
+                </div>
+                <div className="rounded-lg border border-rule bg-paper-deep p-4">
+                  <div className="font-mono text-[9px] uppercase tracking-wider text-muted">The journey</div>
+                  <div className="mt-2 space-y-1.5">
+                    {TIERS.map((tk) => (
+                      <div key={tk} className="flex items-center gap-2 text-xs">
+                        <span className="w-24 shrink-0 text-slate">{TIER_LABEL[tk]}</span>
+                        <div className="h-2.5 flex-1 rounded bg-paper">
+                          <div
+                            className="h-full rounded bg-navy"
+                            style={{ width: `${((dash.exploration_tiers?.[tk] ?? 0) / 5) * 100}%` }}
+                          />
+                        </div>
+                        <b className="w-7 text-right">{fmt(dash.exploration_tiers?.[tk])}</b>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="rounded-lg border border-rule bg-paper-deep p-4">
+                  <div className="font-mono text-[9px] uppercase tracking-wider text-muted">By question</div>
+                  <div className="mt-3 space-y-2.5">
+                    {DOMAINS.map((dk) => (
+                      <div key={dk} className="text-sm">
+                        <div className="flex justify-between">
+                          <span>{DOMAIN_LABEL[dk]}</span>
+                          <b>{fmt(dash.exploration_domains?.[dk])}</b>
+                        </div>
+                        <div className="mt-1 h-2 rounded bg-paper">
+                          <div
+                            className="h-full rounded bg-navy"
+                            style={{ width: `${((dash.exploration_domains?.[dk] ?? 0) / 5) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-rule bg-paper-deep p-4">
+                  <div className="font-mono text-[9px] uppercase tracking-wider text-muted">Questions × tiers</div>
+                  <table className="mt-3 w-full border-separate border-spacing-1 text-center text-xs">
+                    <thead><tr><th /></tr></thead>
+                    <tbody>
+                      {DOMAINS.map((dk) => (
+                        <tr key={dk}>
+                          <td className="text-left text-[11px]">{DOMAIN_LABEL[dk]}</td>
+                          {TIERS.map((tk) => {
+                            const v = dash.exploration_matrix?.[dk]?.[tk] ?? null;
+                            return (
+                              <td
+                                key={tk}
+                                className="rounded py-2 font-semibold"
+                                style={{ background: violet(v), color: v !== null && v >= 3.2 ? "#fff" : "#22252b" }}
+                              >
+                                {fmt(v)}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+
+          <p className="mt-4 font-mono text-[9px] uppercase tracking-wider text-violet">
+            Aggregates only — never individual responses. Of those who completed the Index. Never blended with the Index score.
+          </p>
+        </div>
       )}
     </Shell>
   );
@@ -405,9 +681,9 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
 function Shell({ slug, children }: { slug: string; children: React.ReactNode }) {
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
-      <div className="flex items-center justify-between">
-        <div className="font-mono text-[10px] uppercase tracking-widest text-muted">{slug} · org dashboard</div>
-        <Link href="/intelligence" className="font-mono text-[10px] uppercase tracking-widest text-accent">Collab Intelligence →</Link>
+      <div className="font-mono text-[10px] uppercase tracking-widest text-muted">{slug} · org dashboard</div>
+      <div className="mt-3">
+        <DashboardTabs active="dashboard" orgSlug={slug} />
       </div>
       <div className="mt-4 rounded-xl border border-rule bg-card p-6">{children}</div>
     </main>

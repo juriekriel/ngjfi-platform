@@ -1,4 +1,4 @@
-import { Colophon, Masthead } from "@/components/site/Chrome";
+import { Masthead } from "@/components/site/Chrome";
 import Walkthrough from "./Walkthrough";
 
 export const metadata = {
@@ -14,7 +14,6 @@ export default function TourPage() {
       <main className="mx-auto max-w-5xl px-5">
         <Walkthrough />
       </main>
-      <Colophon />
     </>
   );
 }

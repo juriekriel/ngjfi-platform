@@ -44,28 +44,51 @@ export default function AccessForm() {
     }
 
     // Requesting also records the ask, so an address we have not admitted still
-    // reaches a person rather than silently failing.
+    // reaches a person rather than silently failing. Its own error used to be
+    // discarded — a request could look "sent" while nothing was recorded.
+    let requestRecorded = true;
     if (mode === "request") {
-      await sb.rpc("access_request", { p_email: email.trim(), p_reason: why.trim() || null });
+      try {
+        const { error: reqError } = await sb.rpc("access_request", {
+          p_email: email.trim(),
+          p_reason: why.trim() || null,
+        });
+        if (reqError) requestRecorded = false;
+      } catch {
+        requestRecorded = false;
+      }
     }
 
-    const { error } = await sb.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        emailRedirectTo:
-          typeof window !== "undefined" ? `${window.location.origin}/build` : undefined,
-      },
-    });
+    let otpError: { message: string } | null = null;
+    try {
+      const { error } = await sb.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo:
+            typeof window !== "undefined" ? `${window.location.origin}/build` : undefined,
+        },
+      });
+      otpError = error;
+    } catch (e) {
+      otpError = { message: e instanceof Error ? e.message : "unknown error" };
+    }
 
     setBusy(false);
-    if (error) {
+    if (otpError) {
       setError(
         mode === "request"
-          ? "We recorded the request but could not send the link just now. Someone will follow up by email."
+          ? requestRecorded
+            ? "We recorded the request but could not send the link just now. Someone will follow up by email."
+            : "We could not record the request or send the link just now. Please email us directly."
           : "We could not send the link just now. Try again in a moment, or request access below.",
       );
-      if (mode === "request") setSent(true);
+      if (mode === "request" && requestRecorded) setSent(true);
       return;
+    }
+    if (mode === "request" && !requestRecorded) {
+      // The link still went out, but the review-queue entry didn't save — say
+      // so, rather than letting the visitor believe both things happened.
+      setError("The sign-in link is on its way, but we could not record your request — please also email us directly so a person follows up.");
     }
     setSent(true);
   }
@@ -77,12 +100,12 @@ export default function AccessForm() {
   }
 
   const field =
-    "w-full border border-rule bg-plate px-3 py-2 text-[15px] text-ink outline-none focus:border-ink";
+    "w-full rounded-lg border border-rule bg-plate px-3 py-2 text-[15px] text-ink outline-none focus:border-ink";
   const label = "tabular block text-[10px] uppercase tracking-[0.14em] text-ink-2";
 
   if (signedIn)
     return (
-      <div className="border-2 border-ink p-6">
+      <div className="rounded-2xl border-2 border-ink p-6 shadow-sm">
         <p className="figcap">Signed in</p>
         <h2 className="mt-3 text-[24px] leading-tight">You&apos;re in.</h2>
         <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
@@ -90,14 +113,14 @@ export default function AccessForm() {
         </p>
         <Link
           href="/build"
-          className="tabular mt-5 block border-2 border-ink bg-ink px-5 py-3 text-center text-[11px] uppercase tracking-[0.14em] text-paper no-underline"
+          className="mt-5 block rounded-lg border-2 border-ink bg-ink px-5 py-3 text-center text-[14px] font-semibold text-paper no-underline"
         >
           Open the build room →
         </Link>
         <button
           type="button"
           onClick={signOut}
-          className="tabular mt-3 w-full border border-rule px-5 py-2.5 text-[11px] uppercase tracking-[0.14em] text-ink-2 hover:border-ink hover:text-ink"
+          className="mt-3 w-full rounded-lg border border-rule px-5 py-2.5 text-[14px] font-semibold text-ink-2 hover:border-ink hover:text-ink"
         >
           Sign out
         </button>
@@ -106,7 +129,7 @@ export default function AccessForm() {
 
   if (sent)
     return (
-      <div className="border-2 border-ink p-6">
+      <div className="rounded-2xl border-2 border-ink p-6 shadow-sm">
         <p className="figcap">{mode === "signin" ? "Link sent" : "Request recorded"}</p>
         <h2 className="mt-3 text-[24px] leading-tight">
           {mode === "signin" ? "Check your inbox." : "We have it."}
@@ -131,7 +154,7 @@ export default function AccessForm() {
             setSent(false);
             setError(null);
           }}
-          className="tabular mt-5 w-full border border-rule px-5 py-2.5 text-[11px] uppercase tracking-[0.14em] text-ink-2 hover:border-ink hover:text-ink"
+          className="mt-5 w-full rounded-lg border border-rule px-5 py-2.5 text-[14px] font-semibold text-ink-2 hover:border-ink hover:text-ink"
         >
           Use a different address
         </button>
@@ -139,7 +162,7 @@ export default function AccessForm() {
     );
 
   return (
-    <form onSubmit={submit} className="border-2 border-ink p-6">
+    <form onSubmit={submit} className="rounded-2xl border-2 border-ink p-6 shadow-sm">
       <p className="figcap">{mode === "signin" ? "Ministry email · no password" : "Ministry email required"}</p>
       <h2 className="mt-3 text-[24px] leading-tight">
         {mode === "signin" ? "Sign in" : "Request early access"}
@@ -200,7 +223,7 @@ export default function AccessForm() {
       <button
         type="submit"
         disabled={busy}
-        className="tabular mt-6 w-full border-2 border-ink bg-ink px-5 py-3 text-[11px] uppercase tracking-[0.14em] text-paper disabled:opacity-50"
+        className="mt-6 w-full rounded-lg border-2 border-ink bg-ink px-5 py-3 text-[14px] font-semibold text-paper disabled:opacity-50"
       >
         {busy
           ? "Sending…"

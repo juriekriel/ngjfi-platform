@@ -63,23 +63,60 @@ test("computeScores: tiers, domains, matrix, index, n", () => {
 
   assert.equal(r.n, 4);
   assert.equal(r.tiers.exposure, null);
-  assert.equal(r.tiers.response, 100);
-  assert.ok(near(r.tiers.formation, 66.7));
-  assert.equal(r.tiers.multiplication, 100);
+  assert.equal(r.tiers.response, 5);
+  assert.ok(near(r.tiers.formation, 3.67));
+  assert.equal(r.tiers.multiplication, 5);
 
-  assert.ok(near(r.domains.follow, 83.3)); // mean(100, 66.67)
-  assert.equal(r.domains.mission, 100);
-  assert.equal(r.domains.world, 100);
+  assert.ok(near(r.domains.follow, 4.33)); // mean(5, 3.67)
+  assert.equal(r.domains.mission, 5);
+  assert.equal(r.domains.world, 5);
 
-  assert.equal(r.matrix.follow.response, 100);
-  assert.ok(near(r.matrix.follow.formation, 66.7));
-  assert.equal(r.matrix.mission.multiplication, 100);
-  assert.equal(r.matrix.world.response, 100);
+  assert.equal(r.matrix.follow.response, 5);
+  assert.ok(near(r.matrix.follow.formation, 3.67));
+  assert.equal(r.matrix.mission.multiplication, 5);
+  assert.equal(r.matrix.world.response, 5);
   assert.equal(r.matrix.world.formation, null);
 
-  // index = mean of available tier scores (100, 66.7, 100)
-  assert.ok(near(r.index, 88.9));
-  assert.equal(r.scoringVersion, "v0.1.0");
+  // index = mean of available tier scores (5, 3.67, 5), on the 1-5 scale
+  assert.ok(near(r.index, 4.56));
+  assert.equal(r.scoringVersion, "v0.2.0"); // bumped for the 1-5 output-scale change
+});
+
+test("computeScores: branch:\"unengaged\" items feed explorationIndex, never index — and vice versa", () => {
+  const items: Item[] = [
+    { key: "e1", question_domain: "follow", tier: "response", type: "likert_5", scored: true, branch: "engaged" },
+    { key: "e2", question_domain: "mission", tier: "exposure", type: "likert_5", scored: true }, // branch omitted == engaged
+    { key: "u1", question_domain: "follow", tier: "response", type: "likert_5", scored: true, branch: "unengaged" },
+    { key: "u2", question_domain: "mission", tier: "exposure", type: "likert_5", scored: true, branch: "unengaged" },
+  ];
+  const responses: RawResponse[] = [
+    { key: "e1", value: 5 },  // 100 -> 5    -> official
+    { key: "e2", value: 1 },  // 0   -> 1    -> official
+    { key: "u1", value: 3 },  // 50  -> 3    -> exploration
+    { key: "u2", value: 5 },  // 100 -> 5    -> exploration
+  ];
+
+  const r = computeScores(items, responses);
+
+  // Official figures see only the engaged-branch points.
+  assert.equal(r.n, 2);
+  assert.equal(r.tiers.response, 5);
+  assert.equal(r.tiers.exposure, 1); // floor of the 1-5 scale, not 0
+  assert.equal(r.tiers.formation, null);
+  assert.ok(near(r.index, 3)); // mean(5, 1)
+
+  // Exploration figures see only the unengaged-branch points, computed the
+  // identical way — and never touch the official numbers above.
+  assert.equal(r.explorationN, 2);
+  assert.equal(r.explorationTiers.response, 3);
+  assert.equal(r.explorationTiers.exposure, 5);
+  assert.ok(near(r.explorationIndex as number, 4)); // mean(3, 5)
+
+  // A batch with no unengaged-branch responses at all reports an honest null,
+  // not a zero standing in for "we don't know".
+  const officialOnly = computeScores(items, responses.filter((r) => r.key.startsWith("e")));
+  assert.equal(officialOnly.explorationN, 0);
+  assert.equal(officialOnly.explorationIndex, null);
 });
 
 test("computeScores: empty responses are low-n safe", () => {

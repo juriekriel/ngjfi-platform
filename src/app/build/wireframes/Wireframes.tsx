@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Colophon, Masthead } from "@/components/site/Chrome";
+import { Masthead } from "@/components/site/Chrome";
 import { Plate } from "@/components/index/Figures";
 
 /**
@@ -100,10 +100,10 @@ function Band({
           <span className="tabular mr-2 text-[12px] text-muted">{n}</span>
           {title}
         </h3>
-        <span className="tabular flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted">
-          <span className={`inline-block h-[7px] w-[7px] ${dot}`} />
+        <span className="flex items-center gap-1.5 text-[12.5px] font-semibold text-muted">
+          <span className={`inline-block h-[7px] w-[7px] rounded-full ${dot}`} />
           {STATE_LABEL[state]}
-          {rpc && <span className="ml-1 normal-case tracking-normal text-faint">· {rpc}</span>}
+          {rpc && <span className="tabular ml-1 text-[11px] font-normal text-faint">· {rpc}</span>}
         </span>
       </header>
       <p className="margin-note mt-1.5 max-w-measure">{gloss}</p>
@@ -125,7 +125,7 @@ function Row({
   tone?: "plain" | "urgent" | "done";
 }) {
   return (
-    <li className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-rule py-2.5">
+    <li className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3">
       <span className="min-w-0 text-[15px] leading-snug">
         {tone === "urgent" && <span className="mr-2 text-vermillion">▲</span>}
         {tone === "done" && <span className="mr-2 text-emerald">✓</span>}
@@ -134,7 +134,7 @@ function Row({
       <span className="flex shrink-0 items-baseline gap-3">
         {meta && <span className="tabular text-[12px] text-ink-2">{meta}</span>}
         {action && (
-          <span className="tabular border border-rule-2 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-ink-2">
+          <span className="rounded-lg border border-rule-2 px-3 py-1.5 text-[13px] font-semibold text-ink-2">
             {action}
           </span>
         )}
@@ -144,17 +144,21 @@ function Row({
 }
 
 function Rows({ children }: { children: React.ReactNode }) {
-  return <ul className="border-t border-ink">{children}</ul>;
+  return (
+    <ul className="divide-y divide-rule rounded-xl border border-rule bg-plate px-4 shadow-sm sm:px-5">
+      {children}
+    </ul>
+  );
 }
 
 /** A primary control, drawn not wired. */
 function Btn({ children, primary = false }: { children: React.ReactNode; primary?: boolean }) {
   return (
     <span
-      className={`tabular inline-block px-4 py-2.5 text-[10px] uppercase tracking-[0.14em] ${
+      className={`inline-block rounded-lg px-4 py-2.5 text-[14px] font-semibold ${
         primary
-          ? "border-2 border-emerald bg-emerald text-plate"
-          : "border border-ink text-ink"
+          ? "bg-emerald text-plate"
+          : "border border-rule-2 text-ink"
       }`}
     >
       {children}
@@ -780,9 +784,9 @@ export default function Wireframes() {
                 data-tier={t.key}
                 aria-pressed={t.key === tier}
                 onClick={() => setTier(t.key)}
-                className={`tabular px-4 py-2.5 text-[11px] uppercase tracking-[0.14em] ${
+                className={`rounded-lg px-4 py-2.5 text-[14px] font-semibold ${
                   t.key === tier
-                    ? "border-2 border-ink bg-ink text-paper"
+                    ? "bg-ink text-paper"
                     : "border border-rule-2 text-ink-2 hover:border-ink hover:text-ink"
                 }`}
               >
@@ -896,23 +900,22 @@ export default function Wireframes() {
           </div>
         </section>
 
-        <div className="mt-10 flex flex-wrap gap-3 border-t border-ink pt-6">
+        <div className="mt-10 flex flex-wrap gap-3 border-t border-rule pt-6">
           <Link
             href="/build"
-            className="tabular border-2 border-ink bg-ink px-5 py-3 text-[11px] uppercase tracking-[0.14em] text-paper no-underline"
+            className="rounded-lg bg-ink px-5 py-3 text-[14px] font-semibold text-paper no-underline hover:bg-ink/90"
           >
             ← The live console
           </Link>
           <Link
             href="/tour"
-            className="tabular border border-ink px-5 py-3 text-[11px] uppercase tracking-[0.14em] text-ink no-underline"
+            className="rounded-lg border border-rule-2 px-5 py-3 text-[14px] font-semibold text-ink no-underline hover:border-ink"
           >
             The walkthrough →
           </Link>
         </div>
       </main>
 
-      <Colophon />
     </>
   );
 }

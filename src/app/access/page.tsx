@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Colophon, Masthead } from "@/components/site/Chrome";
+import { Masthead } from "@/components/site/Chrome";
 import AccessForm from "./AccessForm";
 
 export const metadata = {
@@ -15,7 +15,7 @@ export default function AccessPage() {
       <main className="mx-auto max-w-5xl px-5">
         <section className="grid gap-10 border-b border-ink py-10 md:grid-cols-[1.15fr_1fr] md:gap-14">
           <div>
-            <p className="figcap">Door 05 · for those building it</p>
+            <p className="figcap">For those building it</p>
             <h1 className="mt-3 text-[36px] leading-[1.05] tracking-tight sm:text-[44px]">
               The build room.
             </h1>
@@ -30,7 +30,7 @@ export default function AccessPage() {
             <p className="mt-2 max-w-measure text-[16px] leading-relaxed text-ink-2">
               Not secrecy. A public date that slips is a credibility event with thirty-plus partner
               organisations; the same slip discussed inside the build room is just a Tuesday. So the
-              public page uses sequence — <i>cohorts are forming</i> — and the calendar lives in here.
+              public page uses sequence — <i>rounds are opening</i> — and the calendar lives in here.
             </p>
             <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
               There is a second reason. Until the research panel locks the instrument,{" "}
@@ -41,7 +41,7 @@ export default function AccessPage() {
 
             <div className="mt-9 border-t-2 border-ink pt-4">
               <p className="figcap">What is behind the door</p>
-              <ul className="mt-3 space-y-2.5">
+              <ul className="mt-3 divide-y divide-rule rounded-xl border border-rule bg-plate px-4 shadow-sm sm:px-5">
                 {[
                   ["Now", "Current phase, what is in flight, who holds what."],
                   ["Roadmap", "Phases with owners, real dates and status. The internal truth."],
@@ -50,7 +50,7 @@ export default function AccessPage() {
                   ["Coverage", "Real waitlist counts, cluster assembly, who is ready to invite."],
                   ["Building", "Repo, CI, deploy previews, database, the runbook."],
                 ].map(([h, p]) => (
-                  <li key={h} className="grid grid-cols-[7.5rem_1fr] gap-3 border-b border-rule pb-2.5">
+                  <li key={h} className="grid grid-cols-[7.5rem_1fr] items-baseline gap-3 py-3">
                     <span className="tabular text-[10px] uppercase tracking-[0.14em] text-muted">{h}</span>
                     <span className="text-[15px] leading-snug text-ink-2">{p}</span>
                   </li>
@@ -61,7 +61,7 @@ export default function AccessPage() {
             <p className="margin-note mt-7 border-l-2 border-rule pl-3">
               If you are here to run the Index rather than build it, you want{" "}
               <Link href="/join" className="underline decoration-rule underline-offset-2">
-                door 04
+                Join the Index
               </Link>{" "}
               instead — that is the one that opens.
             </p>
@@ -72,7 +72,6 @@ export default function AccessPage() {
           </div>
         </section>
       </main>
-      <Colophon />
     </>
   );
 }

@@ -1,0 +1,4213 @@
+{
+  "version": "v4",
+  "scoringVersion": "v0.1.0",
+  "locales": [
+    "en",
+    "es"
+  ],
+  "note": "v4 -- supersedes v3's Index/Drivers/Journey/screener content, sourced from Youth-Collab-Survey-Augmented_F.docx (the 'working draft' pairing an Engaged branch with a parallel Unengaged branch for respondents who don't identify as followers of Jesus). Changes from v3: (1) Screener: 'orientation' gains 'none_of_these' and 'prefer_not_say' options; a new optional 'follower_check' item routes those two answers (stores routing separately from stated identity, per the draft's own implementation note -- 'not sure'/'prefer not to say' on follower_check route to Unengaged without asserting confirmed non-follower status). (2) The old 12-item unscored 'exploration' branch (explore_believe_god etc., v0-v3) is RETIRED in v4 -- archived in v0-v3, not deleted -- replaced by a full 24-item Unengaged Index using the SAME 3x4 domain x tier cells and the same internal/external measure pairing as the Engaged Index, tagged branch:'unengaged'. (3) SCORING DECISION (explicit, researcher-approved, not inferred from the draft): despite sharing the matrix shape, Unengaged responses are NEVER blended into the official Index. They compute a fully separate 'Exploration Index' (src/lib/scoring.ts: explorationIndex/explorationTiers/explorationDomains/explorationMatrix, mirrored in the SQL functions via responses.branch) -- the draft itself says 'it does not make the scores equivalent.' Dashboards must never sum or average the two together. (4) Drivers and Journey each gain a parallel Unengaged variant (still fully unscored, non-negotiable #9) with branch-appropriate wording/options from the draft; continue_to_extras is now unconditional (offered to both branches, not just Engaged). (5) gender is REINSTATED (session_field, new sessions.gender column) after being dropped in v3.1's privacy/approved-metadata review (migration 0019) -- explicit decision for v4, not a silent reversal; flagged here for the record. city/area is ADDED (session_field, new sessions.city column, free text) per the current project non-negotiable #1, which requires a CITY-LEVEL critical-mass gate (not just country) precisely because this field is free text and could otherwise identify a small town -- that gate is schema/config-ready but the analytics enforcement (mirroring 0020's country-tier gate) is not yet built; flagged as follow-up, same posture as the existing benchmarking-service gap. (6) pray_frequency/scripture_frequency are kept verbatim, scored:false, Engaged-only -- CLAUDE.md #5's 'always measurable' requirement is still met the same way v3.2 met it; the draft still doesn't offer a frequency-anchored item for either activity on its own, and that gap is flagged again here for researchers, per non-negotiable #5, rather than silently invented. (7) KNOWN EDGE CASE: a respondent who answers orientation as none_of_these/prefer_not_say and then SKIPS follower_check sees neither Index branch (both gates require an answer; an unanswered gate never passes, per branching.ts's existing leak-prevention design) -- same conservative default every other gated item in this instrument already has, not a new limitation introduced by this version, but worth a product decision if drop-off there turns out to matter. Subject to researcher revision -- never hard-code into UI or scoring.",
+  "core_note": "`core: true` marks the NGC12 — the memorable 12-item core that can be run alone.",
+  "items": [
+    {
+      "key": "age_band",
+      "question_domain": "demographic",
+      "tier": "na",
+      "type": "single_select",
+      "scored": false,
+      "session_field": "age_band",
+      "text": {
+        "en": "How old are you?",
+        "es": "¿Cuántos años tienes?"
+      },
+      "options": [
+        {
+          "value": "13_17",
+          "text": {
+            "en": "13–17",
+            "es": "13–17"
+          }
+        },
+        {
+          "value": "18_22",
+          "text": {
+            "en": "18–22",
+            "es": "18–22"
+          }
+        },
+        {
+          "value": "23_30",
+          "text": {
+            "en": "23–30",
+            "es": "23–30"
+          }
+        }
+      ],
+      "order": 10,
+      "section": "demographic"
+    },
+    {
+      "key": "orientation",
+      "question_domain": "screener",
+      "tier": "na",
+      "type": "single_select",
+      "scored": false,
+      "text": {
+        "en": "Which of these is most like you right now?",
+        "es": "¿Cuál de estas frases te describe mejor ahora?"
+      },
+      "options": [
+        {
+          "value": "confident_no_god",
+          "text": {
+            "en": "Confident God does not exist",
+            "es": "Seguro de que Dios no existe"
+          }
+        },
+        {
+          "value": "open_not_exploring",
+          "text": {
+            "en": "Open, but not exploring",
+            "es": "Abierto, pero sin explorar"
+          }
+        },
+        {
+          "value": "open_exploring",
+          "text": {
+            "en": "Open, and actively exploring",
+            "es": "Abierto y explorando activamente"
+          }
+        },
+        {
+          "value": "other_religion",
+          "text": {
+            "en": "God exists, but I follow another religion",
+            "es": "Dios existe, pero sigo otra religión"
+          }
+        },
+        {
+          "value": "interested_jesus",
+          "text": {
+            "en": "Interested in Jesus, want to know more",
+            "es": "Interesado en Jesús, quiero saber más"
+          }
+        },
+        {
+          "value": "new_follower",
+          "text": {
+            "en": "New follower of Jesus",
+            "es": "Nuevo seguidor de Jesús"
+          }
+        },
+        {
+          "value": "committed_growing",
+          "text": {
+            "en": "Committed, actively growing",
+            "es": "Comprometido y creciendo"
+          }
+        },
+        {
+          "value": "none_of_these",
+          "text": {
+            "en": "None of these describes me",
+            "es": "Ninguna de estas me describe"
+          }
+        },
+        {
+          "value": "prefer_not_say",
+          "text": {
+            "en": "Prefer not to say",
+            "es": "Prefiero no decirlo"
+          }
+        }
+      ],
+      "order": 50,
+      "section": "screener"
+    },
+    {
+      "key": "follower_check",
+      "question_domain": "screener",
+      "tier": "na",
+      "type": "single_select",
+      "scored": false,
+      "order": 55,
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          }
+        ]
+      },
+      "text": {
+        "en": "Do you currently consider yourself a follower of Jesus?",
+        "es": "¿Te consideras actualmente seguidor(a) de Jesús?"
+      },
+      "options": [
+        {
+          "value": "yes",
+          "text": {
+            "en": "Yes",
+            "es": "Sí"
+          }
+        },
+        {
+          "value": "no",
+          "text": {
+            "en": "No",
+            "es": "No"
+          }
+        },
+        {
+          "value": "not_sure",
+          "text": {
+            "en": "Not sure",
+            "es": "No estoy seguro/a"
+          }
+        },
+        {
+          "value": "prefer_not_say",
+          "text": {
+            "en": "Prefer not to say",
+            "es": "Prefiero no decirlo"
+          }
+        }
+      ],
+      "section": "screener"
+    },
+    {
+      "key": "who_is_jesus",
+      "question_domain": "screener",
+      "tier": "na",
+      "type": "open_text",
+      "scored": false,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "max_length": 300,
+      "order": 60,
+      "text": {
+        "en": "In your own words — who do you believe Jesus is?",
+        "es": "En tus propias palabras: ¿quién crees que es Jesús?"
+      },
+      "help": {
+        "en": "There is no right answer, and this is anonymous. Please don't include your name or anyone else's.",
+        "es": "No hay respuesta correcta y es anónimo. Por favor no incluyas tu nombre ni el de nadie más."
+      },
+      "section": "screener"
+    },
+    {
+      "key": "follow_exposure_internal",
+      "question_domain": "follow",
+      "tier": "exposure",
+      "type": "likert_5",
+      "scored": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 70,
+      "text": {
+        "en": "I want to keep learning more about who Jesus is and what he taught.",
+        "es": "Quiero seguir aprendiendo más sobre quién es Jesús y lo que enseñó."
+      },
+      "measure": "internal",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "follow_exposure_external",
+      "question_domain": "follow",
+      "tier": "exposure",
+      "type": "likert_5",
+      "scored": true,
+      "core": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 75,
+      "text": {
+        "en": "I have had opportunities to learn what Jesus taught and why it matters.",
+        "es": "He tenido oportunidades de aprender lo que Jesús enseñó y por qué importa."
+      },
+      "measure": "external",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "follow_response_internal",
+      "question_domain": "follow",
+      "tier": "response",
+      "type": "likert_5",
+      "scored": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 80,
+      "text": {
+        "en": "I believe forgiveness of sins is only possible through faith in Jesus.",
+        "es": "Creo que el perdón de los pecados solo es posible por la fe en Jesús."
+      },
+      "measure": "internal",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "follow_response_external",
+      "question_domain": "follow",
+      "tier": "response",
+      "type": "likert_5",
+      "scored": true,
+      "core": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 85,
+      "text": {
+        "en": "I have chosen to follow Jesus, whom I believe is God.",
+        "es": "He decidido seguir a Jesús, a quien creo que es Dios."
+      },
+      "measure": "external",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "follow_formation_internal",
+      "question_domain": "follow",
+      "tier": "formation",
+      "type": "likert_5",
+      "scored": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 90,
+      "text": {
+        "en": "The Bible challenges me to reconsider my choices and behavior.",
+        "es": "La Biblia me desafía a reconsiderar mis decisiones y comportamiento."
+      },
+      "measure": "internal",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "follow_formation_external",
+      "question_domain": "follow",
+      "tier": "formation",
+      "type": "likert_5",
+      "scored": true,
+      "core": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 95,
+      "text": {
+        "en": "I engage in forms of prayer that bring me into personal engagement with God.",
+        "es": "Practico formas de oración que me acercan personalmente a Dios."
+      },
+      "measure": "external",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "follow_multiplication_internal",
+      "question_domain": "follow",
+      "tier": "multiplication",
+      "type": "likert_5",
+      "scored": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 100,
+      "text": {
+        "en": "I believe the gospel is good news in my life and worth sharing with people who aren't Christians.",
+        "es": "Creo que el evangelio es buenas noticias en mi vida y vale la pena compartirlo con quienes no son cristianos."
+      },
+      "measure": "internal",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "follow_multiplication_external",
+      "question_domain": "follow",
+      "tier": "multiplication",
+      "type": "likert_5",
+      "scored": true,
+      "core": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 105,
+      "text": {
+        "en": "In the last six months, I have shared something about Jesus with someone who doesn't follow him.",
+        "es": "En los últimos seis meses, he compartido algo sobre Jesús con alguien que no lo sigue."
+      },
+      "measure": "external",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "mission_exposure_internal",
+      "question_domain": "mission",
+      "tier": "exposure",
+      "type": "likert_5",
+      "scored": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 110,
+      "text": {
+        "en": "I understand what it means to take part in Jesus' mission.",
+        "es": "Entiendo lo que significa participar en la misión de Jesús."
+      },
+      "measure": "internal",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "mission_exposure_external",
+      "question_domain": "mission",
+      "tier": "exposure",
+      "type": "likert_5",
+      "scored": true,
+      "core": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 115,
+      "text": {
+        "en": "I currently have someone helping me follow Jesus.",
+        "es": "Actualmente tengo a alguien que me ayuda a seguir a Jesús."
+      },
+      "measure": "external",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "mission_response_internal",
+      "question_domain": "mission",
+      "tier": "response",
+      "type": "likert_5",
+      "scored": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 120,
+      "text": {
+        "en": "I believe sharing the message of Jesus is part of following him.",
+        "es": "Creo que compartir el mensaje de Jesús es parte de seguirlo."
+      },
+      "measure": "internal",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "mission_response_external",
+      "question_domain": "mission",
+      "tier": "response",
+      "type": "likert_5",
+      "scored": true,
+      "core": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 125,
+      "text": {
+        "en": "I have accepted taking part in Jesus' mission as my responsibility as a follower of Jesus.",
+        "es": "He aceptado participar en la misión de Jesús como mi responsabilidad como seguidor suyo."
+      },
+      "measure": "external",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "mission_formation_internal",
+      "question_domain": "mission",
+      "tier": "formation",
+      "type": "likert_5",
+      "scored": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 130,
+      "text": {
+        "en": "Serving others as part of a Christian community is an important part of how I follow Jesus.",
+        "es": "Servir a otros como parte de una comunidad cristiana es una parte importante de cómo sigo a Jesús."
+      },
+      "measure": "internal",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "mission_formation_external",
+      "question_domain": "mission",
+      "tier": "formation",
+      "type": "likert_5",
+      "scored": true,
+      "core": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 135,
+      "text": {
+        "en": "I try to show people who are not Christians how following Jesus shapes my daily life.",
+        "es": "Trato de mostrarles a quienes no son cristianos cómo seguir a Jesús da forma a mi vida diaria."
+      },
+      "measure": "external",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "mission_multiplication_internal",
+      "question_domain": "mission",
+      "tier": "multiplication",
+      "type": "likert_5",
+      "scored": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 140,
+      "text": {
+        "en": "I want to invite other people to join me in activities connected to Jesus' mission.",
+        "es": "Quiero invitar a otras personas a unirse a actividades conectadas con la misión de Jesús."
+      },
+      "measure": "internal",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "mission_multiplication_external",
+      "question_domain": "mission",
+      "tier": "multiplication",
+      "type": "likert_5",
+      "scored": true,
+      "core": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 145,
+      "text": {
+        "en": "I have helped someone else grow in their following of Jesus.",
+        "es": "He ayudado a alguien más a crecer en su seguimiento de Jesús."
+      },
+      "measure": "external",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "world_exposure_internal",
+      "question_domain": "world",
+      "tier": "exposure",
+      "type": "likert_5",
+      "scored": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 150,
+      "text": {
+        "en": "I believe following Jesus leads to real good for people and the world.",
+        "es": "Creo que seguir a Jesús produce un bien real para las personas y el mundo."
+      },
+      "measure": "internal",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "world_exposure_external",
+      "question_domain": "world",
+      "tier": "exposure",
+      "type": "likert_5",
+      "scored": true,
+      "core": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 155,
+      "text": {
+        "en": "I make choices that direct my life toward something bigger than just myself.",
+        "es": "Tomo decisiones que orientan mi vida hacia algo más grande que yo mismo/a."
+      },
+      "measure": "external",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "world_response_internal",
+      "question_domain": "world",
+      "tier": "response",
+      "type": "likert_5",
+      "scored": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 160,
+      "text": {
+        "en": "I believe my faith is about more than my personal life. It should make a difference in the world.",
+        "es": "Creo que mi fe es más que mi vida personal. Debería hacer una diferencia en el mundo."
+      },
+      "measure": "internal",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "world_response_external",
+      "question_domain": "world",
+      "tier": "response",
+      "type": "likert_5",
+      "scored": true,
+      "core": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 165,
+      "text": {
+        "en": "Following Jesus makes a real difference in how I treat people and respond to needs around me.",
+        "es": "Seguir a Jesús hace una diferencia real en cómo trato a las personas y respondo a las necesidades a mi alrededor."
+      },
+      "measure": "external",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "world_formation_internal",
+      "question_domain": "world",
+      "tier": "formation",
+      "type": "likert_5",
+      "scored": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 170,
+      "text": {
+        "en": "I seek to do God's will in my day-to-day life, even when it is different from my own.",
+        "es": "Busco hacer la voluntad de Dios en mi vida diaria, incluso cuando es diferente de la mía."
+      },
+      "measure": "internal",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "world_formation_external",
+      "question_domain": "world",
+      "tier": "formation",
+      "type": "likert_5",
+      "scored": true,
+      "core": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 175,
+      "text": {
+        "en": "Becoming a more loving person to everyone around me is something I work on every day.",
+        "es": "Convertirme en una persona más amorosa con todos a mi alrededor es algo en lo que trabajo cada día."
+      },
+      "measure": "external",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "world_multiplication_internal",
+      "question_domain": "world",
+      "tier": "multiplication",
+      "type": "likert_5",
+      "scored": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 180,
+      "text": {
+        "en": "I believe followers of Jesus should work together to make positive changes in their communities.",
+        "es": "Creo que los seguidores de Jesús deben trabajar juntos para lograr cambios positivos en sus comunidades."
+      },
+      "measure": "internal",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "world_multiplication_external",
+      "question_domain": "world",
+      "tier": "multiplication",
+      "type": "likert_5",
+      "scored": true,
+      "core": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 185,
+      "text": {
+        "en": "I encourage other Christians to connect their faith with the way they live and serve.",
+        "es": "Animo a otros cristianos a conectar su fe con la forma en que viven y sirven."
+      },
+      "measure": "external",
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "attention_check",
+      "question_domain": "screener",
+      "tier": "na",
+      "type": "likert_5",
+      "scored": false,
+      "attention_check": {
+        "expected": 2
+      },
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 127,
+      "text": {
+        "en": "So we know you're reading carefully, please choose \"A little true of me\" for this one.",
+        "es": "Para saber que estás leyendo con atención, elige \"Un poco cierto de mí\" en esta."
+      },
+      "section": "screener"
+    },
+    {
+      "key": "pray_frequency",
+      "question_domain": "follow",
+      "tier": "formation",
+      "type": "frequency",
+      "scored": false,
+      "scale": {
+        "points": 4
+      },
+      "core_activity": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "options": [
+        {
+          "value": 0,
+          "text": {
+            "en": "Rarely or never",
+            "es": "Casi nunca"
+          }
+        },
+        {
+          "value": 1,
+          "text": {
+            "en": "Monthly",
+            "es": "Mensualmente"
+          }
+        },
+        {
+          "value": 2,
+          "text": {
+            "en": "Weekly",
+            "es": "Semanalmente"
+          }
+        },
+        {
+          "value": 3,
+          "text": {
+            "en": "Most days",
+            "es": "Casi todos los días"
+          }
+        }
+      ],
+      "order": 190,
+      "text": {
+        "en": "I pray to God.",
+        "es": "Oro a Dios."
+      },
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "scripture_frequency",
+      "question_domain": "follow",
+      "tier": "formation",
+      "type": "frequency",
+      "scored": false,
+      "scale": {
+        "points": 4
+      },
+      "core_activity": true,
+      "show_if": {
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "options": [
+        {
+          "value": 0,
+          "text": {
+            "en": "Rarely or never",
+            "es": "Casi nunca"
+          }
+        },
+        {
+          "value": 1,
+          "text": {
+            "en": "Monthly",
+            "es": "Mensualmente"
+          }
+        },
+        {
+          "value": 2,
+          "text": {
+            "en": "Weekly",
+            "es": "Semanalmente"
+          }
+        },
+        {
+          "value": 3,
+          "text": {
+            "en": "Most days",
+            "es": "Casi todos los días"
+          }
+        }
+      ],
+      "order": 195,
+      "text": {
+        "en": "I read or hear scripture.",
+        "es": "Leo o escucho las Escrituras."
+      },
+      "section": "index",
+      "branch": "engaged"
+    },
+    {
+      "key": "follow_exposure_internal_unengaged",
+      "question_domain": "follow",
+      "tier": "exposure",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "internal",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 200,
+      "text": {
+        "en": "I am interested in hearing different views about God or spirituality.",
+        "es": "Me interesa escuchar diferentes puntos de vista sobre Dios o la espiritualidad."
+      },
+      "section": "index"
+    },
+    {
+      "key": "follow_exposure_external_unengaged",
+      "question_domain": "follow",
+      "tier": "exposure",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "external",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 205,
+      "text": {
+        "en": "I have had opportunities to hear what Christians believe about Jesus.",
+        "es": "He tenido oportunidades de escuchar lo que los cristianos creen sobre Jesús."
+      },
+      "section": "index"
+    },
+    {
+      "key": "follow_response_internal_unengaged",
+      "question_domain": "follow",
+      "tier": "response",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "internal",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 210,
+      "text": {
+        "en": "I think there is something in human nature that needs to be put right, beyond what we can do on our own.",
+        "es": "Creo que hay algo en la naturaleza humana que necesita ser corregido, más allá de lo que podemos hacer por nosotros mismos."
+      },
+      "section": "index"
+    },
+    {
+      "key": "follow_response_external_unengaged",
+      "question_domain": "follow",
+      "tier": "response",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "external",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 215,
+      "text": {
+        "en": "I have considered reasons for and against believing in God.",
+        "es": "He considerado razones a favor y en contra de creer en Dios."
+      },
+      "section": "index"
+    },
+    {
+      "key": "follow_formation_internal_unengaged",
+      "question_domain": "follow",
+      "tier": "formation",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "internal",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 220,
+      "text": {
+        "en": "I think the Bible offers something worth considering about how to live.",
+        "es": "Creo que la Biblia ofrece algo que vale la pena considerar sobre cómo vivir."
+      },
+      "section": "index"
+    },
+    {
+      "key": "follow_formation_external_unengaged",
+      "question_domain": "follow",
+      "tier": "formation",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "external",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 225,
+      "text": {
+        "en": "I make time to reflect on questions about God, spirituality, or life's meaning.",
+        "es": "Dedico tiempo a reflexionar sobre preguntas acerca de Dios, la espiritualidad o el sentido de la vida."
+      },
+      "section": "index"
+    },
+    {
+      "key": "follow_multiplication_internal_unengaged",
+      "question_domain": "follow",
+      "tier": "multiplication",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "internal",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 230,
+      "text": {
+        "en": "I think talking about questions of belief can be valuable, even when people reach different conclusions.",
+        "es": "Creo que hablar sobre preguntas de creencia puede ser valioso, incluso cuando las personas llegan a conclusiones diferentes."
+      },
+      "section": "index"
+    },
+    {
+      "key": "follow_multiplication_external_unengaged",
+      "question_domain": "follow",
+      "tier": "multiplication",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "external",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 235,
+      "text": {
+        "en": "In the last six months, I have talked with someone about my views or questions about God or spirituality.",
+        "es": "En los últimos seis meses, he hablado con alguien sobre mis opiniones o preguntas acerca de Dios o la espiritualidad."
+      },
+      "section": "index"
+    },
+    {
+      "key": "mission_exposure_internal_unengaged",
+      "question_domain": "mission",
+      "tier": "exposure",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "internal",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 240,
+      "text": {
+        "en": "I understand why Christians want to share their faith with others.",
+        "es": "Entiendo por qué los cristianos quieren compartir su fe con otras personas."
+      },
+      "section": "index"
+    },
+    {
+      "key": "mission_exposure_external_unengaged",
+      "question_domain": "mission",
+      "tier": "exposure",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "external",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 245,
+      "text": {
+        "en": "I know someone I can talk with honestly about God or spirituality.",
+        "es": "Conozco a alguien con quien puedo hablar honestamente sobre Dios o la espiritualidad."
+      },
+      "section": "index"
+    },
+    {
+      "key": "mission_response_internal_unengaged",
+      "question_domain": "mission",
+      "tier": "response",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "internal",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 250,
+      "text": {
+        "en": "I have chosen to take responsibility for making a positive difference in the world around me.",
+        "es": "He decidido asumir la responsabilidad de generar un impacto positivo en el mundo que me rodea."
+      },
+      "section": "index"
+    },
+    {
+      "key": "mission_response_external_unengaged",
+      "question_domain": "mission",
+      "tier": "response",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "external",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 255,
+      "text": {
+        "en": "I believe I have a part to play in making the world a better place.",
+        "es": "Creo que tengo un papel que desempeñar para hacer del mundo un lugar mejor."
+      },
+      "section": "index"
+    },
+    {
+      "key": "mission_formation_internal_unengaged",
+      "question_domain": "mission",
+      "tier": "formation",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "internal",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 260,
+      "text": {
+        "en": "Being part of a community that helps others matters to me.",
+        "es": "Ser parte de una comunidad que ayuda a otros es importante para mí."
+      },
+      "section": "index"
+    },
+    {
+      "key": "mission_formation_external_unengaged",
+      "question_domain": "mission",
+      "tier": "formation",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "external",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 265,
+      "text": {
+        "en": "I take part in activities with other people that put my beliefs and values into action.",
+        "es": "Participo en actividades con otras personas que ponen en acción mis creencias y valores."
+      },
+      "section": "index"
+    },
+    {
+      "key": "mission_multiplication_internal_unengaged",
+      "question_domain": "mission",
+      "tier": "multiplication",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "internal",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 270,
+      "text": {
+        "en": "I want to invite others to join activities that reflect what I believe matters.",
+        "es": "Quiero invitar a otros a unirse a actividades que reflejen lo que creo que importa."
+      },
+      "section": "index"
+    },
+    {
+      "key": "mission_multiplication_external_unengaged",
+      "question_domain": "mission",
+      "tier": "multiplication",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "external",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 275,
+      "text": {
+        "en": "I have helped someone think through their own beliefs or questions about faith.",
+        "es": "He ayudado a alguien a reflexionar sobre sus propias creencias o preguntas sobre la fe."
+      },
+      "section": "index"
+    },
+    {
+      "key": "world_exposure_internal_unengaged",
+      "question_domain": "world",
+      "tier": "exposure",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "internal",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 280,
+      "text": {
+        "en": "I think faith or spirituality can motivate people to make a positive difference in the world.",
+        "es": "Creo que la fe o la espiritualidad pueden motivar a las personas a generar un impacto positivo en el mundo."
+      },
+      "section": "index"
+    },
+    {
+      "key": "world_exposure_external_unengaged",
+      "question_domain": "world",
+      "tier": "exposure",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "external",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 285,
+      "text": {
+        "en": "I make choices that direct my life toward something bigger than just myself.",
+        "es": "Tomo decisiones que dirigen mi vida hacia algo más grande que yo mismo/a."
+      },
+      "section": "index"
+    },
+    {
+      "key": "world_response_internal_unengaged",
+      "question_domain": "world",
+      "tier": "response",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "internal",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 290,
+      "text": {
+        "en": "I believe my values should make a difference beyond my personal life.",
+        "es": "Creo que mis valores deberían marcar una diferencia más allá de mi vida personal."
+      },
+      "section": "index"
+    },
+    {
+      "key": "world_response_external_unengaged",
+      "question_domain": "world",
+      "tier": "response",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "external",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 295,
+      "text": {
+        "en": "My beliefs and values make a real difference in how I treat people and respond to needs around me.",
+        "es": "Mis creencias y valores marcan una diferencia real en cómo trato a las personas y respondo a las necesidades a mi alrededor."
+      },
+      "section": "index"
+    },
+    {
+      "key": "world_formation_internal_unengaged",
+      "question_domain": "world",
+      "tier": "formation",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "internal",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 300,
+      "text": {
+        "en": "I try to do what I believe is right, even when it conflicts with what I want.",
+        "es": "Trato de hacer lo que creo que es correcto, incluso cuando entra en conflicto con lo que quiero."
+      },
+      "section": "index"
+    },
+    {
+      "key": "world_formation_external_unengaged",
+      "question_domain": "world",
+      "tier": "formation",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "external",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 305,
+      "text": {
+        "en": "Becoming a more loving person to everyone around me is something I work on every day.",
+        "es": "Convertirme en una persona más amorosa con todos a mi alrededor es algo en lo que trabajo cada día."
+      },
+      "section": "index"
+    },
+    {
+      "key": "world_multiplication_internal_unengaged",
+      "question_domain": "world",
+      "tier": "multiplication",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "internal",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 310,
+      "text": {
+        "en": "I believe people with different religious or nonreligious views can work together to improve their communities.",
+        "es": "Creo que personas con diferentes puntos de vista religiosos o no religiosos pueden trabajar juntas para mejorar sus comunidades."
+      },
+      "section": "index"
+    },
+    {
+      "key": "world_multiplication_external_unengaged",
+      "question_domain": "world",
+      "tier": "multiplication",
+      "type": "likert_5",
+      "scored": true,
+      "measure": "external",
+      "branch": "unengaged",
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 315,
+      "text": {
+        "en": "I encourage people around me to put their values into action in how they live and help others.",
+        "es": "Animo a las personas a mi alrededor a poner sus valores en acción en cómo viven y ayudan a otros."
+      },
+      "section": "index"
+    },
+    {
+      "key": "continue_to_extras",
+      "question_domain": "screener",
+      "tier": "na",
+      "type": "single_select",
+      "scored": false,
+      "options": [
+        {
+          "value": "yes",
+          "text": {
+            "en": "Sure, a few more",
+            "es": "Claro, algunas más"
+          }
+        },
+        {
+          "value": "no",
+          "text": {
+            "en": "No thanks, I'm done",
+            "es": "No, gracias, ya terminé"
+          }
+        }
+      ],
+      "order": 320,
+      "text": {
+        "en": "That's the main set — thank you. Want to help us understand your journey a bit more? A few optional questions, about two more minutes.",
+        "es": "Ese es el conjunto principal — gracias. ¿Quieres ayudarnos a entender un poco más tu camino? Algunas preguntas opcionales, unos dos minutos más."
+      },
+      "section": "screener"
+    },
+    {
+      "key": "driver_sources_of_belief_engaged",
+      "question_domain": "drivers",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "max_select": 3,
+      "order": 400,
+      "text": {
+        "en": "Which of the following most shape what you believe about Jesus and faith? Select up to three.",
+        "es": "¿Cuáles de los siguientes moldean más lo que crees sobre Jesús y la fe? Selecciona hasta tres."
+      },
+      "options": [
+        {
+          "value": "own_judgment",
+          "text": {
+            "en": "My own judgment",
+            "es": "Mi propio juicio"
+          }
+        },
+        {
+          "value": "bible",
+          "text": {
+            "en": "The Bible",
+            "es": "La Biblia"
+          }
+        },
+        {
+          "value": "family",
+          "text": {
+            "en": "Family",
+            "es": "Familia"
+          }
+        },
+        {
+          "value": "friends",
+          "text": {
+            "en": "Friends or other people I trust",
+            "es": "Amigos u otras personas en quienes confío"
+          }
+        },
+        {
+          "value": "church_leaders",
+          "text": {
+            "en": "Church or Christian leaders",
+            "es": "La iglesia o líderes cristianos"
+          }
+        },
+        {
+          "value": "peers",
+          "text": {
+            "en": "Other Christians my age",
+            "es": "Otros cristianos de mi edad"
+          }
+        },
+        {
+          "value": "personal_experiences",
+          "text": {
+            "en": "Personal experiences",
+            "es": "Experiencias personales"
+          }
+        },
+        {
+          "value": "social_media",
+          "text": {
+            "en": "Social media, podcasts, or other online content",
+            "es": "Redes sociales, podcasts u otro contenido en línea"
+          }
+        },
+        {
+          "value": "not_sure",
+          "text": {
+            "en": "I am not sure",
+            "es": "No estoy seguro/a"
+          }
+        },
+        {
+          "value": "other",
+          "text": {
+            "en": "Other",
+            "es": "Otra"
+          }
+        }
+      ],
+      "section": "driver",
+      "branch": "engaged"
+    },
+    {
+      "key": "driver_conditions_for_growth_engaged",
+      "question_domain": "drivers",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 410,
+      "text": {
+        "en": "Which of the following are currently true of you? Check all that apply.",
+        "es": "¿Cuáles de las siguientes afirmaciones son ciertas para ti actualmente? Marca todas las que apliquen."
+      },
+      "options": [
+        {
+          "value": "asked_for_help",
+          "text": {
+            "en": "I have asked someone to help me grow in my faith.",
+            "es": "Le he pedido a alguien que me ayude a crecer en mi fe."
+          }
+        },
+        {
+          "value": "time_for_practices",
+          "text": {
+            "en": "I can make time to pray, read the Bible, or learn about Jesus.",
+            "es": "Puedo dedicar tiempo a orar, leer la Biblia o aprender sobre Jesús."
+          }
+        },
+        {
+          "value": "safe_place",
+          "text": {
+            "en": "I have a safe place to be honest about my struggles with following Jesus.",
+            "es": "Tengo un lugar seguro para ser honesto/a sobre mis luchas al seguir a Jesús."
+          }
+        },
+        {
+          "value": "community_influence",
+          "text": {
+            "en": "I spend time with people who help me become more like Jesus.",
+            "es": "Paso tiempo con personas que me ayudan a parecerme más a Jesús."
+          }
+        },
+        {
+          "value": "ask_questions",
+          "text": {
+            "en": "I have opportunities to ask honest questions about my faith.",
+            "es": "Tengo oportunidades de hacer preguntas honestas sobre mi fe."
+          }
+        },
+        {
+          "value": "feel_connected",
+          "text": {
+            "en": "I feel connected to a Christian community.",
+            "es": "Me siento conectado/a a una comunidad cristiana."
+          }
+        },
+        {
+          "value": "none",
+          "text": {
+            "en": "None of these are currently true of me.",
+            "es": "Ninguna de estas es cierta para mí actualmente."
+          }
+        }
+      ],
+      "section": "driver",
+      "branch": "engaged"
+    },
+    {
+      "key": "driver_confidence_and_agency_engaged",
+      "question_domain": "drivers",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 420,
+      "text": {
+        "en": "What shapes your willingness to share your faith? Check all that apply.",
+        "es": "¿Qué influye en tu disposición a compartir tu fe? Marca todas las que apliquen."
+      },
+      "options": [
+        {
+          "value": "confidence",
+          "text": {
+            "en": "Confidence in what I believe",
+            "es": "Confianza en lo que creo"
+          }
+        },
+        {
+          "value": "fear_of_response",
+          "text": {
+            "en": "Fear of how other people may respond",
+            "es": "Miedo a cómo puedan reaccionar otras personas"
+          }
+        },
+        {
+          "value": "feeling_equipped",
+          "text": {
+            "en": "Whether I feel equipped",
+            "es": "Si me siento preparado/a"
+          }
+        },
+        {
+          "value": "seeing_others",
+          "text": {
+            "en": "Seeing other people share their faith",
+            "es": "Ver a otras personas compartir su fe"
+          }
+        },
+        {
+          "value": "relationships",
+          "text": {
+            "en": "My relationships with people who are not Christians",
+            "es": "Mis relaciones con personas que no son cristianas"
+          }
+        },
+        {
+          "value": "responsibility",
+          "text": {
+            "en": "Whether I believe sharing my faith is my responsibility",
+            "es": "Si creo que compartir mi fe es mi responsabilidad"
+          }
+        },
+        {
+          "value": "opportunity",
+          "text": {
+            "en": "Having an opportunity to share",
+            "es": "Tener la oportunidad de compartir"
+          }
+        },
+        {
+          "value": "invited_alongside",
+          "text": {
+            "en": "Being invited to share alongside other people",
+            "es": "Ser invitado/a a compartir junto a otras personas"
+          }
+        },
+        {
+          "value": "other",
+          "text": {
+            "en": "Other",
+            "es": "Otra"
+          }
+        }
+      ],
+      "section": "driver",
+      "branch": "engaged"
+    },
+    {
+      "key": "driver_relational_risk_engaged",
+      "question_domain": "drivers",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 430,
+      "text": {
+        "en": "Which of the following describe how you feel about talking about faith with people who are not Christians? Check all that apply.",
+        "es": "¿Cuáles de las siguientes describen cómo te sientes al hablar de fe con personas que no son cristianas? Marca todas las que apliquen."
+      },
+      "options": [
+        {
+          "value": "naturally",
+          "text": {
+            "en": "I talk about it naturally.",
+            "es": "Hablo de ello con naturalidad."
+          }
+        },
+        {
+          "value": "close_people_only",
+          "text": {
+            "en": "I talk about it mainly with people I am close to.",
+            "es": "Hablo de ello principalmente con personas cercanas a mí."
+          }
+        },
+        {
+          "value": "when_relevant",
+          "text": {
+            "en": "I am open to talking about it when it feels real or relevant.",
+            "es": "Estoy abierto/a a hablar de ello cuando se siente real o relevante."
+          }
+        },
+        {
+          "value": "wait_to_be_asked",
+          "text": {
+            "en": "I usually wait to be asked about it.",
+            "es": "Generalmente espero a que me pregunten."
+          }
+        },
+        {
+          "value": "avoid_it",
+          "text": {
+            "en": "I avoid it because I want to keep relationships comfortable.",
+            "es": "Lo evito porque quiero mantener relaciones cómodas."
+          }
+        },
+        {
+          "value": "worry_offending",
+          "text": {
+            "en": "I worry about offending people.",
+            "es": "Me preocupa ofender a las personas."
+          }
+        },
+        {
+          "value": "unsure_how",
+          "text": {
+            "en": "I am not sure how to bring it up.",
+            "es": "No estoy seguro/a de cómo sacar el tema."
+          }
+        },
+        {
+          "value": "other",
+          "text": {
+            "en": "Other",
+            "es": "Otra"
+          }
+        }
+      ],
+      "section": "driver",
+      "branch": "engaged"
+    },
+    {
+      "key": "journey_encounter_and_response_engaged",
+      "question_domain": "journey",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 440,
+      "text": {
+        "en": "Which people or experiences were most important in helping you encounter, understand, and respond to Jesus? Check all that apply.",
+        "es": "¿Qué personas o experiencias fueron más importantes para ayudarte a encontrar, entender y responder a Jesús? Marca todas las que apliquen."
+      },
+      "options": [
+        {
+          "value": "friend_peer",
+          "text": {
+            "en": "A friend or peer",
+            "es": "Un amigo o compañero"
+          }
+        },
+        {
+          "value": "family_member",
+          "text": {
+            "en": "A family member",
+            "es": "Un familiar"
+          }
+        },
+        {
+          "value": "church_gathering",
+          "text": {
+            "en": "A church gathering",
+            "es": "Una reunión de iglesia"
+          }
+        },
+        {
+          "value": "ministry_leader",
+          "text": {
+            "en": "A church or ministry leader",
+            "es": "Un líder de iglesia o ministerio"
+          }
+        },
+        {
+          "value": "school_campus",
+          "text": {
+            "en": "A school or campus experience",
+            "es": "Una experiencia escolar o universitaria"
+          }
+        },
+        {
+          "value": "online_social",
+          "text": {
+            "en": "Online content or social media",
+            "es": "Contenido en línea o redes sociales"
+          }
+        },
+        {
+          "value": "outreach_service",
+          "text": {
+            "en": "An outreach or service experience",
+            "es": "Una experiencia de evangelismo o servicio"
+          }
+        },
+        {
+          "value": "clear_talk",
+          "text": {
+            "en": "A clear talk or presentation",
+            "es": "Una charla o presentación clara"
+          }
+        },
+        {
+          "value": "personal_conversation",
+          "text": {
+            "en": "A personal conversation",
+            "es": "Una conversación personal"
+          }
+        },
+        {
+          "value": "course_discussion",
+          "text": {
+            "en": "A course or guided discussion",
+            "es": "Un curso o una discusión guiada"
+          }
+        },
+        {
+          "value": "reading_bible",
+          "text": {
+            "en": "Reading the Bible myself",
+            "es": "Leer la Biblia por mi cuenta"
+          }
+        },
+        {
+          "value": "significant_moment",
+          "text": {
+            "en": "A significant experience or moment in my life",
+            "es": "Una experiencia o momento significativo en mi vida"
+          }
+        },
+        {
+          "value": "other",
+          "text": {
+            "en": "Other",
+            "es": "Otra"
+          }
+        }
+      ],
+      "section": "journey",
+      "branch": "engaged"
+    },
+    {
+      "key": "journey_continued_formation_engaged",
+      "question_domain": "journey",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 450,
+      "text": {
+        "en": "What has helped you grow to become more like Jesus in how you live? Check all that apply.",
+        "es": "¿Qué te ha ayudado a crecer y parecerte más a Jesús en cómo vives? Marca todas las que apliquen."
+      },
+      "options": [
+        {
+          "value": "mentoring",
+          "text": {
+            "en": "One-on-one mentoring",
+            "es": "Mentoría uno a uno"
+          }
+        },
+        {
+          "value": "christian_friends",
+          "text": {
+            "en": "Conversations with Christian friends",
+            "es": "Conversaciones con amigos cristianos"
+          }
+        },
+        {
+          "value": "challenged_encouraged",
+          "text": {
+            "en": "Being challenged or encouraged",
+            "es": "Ser desafiado/a o animado/a"
+          }
+        },
+        {
+          "value": "group_learning",
+          "text": {
+            "en": "Learning in a group",
+            "es": "Aprender en grupo"
+          }
+        },
+        {
+          "value": "welcomed_community",
+          "text": {
+            "en": "Being welcomed into a Christian community",
+            "es": "Ser bienvenido/a en una comunidad cristiana"
+          }
+        },
+        {
+          "value": "shared_practices",
+          "text": {
+            "en": "Shared practices such as prayer, worship, or meals",
+            "es": "Prácticas compartidas como oración, adoración o comidas"
+          }
+        },
+        {
+          "value": "studying_bible",
+          "text": {
+            "en": "Reading or studying the Bible",
+            "es": "Leer o estudiar la Biblia"
+          }
+        },
+        {
+          "value": "observing",
+          "text": {
+            "en": "Observing how another Christian lives",
+            "es": "Observar cómo vive otro cristiano"
+          }
+        },
+        {
+          "value": "teaching_preaching",
+          "text": {
+            "en": "Teaching or preaching",
+            "es": "Enseñanza o predicación"
+          }
+        },
+        {
+          "value": "serving_alongside",
+          "text": {
+            "en": "Serving alongside other people",
+            "es": "Servir junto a otras personas"
+          }
+        },
+        {
+          "value": "local_church",
+          "text": {
+            "en": "A local church",
+            "es": "Una iglesia local"
+          }
+        },
+        {
+          "value": "online_community",
+          "text": {
+            "en": "An online Christian community",
+            "es": "Una comunidad cristiana en línea"
+          }
+        },
+        {
+          "value": "other",
+          "text": {
+            "en": "Other",
+            "es": "Otra"
+          }
+        }
+      ],
+      "section": "journey",
+      "branch": "engaged"
+    },
+    {
+      "key": "journey_participation_in_mission_engaged",
+      "question_domain": "journey",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 460,
+      "text": {
+        "en": "What has helped you begin to live out or share your faith in Jesus? Check all that apply.",
+        "es": "¿Qué te ha ayudado a comenzar a vivir o compartir tu fe en Jesús? Marca todas las que apliquen."
+      },
+      "options": [
+        {
+          "value": "encouraged_invited",
+          "text": {
+            "en": "Someone encouraged or invited me.",
+            "es": "Alguien me animó o invitó."
+          }
+        },
+        {
+          "value": "opportunity_to_serve",
+          "text": {
+            "en": "I had an opportunity to serve.",
+            "es": "Tuve la oportunidad de servir."
+          }
+        },
+        {
+          "value": "trained_shown",
+          "text": {
+            "en": "I was trained or shown how.",
+            "es": "Me capacitaron o me mostraron cómo."
+          }
+        },
+        {
+          "value": "did_it_alongside",
+          "text": {
+            "en": "I did it alongside other people.",
+            "es": "Lo hice junto a otras personas."
+          }
+        },
+        {
+          "value": "personal_conviction",
+          "text": {
+            "en": "I developed a personal conviction.",
+            "es": "Desarrollé una convicción personal."
+          }
+        },
+        {
+          "value": "saw_model",
+          "text": {
+            "en": "I saw someone else model it.",
+            "es": "Vi que alguien más lo modelaba."
+          }
+        },
+        {
+          "value": "church_provided",
+          "text": {
+            "en": "A church or ministry provided an opportunity.",
+            "es": "Una iglesia o ministerio brindó la oportunidad."
+          }
+        },
+        {
+          "value": "other",
+          "text": {
+            "en": "Other",
+            "es": "Otra"
+          }
+        }
+      ],
+      "section": "journey",
+      "branch": "engaged"
+    },
+    {
+      "key": "journey_multiplication_engaged",
+      "question_domain": "journey",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 470,
+      "text": {
+        "en": "What would help you take the next step in helping others follow Jesus? Check all that apply.",
+        "es": "¿Qué te ayudaría a dar el siguiente paso para ayudar a otros a seguir a Jesús? Marca todas las que apliquen."
+      },
+      "options": [
+        {
+          "value": "someone_to_guide",
+          "text": {
+            "en": "Someone to guide me",
+            "es": "Alguien que me guíe"
+          }
+        },
+        {
+          "value": "clear_next_steps",
+          "text": {
+            "en": "Clear next steps",
+            "es": "Pasos siguientes claros"
+          }
+        },
+        {
+          "value": "training_tools",
+          "text": {
+            "en": "Training or practical tools",
+            "es": "Capacitación o herramientas prácticas"
+          }
+        },
+        {
+          "value": "opportunity_to_try",
+          "text": {
+            "en": "An opportunity to try",
+            "es": "Una oportunidad para intentarlo"
+          }
+        },
+        {
+          "value": "encouragement",
+          "text": {
+            "en": "Encouragement",
+            "es": "Ánimo"
+          }
+        },
+        {
+          "value": "others_to_do_it_with",
+          "text": {
+            "en": "Other people to do it with",
+            "es": "Otras personas con quienes hacerlo"
+          }
+        },
+        {
+          "value": "greater_confidence",
+          "text": {
+            "en": "Greater confidence in what I believe",
+            "es": "Mayor confianza en lo que creo"
+          }
+        },
+        {
+          "value": "already_equipped",
+          "text": {
+            "en": "Nothing; I already feel equipped to take this step",
+            "es": "Nada; ya me siento preparado/a para dar este paso"
+          }
+        },
+        {
+          "value": "not_interested",
+          "text": {
+            "en": "I am not interested in taking this step",
+            "es": "No estoy interesado/a en dar este paso"
+          }
+        },
+        {
+          "value": "other",
+          "text": {
+            "en": "Other",
+            "es": "Otra"
+          }
+        }
+      ],
+      "section": "journey",
+      "branch": "engaged"
+    },
+    {
+      "key": "driver_sources_of_belief_unengaged",
+      "question_domain": "drivers",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "branch": "unengaged",
+      "max_select": 3,
+      "section": "driver",
+      "text": {
+        "en": "Which of the following most shape your views about God, religion, or spirituality? Select up to three.",
+        "es": "¿Cuáles de las siguientes cosas influyen más en tus opiniones sobre Dios, la religión o la espiritualidad? Selecciona hasta tres."
+      },
+      "options": [
+        {
+          "value": "own_judgment",
+          "text": {
+            "en": "My own judgment",
+            "es": "Mi propio criterio"
+          }
+        },
+        {
+          "value": "family",
+          "text": {
+            "en": "Family",
+            "es": "Familia"
+          }
+        },
+        {
+          "value": "friends",
+          "text": {
+            "en": "Friends or other people I trust",
+            "es": "Amigos u otras personas de confianza"
+          }
+        },
+        {
+          "value": "church_leaders",
+          "text": {
+            "en": "Church or Christian leaders",
+            "es": "Líderes de iglesia o cristianos"
+          }
+        },
+        {
+          "value": "peers",
+          "text": {
+            "en": "Christians my age",
+            "es": "Cristianos de mi edad"
+          }
+        },
+        {
+          "value": "personal_experiences",
+          "text": {
+            "en": "Personal experiences",
+            "es": "Experiencias personales"
+          }
+        },
+        {
+          "value": "social_media",
+          "text": {
+            "en": "Social media, podcasts, or other online content",
+            "es": "Redes sociales, podcasts u otro contenido en línea"
+          }
+        },
+        {
+          "value": "science",
+          "text": {
+            "en": "Science or evidence",
+            "es": "Ciencia o evidencia"
+          }
+        },
+        {
+          "value": "teachers",
+          "text": {
+            "en": "Teachers or education",
+            "es": "Maestros o educación"
+          }
+        },
+        {
+          "value": "bible",
+          "text": {
+            "en": "The Bible",
+            "es": "La Biblia"
+          }
+        },
+        {
+          "value": "other_books",
+          "text": {
+            "en": "Books or ideas outside Christianity",
+            "es": "Libros o ideas fuera del cristianismo"
+          }
+        },
+        {
+          "value": "other_communities",
+          "text": {
+            "en": "Other religious or nonreligious communities",
+            "es": "Otras comunidades religiosas o no religiosas"
+          }
+        },
+        {
+          "value": "not_sure",
+          "text": {
+            "en": "I am not sure",
+            "es": "No estoy seguro/a"
+          }
+        },
+        {
+          "value": "other",
+          "text": {
+            "en": "Other",
+            "es": "Otra"
+          }
+        },
+        {
+          "value": "none",
+          "text": {
+            "en": "None of these",
+            "es": "Ninguna de estas"
+          }
+        }
+      ],
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          },
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 500
+    },
+    {
+      "key": "driver_conditions_for_growth_unengaged",
+      "question_domain": "drivers",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "branch": "unengaged",
+      "section": "driver",
+      "text": {
+        "en": "Which of the following are currently true of you? Check all that apply.",
+        "es": "¿Cuáles de las siguientes afirmaciones son ciertas para ti actualmente? Marca todas las que correspondan."
+      },
+      "options": [
+        {
+          "value": "asked_for_help",
+          "text": {
+            "en": "I have asked someone to help me think through questions about belief or life's meaning.",
+            "es": "Le he pedido a alguien que me ayude a pensar en preguntas sobre creencias o el sentido de la vida."
+          }
+        },
+        {
+          "value": "time_for_practices",
+          "text": {
+            "en": "I make time to think about questions of belief or life's meaning.",
+            "es": "Dedico tiempo a pensar en preguntas sobre creencias o el sentido de la vida."
+          }
+        },
+        {
+          "value": "safe_place",
+          "text": {
+            "en": "I have a safe place to be honest about my beliefs, doubts, or disbelief.",
+            "es": "Tengo un lugar seguro para ser honesto/a sobre mis creencias, dudas o incredulidad."
+          }
+        },
+        {
+          "value": "community_influence",
+          "text": {
+            "en": "I spend time with people who help me think about the kind of person I want to become.",
+            "es": "Paso tiempo con personas que me ayudan a pensar en el tipo de persona que quiero llegar a ser."
+          }
+        },
+        {
+          "value": "ask_questions",
+          "text": {
+            "en": "I have opportunities to ask honest questions about religion or spirituality.",
+            "es": "Tengo oportunidades de hacer preguntas honestas sobre religión o espiritualidad."
+          }
+        },
+        {
+          "value": "feel_connected",
+          "text": {
+            "en": "I feel accepted by Christians I know, whether or not we agree about faith.",
+            "es": "Me siento aceptado/a por los cristianos que conozco, estemos o no de acuerdo sobre la fe."
+          }
+        },
+        {
+          "value": "none",
+          "text": {
+            "en": "None of these are currently true of me.",
+            "es": "Ninguna de estas es cierta para mí actualmente."
+          }
+        }
+      ],
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          },
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 510
+    },
+    {
+      "key": "driver_confidence_and_agency_unengaged",
+      "question_domain": "drivers",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "branch": "unengaged",
+      "section": "driver",
+      "text": {
+        "en": "What affects your willingness to talk about your beliefs, doubts, or disbelief? Check all that apply.",
+        "es": "¿Qué afecta tu disposición a hablar sobre tus creencias, dudas o incredulidad? Marca todas las que correspondan."
+      },
+      "options": [
+        {
+          "value": "confidence",
+          "text": {
+            "en": "Confidence in my own views",
+            "es": "Confianza en mis propias opiniones"
+          }
+        },
+        {
+          "value": "fear_of_response",
+          "text": {
+            "en": "How I expect other people to respond",
+            "es": "Cómo espero que otras personas reaccionen"
+          }
+        },
+        {
+          "value": "feeling_equipped",
+          "text": {
+            "en": "Whether I can explain my views",
+            "es": "Si puedo explicar mis opiniones"
+          }
+        },
+        {
+          "value": "seeing_others",
+          "text": {
+            "en": "Seeing other people talk openly about their beliefs",
+            "es": "Ver a otras personas hablar abiertamente sobre sus creencias"
+          }
+        },
+        {
+          "value": "relationships",
+          "text": {
+            "en": "My relationships with people whose beliefs differ from mine",
+            "es": "Mis relaciones con personas cuyas creencias difieren de las mías"
+          }
+        },
+        {
+          "value": "worthwhile",
+          "text": {
+            "en": "Whether I think the conversation would be worthwhile",
+            "es": "Si creo que la conversación valdría la pena"
+          }
+        },
+        {
+          "value": "opportunity",
+          "text": {
+            "en": "Having an opportunity to talk",
+            "es": "Tener la oportunidad de hablar"
+          }
+        },
+        {
+          "value": "invited_alongside",
+          "text": {
+            "en": "Being invited into a conversation",
+            "es": "Ser invitado/a a una conversación"
+          }
+        },
+        {
+          "value": "taken_seriously",
+          "text": {
+            "en": "Whether my questions would be taken seriously",
+            "es": "Si mis preguntas serían tomadas en serio"
+          }
+        },
+        {
+          "value": "pressure_to_change",
+          "text": {
+            "en": "Whether I would feel pressured to change my beliefs",
+            "es": "Si me sentiría presionado/a a cambiar mis creencias"
+          }
+        },
+        {
+          "value": "interest",
+          "text": {
+            "en": "Whether the topic interests me",
+            "es": "Si el tema me interesa"
+          }
+        },
+        {
+          "value": "other",
+          "text": {
+            "en": "Other",
+            "es": "Otra"
+          }
+        },
+        {
+          "value": "none",
+          "text": {
+            "en": "None of these",
+            "es": "Ninguna de estas"
+          }
+        },
+        {
+          "value": "not_sure",
+          "text": {
+            "en": "I am not sure",
+            "es": "No estoy seguro/a"
+          }
+        }
+      ],
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          },
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 520
+    },
+    {
+      "key": "driver_relational_risk_unengaged",
+      "question_domain": "drivers",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "branch": "unengaged",
+      "section": "driver",
+      "text": {
+        "en": "How do you feel about talking with Christians about religion or belief? Check all that apply.",
+        "es": "¿Cómo te sientes al hablar con cristianos sobre religión o creencias? Marca todas las que correspondan."
+      },
+      "options": [
+        {
+          "value": "naturally",
+          "text": {
+            "en": "I talk about it naturally.",
+            "es": "Hablo de ello con naturalidad."
+          }
+        },
+        {
+          "value": "close_people_only",
+          "text": {
+            "en": "I talk about it mainly with people I am close to.",
+            "es": "Hablo de ello principalmente con personas cercanas a mí."
+          }
+        },
+        {
+          "value": "when_relevant",
+          "text": {
+            "en": "I am open to talking about it when it feels relevant to my life.",
+            "es": "Estoy abierto/a a hablar de ello cuando siento que es relevante para mi vida."
+          }
+        },
+        {
+          "value": "wait_to_be_asked",
+          "text": {
+            "en": "I usually wait to be asked about it.",
+            "es": "Normalmente espero a que me pregunten."
+          }
+        },
+        {
+          "value": "avoid_it",
+          "text": {
+            "en": "I avoid it because I want to keep relationships comfortable.",
+            "es": "Lo evito porque quiero mantener relaciones cómodas."
+          }
+        },
+        {
+          "value": "worry_offending",
+          "text": {
+            "en": "I worry about offending people.",
+            "es": "Me preocupa ofender a las personas."
+          }
+        },
+        {
+          "value": "unsure_how",
+          "text": {
+            "en": "I am not sure how to bring it up.",
+            "es": "No estoy seguro/a de cómo sacar el tema."
+          }
+        },
+        {
+          "value": "worry_judged",
+          "text": {
+            "en": "I worry that my views would be judged or dismissed.",
+            "es": "Me preocupa que mis opiniones sean juzgadas o descartadas."
+          }
+        },
+        {
+          "value": "worry_pressured",
+          "text": {
+            "en": "I worry that I would be pressured to become Christian.",
+            "es": "Me preocupa sentirme presionado/a a convertirme al cristianismo."
+          }
+        },
+        {
+          "value": "not_interested",
+          "text": {
+            "en": "I am not interested in these conversations.",
+            "es": "No me interesan estas conversaciones."
+          }
+        },
+        {
+          "value": "no_christians",
+          "text": {
+            "en": "I do not know any Christians I could talk with.",
+            "es": "No conozco a ningún cristiano con quien pueda hablar."
+          }
+        },
+        {
+          "value": "other",
+          "text": {
+            "en": "Other",
+            "es": "Otra"
+          }
+        },
+        {
+          "value": "not_sure",
+          "text": {
+            "en": "I am not sure",
+            "es": "No estoy seguro/a"
+          }
+        }
+      ],
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          },
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 530
+    },
+    {
+      "key": "journey_encounter_and_response_unengaged",
+      "question_domain": "journey",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "branch": "unengaged",
+      "section": "journey",
+      "text": {
+        "en": "Which people or experiences have most shaped your views about Jesus or Christianity? Check all that apply.",
+        "es": "¿Qué personas o experiencias han influido más en tus opiniones sobre Jesús o el cristianismo? Marca todas las que correspondan."
+      },
+      "options": [
+        {
+          "value": "friend_peer",
+          "text": {
+            "en": "A friend or peer",
+            "es": "Un amigo o compañero"
+          }
+        },
+        {
+          "value": "family_member",
+          "text": {
+            "en": "A family member",
+            "es": "Un familiar"
+          }
+        },
+        {
+          "value": "church_gathering",
+          "text": {
+            "en": "A Christian church gathering",
+            "es": "Una reunión de una iglesia cristiana"
+          }
+        },
+        {
+          "value": "ministry_leader",
+          "text": {
+            "en": "A Christian church or ministry leader",
+            "es": "Un líder de iglesia o ministerio cristiano"
+          }
+        },
+        {
+          "value": "school_campus",
+          "text": {
+            "en": "A school or campus experience",
+            "es": "Una experiencia escolar o universitaria"
+          }
+        },
+        {
+          "value": "online_social",
+          "text": {
+            "en": "Online content or social media",
+            "es": "Contenido en línea o redes sociales"
+          }
+        },
+        {
+          "value": "clear_talk",
+          "text": {
+            "en": "A talk or presentation",
+            "es": "Una charla o presentación"
+          }
+        },
+        {
+          "value": "personal_conversation",
+          "text": {
+            "en": "A personal conversation",
+            "es": "Una conversación personal"
+          }
+        },
+        {
+          "value": "course_discussion",
+          "text": {
+            "en": "A course or guided discussion",
+            "es": "Un curso o discusión guiada"
+          }
+        },
+        {
+          "value": "reading_bible",
+          "text": {
+            "en": "Reading the Bible myself",
+            "es": "Leer la Biblia por mi cuenta"
+          }
+        },
+        {
+          "value": "significant_moment",
+          "text": {
+            "en": "A significant experience or moment in my life",
+            "es": "Una experiencia o momento significativo en mi vida"
+          }
+        },
+        {
+          "value": "other_books",
+          "text": {
+            "en": "Books or ideas outside Christianity",
+            "es": "Libros o ideas fuera del cristianismo"
+          }
+        },
+        {
+          "value": "other",
+          "text": {
+            "en": "Other",
+            "es": "Otra"
+          }
+        },
+        {
+          "value": "none",
+          "text": {
+            "en": "None of these",
+            "es": "Ninguna de estas"
+          }
+        },
+        {
+          "value": "not_sure",
+          "text": {
+            "en": "I am not sure",
+            "es": "No estoy seguro/a"
+          }
+        }
+      ],
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          },
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 540
+    },
+    {
+      "key": "journey_continued_formation_unengaged",
+      "question_domain": "journey",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "branch": "unengaged",
+      "section": "journey",
+      "text": {
+        "en": "What has helped you develop your views about the kind of person you want to become? Check all that apply.",
+        "es": "¿Qué te ha ayudado a formar tus opiniones sobre el tipo de persona que quieres llegar a ser? Marca todas las que correspondan."
+      },
+      "options": [
+        {
+          "value": "mentoring",
+          "text": {
+            "en": "One-on-one mentoring",
+            "es": "Mentoría personalizada"
+          }
+        },
+        {
+          "value": "friends",
+          "text": {
+            "en": "Conversations with friends",
+            "es": "Conversaciones con amigos"
+          }
+        },
+        {
+          "value": "challenged_encouraged",
+          "text": {
+            "en": "Being challenged or encouraged",
+            "es": "Ser desafiado/a o animado/a"
+          }
+        },
+        {
+          "value": "group_learning",
+          "text": {
+            "en": "Learning in a group",
+            "es": "Aprender en grupo"
+          }
+        },
+        {
+          "value": "welcomed_community",
+          "text": {
+            "en": "Being welcomed into a community",
+            "es": "Ser bienvenido/a en una comunidad"
+          }
+        },
+        {
+          "value": "shared_activities",
+          "text": {
+            "en": "Shared activities such as meals, reflection, or discussion",
+            "es": "Actividades compartidas como comidas, reflexión o discusión"
+          }
+        },
+        {
+          "value": "studying_ideas",
+          "text": {
+            "en": "Reading or studying ideas that matter to me",
+            "es": "Leer o estudiar ideas que me importan"
+          }
+        },
+        {
+          "value": "observing",
+          "text": {
+            "en": "Observing how someone else lives",
+            "es": "Observar cómo vive otra persona"
+          }
+        },
+        {
+          "value": "teaching_talks",
+          "text": {
+            "en": "Teaching or talks",
+            "es": "Enseñanzas o charlas"
+          }
+        },
+        {
+          "value": "serving_alongside",
+          "text": {
+            "en": "Serving alongside other people",
+            "es": "Servir junto a otras personas"
+          }
+        },
+        {
+          "value": "online_community",
+          "text": {
+            "en": "An online community",
+            "es": "Una comunidad en línea"
+          }
+        },
+        {
+          "value": "time_alone",
+          "text": {
+            "en": "Time to think on my own",
+            "es": "Tiempo para pensar por mi cuenta"
+          }
+        },
+        {
+          "value": "other",
+          "text": {
+            "en": "Other",
+            "es": "Otra"
+          }
+        },
+        {
+          "value": "nothing",
+          "text": {
+            "en": "Nothing has helped me in this way",
+            "es": "Nada me ha ayudado de esta forma"
+          }
+        },
+        {
+          "value": "not_sure",
+          "text": {
+            "en": "I am not sure",
+            "es": "No estoy seguro/a"
+          }
+        }
+      ],
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          },
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 550
+    },
+    {
+      "key": "journey_participation_in_mission_unengaged",
+      "question_domain": "journey",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "branch": "unengaged",
+      "section": "journey",
+      "text": {
+        "en": "What, if anything, would make you hesitate to join an activity organized by a Christian group? Check all that apply.",
+        "es": "¿Qué, si acaso, te haría dudar en unirte a una actividad organizada por un grupo cristiano? Marca todas las que correspondan."
+      },
+      "options": [
+        {
+          "value": "not_interested",
+          "text": {
+            "en": "I am not interested in the activities they offer.",
+            "es": "No me interesan las actividades que ofrecen."
+          }
+        },
+        {
+          "value": "would_not_know_anyone",
+          "text": {
+            "en": "I would not know anyone there.",
+            "es": "No conocería a nadie allí."
+          }
+        },
+        {
+          "value": "unsure_what_to_expect",
+          "text": {
+            "en": "I would be unsure what to expect.",
+            "es": "No sabría qué esperar."
+          }
+        },
+        {
+          "value": "worry_pressured",
+          "text": {
+            "en": "I would worry about being pressured to adopt Christian beliefs.",
+            "es": "Me preocuparía sentirme presionado/a a adoptar creencias cristianas."
+          }
+        },
+        {
+          "value": "worry_judged",
+          "text": {
+            "en": "I would worry about being judged or not accepted.",
+            "es": "Me preocuparía ser juzgado/a o no ser aceptado/a."
+          }
+        },
+        {
+          "value": "conflicting_values",
+          "text": {
+            "en": "Some of their beliefs or values conflict with mine.",
+            "es": "Algunas de sus creencias o valores entran en conflicto con los míos."
+          }
+        },
+        {
+          "value": "negative_experience",
+          "text": {
+            "en": "I have had a negative experience with a Christian group.",
+            "es": "He tenido una experiencia negativa con un grupo cristiano."
+          }
+        },
+        {
+          "value": "practical_issues",
+          "text": {
+            "en": "Practical issues, such as time, transportation, or cost.",
+            "es": "Cuestiones prácticas, como tiempo, transporte o costo."
+          }
+        },
+        {
+          "value": "nothing",
+          "text": {
+            "en": "Nothing would make me hesitate.",
+            "es": "Nada me haría dudar."
+          }
+        },
+        {
+          "value": "not_sure",
+          "text": {
+            "en": "I am not sure.",
+            "es": "No estoy seguro/a."
+          }
+        }
+      ],
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          },
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 560
+    },
+    {
+      "key": "journey_multiplication_unengaged",
+      "question_domain": "journey",
+      "tier": "na",
+      "type": "multi_select",
+      "scored": false,
+      "branch": "unengaged",
+      "section": "journey",
+      "text": {
+        "en": "What, if anything, makes it difficult for you to consider following Jesus? Check all that apply.",
+        "es": "¿Qué, si acaso, te dificulta considerar seguir a Jesús? Marca todas las que correspondan."
+      },
+      "options": [
+        {
+          "value": "dont_know_enough",
+          "text": {
+            "en": "I do not know enough about Jesus or Christianity.",
+            "es": "No sé lo suficiente sobre Jesús o el cristianismo."
+          }
+        },
+        {
+          "value": "not_convinced",
+          "text": {
+            "en": "I am not convinced that Christian beliefs are true.",
+            "es": "No estoy convencido/a de que las creencias cristianas sean verdaderas."
+          }
+        },
+        {
+          "value": "unanswered_questions",
+          "text": {
+            "en": "I have questions I have not found satisfactory answers to.",
+            "es": "Tengo preguntas para las que no he encontrado respuestas satisfactorias."
+          }
+        },
+        {
+          "value": "conflicting_teachings",
+          "text": {
+            "en": "Some Christian teachings conflict with my views or values.",
+            "es": "Algunas enseñanzas cristianas entran en conflicto con mis opiniones o valores."
+          }
+        },
+        {
+          "value": "suffering_injustice",
+          "text": {
+            "en": "Suffering and injustice make belief in God difficult for me.",
+            "es": "El sufrimiento y la injusticia hacen que creer en Dios sea difícil para mí."
+          }
+        },
+        {
+          "value": "bad_experiences",
+          "text": {
+            "en": "My experiences with Christians or churches have put me off.",
+            "es": "Mis experiencias con cristianos o iglesias me han alejado."
+          }
+        },
+        {
+          "value": "worry_response",
+          "text": {
+            "en": "I would worry about how people close to me would respond.",
+            "es": "Me preocuparía cómo reaccionarían las personas cercanas a mí."
+          }
+        },
+        {
+          "value": "worry_change",
+          "text": {
+            "en": "I would worry about what I might be expected to change.",
+            "es": "Me preocuparía lo que se esperaría que cambiara."
+          }
+        },
+        {
+          "value": "satisfied",
+          "text": {
+            "en": "I am satisfied with my current beliefs or outlook on life.",
+            "es": "Estoy satisfecho/a con mis creencias y perspectiva de vida actuales."
+          }
+        },
+        {
+          "value": "not_thought_about",
+          "text": {
+            "en": "Following Jesus is not something I have thought about.",
+            "es": "Seguir a Jesús no es algo en lo que haya pensado."
+          }
+        },
+        {
+          "value": "other",
+          "text": {
+            "en": "Other",
+            "es": "Otra"
+          }
+        },
+        {
+          "value": "not_sure",
+          "text": {
+            "en": "I am not sure.",
+            "es": "No estoy seguro/a."
+          }
+        }
+      ],
+      "show_if": {
+        "all": [
+          {
+            "key": "continue_to_extras",
+            "in": [
+              "yes"
+            ]
+          },
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 570
+    },
+    {
+      "key": "country",
+      "question_domain": "demographic",
+      "tier": "na",
+      "type": "open_text",
+      "scored": false,
+      "session_field": "country",
+      "max_length": 60,
+      "order": 905,
+      "text": {
+        "en": "In which country do you live?",
+        "es": "¿En qué país vives?"
+      },
+      "section": "demographic"
+    },
+    {
+      "key": "gender",
+      "question_domain": "demographic",
+      "tier": "na",
+      "type": "single_select",
+      "scored": false,
+      "session_field": "gender",
+      "order": 900,
+      "text": {
+        "en": "What best describes your gender?",
+        "es": "¿Qué describe mejor tu género?"
+      },
+      "options": [
+        {
+          "value": "male",
+          "text": {
+            "en": "Male",
+            "es": "Masculino"
+          }
+        },
+        {
+          "value": "female",
+          "text": {
+            "en": "Female",
+            "es": "Femenino"
+          }
+        },
+        {
+          "value": "other",
+          "text": {
+            "en": "Other",
+            "es": "Otro"
+          }
+        },
+        {
+          "value": "prefer_not_say",
+          "text": {
+            "en": "Prefer not to say",
+            "es": "Prefiero no decirlo"
+          }
+        }
+      ],
+      "section": "demographic"
+    },
+    {
+      "key": "city",
+      "question_domain": "demographic",
+      "tier": "na",
+      "type": "open_text",
+      "scored": false,
+      "session_field": "city",
+      "max_length": 60,
+      "order": 910,
+      "text": {
+        "en": "In which city or area do you live?",
+        "es": "¿En qué ciudad o área vives?"
+      },
+      "section": "demographic"
+    }
+  ]
+}

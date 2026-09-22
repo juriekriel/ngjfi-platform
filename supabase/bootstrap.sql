@@ -7,7 +7,7 @@
 -- Stands up a complete, empty database in one paste. Run it in a new Supabase
 -- project's SQL editor, top to bottom, then:
 --
---   1.  npm run db:seed            loads instrument v3 + the demo organisation
+--   1.  npm run db:seed            loads the current instrument version + the demo organisation
 --   2.  select public.data_space_report();
 --                                  verify the live space is empty before you
 --                                  point anything real at it
@@ -40,6 +40,12 @@
 --   0019_privacy_and_metadata_compliance.sql
 --   0020_country_critical_mass_tier.sql
 --   0021_insight_layer_reporting.sql
+--   0022_worklist_country_source.sql
+--   0023_reconcile_demo_dashboard.sql
+--   0024_schema_migrations_ledger.sql
+--   0025_reinstate_gender_and_city.sql
+--   0026_exploration_index.sql
+--   0027_fix_start_session_overload.sql
 -- ============================================================================
 
 
@@ -4782,4 +4788,831 @@ end;
 $$;
 
 grant execute on function public.collab_intelligence_demo() to anon, authenticated;
+
+
+-- ─── 0022_worklist_country_source.sql ──────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — collab_worklist() country source, reconciled (migration 0022)
+--
+-- Flagged in the review that produced migrations 0020/0021 and left for a
+-- separate change: collab_worklist() ranked countries by sessions.country
+-- (the respondent's own self-reported demographic answer) while every other
+-- geography query on the platform — collab_intelligence()'s countries[],
+-- org_benchmark()'s country baseline, the regions rollups — uses
+-- organisations.country (the organisation's registered country).
+--
+-- Two different things were both called "country" and silently disagreed:
+-- a Kenyan respondent answering a UK-registered ministry's survey while
+-- travelling would count toward Kenya in the worklist ("Kenya needs 40 more
+-- completions") but toward the UK everywhere else the platform names a
+-- country. Concentration is the whole point of this worklist's ranking
+-- ("the same sixty organisations spread across forty countries unlocks
+-- nothing; concentrated in ten it unlocks all ten") — a worklist counting a
+-- different "country" than the gate it's steering toward can recommend
+-- effort that never actually closes the gap collab_intelligence() checks.
+--
+-- Fix: collab_worklist() now uses organisations.country, matching
+-- collab_intelligence() and org_benchmark(). This is the only change —
+-- ranking logic, the "never fielded" nudge, and the returned shape are
+-- otherwise identical to the version in migration 0014.
+--
+-- Deliberately NOT a schema change: sessions.country (the respondent's own
+-- answer) still exists and is still collected — this migration only changes
+-- which "country" collab_worklist() reads for its own ranking, to agree with
+-- the rest of the platform. Whether a future rollup should ever use the
+-- respondent's self-reported country instead of the organisation's is a
+-- separate, larger question this migration deliberately does not settle.
+-- ============================================================================
+
+create or replace function public.collab_worklist()
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare v_items jsonb := '[]'::jsonb; v_gate int; v_c bigint;
+begin
+  if my_role() not in ('admin', 'collab') then
+    raise exception 'not authorised';
+  end if;
+
+  v_gate := setting_int('country_critical_mass_gate', 2000);
+
+  -- Coverage, not volume. The same sixty organisations spread across forty
+  -- countries unlocks nothing; concentrated in ten it unlocks all ten. So the
+  -- worklist ranks by who is CLOSEST to a benchmark, not by who has the most.
+  --
+  -- o.country, not s.country: this must count completions the same way
+  -- collab_intelligence()'s countries[] does, or "Kenya is 40 away" can
+  -- describe a gap that closing doesn't actually close.
+  v_items := (
+    select coalesce(jsonb_agg(jsonb_build_object(
+             'urgency', 'high',
+             'label', x.country || ' is ' || (v_gate - x.completions)
+                      || ' completions from its first benchmark',
+             'meta', x.completions || ' / ' || v_gate,
+             'action', 'See who can close it')
+           order by x.completions desc), '[]'::jsonb)
+      from (
+        select o.country, count(*) as completions
+          from sessions s
+          join campaigns c on c.id = s.campaign_id
+          join organisations o on o.id = c.org_id
+         where s.completed and o.is_demo = false and o.country is not null
+         group by o.country
+        having count(*) < v_gate
+      ) x
+  );
+
+  select count(*) into v_c
+    from organisations o
+   where o.is_demo = false
+     and not exists (select 1 from campaigns c where c.org_id = o.id and c.active);
+  if v_c > 0 then
+    v_items := v_items || jsonb_build_object(
+      'urgency', 'high',
+      'label', v_c || ' organisation' || case when v_c = 1 then '' else 's' end
+        || ' joined and never fielded', 'action', 'Nudge');
+  end if;
+
+  return jsonb_build_object(
+    'gate',  v_gate,
+    'waves', coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'short_name', w.short_name, 'name', w.name, 'item_set', w.item_set,
+               'audiences', w.audiences, 'opens_on', w.opens_on, 'closes_on', w.closes_on,
+               'adopted', (select count(*) from wave_adoptions a where a.wave_id = w.id))
+             order by w.created_at desc)
+        from waves w where w.is_demo = false), '[]'::jsonb),
+    'items', v_items
+  );
+end;
+$$;
+
+grant execute on function public.collab_worklist() to authenticated;
+
+
+-- ─── 0023_reconcile_demo_dashboard.sql ─────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — reconcile org_dashboard_demo() with org_dashboard() (migration 0023)
+--
+-- Flagged during the Drivers/Journey reporting review and left for a
+-- separate change: org_dashboard_demo() (the signed-out /demo/dashboard
+-- preview) was never updated when migration 0019 fixed org_dashboard() —
+-- it drifted on three points:
+--
+--   1. No min_group_n floor. A demo org with a handful of synthetic
+--      responses could still show a derived score, which is exactly the
+--      suppression 0019 added everywhere else on the platform.
+--   2. The same n-counting bug 0019 fixed in org_dashboard(): 'n' was
+--      count(*) over response ROWS (one row per item answered), not
+--      count(distinct session) — a 3-respondent demo org answering a
+--      24-item Index reported n=72, not 3.
+--   3. Trend computed inline from raw responses instead of via
+--      blended_trend(), so a demo org's "movement over time" ignores
+--      the retention-archive blending every other trend chart already
+--      gets.
+--
+-- Fix: org_dashboard_demo()'s body is now structurally identical to
+-- org_dashboard()'s (post-0021), with only the is_demo guard and the anon
+-- grant kept — both of which are this function's entire reason to exist as
+-- a separate sibling rather than reusing org_dashboard() directly. This
+-- includes migration 0021's 'insights' key (Drivers/Journey option rates),
+-- now that 0021 has merged — the demo preview should show the same panels
+-- the real dashboard does, not a strict subset of them.
+-- ============================================================================
+
+create or replace function public.org_dashboard_demo(p_org_slug text)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  v_org public.organisations%rowtype; result jsonb;
+  v_n bigint; v_min_group_n int;
+begin
+  select * into v_org from organisations where slug = p_org_slug;
+  if not found then raise exception 'org not found'; end if;
+  if not coalesce(v_org.is_demo, false) then
+    raise exception 'demo preview is only available for demo organisations';
+  end if;
+
+  v_min_group_n := setting_int('min_group_n', 10);
+
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.created_at, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+  )
+  select count(distinct sid) into v_n from r;
+
+  -- Same suppression as org_dashboard(): n is real and always shown,
+  -- everything derived from it is not, below the floor.
+  if v_n < v_min_group_n then
+    return jsonb_build_object(
+      'demo', true,
+      'org', jsonb_build_object('slug', v_org.slug, 'name', v_org.name, 'verified', v_org.verified),
+      'n', v_n,
+      'suppressed', true,
+      'min_group_n', v_min_group_n,
+      'index', null, 'tiers', '{}'::jsonb, 'domains', '{}'::jsonb, 'matrix', '{}'::jsonb,
+      'items', '[]'::jsonb, 'trend', null, 'insights', '{}'::jsonb
+    );
+  end if;
+
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.created_at, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+  )
+  select jsonb_build_object(
+    'demo', true,
+    'org', jsonb_build_object('slug', v_org.slug, 'name', v_org.name, 'verified', v_org.verified),
+    'n', v_n,
+    'suppressed', false,
+    'tiers',   (select jsonb_object_agg(tier, m) from (select tier, round(avg(normalized),1) m from r group by tier) t),
+    'domains', (select jsonb_object_agg(question_domain, m) from (select question_domain, round(avg(normalized),1) m from r group by question_domain) d),
+    'matrix',  (select jsonb_object_agg(question_domain, tiers) from
+                 (select question_domain, jsonb_object_agg(tier, m) tiers from
+                    (select question_domain, tier, round(avg(normalized),1) m from r group by question_domain, tier) x
+                  group by question_domain) y),
+    'items',   (select jsonb_agg(jsonb_build_object('key', item_key, 'domain', question_domain, 'tier', tier, 'mean', m, 'n', n)
+                          order by question_domain, tier) from
+                 (select item_key, question_domain, tier, round(avg(normalized),1) m, count(distinct sid) n
+                    from r group by item_key, question_domain, tier) z),
+    'trend',   blended_trend(v_org.id, v_org.is_demo),
+    'insights', insight_aggregates(v_org.id, v_org.is_demo, v_min_group_n)
+  ) into result;
+
+  result := result || jsonb_build_object('index',
+    (select round(avg(value::numeric),1) from jsonb_each_text(coalesce(result->'tiers','{}'::jsonb))
+       where key in ('exposure','response','formation','multiplication')));
+  return result;
+end;
+$$;
+
+grant execute on function public.org_dashboard_demo(text) to anon, authenticated;
+
+
+-- ─── 0024_schema_migrations_ledger.sql ─────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — track which migrations have been applied (migration 0024)
+--
+-- Until 16 September 2026 nothing recorded what this database had actually run.
+-- Every migration was applied by hand, and the only record that 0021 had landed
+-- was that org_dashboard() answered with an 'insights' key. That works until the
+-- day someone forgets, and then the deployed application calls a function that
+-- does not exist with no way to tell from the outside.
+--
+-- JFI Publish now applies migrations itself and writes to this table. The table
+-- is created here so it is part of the tracked schema rather than a thing that
+-- exists only because a service made it once.
+--
+-- 'baselined' marks the twenty-three migrations that were applied by hand before
+-- this existed. They were recorded, not re-run — re-running 0001 against a live
+-- database is not a thing you do to prove a point.
+--
+-- Idempotent: safe to run against a database that already has the table.
+-- ============================================================================
+
+create table if not exists public.schema_migrations (
+  filename    text primary key,
+  checksum    text        not null,
+  applied_at  timestamptz not null default now(),
+  applied_by  text,
+  baselined   boolean     not null default false
+);
+
+comment on table public.schema_migrations is
+  'One row per applied migration file. Written by JFI Publish. baselined = true means the row records a migration applied by hand before automated application existed, and its SQL was never executed by the publisher.';
+
+comment on column public.schema_migrations.checksum is
+  'sha256 of the migration file as applied. A mismatch means the file was edited after the fact — the publisher refuses to proceed rather than guess which side is right.';
+
+-- Deployment history is not public data. The service reaches this table through
+-- the Management API, which bypasses RLS, so no policy is needed here.
+revoke all on public.schema_migrations from anon, authenticated;
+
+
+-- ─── 0025_reinstate_gender_and_city.sql ────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — reinstate gender, add city/area (migration 0025)
+--
+-- Instrument v4 (Youth-Collab-Survey-Augmented_F.docx) asks both branches a
+-- "What best describes your gender?" question and, separately, "In which
+-- city or area do you live?" — reopening two decisions migration 0019 made
+-- during the approved-metadata privacy review:
+--
+--   * gender was DROPPED there ("never approved"). v4 REINSTATES it: an
+--     explicit, deliberate decision for this version, made by the person who
+--     owns the instrument content, not a silent reversal of 0019. It is
+--     still a single_select from a fixed, non-identifying option list
+--     (male/female/other/prefer_not_say), still asked with no name/email/
+--     precise location, and still reported only in aggregate — same posture
+--     as every other demographic field.
+--
+--   * city was ALSO dropped there, and is ADDED BACK here — but this time
+--     with the current project's non-negotiable #1 explicitly in mind: a
+--     free-text city/area is a real re-identification risk for a small town,
+--     independent of the existing country-level critical-mass gate (migration
+--     0020). This migration only adds the column and lets it be written; the
+--     CITY-LEVEL critical-mass gate that non-negotiable #1 requires before any
+--     city-scoped figure is ever shown is NOT implemented here — no query in
+--     this codebase groups by city yet, so there is nothing to gate. Flagged
+--     explicitly so it isn't forgotten: build the city-tier gate (mirroring
+--     0020's country-tier pattern) before any surface reports by city.
+--
+-- Both columns are exactly what they were before 0019 dropped them: coarse,
+-- optional, respondent-supplied text/category, no PII, written the same way
+-- age_band/country already are — through set_session_context(), never
+-- start_session(), so nothing new is exposed to anon beyond an allow-listed
+-- column write on a session the caller already owns implicitly (RLS on
+-- sessions has no anon policies at all; this RPC is SECURITY DEFINER and
+-- validates the session exists, same as today).
+-- ============================================================================
+
+alter table public.sessions add column if not exists gender text;
+alter table public.sessions add column if not exists city   text; -- optional, coarse (city/area free text)
+
+create or replace function public.set_session_context(
+  p_session_id uuid, p_field text, p_value text
+) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from sessions s where s.id = p_session_id) then
+    raise exception 'session not found';
+  end if;
+
+  if p_field not in ('age_band', 'country', 'gender', 'city') then
+    raise exception 'field % is not settable from the survey', p_field;
+  end if;
+
+  if p_value is not null and length(p_value) > 64 then
+    raise exception 'value too long for %', p_field;
+  end if;
+
+  if    p_field = 'age_band' then update sessions set age_band = p_value where id = p_session_id;
+  elsif p_field = 'country'  then update sessions set country  = p_value where id = p_session_id;
+  elsif p_field = 'gender'   then update sessions set gender   = p_value where id = p_session_id;
+  elsif p_field = 'city'     then update sessions set city     = p_value where id = p_session_id;
+  end if;
+end;
+$$;
+
+grant execute on function public.set_session_context(uuid, text, text) to anon, authenticated;
+
+
+-- ─── 0026_exploration_index.sql ────────────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — the Exploration Index (migration 0026)
+--
+-- Instrument v4 gives respondents on the Unengaged branch (see
+-- instrument.v4.json's version note) a full 24-item parallel measure, using
+-- the SAME domain x tier cells as the official Index. The draft this was
+-- built from says outright: "it does not make the scores equivalent." This
+-- migration is the database half of honouring that: a second, completely
+-- separate figure (the "Exploration Index"), computed the exact same way as
+-- the official Index, that never contributes to it and is never summed or
+-- averaged with it anywhere.
+--
+-- Mechanism: items.branch and responses.branch carry the instrument's own
+-- `branch` tag ("engaged" | "unengaged" | null) through to every stored
+-- response — the same pattern tier/question_domain already use (denormalised
+-- onto the response row at write time, from the versioned instrument, never
+-- hard-coded as a list of item keys in SQL). org_dashboard(),
+-- collab_intelligence() and collab_intelligence_demo() then aggregate twice:
+-- once excluding branch = 'unengaged' (unchanged behaviour — this is
+-- 'index'/'tiers'/'domains'/'matrix', exactly as before), and once including
+-- ONLY branch = 'unengaged' (new — 'exploration_index' etc.), and the two
+-- are never combined.
+--
+-- src/lib/scoring.ts (the TS engine used for any client-side/dev computation)
+-- got the identical split in the same PR.
+-- ============================================================================
+
+alter table public.items     add column if not exists branch text; -- 'engaged' | 'unengaged' | null
+alter table public.responses add column if not exists branch text;
+
+-- ----------------------------------------------------------------------------
+-- 1. save_response(): carry the item's branch tag onto the response row,
+-- exactly like tier/question_domain already are.
+-- ----------------------------------------------------------------------------
+create or replace function public.save_response(
+  p_session_id uuid, p_item_key text, p_raw jsonb
+) returns void
+language plpgsql security definer set search_path = public as $$
+declare v_item public.items%rowtype; v_iv uuid; v_norm numeric;
+begin
+  select c.instrument_version_id into v_iv
+  from sessions s join campaigns c on c.id = s.campaign_id
+  where s.id = p_session_id;
+  if v_iv is null then raise exception 'session not found'; end if;
+
+  select * into v_item from items where instrument_version_id = v_iv and key = p_item_key;
+  if not found then raise exception 'unknown item %', p_item_key; end if;
+
+  v_norm := public.ngjfi_normalize(v_item.type, v_item.scored, v_item.reverse_scored, v_item.scale, p_raw);
+
+  insert into responses (session_id, item_id, item_key, raw_value, normalized, tier, question_domain, branch)
+  values (p_session_id, v_item.id, p_item_key, p_raw, v_norm, v_item.tier, v_item.question_domain, v_item.branch)
+  on conflict (session_id, item_id)
+    do update set raw_value = excluded.raw_value, normalized = excluded.normalized, branch = excluded.branch;
+end;
+$$;
+
+grant execute on function public.save_response(uuid, text, jsonb) to anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 2. org_dashboard(): exclude branch = 'unengaged' from the existing 'r' CTE
+-- (so 'tiers'/'domains'/'matrix'/'index'/'items'/'n' behave exactly as
+-- before — this is the defensive half of "never blended"), and add a second
+-- 're' CTE + 'exploration_*' keys computed the identical way. Suppression:
+-- the official figures keep their existing v_n / v_min_group_n gate,
+-- unchanged; the exploration figures get their OWN independent v_explore_n
+-- gate against the same v_min_group_n floor, since an org can clear one
+-- without clearing the other.
+-- ----------------------------------------------------------------------------
+create or replace function public.org_dashboard(p_org_slug text)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  v_uid uuid := auth.uid(); v_org public.organisations%rowtype; result jsonb; result2 jsonb;
+  v_n bigint; v_explore_n bigint; v_min_group_n int;
+begin
+  select * into v_org from organisations where slug = p_org_slug;
+  if not found then raise exception 'org not found'; end if;
+  if v_uid is null or not exists (
+    select 1 from org_members m where m.org_id = v_org.id and m.user_id = v_uid and m.status = 'active'
+  ) then
+    raise exception 'not authorised for this organisation';
+  end if;
+
+  v_min_group_n := setting_int('min_group_n', 10);
+
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.created_at, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+      and (rsp.branch is distinct from 'unengaged')
+  )
+  select count(distinct sid) into v_n from r;
+
+  with re as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+      and rsp.branch = 'unengaged'
+  )
+  select count(distinct sid) into v_explore_n from re;
+
+  -- Below the floor: n is real and always shown ("of those who completed the
+  -- Index" needs it to mean something) -- everything derived from it is not.
+  -- The official and exploration figures are suppressed independently.
+  if v_n < v_min_group_n and v_explore_n < v_min_group_n then
+    return jsonb_build_object(
+      'org', jsonb_build_object('slug', v_org.slug, 'name', v_org.name, 'verified', v_org.verified),
+      'n', v_n,
+      'suppressed', true,
+      'min_group_n', v_min_group_n,
+      'index', null, 'tiers', '{}'::jsonb, 'domains', '{}'::jsonb, 'matrix', '{}'::jsonb,
+      'items', '[]'::jsonb, 'trend', null, 'insights', '{}'::jsonb,
+      'exploration_n', v_explore_n, 'exploration_suppressed', true,
+      'exploration_index', null, 'exploration_tiers', '{}'::jsonb,
+      'exploration_domains', '{}'::jsonb, 'exploration_matrix', '{}'::jsonb
+    );
+  end if;
+
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.created_at, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+      and (rsp.branch is distinct from 'unengaged')
+  )
+  select jsonb_build_object(
+    'org', jsonb_build_object('slug', v_org.slug, 'name', v_org.name, 'verified', v_org.verified),
+    'n', v_n,
+    'suppressed', v_n < v_min_group_n,
+    'tiers',   case when v_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(tier, m) from (select tier, round(avg(normalized),1) m from r group by tier) t) end,
+    'domains', case when v_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(question_domain, m) from (select question_domain, round(avg(normalized),1) m from r group by question_domain) d) end,
+    'matrix',  case when v_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(question_domain, tiers) from
+                 (select question_domain, jsonb_object_agg(tier, m) tiers from
+                    (select question_domain, tier, round(avg(normalized),1) m from r group by question_domain, tier) x
+                  group by question_domain) y) end,
+    'items',   case when v_n < v_min_group_n then '[]'::jsonb else
+               (select jsonb_agg(jsonb_build_object('key', item_key, 'domain', question_domain, 'tier', tier, 'mean', m, 'n', n)
+                          order by question_domain, tier) from
+                 (select item_key, question_domain, tier, round(avg(normalized),1) m, count(distinct sid) n
+                    from r group by item_key, question_domain, tier) z) end,
+    'trend',   blended_trend(v_org.id, v_org.is_demo),
+    'insights', insight_aggregates(v_org.id, v_org.is_demo, v_min_group_n)
+  ) into result;
+
+  if v_n >= v_min_group_n then
+    result := result || jsonb_build_object('index',
+      (select round(avg(value::numeric),1) from jsonb_each_text(coalesce(result->'tiers','{}'::jsonb))
+         where key in ('exposure','response','formation','multiplication')));
+  else
+    result := result || jsonb_build_object('index', null);
+  end if;
+
+  with re as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+      and rsp.branch = 'unengaged'
+  )
+  select jsonb_build_object(
+    'exploration_n', v_explore_n,
+    'exploration_suppressed', v_explore_n < v_min_group_n,
+    'exploration_tiers',   case when v_explore_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(tier, m) from (select tier, round(avg(normalized),1) m from re group by tier) t) end,
+    'exploration_domains', case when v_explore_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(question_domain, m) from (select question_domain, round(avg(normalized),1) m from re group by question_domain) d) end,
+    'exploration_matrix',  case when v_explore_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(question_domain, tiers) from
+                 (select question_domain, jsonb_object_agg(tier, m) tiers from
+                    (select question_domain, tier, round(avg(normalized),1) m from re group by question_domain, tier) x
+                  group by question_domain) y) end
+  ) into result2;
+
+  result := result || result2;
+
+  if v_explore_n >= v_min_group_n then
+    result := result || jsonb_build_object('exploration_index',
+      (select round(avg(value::numeric),1) from jsonb_each_text(coalesce(result->'exploration_tiers','{}'::jsonb))
+         where key in ('exposure','response','formation','multiplication')));
+  else
+    result := result || jsonb_build_object('exploration_index', null);
+  end if;
+
+  return result;
+end;
+$$;
+
+grant execute on function public.org_dashboard(text) to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 3. collab_intelligence(): same split. 'funnel'/'domains'/'matrix' exclude
+-- branch = 'unengaged' (defensive, matches 0021's own comment that these
+-- three never read question_domain in ('drivers','journey') -- now also
+-- true of branch = 'unengaged'). 'exploration_funnel'/'exploration_domains'/
+-- 'exploration_matrix'/'exploration_index'/'exploration_n' are new, gated by
+-- the same platform-wide publish/critical-mass gate as everything else on
+-- this page (unlike org_dashboard(), there is no separate per-org floor
+-- here to apply independently).
+-- ----------------------------------------------------------------------------
+create or replace function public.collab_intelligence()
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  result jsonb; result2 jsonb; v_gate int; v_country_gate int; v_total bigint; v_publish boolean; v_min_group_n int;
+begin
+  v_gate         := setting_int('critical_mass_gate', 400);
+  v_country_gate := setting_int('country_critical_mass_gate', 2000);
+  v_publish      := setting_bool('publish_global_view', false);
+  v_min_group_n  := setting_int('min_group_n', 10);
+
+  select count(distinct s.id) into v_total
+    from sessions s
+    join campaigns c     on c.id = s.campaign_id
+    join organisations o on o.id = c.org_id
+   where o.is_demo = false;
+
+  if not v_publish or v_total < v_gate then
+    return jsonb_build_object(
+      'space',     'live',
+      'published', false,
+      'reason',    case when not v_publish then 'awaiting_release' else 'below_critical_mass' end,
+      'gate',      v_gate,
+      'country_gate', v_country_gate,
+      'completions', v_total,
+      'totals',    jsonb_build_object('responses', 0, 'orgs', 0, 'countries', 0, 'regions', 0, 'languages', 0),
+      'insights',  '{}'::jsonb,
+      'exploration_n', 0, 'exploration_index', null,
+      'exploration_funnel', '{}'::jsonb, 'exploration_domains', '{}'::jsonb, 'exploration_matrix', '{}'::jsonb
+    );
+  end if;
+
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.normalized,
+           s.age_band, s.locale, s.id as sid, s.created_at,
+           o.region, o.country, o.id as oid
+    from responses rsp
+    join sessions s      on s.id = rsp.session_id
+    join campaigns c     on c.id = s.campaign_id
+    join organisations o on o.id = c.org_id
+    where rsp.normalized is not null
+      and o.is_demo = false
+      and (rsp.branch is distinct from 'unengaged')
+  ),
+  ctry_tier as (
+    select country, tier, round(avg(normalized),1) m from r where country is not null group by country, tier
+  ),
+  ctry_n as (
+    select country, count(distinct sid) n from r where country is not null group by country
+  ),
+  rgn_tier as (
+    select region, tier, round(avg(normalized),1) m from r where region is not null group by region, tier
+  ),
+  rgn_n as (
+    select region, count(distinct sid) n from r where region is not null group by region
+  ),
+  org_means as (
+    select oid,
+           avg(normalized) filter (where tier = 'formation') as f,
+           avg(normalized) filter (where tier = 'multiplication') as mm
+    from r group by oid
+  )
+  select jsonb_build_object(
+    'space', 'live',
+    'published', true,
+    'gate', v_gate,
+    'country_gate', v_country_gate,
+    'totals', jsonb_build_object(
+      'responses', (select count(distinct sid) from r),
+      'orgs',      (select count(distinct oid) from r),
+      'countries', (select count(distinct country) from r where country is not null),
+      'regions',   (select count(distinct region) from r where region is not null),
+      'languages', (select count(distinct locale) from r where locale is not null)
+    ),
+    'funnel',  (select jsonb_object_agg(tier, m) from (select tier, round(avg(normalized),1) m from r group by tier) t),
+    'domains', (select jsonb_object_agg(question_domain, m) from (select question_domain, round(avg(normalized),1) m from r group by question_domain) d),
+    'matrix',  (select jsonb_object_agg(question_domain, tiers) from
+                 (select question_domain, jsonb_object_agg(tier, m) tiers from
+                    (select question_domain, tier, round(avg(normalized),1) m from r group by question_domain, tier) x
+                  group by question_domain) y),
+    'by_age',  (select jsonb_object_agg(age_band, m) from
+                 (select age_band, round(avg(normalized),1) m, count(distinct sid) n from r
+                    where tier = 'multiplication' and age_band is not null
+                    group by age_band having count(distinct sid) >= v_min_group_n) a),
+    'trend',   blended_trend(null, false),
+    'countries', (select jsonb_agg(jsonb_build_object('country', ct.country, 'n', cn.n, 'tiers', ct.tiers)) from
+                   (select country, jsonb_object_agg(tier, m) tiers from ctry_tier group by country) ct
+                   join ctry_n cn on cn.country = ct.country and cn.n >= v_country_gate),
+    'regions', (select jsonb_agg(jsonb_build_object('region', rt.region, 'n', rn.n, 'tiers', rt.tiers,
+                                                     'index', (select round(avg(value::numeric),1) from jsonb_each_text(rt.tiers)
+                                                               where key in ('exposure','response','formation','multiplication')))
+                                 order by rn.n desc) from
+                 (select region, jsonb_object_agg(tier, m) tiers from rgn_tier group by region) rt
+                 join rgn_n rn on rn.region = rt.region and rn.n >= v_gate),
+    'findings', jsonb_build_object(
+      'formation_mult_r2', (select round((corr(f, mm)^2)*100)::int from org_means where f is not null and mm is not null),
+      'formation_corr',    (select round(corr(f, mm)::numeric, 2) from org_means where f is not null and mm is not null),
+      'mult_top',          (select round(avg(mm),1) from (select mm, ntile(4) over (order by mm) q from org_means where mm is not null) z where q = 4),
+      'mult_bottom',       (select round(avg(mm),1) from (select mm, ntile(4) over (order by mm) q from org_means where mm is not null) z where q = 1)
+    ),
+    'insights', insight_aggregates(null, false, v_min_group_n)
+  ) into result;
+
+  with re as (
+    select rsp.tier, rsp.question_domain, rsp.normalized, s.id as sid, o.id as oid
+    from responses rsp
+    join sessions s      on s.id = rsp.session_id
+    join campaigns c     on c.id = s.campaign_id
+    join organisations o on o.id = c.org_id
+    where rsp.normalized is not null
+      and o.is_demo = false
+      and rsp.branch = 'unengaged'
+  )
+  select jsonb_build_object(
+    'exploration_n', (select count(distinct sid) from re),
+    'exploration_funnel',  (select jsonb_object_agg(tier, m) from (select tier, round(avg(normalized),1) m from re group by tier) t),
+    'exploration_domains', (select jsonb_object_agg(question_domain, m) from (select question_domain, round(avg(normalized),1) m from re group by question_domain) d),
+    'exploration_matrix',  (select jsonb_object_agg(question_domain, tiers) from
+                 (select question_domain, jsonb_object_agg(tier, m) tiers from
+                    (select question_domain, tier, round(avg(normalized),1) m from re group by question_domain, tier) x
+                  group by question_domain) y)
+  ) into result2;
+
+  result := result || result2;
+
+  result := result || jsonb_build_object(
+    'exploration_index',
+    case when (result->>'exploration_n')::bigint >= v_min_group_n
+      then (select round(avg(value::numeric),1) from jsonb_each_text(coalesce(result->'exploration_funnel','{}'::jsonb))
+              where key in ('exposure','response','formation','multiplication'))
+      else null
+    end
+  );
+
+  return result;
+end;
+$$;
+
+grant execute on function public.collab_intelligence() to anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 4. collab_intelligence_demo(): same split, no publish/critical-mass gate
+-- (matches every other field here, per 0021's own comment -- synthetic data
+-- has never been gated).
+-- ----------------------------------------------------------------------------
+create or replace function public.collab_intelligence_demo()
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare result jsonb; result2 jsonb; v_min_group_n int;
+begin
+  v_min_group_n := setting_int('min_group_n', 10);
+
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.normalized,
+           s.age_band, s.locale, s.id as sid, s.created_at,
+           o.region, o.country, o.id as oid
+    from responses rsp
+    join sessions s      on s.id = rsp.session_id
+    join campaigns c     on c.id = s.campaign_id
+    join organisations o on o.id = c.org_id
+    where rsp.normalized is not null
+      and o.is_demo = true
+      and (rsp.branch is distinct from 'unengaged')
+  ),
+  ctry_tier as (
+    select country, tier, round(avg(normalized),1) m from r where country is not null group by country, tier
+  ),
+  ctry_n as (
+    select country, count(distinct sid) n from r where country is not null group by country
+  ),
+  rgn_tier as (
+    select region, tier, round(avg(normalized),1) m from r where region is not null group by region, tier
+  ),
+  rgn_n as (
+    select region, count(distinct sid) n from r where region is not null group by region
+  ),
+  org_means as (
+    select oid,
+           avg(normalized) filter (where tier = 'formation') as f,
+           avg(normalized) filter (where tier = 'multiplication') as mm
+    from r group by oid
+  )
+  select jsonb_build_object(
+    'space', 'demo',
+    'published', true,
+    'demo', true,
+    'totals', jsonb_build_object(
+      'responses', (select count(distinct sid) from r),
+      'orgs',      (select count(distinct oid) from r),
+      'countries', (select count(distinct country) from r where country is not null),
+      'regions',   (select count(distinct region) from r where region is not null),
+      'languages', (select count(distinct locale) from r where locale is not null)
+    ),
+    'funnel',  (select jsonb_object_agg(tier, m) from (select tier, round(avg(normalized),1) m from r group by tier) t),
+    'domains', (select jsonb_object_agg(question_domain, m) from (select question_domain, round(avg(normalized),1) m from r group by question_domain) d),
+    'matrix',  (select jsonb_object_agg(question_domain, tiers) from
+                 (select question_domain, jsonb_object_agg(tier, m) tiers from
+                    (select question_domain, tier, round(avg(normalized),1) m from r group by question_domain, tier) x
+                  group by question_domain) y),
+    'by_age',  (select jsonb_object_agg(age_band, m) from
+                 (select age_band, round(avg(normalized),1) m, count(distinct sid) n from r
+                    where tier = 'multiplication' and age_band is not null
+                    group by age_band having count(distinct sid) >= v_min_group_n) a),
+    'trend',   blended_trend(null, true),
+    'countries', (select jsonb_agg(jsonb_build_object('country', ct.country, 'n', cn.n, 'tiers', ct.tiers)) from
+                   (select country, jsonb_object_agg(tier, m) tiers from ctry_tier group by country) ct
+                   join ctry_n cn on cn.country = ct.country),
+    'regions', (select jsonb_agg(jsonb_build_object('region', rt.region, 'n', rn.n, 'tiers', rt.tiers,
+                                                     'index', (select round(avg(value::numeric),1) from jsonb_each_text(rt.tiers)
+                                                               where key in ('exposure','response','formation','multiplication')))
+                                 order by rn.n desc) from
+                 (select region, jsonb_object_agg(tier, m) tiers from rgn_tier group by region) rt
+                 join rgn_n rn on rn.region = rt.region),
+    'findings', jsonb_build_object(
+      'formation_mult_r2', (select round((corr(f, mm)^2)*100)::int from org_means where f is not null and mm is not null),
+      'formation_corr',    (select round(corr(f, mm)::numeric, 2) from org_means where f is not null and mm is not null),
+      'mult_top',          (select round(avg(mm),1) from (select mm, ntile(4) over (order by mm) q from org_means where mm is not null) z where q = 4),
+      'mult_bottom',       (select round(avg(mm),1) from (select mm, ntile(4) over (order by mm) q from org_means where mm is not null) z where q = 1)
+    ),
+    'insights', insight_aggregates(null, true, v_min_group_n)
+  ) into result;
+
+  with re as (
+    select rsp.tier, rsp.question_domain, rsp.normalized, s.id as sid, o.id as oid
+    from responses rsp
+    join sessions s      on s.id = rsp.session_id
+    join campaigns c     on c.id = s.campaign_id
+    join organisations o on o.id = c.org_id
+    where rsp.normalized is not null
+      and o.is_demo = true
+      and rsp.branch = 'unengaged'
+  )
+  select jsonb_build_object(
+    'exploration_n', (select count(distinct sid) from re),
+    'exploration_funnel',  (select jsonb_object_agg(tier, m) from (select tier, round(avg(normalized),1) m from re group by tier) t),
+    'exploration_domains', (select jsonb_object_agg(question_domain, m) from (select question_domain, round(avg(normalized),1) m from re group by question_domain) d),
+    'exploration_matrix',  (select jsonb_object_agg(question_domain, tiers) from
+                 (select question_domain, jsonb_object_agg(tier, m) tiers from
+                    (select question_domain, tier, round(avg(normalized),1) m from re group by question_domain, tier) x
+                  group by question_domain) y)
+  ) into result2;
+
+  result := result || result2;
+
+  result := result || jsonb_build_object(
+    'exploration_index',
+    case when (result->>'exploration_n')::bigint >= v_min_group_n
+      then (select round(avg(value::numeric),1) from jsonb_each_text(coalesce(result->'exploration_funnel','{}'::jsonb))
+              where key in ('exposure','response','formation','multiplication'))
+      else null
+    end
+  );
+
+  return result;
+end;
+$$;
+
+grant execute on function public.collab_intelligence_demo() to anon, authenticated;
+
+
+-- ─── 0027_fix_start_session_overload.sql ───────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — fix start_session() overload ambiguity (migration 0027)
+--
+-- PRE-EXISTING BUG, unrelated to v4: migration 0019 changed start_session()'s
+-- signature from 7 params (p_campaign_id, p_age_band, p_gender, p_country,
+-- p_city, p_locale, p_consent) to 5 (p_campaign_id, p_age_band, p_country,
+-- p_locale, p_consent), dropping p_gender/p_city. `create or replace
+-- function` only replaces a function with the identical argument signature,
+-- so this did not replace the old 7-arg function -- it created a second,
+-- overloaded start_session() alongside it. Nothing ever dropped the old one.
+--
+-- Result: PostgREST cannot resolve which overload a call to
+-- rpc('start_session', { p_campaign_id, p_locale }) means (both accept those
+-- two), and returns PGRST203 "Could not choose the best candidate function."
+-- Every call to start_session() -- i.e. every attempt to begin the survey,
+-- for every organisation -- has been failing since 0019 was applied.
+--
+-- Fix: drop the orphaned 7-arg overload. The 5-arg version from 0019 (and
+-- carried forward unchanged by 0025's set_session_context() work) is the one
+-- application code actually calls; it's the only one that should exist.
+-- ============================================================================
+
+drop function if exists public.start_session(uuid, text, text, text, text, text, jsonb);
+
+-- Confirm exactly one start_session() remains, with the expected signature.
+do $$
+declare v_count int;
+begin
+  select count(*) into v_count
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and p.proname = 'start_session';
+
+  if v_count <> 1 then
+    raise exception 'expected exactly 1 start_session() after this migration, found %', v_count;
+  end if;
+end $$;
 

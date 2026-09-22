@@ -39,3 +39,8 @@ yarn-debug.log*
 yarn-error.log*
 .vscode/
 .idea/
+
+# stray backup files left by sed on the FUSE-mounted dev sandbox
+*.bak
+*.bak2
+*.tmp*

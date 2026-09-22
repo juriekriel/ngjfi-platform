@@ -29,50 +29,70 @@
 :root {
   color-scheme: light;
 
-  /* Ground: warm paper, near-black ink, hairline rules. */
-  --c-paper: 250 247 241; /* #FAF7F1 */
-  --c-paper-deep: 241 236 225; /* #F1ECE1 */
-  --c-plate: 255 253 248; /* #FFFDF8 */
-  --c-ink: 27 31 39; /* #1B1F27 */
-  --c-ink-2: 76 82 96; /* #4C5260 */
-  --c-rule: 217 210 196; /* #D9D2C4 */
-  --c-rule-2: 200 191 172; /* #C8BFAC */
-  --c-muted: 138 143 155; /* #8A8F9B */
+  /* JetBrains Mono is gone — Inter Tight is the only workhorse now, for
+   * numbers and captions too. This alias means every existing `.tabular` /
+   * `.figcap` / `font-mono` call site keeps working unchanged; nothing
+   * downstream needs to know the font swapped. See layout.tsx. */
+  --font-mono: var(--font-ui);
 
-  /* ── The three semantic colours ─────────────────────────────────────────
-   * These are not decoration and they are not interchangeable:
-   *   emerald    the single working colour, AND "up" in delta()
-   *   navy       levels and benchmarks, never anything else
-   *   vermillion "down", and only ever "down"
-   * Warming the brand towards red/orange collides with vermillion: a rising
-   * figure and a falling one stop being distinguishable at a glance. If you
-   * change --c-emerald towards the warm end, you must also decide what
-   * carries "up". See docs/PALETTE.md. */
-  --c-emerald: 11 138 96; /* #0B8A60 */
-  --c-emerald-deep: 8 108 76; /* #086C4C */
-  --c-navy: 53 99 156; /* #35639C */
-  --c-vermillion: 181 69 27; /* #B5451B */
+  /* Ground: white, near-black ink, hairline rules. Brand Proof № 3 (Sep 2026) —
+   * replaces the almanac's warm paper. See docs/PALETTE.md for the option this
+   * chose and why (full warm rotation, with "up" moved off the brand colour). */
+  --c-paper: 255 255 255; /* #FFFFFF */
+  --c-paper-deep: 245 246 248; /* #F5F6F8 */
+  --c-plate: 255 255 255; /* #FFFFFF */
+  --c-ink: 34 37 43; /* #22252B */
+  --c-ink-2: 91 98 112; /* #5B6270 */
+  --c-rule: 226 229 234; /* #E2E5EA */
+  --c-rule-2: 215 219 226; /* #D7DBE2 */
+  --c-muted: 154 161 172; /* #9AA1AC */
+
+  /* ── The semantic colours ────────────────────────────────────────────────
+   * Brand Proof № 3 moves the brand onto coral, which sits close to
+   * vermillion's old hue (~19°) — the exact collision docs/PALETTE.md warned
+   * about. So "up" moves OFF the brand colour and onto its own green, and
+   * vermillion shifts to a cooler, clearly separate crimson. Four colours now
+   * carry meaning, not three:
+   *   emerald (coral)  the single working / brand colour — chrome, marks,
+   *                     the tier ramp. NOT "up" any more.
+   *   green             "up" in delta(), and only ever that — kept clear of
+   *                     coral's hue on purpose.
+   *   navy (blue)       levels and benchmarks, never anything else
+   *   violet            a domain accent (Follow), never a semantic
+   *   vermillion        "down", and only ever "down" — moved to a true red
+   *                     so it no longer reads as the same colour as coral.
+   * Token NAMES are unchanged from the almanac palette on purpose (see the
+   * note at the top of this file and docs/PALETTE.md §5) — only the values
+   * move, so nothing outside this block and tailwind.config.ts needs to. */
+  --c-emerald: 255 122 71; /* #FF7A47 — coral */
+  --c-emerald-deep: 232 85 31; /* #E8551F */
+  --c-green: 63 157 114; /* #3F9D72 — "up" only */
+  --c-navy: 47 128 196; /* #2F80C4 — blue */
+  --c-violet: 139 92 246; /* #8B5CF6 */
+  --c-vermillion: 200 40 59; /* #C8283B — "down" only, clear of coral's hue */
 
   /* The tier ramp. Hue is constant; LIGHTNESS alone encodes journey depth,
    * so the heat grid reads as a progression rather than as four categories.
    * Text flips to plate on the darker two — keep that contrast if you re-tint. */
-  --c-tier-exposure: 228 241 234; /* #E4F1EA */
-  --c-tier-response: 182 220 200; /* #B6DCC8 */
-  --c-tier-formation: 79 166 132; /* #4FA684 */
-  --c-tier-multiplication: 11 138 96; /* #0B8A60 */
+  --c-tier-exposure: 253 236 226; /* #FDECE2 */
+  --c-tier-response: 255 184 148; /* #FFB894 */
+  --c-tier-formation: 255 148 100; /* #FF9464 */
+  --c-tier-multiplication: 255 122 71; /* #FF7A47 */
 }
 
 body {
   background: rgb(var(--c-paper));
   color: rgb(var(--c-ink));
-  font-family: var(--font-serif), Georgia, serif;
-  font-size: 17px;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* The rule of voices: controls are the quiet grotesk, never the bookface. */
+/* The rule of voices, Brand Proof № 3: everything is the grotesk now — body
+ * copy, controls, the lot. The bookface (Newsreader) is kept for exactly one
+ * use: the "<span class="wordmark">" lockup in the masthead. */
 button,
 input,
 select,
@@ -81,9 +101,15 @@ label {
   font-family: var(--font-ui), system-ui, sans-serif;
 }
 
-/* Every number is tabular mono, so columns of figures actually line up. */
+.wordmark {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+/* Every number is tabular, so columns of figures actually line up. Inter
+ * Tight supports OpenType tabular figures (tnum), so this no longer needs a
+ * separate monospace face to do it. */
 .tabular {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-mono), system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }
@@ -95,7 +121,7 @@ label {
 
 /* Figure captions: numbered, sourced, set small. */
 .figcap {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-mono), system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;

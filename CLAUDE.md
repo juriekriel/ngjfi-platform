@@ -69,17 +69,19 @@ When in doubt: ask "would this still work if we added a 45–65 cohort tomorrow?
 
 ---
 
-## 6. Current state (as of Aug 2026)
+## 6. Current state (as of Sep 2026)
 
 A working platform is already live — see **`NGJFI_Session_Context.md`** for the full handover.
 
-- **Live:** `ngjfi-platform.netlify.app` — respondent survey `/[org]`, org dashboard `/[org]/dashboard`, Collab Intelligence `/intelligence`
+- **Live:** `ngjfi-platform.netlify.app` — respondent survey `/[org]`, org dashboard `/[org]/dashboard` (+ `/[org]/dashboard/export` for print/PDF), marketing site (`/`, `/learn`, `/tour`, `/history`, `/organization`, `/join`, `/access`), Collab Intelligence `/intelligence`
 - **Repo:** `github.com/juriekriel/ngjfi-platform` (public)
 - **Stack:** Next.js (App Router) + TypeScript + Tailwind · Supabase (Postgres + RLS + Auth) · Netlify
-- **Built:** multi-tenant schema + RLS, anonymous-write RPCs, tested scoring engine, versioned v0 instrument (EN/ES), magic-link auth with **ministry website-domain verification**, funnel / heat-grid / findings / world map / trends, CI with PR previews
-- **Demo data:** 26 synthetic orgs, ~79k responses, all flagged `is_demo` — **delete before official testing** via `supabase/delete_demo_data.sql`
+- **Built:** multi-tenant schema + RLS, anonymous-write RPCs, tested scoring engine, versioned v4 instrument (EN/ES), magic-link auth with **ministry website-domain verification**, funnel / heat-grid / findings / world map / trends, CI with PR previews
+- **Scores are reported on a 1–5 scale** (raw Likert means), not 0–100 — see migration `0029_score_scale_1_to_5.sql`. Internal storage (`responses.normalized`, `ngjfi_normalize()`) stays 0–100; only each RPC's final output converts, via `ngjfi_to_5()`.
+- **Org dashboard has a season picker** (`org_seasons()`/`org_dashboard_season()`, migration `0030`) — the season boundary (default: 1 Jun) is versioned config in `platform_settings`, not hardcoded — plus CSV exports and a PDF-oriented print view, and a "what do we do with this?" consulting-question button feeding a Collab-facing repository (`consulting_questions`, reviewed from the Collab console).
+- **Demo data:** 26 synthetic orgs, ~79k responses, all flagged `is_demo` — **delete before official testing/launch** via `supabase/delete_demo_data.sql`. Every FK back to `organisations` cascades, so this one statement is sufficient.
 
-**Open:** attach `jfindx.org` (confirm registration + point DNS at Netlify, update Supabase Auth redirect URLs and `NEXT_PUBLIC_SITE_URL`), PWA layer, benchmarking service + critical-mass gate, QR distribution, org self-serve onboarding, instrument admin UI, reports.
+**Open:** attach `jfindx.org` (confirm registration + point DNS at Netlify, update Supabase Auth redirect URLs and `NEXT_PUBLIC_SITE_URL`), PWA layer, QR distribution, org self-serve onboarding, instrument admin UI, richer reports, a season-aware benchmark RPC (the season picker currently compares against the Collab's all-time baseline regardless of the season selected).
 
 ---
 
@@ -89,7 +91,7 @@ A working platform is already live — see **`NGJFI_Session_Context.md`** for th
 
 - **Never push to `main`.** Branch (`feat/…`, `fix/…`, `db/…`), open a PR, review the Netlify Deploy Preview, keep CI green, squash-merge.
 - **Database changes are always migrations** — a new numbered file in `supabase/migrations/`. **Never hand-edit tables in the Supabase dashboard.**
-- **Instrument changes** go in `src/data/instrument.v1.json` (single source of truth), then `npm run db:seed`. v0 is archived, not deleted — responses bind to the version they were captured under. If scoring logic changes, update **both** `src/lib/scoring.ts` and the SQL `ngjfi_normalize`, and add a test.
+- **Instrument changes** go in `src/data/instrument.v4.json` (single source of truth — `src/lib/instrument.ts` imports it directly), then `npm run db:seed`. Earlier versions are archived, not deleted — responses bind to the version they were captured under. If scoring logic changes, update **both** `src/lib/scoring.ts` and the SQL `ngjfi_normalize`/`ngjfi_to_5`, and add a test.
 - **The demo must never diverge from the product.** The landing page, the guided tour at `/tour` and the live product render the *same* components — `components/survey/QuestionCard` and `components/index/Figures` — and `lib/sample.ts` derives every sample figure from the instrument JSON at render time. Never write a fixture, never fork a component "just for the demo". `tests/sample.test.ts` fails the build if you do.
 - **Two data spaces.** `is_demo = false` is the live space and the only thing `/intelligence` publishes; `is_demo = true` is the sandbox. The split is enforced inside the SECURITY DEFINER functions and by a trigger, not by remembering a WHERE clause. Verify with `select public.data_space_report();` before any announcement.
 - **Standing up a fresh database:** `npm run db:bootstrap` regenerates `supabase/bootstrap.sql` — every migration in order, one paste into a new project's SQL editor. It deliberately excludes the demo seeds.
@@ -101,16 +103,20 @@ A working platform is already live — see **`NGJFI_Session_Context.md`** for th
 
 ## 8. Design system
 
-**An almanac, not an app** (Brand Proof № 2, Aug 2026). As if the Index had been printed annually since long before it had a website. Density is credibility: airy hero sections say marketing, set tables say measurement.
+**Brand Proof № 3** (Sep 2026) — white ground, coral as the single working colour, rounded corners and soft shadows back in. This replaced the earlier "almanac" system (Brand Proof № 2, Aug 2026 — warm paper, square corners, no shadows, all-serif body copy); if you're picturing that version, you're thinking of the old one. Density is still credibility — the almanac's numbered figures, hairline rules and asymmetric grid stay — but the surface is no longer trying to look printed.
 
-**Do not restate these values in a component.** They live in `tailwind.config.ts` and `globals.css`, and every surface reads them from there — that is why the whole platform re-skinned from one file.
+**Do not restate these values in a component.** They live in `tailwind.config.ts` and `globals.css` (`:root`), and every surface reads them from there — that is why the whole platform re-skins from one file. See `docs/PALETTE.md` for the reasoning behind the warm rotation, and `project/Main.dc.html` / `project/Admin.dc.html` in the JFINDX Redesign Demo artifact for the actual reference look.
 
-- **Paper** `#FAF7F1` · **Plate** `#FFFDF8` · **Ink** `#1B1F27` · **Ink-2** `#4C5260` · **Rules** `#D9D2C4`
-- **Emerald** `#0B8A60` — the single working colour · **Navy** `#35639C` — levels · **Vermillion** `#B5451B` — semantic "down" only, never decoration
-- **The rule of voices:** if it's a sentence, it's **Newsreader**. If it's a number, it's **IBM Plex Mono**, tabular. If it's a control, it's **Inter**. No exceptions — that's what makes it a system, and it's enforced by a global CSS selector, not by discipline.
-- **Refused:** gradients · glassmorphism · rounded cards · shadows · scroll-triggered animation · emoji as icons · the centered hero with three feature cards. `borderRadius` and `boxShadow` collapse to nothing in the Tailwind config, so these cannot be written even by accident.
-- **Kept:** hairline and double rules · numbered figures with captions · footnotes and sources · asymmetric grid with marginalia · square corners · a colophon.
+- **Ground:** Paper `#FFFFFF` (page) / `#F5F6F8` (paper-deep) · Plate `#FFFFFF` (cards) · Ink `#22252B` · Ink-2 `#5B6270` · Rules `#E2E5EA` / `#D7DBE2`
+- **Coral** `#FF7A47` — the single working colour: chrome, marks, the tier ramp (the code token is still named `emerald`, kept stable on purpose — only the value moved, see `tailwind.config.ts`) · **Green** `#3F9D72` — "up" only, deliberately kept off the brand hue · **Navy** `#2F80C4` — levels and benchmarks, never anything else · **Violet** `#8B5CF6` — a domain accent (Follow), never a semantic · **Vermillion** `#C8283B` — "down" only, never decoration
+- **The tier ramp:** one hue (coral), four lightnesses — Exposure `#FDECE2` → Response `#FFB894` → Formation `#FF9464` → Multiplication `#FF7A47`. Lightness alone encodes journey depth, so the heat grid reads as a progression, not four unrelated categories.
+- **The masthead carries the short mark, everywhere.** Header = a 28px gradient chip (coral → violet, `linear-gradient(135deg, #FF7A47, #8B5CF6)`) beside the bold "JFINDX" wordmark — signed-out or signed-in, marketing page or console, same treatment (see `Masthead` in `src/components/site/Chrome.tsx`). The full serif "The *Jesus* INDEX" lockup is a page-hero element, used once on the homepage — it is never repeated in the header/nav bar itself.
+- **The rule of voices, updated — and this is a hard rule, not a preference:** controls (buttons, links styled as buttons, nav links, tabs, badges/pills) are **Inter Tight**, plain weight and case — `font-semibold`, normal case, no letter-spacing. The tracked-uppercase-mono treatment (`tabular uppercase tracking-[...]`) is reserved *only* for genuine data captions: stat labels sitting directly above a number, table column headers, figure captions (`.figcap`). If you're about to put `uppercase tracking` on something a person clicks, don't — that was Brand Proof № 2's voice for every control, it silently survived the token swap once already (an entire sweep in Sep 2026 was needed to remove it from buttons and nav across the whole site), and it must not creep back in per-component. **Newsreader** stays for exactly one use, the `.wordmark` masthead/hero lockup, not a second voice for general text. Numbers are tabular mono, **JetBrains Mono** (moved from IBM Plex Mono).
+- **Rounded corners and soft shadows are back, and must actually be applied.** The almanac's collapse-to-0 is gone from the Tailwind config, but a card, list wrapper, or stat box only renders rounded if its markup uses a `rounded-*` class — the config alone doesn't retrofit old square-cornered `border` divs. Any bordered box holding a list of rows or a set of stats gets `rounded-xl` (or `rounded-2xl` for a large standalone panel, `rounded-md`/`rounded-lg` for small chips and buttons) plus `shadow-sm` if it sits directly on the page background. Use the shared `Rows`/`Worklist`/`LinkRow` components in `src/components/console/Bands.tsx` for list-shaped content instead of hand-rolling a `<ul className="border-t border-ink">` — that hand-rolled pattern is the old almanac list and several pages still had it.
+- **Still refused:** gradients (outside the masthead mark, which is the one deliberate exception) · glassmorphism · scroll-triggered animation · emoji as icons · the centered hero with three feature cards.
+- **Still kept:** hairline and double rules · numbered figures with captions · footnotes and sources · asymmetric grid with marginalia · a colophon.
 - **UX:** mobile-first respondent flow; progressive disclosure; white-label cleanly overrides org-facing surfaces.
+- **The admin console (`/build`) intentionally does NOT fork a separate visual identity from the rest of the site**, even though the demo's `Admin.dc.html` board sketches one (a violet "Collab staff only" header treatment). `Console.tsx` renders all four tiers — organisation, network, Collab, administrator — through the same `Shell`/`Band`/`Rows` components everyone else uses, on purpose (see the file's own header comment: "the five bands are the same components in the same order... a bug in it can make the UI wrong but cannot leak a number"). It got the same rounded-card/plain-control treatment as everywhere else instead. If the console ever needs its own distinct "internal tool" identity, that is a deliberate, separately-scoped decision — not a byproduct of a visual sweep.
 
 ---
 

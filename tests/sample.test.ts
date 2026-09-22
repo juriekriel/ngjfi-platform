@@ -18,7 +18,7 @@ type Item = {
 };
 
 const instrument = JSON.parse(
-  readFileSync(new URL("../src/data/instrument.v3.json", import.meta.url), "utf8"),
+  readFileSync(new URL("../src/data/instrument.v4.json", import.meta.url), "utf8"),
 ) as { items: Item[] };
 
 const src = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
@@ -96,15 +96,28 @@ test("the landing page renders live components and carries no fabricated scores"
   const home = src("../src/app/page.tsx");
   assert.match(home, /from "@\/components\/index\/Figures"/);
 
-  // Deliberate: the front page shows the MODEL, never sample results. A
-  // fabricated number is a poor thing to lead with even when it is labelled —
-  // it invites a visitor to read the demo as the product. Scores live behind
-  // door 03, where the context travels with them.
+  // Deliberate: the front page never pulls sample/fabricated results. Before
+  // the production-readiness round this meant "show the plain-language
+  // Matrix, not a scored one"; the round simplified the page down to the
+  // hero + J12 + a live snapshot (LiveSnapshot.tsx), which shows REAL counts
+  // and the REAL heat map via platform_totals()/collab_intelligence() rather
+  // than either sample data or a fabricated score — so the assertion now
+  // checks the homepage and the component it renders for real data don't
+  // import the sample generator, instead of requiring a specific figure.
   assert.ok(
     !/from "@\/lib\/sample"/.test(home),
     "the landing page must not pull sample results — send people to /demo for numbers",
   );
-  assert.match(home, /<Matrix phrases \/>/, "the model grid must be the plain-language variant");
+  const liveSnapshot = src("../src/components/site/LiveSnapshot.tsx");
+  assert.ok(
+    !/from "@\/lib\/sample"/.test(liveSnapshot),
+    "the homepage's live snapshot must read real data (platform_totals/collab_intelligence), never the sample generator",
+  );
+  assert.match(
+    liveSnapshot,
+    /rpc\("platform_totals"\)/,
+    "the live snapshot must call the real, ungated platform_totals() RPC",
+  );
 });
 
 test("the mark never sits beside the typed wordmark", () => {
@@ -123,13 +136,17 @@ test("the mark never sits beside the typed wordmark", () => {
   }
 });
 
-test("every public surface carries the never-overclaim label", () => {
-  const banner = src("../src/components/PrototypeBanner.tsx");
-  assert.match(banner, /sample data/i);
-  const layout = src("../src/app/layout.tsx");
-  assert.match(layout, /PrototypeBanner/, "the banner must be mounted in the root layout");
-  assert.match(layout, /index: false/, "the prototype must stay out of search results");
-});
+// <PrototypeBanner> and the noindex flag existed for one situation: every
+// figure on the platform being synthetic. The production-readiness round
+// that deleted the demo dataset and prepared the site for real orgs removed
+// them deliberately, on request — running real data behind a banner that
+// says "sample data, not yet real" would itself be an overclaim in the
+// other direction. The underlying non-negotiable (never report on more than
+// "those who have completed the Index," always show n) is still enforced
+// structurally in the score-display components themselves — see
+// IndexPlate's "n = … · among those who completed the Index" caption in
+// src/components/index/Figures.tsx — which is why it doesn't need a
+// site-wide banner to hold it up.
 
 test("waitlist contact data is kept separate from respondent data", () => {
   const sql = src("../supabase/migrations/0008_waitlist_and_access.sql");
@@ -235,6 +252,32 @@ test("Drivers/Journey are reported as aggregate option rates, gated, and structu
   // through the three functions above which already enforce who sees what.
   assert.ok(!/grant execute on function public\.insight_aggregates/.test(sql),
     "insight_aggregates() must not be independently callable — it has no authorisation check of its own");
+});
+
+test("org_dashboard_demo() was reconciled with org_dashboard()'s privacy, counting, and insights", () => {
+  const sql = src("../supabase/migrations/0023_reconcile_demo_dashboard.sql");
+  const fn = sql.slice(sql.indexOf("create or replace function public.org_dashboard_demo("));
+
+  // The min_group_n floor org_dashboard() already had — must exist here too.
+  assert.match(fn, /v_min_group_n\s*:=\s*setting_int\('min_group_n', 10\)/);
+  assert.match(fn, /if v_n < v_min_group_n then/);
+
+  // The n-counting fix: distinct sessions, not response rows.
+  assert.match(fn, /count\(distinct sid\) into v_n/);
+  assert.ok(!/'n',\s*\(select count\(\*\) from r\)/.test(fn), "must not regress to counting response rows as n");
+
+  // Trend via the shared, retention-aware helper, not computed inline.
+  assert.match(fn, /blended_trend\(v_org\.id, v_org\.is_demo\)/);
+
+  // insight_aggregates() landed with 0021 after this fix was first drafted —
+  // the demo preview should show the same Drivers/Journey panel the real
+  // dashboard does, not a stale subset of it.
+  assert.match(fn, /insight_aggregates\(v_org\.id, v_org\.is_demo, v_min_group_n\)/);
+
+  // Still demo-only and still anon-reachable — the two properties that make
+  // this function a distinct sibling rather than a redundant copy.
+  assert.match(fn, /if not coalesce\(v_org\.is_demo, false\) then/);
+  assert.match(sql, /grant execute on function public\.org_dashboard_demo\(text\) to anon, authenticated/);
 });
 
 test("the separation is verifiable with a live query, not by reading SQL", () => {

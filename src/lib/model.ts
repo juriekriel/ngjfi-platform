@@ -95,26 +95,39 @@ export const INK = token("ink");
 export const PLATE = token("plate");
 export const MUTED = token("muted");
 export const EMERALD = token("emerald");
+export const GREEN = token("green");
 export const NAVY = token("navy");
+export const VIOLET = token("violet");
 export const VERMILLION = token("vermillion");
 export const RULE = token("rule");
 
-/** Emerald wash for heat cells. Colour only ever means something. */
+/**
+ * Coral wash for heat cells — the brand colour, at intensity = score.
+ * Scores are 1-5 (see supabase/migrations/0029_score_scale_1_to_5.sql);
+ * divide by 5.5 rather than 5 for the same slight headroom the old /110
+ * (rather than /100) divisor gave on the 0-100 scale, so a perfect 5 still
+ * reads as strong rather than maxed-out/oversaturated.
+ */
 export const heat = (v: number | null | undefined): string =>
   v === null || v === undefined
     ? "transparent"
-    : `rgb(var(--c-emerald) / ${Math.max(0.06, Math.min(0.92, v / 110))})`;
+    : `rgb(var(--c-emerald) / ${Math.max(0.06, Math.min(0.92, v / 5.5))})`;
 
 /** A figure, or an em dash. Never a zero standing in for "we don't know". */
 export const fig = (n: number | null | undefined): string =>
   n === null || n === undefined ? "—" : String(n);
 
-/** Signed delta with the semantic arrow. Vermillion is reserved for "down". */
+/**
+ * Signed delta with the semantic arrow. "Up" is GREEN, not the brand colour —
+ * coral sits too close to vermillion's hue for the two to stay legible as
+ * opposites in the same view. Vermillion is reserved for "down", full stop.
+ * See docs/PALETTE.md.
+ */
 export const delta = (d: number | null | undefined) =>
   d === null || d === undefined
     ? { text: "—", colour: MUTED }
     : d >= 0
-      ? { text: `▲ ${d.toFixed(1)}`, colour: EMERALD }
+      ? { text: `▲ ${d.toFixed(1)}`, colour: GREEN }
       : { text: `▼ ${Math.abs(d).toFixed(1)}`, colour: VERMILLION };
 
 /** The shape every dashboard surface consumes — live RPC or sample alike. */
@@ -136,4 +149,17 @@ export interface DashboardData {
   items: DashboardItem[];
   trend?: { year: number; index: number }[] | null;
   demo?: boolean;
+  /**
+   * The Exploration Index — v4's parallel figure for respondents who took the
+   * Unengaged branch (see instrument.v4.json's version note and
+   * src/lib/scoring.ts). Always a SEPARATE figure with its own sample size;
+   * never averaged, summed or otherwise blended with `index`/`n` above.
+   * Optional because it's absent from org_dashboard_demo() and any RPC
+   * response captured before this field existed.
+   */
+  explorationN?: number;
+  explorationIndex?: number | null;
+  explorationTiers?: Record<string, number | null>;
+  explorationDomains?: Record<string, number | null>;
+  explorationMatrix?: Record<string, Record<string, number | null>>;
 }

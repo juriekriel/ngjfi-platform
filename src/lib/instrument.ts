@@ -1,4 +1,4 @@
-import instrumentV3 from "@/data/instrument.v3.json";
+import instrumentV4 from "@/data/instrument.v4.json";
 import {
   failedAttentionChecks as failedChecks,
   inOrder,
@@ -30,6 +30,10 @@ export interface InstrumentOption {
 export interface InstrumentItem {
   key: string;
   question_domain: "follow" | "mission" | "world" | "screener" | "drivers" | "journey" | "exploration" | "demographic";
+  /** Index items only: which parallel branch of the instrument this item belongs to.
+   * "engaged" (or omitted) feeds the official Index; "unengaged" feeds the separate
+   * Exploration Index (src/lib/scoring.ts) and must never be blended with the Index. */
+  branch?: "engaged" | "unengaged";
   tier: "exposure" | "response" | "formation" | "multiplication" | "na";
   type:
     | "likert_5"
@@ -51,7 +55,7 @@ export interface InstrumentItem {
   /** Only ask this item when the rule passes; otherwise skip it entirely. */
   show_if?: ShowIf;
   /** Also write the answer onto the session row (allow-listed column). */
-  session_field?: "age_band" | "country";
+  session_field?: "age_band" | "country" | "gender" | "city";
   /** Index items only: does this measure an internal belief or an observable/external action? */
   measure?: "internal" | "external";
   /** Quality-control item: `expected` is the value an attentive respondent gives. */
@@ -77,7 +81,7 @@ export interface Instrument {
   items: InstrumentItem[];
 }
 
-export const instrument = instrumentV3 as unknown as Instrument;
+export const instrument = instrumentV4 as unknown as Instrument;
 
 /**
  * How many questions each item set actually asks.

@@ -1,26 +1,28 @@
-import { Colophon, Masthead } from "@/components/site/Chrome";
+import Link from "next/link";
+import { Masthead } from "@/components/site/Chrome";
 import JoinForm from "./JoinForm";
+import CoverageMap from "@/components/site/CoverageMap";
 
 export const metadata = {
-  title: "Join a cohort — The Jesus Index",
+  title: "Join the Index — The Jesus Index",
   description:
-    "We open in small groups, country by country, so each one reaches the sample size a benchmark needs. Tell us where you work and we'll tell you which cohort you fit.",
+    "We open in small groups, country by country, so each one reaches the sample size a benchmark needs. Tell us where you work and we'll tell you when your round opens.",
 };
 
 export default function JoinPage() {
   return (
     <>
-      <Masthead edition="§ Join · cohorts are forming" />
+      <Masthead edition="§ Join · opening by country" />
       <main className="mx-auto max-w-5xl px-5">
         <section className="grid gap-10 border-b border-ink py-10 md:grid-cols-[1.15fr_1fr] md:gap-14">
           <div>
-            <p className="figcap">Door 04 · for organisations and churches</p>
+            <p className="figcap">For organisations and churches</p>
             <h1 className="mt-3 text-[36px] leading-[1.05] tracking-tight sm:text-[44px]">
-              Cohorts are forming now.
+              We&apos;re opening, country by country.
             </h1>
             <p className="mt-5 max-w-measure text-[17px] leading-relaxed">
               Small groups, country by country, each one large enough to give you a benchmark worth
-              having. Tell us where you work and we will tell you which cohort you fit.
+              having. Tell us where you work and we will tell you when your round opens.
             </p>
 
             <h2 className="mt-10 text-[21px] leading-tight">Why there is a list at all</h2>
@@ -32,7 +34,7 @@ export default function JoinPage() {
                 {
                   n: "01",
                   h: "The instrument is not locked yet.",
-                  p: "A panel of standardised-measurement researchers is still tightening the questions. Data gathered before the lock cannot be cleanly compared to data gathered after it — so early cohorts stay small on purpose.",
+                  p: "A panel of standardised-measurement researchers is still tightening the questions. Data gathered before the lock cannot be cleanly compared to data gathered after it — so early rounds stay small on purpose.",
                 },
                 {
                   n: "02",
@@ -41,7 +43,7 @@ export default function JoinPage() {
                 },
                 {
                   n: "03",
-                  h: "Every first-cohort organisation gets a person.",
+                  h: "Every organisation in the first round gets a person.",
                   p: "Not a help centre. A thirty-minute call to set up your white-labelled version and walk your team through reading the results. That caps how many we can take at a time.",
                 },
               ].map((r) => (
@@ -77,6 +79,10 @@ export default function JoinPage() {
         </section>
 
         <section className="py-10">
+          <CoverageMap />
+        </section>
+
+        <section className="py-10">
           <h2 className="text-[24px] leading-tight">Before you ask</h2>
           <dl className="mt-6 grid gap-x-10 gap-y-6 md:grid-cols-2">
             {[
@@ -86,8 +92,8 @@ export default function JoinPage() {
               ["Can anyone see our results?", "No. Only your team, after verifying with your ministry's email domain. No other organisation sees your numbers, and you never see individual responses — only aggregates."],
               ["What languages does it work in?", "English and Spanish today, with the instrument built so any language can be added as configuration. Tell us what you need when you join — it shapes what we translate next."],
               ["What if we already run our own survey?", "Keep it. The Index is not a replacement for what you measure internally — it is the one part that is the same everywhere, so you can compare. Most organisations will run both."],
-              ["Is the survey final?", "No. A panel of standardised-measurement researchers is still tightening it. That is precisely why early cohorts are small, and why joining now means shaping it."],
-              ["When does it launch?", "Cohorts open in sequence, starting with the pilot countries. Join the list and we will tell you which one you fit and when it opens."],
+              ["Is the survey final?", "No. A panel of standardised-measurement researchers is still tightening it. That is precisely why early rounds are small, and why joining now means shaping it."],
+              ["When does it launch?", "We open in sequence, starting with the pilot countries. Join the list and we will tell you when your country's round opens."],
             ].map(([q, a]) => (
               <div key={q} className="border-t border-rule pt-3">
                 <dt className="text-[17px] leading-snug">{q}</dt>
@@ -96,8 +102,25 @@ export default function JoinPage() {
             ))}
           </dl>
         </section>
+
+        <section className="border-t-2 border-ink py-10">
+          <p className="figcap">Not ready yet?</p>
+          <div className="mt-5 grid gap-6 sm:grid-cols-3">
+            <Link href="/learn" className="border-t-2 border-rule pt-3 no-underline">
+              <p className="text-[17px] leading-snug text-ink">What is the Index →</p>
+              <p className="margin-note mt-1">The short version, two minutes.</p>
+            </Link>
+            <Link href="/tour" className="border-t-2 border-rule pt-3 no-underline">
+              <p className="text-[17px] leading-snug text-ink">See how it works →</p>
+              <p className="margin-note mt-1">A guided walk through the real product.</p>
+            </Link>
+            <Link href="/intelligence" className="border-t-2 border-rule pt-3 no-underline">
+              <p className="text-[17px] leading-snug text-ink">A global picture →</p>
+              <p className="margin-note mt-1">See where the movement stands first.</p>
+            </Link>
+          </div>
+        </section>
       </main>
-      <Colophon />
     </>
   );
 }

@@ -72,7 +72,7 @@ export default function Walkthrough() {
                 type="button"
                 onClick={() => setBeat(i)}
                 aria-current={i === beat ? "step" : undefined}
-                className={`tabular text-[10px] uppercase tracking-[0.13em] ${
+                className={`text-[13.5px] font-semibold ${
                   i === beat ? "text-emerald underline" : "text-muted hover:text-ink"
                 }`}
               >
@@ -105,7 +105,7 @@ export default function Walkthrough() {
             type="button"
             onClick={() => setBeat((n) => Math.max(0, n - 1))}
             disabled={beat === 0}
-            className="tabular border border-ink px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-ink disabled:border-rule disabled:text-muted"
+            className="rounded-lg border border-ink px-4 py-2 text-[14px] font-semibold text-ink disabled:border-rule disabled:text-muted"
           >
             ← Back
           </button>
@@ -113,14 +113,14 @@ export default function Walkthrough() {
             <button
               type="button"
               onClick={() => setBeat((n) => n + 1)}
-              className="tabular border-2 border-emerald bg-emerald px-5 py-2 text-[11px] uppercase tracking-[0.14em] text-plate hover:bg-emerald-deep"
+              className="rounded-lg border-2 border-emerald bg-emerald px-5 py-2 text-[14px] font-semibold text-plate hover:bg-emerald-deep"
             >
               {BEATS[beat + 1].kicker} →
             </button>
           ) : (
             <Link
               href="/demo"
-              className="tabular border-2 border-emerald bg-emerald px-5 py-2 text-[11px] uppercase tracking-[0.14em] text-plate no-underline hover:bg-emerald-deep"
+              className="rounded-lg border-2 border-emerald bg-emerald px-5 py-2 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
             >
               Try it yourself →
             </Link>
@@ -197,13 +197,13 @@ function BeatPhone() {
           nothing written to a database.
         </p>
         <p className="margin-note mt-5 border-l-2 border-rule pl-3">
-          Age is a band, never a birthdate. There is no location beyond a country. Consent — including
-          parental consent — is handled by the organisation, locally, before anyone reaches this
-          screen.
+          Respondents are anonymous — no name, no email, no location beyond a country, age as a band.
+          We report only on those who have completed the Index. Consent — including parental consent —
+          is handled by the organisation, locally, before anyone reaches this screen.
         </p>
       </div>
 
-      <div className="border border-rule bg-plate">
+      <div className="overflow-hidden rounded-xl border border-rule bg-plate">
         <div className="px-5 py-4" style={{ background: SAMPLE_ORG.brand }}>
           <div className="flex items-center gap-3">
             <div
@@ -250,7 +250,7 @@ function BeatPhone() {
                   setAnswers({});
                   setI(0);
                 }}
-                className="tabular mt-5 border border-ink px-4 py-2 text-[11px] uppercase tracking-[0.14em]"
+                className="mt-5 rounded-lg border border-ink px-4 py-2 text-[14px] font-semibold"
               >
                 Walk it again
               </button>
@@ -323,7 +323,7 @@ function BeatAdapt() {
               key={x.id}
               type="button"
               onClick={() => setP(idx)}
-              className={`border px-3 py-2 text-left text-[13px] ${
+              className={`rounded-lg border px-3 py-2 text-left text-[13px] ${
                 idx === p ? "border-emerald bg-emerald text-plate" : "border-rule text-ink hover:border-ink"
               }`}
             >
@@ -394,7 +394,7 @@ function BeatOrg() {
           </p>
         </div>
 
-        <div className="border border-rule bg-plate p-5">
+        <div className="rounded-xl border border-rule bg-plate p-5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h3 className="text-[19px]">{d.org.name}</h3>
             <span className="figcap">{d.n.toLocaleString()} responses · verified</span>
@@ -533,7 +533,7 @@ function BeatCollab() {
 function BeatNext() {
   const d = sampleDashboard();
   const weakest = TIERS.reduce((lo, tk) =>
-    (d.tiers[tk] ?? 100) < (d.tiers[lo] ?? 100) ? tk : lo,
+    (d.tiers[tk] ?? 6) < (d.tiers[lo] ?? 6) ? tk : lo,
   TIERS[0]);
 
   return (
@@ -565,19 +565,19 @@ function BeatNext() {
         <div className="mt-4 flex flex-col gap-3">
           <Link
             href="/demo"
-            className="tabular border border-ink px-4 py-3 text-[11px] uppercase tracking-[0.14em] text-ink no-underline hover:bg-ink hover:text-paper"
+            className="rounded-lg border border-ink px-4 py-3 text-[14px] font-semibold text-ink no-underline hover:bg-ink hover:text-paper"
           >
             Explore the sandbox yourself →
           </Link>
           <Link
             href="/join"
-            className="tabular border-2 border-emerald bg-emerald px-4 py-3 text-[11px] uppercase tracking-[0.14em] text-plate no-underline hover:bg-emerald-deep"
+            className="rounded-lg border-2 border-emerald bg-emerald px-4 py-3 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
           >
-            Join the first cohort →
+            Join the first round →
           </Link>
           <Link
             href="/learn"
-            className="tabular border border-rule px-4 py-3 text-[11px] uppercase tracking-[0.14em] text-ink-2 no-underline hover:border-ink hover:text-ink"
+            className="rounded-lg border border-rule px-4 py-3 text-[14px] font-semibold text-ink-2 no-underline hover:border-ink hover:text-ink"
           >
             Read how we got here →
           </Link>

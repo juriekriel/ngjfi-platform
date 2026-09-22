@@ -28,7 +28,7 @@ export default function LearnExplorer() {
             key={e.id}
             href={`#era-${e.id}`}
             onClick={() => setOpen((o) => (o.includes(e.id) ? o : [...o, e.id]))}
-            className="tabular text-[10px] uppercase tracking-[0.13em] text-ink-2 no-underline hover:text-ink"
+            className="text-[13px] font-medium text-ink-2 no-underline hover:text-ink"
           >
             <span className="text-muted">{e.ordinal}</span> {e.title.split(" — ")[0]}
           </a>
@@ -36,7 +36,7 @@ export default function LearnExplorer() {
         <button
           type="button"
           onClick={() => setOpen(allOpen ? [] : ERAS.map((e) => e.id))}
-          className="tabular ml-auto border border-ink px-2 py-1 text-[10px] uppercase tracking-[0.13em] text-ink hover:bg-ink hover:text-paper"
+          className="ml-auto rounded-md border border-ink px-2.5 py-1 text-[13px] font-semibold text-ink hover:bg-ink hover:text-paper"
         >
           {allOpen ? "Collapse all" : "Read it all"}
         </button>
