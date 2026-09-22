@@ -66,10 +66,12 @@
    * move, so nothing outside this block and tailwind.config.ts needs to. */
   --c-emerald: 255 122 71; /* #FF7A47 — coral */
   --c-emerald-deep: 232 85 31; /* #E8551F */
+  --c-emerald-deeper: 168 54 11; /* #A8360B — end stop of the masthead Join button gradient */
   --c-green: 63 157 114; /* #3F9D72 — "up" only */
   --c-navy: 47 128 196; /* #2F80C4 — blue */
   --c-violet: 139 92 246; /* #8B5CF6 */
   --c-violet-deep: 124 58 237; /* #7C3AED — for button gradients only */
+  --c-violet-deeper: 91 33 182; /* #5B21B6 — end stop of the masthead Sign-in button gradient */
   --c-vermillion: 200 40 59; /* #C8283B — "down" only, clear of coral's hue */
 
   /* The tier ramp. Hue is constant; LIGHTNESS alone encodes journey depth,
