@@ -43,3 +43,4 @@ yarn-error.log*
 # stray backup files left by sed on the FUSE-mounted dev sandbox
 *.bak
 *.bak2
+*.tmp*

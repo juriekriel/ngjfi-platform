@@ -44,28 +44,51 @@ export default function AccessForm() {
     }
 
     // Requesting also records the ask, so an address we have not admitted still
-    // reaches a person rather than silently failing.
+    // reaches a person rather than silently failing. Its own error used to be
+    // discarded — a request could look "sent" while nothing was recorded.
+    let requestRecorded = true;
     if (mode === "request") {
-      await sb.rpc("access_request", { p_email: email.trim(), p_reason: why.trim() || null });
+      try {
+        const { error: reqError } = await sb.rpc("access_request", {
+          p_email: email.trim(),
+          p_reason: why.trim() || null,
+        });
+        if (reqError) requestRecorded = false;
+      } catch {
+        requestRecorded = false;
+      }
     }
 
-    const { error } = await sb.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        emailRedirectTo:
-          typeof window !== "undefined" ? `${window.location.origin}/build` : undefined,
-      },
-    });
+    let otpError: { message: string } | null = null;
+    try {
+      const { error } = await sb.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo:
+            typeof window !== "undefined" ? `${window.location.origin}/build` : undefined,
+        },
+      });
+      otpError = error;
+    } catch (e) {
+      otpError = { message: e instanceof Error ? e.message : "unknown error" };
+    }
 
     setBusy(false);
-    if (error) {
+    if (otpError) {
       setError(
         mode === "request"
-          ? "We recorded the request but could not send the link just now. Someone will follow up by email."
+          ? requestRecorded
+            ? "We recorded the request but could not send the link just now. Someone will follow up by email."
+            : "We could not record the request or send the link just now. Please email us directly."
           : "We could not send the link just now. Try again in a moment, or request access below.",
       );
-      if (mode === "request") setSent(true);
+      if (mode === "request" && requestRecorded) setSent(true);
       return;
+    }
+    if (mode === "request" && !requestRecorded) {
+      // The link still went out, but the review-queue entry didn't save — say
+      // so, rather than letting the visitor believe both things happened.
+      setError("The sign-in link is on its way, but we could not record your request — please also email us directly so a person follows up.");
     }
     setSent(true);
   }
