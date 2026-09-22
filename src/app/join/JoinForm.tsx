@@ -1,3 +1,8 @@
+// Destination in the repo: src/app/join/JoinForm.tsx (replaces the existing file)
+// Only change from the current version: submitExpress() now fires a
+// best-effort call to /api/waitlist-notify after a successful waitlist_join()
+// RPC, so the signee gets a confirmation email and the team gets a heads-up.
+// It never blocks or fails the signup UI — see route.ts's own comment.
 "use client";
 
 import { useMemo, useState } from "react";
@@ -49,8 +54,9 @@ export default function JoinForm() {
       setError("Sign-up isn't wired up in this environment yet — nothing was saved. Please email us directly.");
       return;
     }
+    let referralCode: string | null = null;
     try {
-      const { error } = await sb.rpc("waitlist_join", {
+      const { data, error } = await sb.rpc("waitlist_join", {
         p_email: email.trim(),
         p_org_name: org.trim(),
         p_role: role.trim(),
@@ -63,6 +69,7 @@ export default function JoinForm() {
         );
         return;
       }
+      referralCode = typeof data === "string" ? data : null;
     } catch {
       // A thrown network error behaves the same as an RPC error above — never
       // silently advance to the next stage on a failure we didn't see coming.
@@ -70,6 +77,21 @@ export default function JoinForm() {
       setError("We could not reach the server just now. Check your connection and try again.");
       return;
     }
+
+    // Best-effort confirmation + internal notification email. The signup is
+    // already committed above — a failure or timeout here must never block
+    // advancing to the next stage or be shown as an error to the visitor.
+    fetch("/api/waitlist-notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: email.trim(),
+        orgName: org.trim(),
+        role: role.trim(),
+        referralCode,
+      }),
+    }).catch(() => {});
+
     setBusy(false);
     setStage("shape");
   }
