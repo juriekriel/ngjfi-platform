@@ -16,11 +16,7 @@ export function Masthead({ edition }: { edition?: string }) {
     <header className="border-b border-rule">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-3.5 sm:px-8">
         <Link href="/" className="flex items-center gap-2.5 no-underline">
-          <span
-            className="h-7 w-7 shrink-0 rounded-lg"
-            style={{ background: "linear-gradient(135deg, #FF7A47, #8B5CF6)" }}
-            aria-hidden="true"
-          />
+          <RisingMark className="h-7 w-7 shrink-0" />
           <span className="text-[18px] font-bold tracking-tight text-ink">JFINDX</span>
         </Link>
         <nav className="flex flex-wrap items-center gap-x-6 gap-y-1.5">
@@ -54,6 +50,47 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
     <Link href={href} className="text-[14.5px] font-medium text-ink-2 no-underline hover:text-ink">
       {children}
     </Link>
+  );
+}
+
+/**
+ * The rising mark — the masthead's badge: the same coral → violet gradient
+ * as the mark's original flat gradient chip, now with the rising-dashed-line-
+ * to-cross gesture drawn inside it in white, so the chip stops being an empty
+ * swatch. Same gesture as RisingJ/RisingRule below, redrawn as a dashed line
+ * (a respondent's steps, not a single continuous stroke) inside a full
+ * circular badge rather than a letterform or a standalone rule.
+ *
+ * The source of truth for this exact geometry is public/icon-mark.svg, which
+ * is also what the PWA icon set (src/app/icon.png, apple-icon.png,
+ * public/icons/*.png — see manifest.ts) is rasterised from. Keep the two in
+ * sync if this ever changes: this one needs to stay inline SVG (it sits next
+ * to live text, not a static asset), the other needs to stay a flat file
+ * (favicons and app icons can't be React components).
+ */
+export function RisingMark({ className = "h-7 w-7" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 120 120" className={className} aria-hidden="true">
+      <defs>
+        <linearGradient id="risingMarkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FF7A47" />
+          <stop offset="100%" stopColor="#8B5CF6" />
+        </linearGradient>
+      </defs>
+      <circle cx="60" cy="60" r="58" fill="url(#risingMarkGradient)" />
+      <path
+        d="M 15 89 L 65 89 L 92 55"
+        fill="none"
+        stroke="#ffffff"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeDasharray="12 10"
+      />
+      <g fill="#ffffff">
+        <rect x="89.25" y="31" width="4.5" height="28" rx="2.25" />
+        <rect x="77" y="43.25" width="28" height="4.5" rx="2.25" />
+      </g>
+    </svg>
   );
 }
 
