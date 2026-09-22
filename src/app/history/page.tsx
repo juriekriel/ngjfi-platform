@@ -11,7 +11,17 @@ export const metadata = {
     "The long version: the question the Collab could not answer, the fifty-country study that collapsed, and the pivot to a shared standard.",
 };
 
-/** The DFW pilot — the one real finding the project has. Cited, never synthetic. */
+/**
+ * The DFW pilot — the one real finding the project has. Cited, never
+ * synthetic. `value` is the pilot's actual measure: percentage of
+ * respondents who affirmed each item. Kept in that raw form here (it is
+ * the real number that was collected), and converted to the platform's
+ * own 1–5 reporting scale only at render time via `to5` below — the same
+ * transform every other score on this platform goes through (see
+ * `src/lib/scoring.ts`'s `to5`, kept in lockstep with the SQL
+ * `ngjfi_to_5()`), so this table reads on the same scale as everywhere
+ * else on the site instead of the pre-migration-0029 0–100 convention.
+ */
 const DFW = [
   { label: "Affirm Jesus is the Son of God", value: 97 },
   { label: "Identify as followers of Jesus", value: 93 },
@@ -21,6 +31,9 @@ const DFW = [
   { label: "Mentoring someone else", value: 34 },
   { label: "Read the Bible daily", value: 26 },
 ];
+
+/** 0–100 → 1–5, identical to scoring.ts's to5(). */
+const to5 = (x: number) => Math.round((1 + (x / 100) * 4) * 10) / 10;
 
 export default function HistoryPage() {
   return (
@@ -84,27 +97,32 @@ export default function HistoryPage() {
                 <table className="w-full text-left">
                   <caption className="sr-only">Dallas–Fort Worth pilot results</caption>
                   <tbody>
-                    {DFW.map((r) => (
-                      <tr key={r.label} className="border-b border-rule">
-                        <th scope="row" className="w-[46%] py-2.5 pr-3 text-left text-[14px] font-normal leading-snug">
-                          {r.label}
-                        </th>
-                        <td className="py-2.5 pr-3">
-                          <div className="h-[9px] w-full border-b border-rule bg-paper-deep">
-                            <div
-                              className="h-full"
-                              style={{ width: `${r.value}%`, background: r.value >= 60 ? NAVY : VERMILLION }}
-                            />
-                          </div>
-                        </td>
-                        <td className="tabular w-10 py-2.5 text-right text-[14px]">{r.value}</td>
-                      </tr>
-                    ))}
+                    {DFW.map((r) => {
+                      const v5 = to5(r.value);
+                      return (
+                        <tr key={r.label} className="border-b border-rule">
+                          <th scope="row" className="w-[46%] py-2.5 pr-3 text-left text-[14px] font-normal leading-snug">
+                            {r.label}
+                          </th>
+                          <td className="py-2.5 pr-3">
+                            <div className="h-[9px] w-full border-b border-rule bg-paper-deep">
+                              <div
+                                className="h-full"
+                                style={{ width: `${(v5 / 5) * 100}%`, background: v5 >= 3.4 ? NAVY : VERMILLION }}
+                              />
+                            </div>
+                          </td>
+                          <td className="tabular w-10 py-2.5 text-right text-[14px]">{v5.toFixed(1)}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </Plate>
               <p className="figcap mt-3 leading-relaxed">
-                Navy is level. Vermillion marks the practices that fall away — colour only ever means
+                Shown on the platform&apos;s 1–5 scale, converted from the pilot&apos;s raw
+                percentage-affirming for comparability with every other score on this site. Navy is
+                level. Vermillion marks the practices that fall away — colour only ever means
                 something.
               </p>
             </div>

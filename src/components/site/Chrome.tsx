@@ -34,7 +34,7 @@ export function Masthead({ edition }: { edition?: string }) {
             href="/join"
             className="rounded-lg bg-emerald px-4 py-2 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
           >
-            Join
+            Join the JFINDX
           </Link>
         </nav>
       </div>

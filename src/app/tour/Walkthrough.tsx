@@ -153,10 +153,10 @@ export default function Walkthrough() {
             </button>
           ) : (
             <Link
-              href="/demo"
+              href="/join"
               className="rounded-lg border-2 border-emerald bg-emerald px-5 py-2 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
             >
-              Try it yourself →
+              Join the Index →
             </Link>
           )}
         </div>
@@ -217,64 +217,108 @@ function PhoneFrame({ children }: { children: React.ReactNode }) {
 }
 
 function BeatPhone() {
-  const items = useMemo(() => orderedItems(), []);
-  const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
-  const [i, setI] = useState(0);
+  return (
+    <div>
+      <p className="max-w-measure text-[17px] leading-relaxed">
+        A young person reaches this from a QR code on a camp wall or a link in a group chat.{" "}
+        <b>No account, no name, no email.</b> One question per screen, so it works on a cheap phone
+        on a bad connection.
+      </p>
+      <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
+        It carries the organisation&apos;s own brand — their logo, their colour, their words. The
+        Index sits in the footer. To the respondent it is their youth group asking, because it is.
+      </p>
+      <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
+        The next beat lets you try the actual survey component yourself, end to end.
+      </p>
+      <p className="margin-note mt-5 border-l-2 border-rule pl-3">
+        Respondents are anonymous — no name, no email, no location beyond a country, age as a band.
+        We report only on those who have completed the Index. Consent — including parental consent —
+        is handled by the organisation, locally, before anyone reaches this screen.
+      </p>
+    </div>
+  );
+}
 
-  const path = visibleItems(answers);
-  const stepNumber = path.findIndex((x) => x.key === items[i]?.key) + 1;
-  const done = i >= items.length;
+/**
+ * A working click-through of the real respondent survey — same welcome
+ * screen, progress bar, card chrome and thank-you state as `Survey.tsx`
+ * (the component /[org] actually mounts), just held in memory instead of
+ * writing to Supabase. Living here, next to the branching demonstration,
+ * because trying the flow means the most once you have just read why it
+ * stops asking certain questions.
+ */
+function SurveyDemo() {
+  const items = useMemo(() => orderedItems(), []);
+  const steps = items.length;
+  const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
+  const [i, setI] = useState(-1); // -1 = welcome, matching Survey.tsx exactly
+
+  const path = useMemo(() => visibleItems(answers), [answers]);
+  const answeredCount = path.filter((it) => answers[it.key] !== undefined).length;
+  const pathLength = Math.max(path.length, 1);
+  const pct = i < 0 ? 0 : i >= steps ? 100 : Math.round((answeredCount / pathLength) * 100);
+  const stepNumber = path.findIndex((it) => it.key === items[i]?.key) + 1;
+  const hasEarlier = i > 0 && prevVisibleIndex(i, answers) !== -1;
 
   function choose(v: AnswerValue) {
-    const next = { ...answers, [items[i].key]: v };
-    setAnswers(next);
-    const n = nextVisibleIndex(i, next);
-    setI(n === -1 ? items.length : n);
+    const nextAnswers = { ...answers, [items[i].key]: v };
+    setAnswers(nextAnswers);
+    const next = nextVisibleIndex(i, nextAnswers);
+    setI(next === -1 ? steps : next);
+  }
+  function back() {
+    const prev = prevVisibleIndex(i, answers);
+    if (prev !== -1) setI(prev);
+  }
+  function reset() {
+    setAnswers({});
+    setI(-1);
   }
 
   return (
-    <div className="grid gap-8 md:grid-cols-[1fr_1fr] md:gap-12">
-      <div>
-        <p className="max-w-measure text-[17px] leading-relaxed">
-          A young person reaches this from a QR code on a camp wall or a link in a group chat.{" "}
-          <b>No account, no name, no email.</b> One question per screen, so it works on a cheap phone
-          on a bad connection.
-        </p>
-        <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
-          It carries the organisation&apos;s own brand — their logo, their colour, their words. The
-          Index sits in the footer. To the respondent it is their youth group asking, because it is.
-        </p>
-        <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
-          Try it. This is not a picture of the survey — it is the survey component, mounted here with
-          nothing written to a database.
-        </p>
-        <p className="margin-note mt-5 border-l-2 border-rule pl-3">
-          Respondents are anonymous — no name, no email, no location beyond a country, age as a band.
-          We report only on those who have completed the Index. Consent — including parental consent —
-          is handled by the organisation, locally, before anyone reaches this screen.
-        </p>
-      </div>
-
+    <div className="mx-auto max-w-[320px]">
       <PhoneFrame>
-        <div className="px-5 py-4" style={{ background: SAMPLE_ORG.brand }}>
+        <div className="px-6 py-5 text-white" style={{ background: SAMPLE_ORG.brand }}>
           <div className="flex items-center gap-3">
             <div
-              className="flex h-9 w-9 items-center justify-center bg-plate text-[17px]"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-black"
               style={{ color: SAMPLE_ORG.brand }}
             >
-              R
+              {SAMPLE_ORG.name.charAt(0)}
             </div>
-            <div className="leading-tight text-plate">
-              <div className="text-[15px]">{SAMPLE_ORG.name}</div>
-              <div className="tabular text-[10px] uppercase tracking-[0.14em] opacity-80">
-                {SAMPLE_ORG.country}
-              </div>
+            <div>
+              <div className="font-semibold leading-tight">{SAMPLE_ORG.name}</div>
+              <div className="text-xs opacity-90">{SAMPLE_ORG.country}</div>
             </div>
+          </div>
+          <div className="mt-4 h-1.5 overflow-hidden rounded bg-white/30">
+            <div className="h-full bg-white transition-all" style={{ width: `${pct}%` }} />
           </div>
         </div>
 
-        <div className="max-h-[420px] overflow-y-auto p-5">
-          {!done ? (
+        <div className="max-h-[420px] overflow-y-auto bg-plate p-6">
+          {i < 0 && (
+            <div>
+              <h1 className="text-xl font-bold leading-tight text-ink">
+                You&apos;re invited to share{" "}
+                <span style={{ color: SAMPLE_ORG.brand }}>where you&apos;re at</span>.
+              </h1>
+              <p className="mt-3 text-sm leading-relaxed text-ink-2">
+                {SAMPLE_ORG.name} is learning how to walk with young people as they follow Jesus.
+                Your honest answers help. It takes about 6 minutes and is completely anonymous.
+              </p>
+              <button
+                onClick={() => setI(0)}
+                className="mt-6 rounded-lg px-6 py-3 font-semibold text-white"
+                style={{ background: SAMPLE_ORG.brand }}
+              >
+                Begin →
+              </button>
+            </div>
+          )}
+
+          {i >= 0 && i < steps && (
             <Question
               item={items[i]}
               locale="en"
@@ -282,37 +326,42 @@ function BeatPhone() {
               busy={false}
               selected={answers[items[i].key]}
               onChoose={choose}
-              onBack={
-                i > 0 && prevVisibleIndex(i, answers) !== -1
-                  ? () => setI(prevVisibleIndex(i, answers))
-                  : undefined
-              }
-              stepLabel={`Question ${stepNumber} of ${path.length}`}
+              onBack={hasEarlier ? back : undefined}
+              stepLabel={`Question ${stepNumber} of ${pathLength}`}
             />
-          ) : (
+          )}
+
+          {i >= steps && (
             <div className="py-6 text-center">
-              <p className="text-[19px]">Thank you.</p>
-              <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
-                Their answer joins the aggregate. Nobody — not even their own youth leader — will ever
-                see this individual response.
+              <div
+                className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full text-3xl text-white"
+                style={{ background: SAMPLE_ORG.brand }}
+              >
+                ✓
+              </div>
+              <h2 className="text-xl font-bold text-ink">Thank you!</h2>
+              <p className="mx-auto mt-2 max-w-sm text-sm text-ink-2">
+                Their answer joins {SAMPLE_ORG.name}&apos;s picture of how their community is
+                following Jesus. Nobody — not even their own youth leader — will ever see this
+                individual response.
               </p>
               <button
                 type="button"
-                onClick={() => {
-                  setAnswers({});
-                  setI(0);
-                }}
-                className="mt-5 rounded-lg border border-ink px-4 py-2 text-[14px] font-semibold"
+                onClick={reset}
+                className="mt-5 rounded-lg border border-ink px-4 py-2 text-[14px] font-semibold text-ink"
               >
                 Walk it again
               </button>
             </div>
           )}
         </div>
-        <p className="figcap border-t border-rule px-5 py-3">
-          Live component · answers are held in memory only
+        <p className="border-t border-rule px-5 py-3 text-center font-mono text-[9px] uppercase tracking-widest text-muted">
+          Powered by the Next Gen Jesus-Following Index
         </p>
       </PhoneFrame>
+      <p className="figcap mt-3 text-center leading-relaxed">
+        Live component · answers are held in memory only
+      </p>
     </div>
   );
 }
@@ -354,6 +403,7 @@ function BeatAdapt() {
   const all = orderedItems();
 
   return (
+    <div>
     <div className="grid gap-8 md:grid-cols-[1fr_1.35fr] md:gap-12">
       <div>
         <p className="max-w-measure text-[17px] leading-relaxed">
@@ -416,6 +466,21 @@ function BeatAdapt() {
           writing a row.
         </p>
       </div>
+    </div>
+
+    <div className="mt-14 border-t-2 border-ink pt-8">
+      <p className="figcap">Try it yourself</p>
+      <h3 className="mt-2 text-[21px] leading-tight">
+        This is not a picture of the survey — it is the survey component.
+      </h3>
+      <p className="mt-3 max-w-measure text-[16px] leading-relaxed text-ink-2">
+        Mounted here with nothing written to a database. Walk it end to end and watch it stop
+        asking questions your own answers have already made meaningless.
+      </p>
+      <div className="mt-6">
+        <SurveyDemo />
+      </div>
+    </div>
     </div>
   );
 }
@@ -649,12 +714,6 @@ function BeatNext() {
       <div className="border-t-2 border-ink pt-4">
         <p className="figcap">Where to next</p>
         <div className="mt-4 flex flex-col gap-3">
-          <Link
-            href="/demo"
-            className="rounded-lg border border-ink px-4 py-3 text-[14px] font-semibold text-ink no-underline hover:bg-ink hover:text-paper"
-          >
-            Explore the sandbox yourself →
-          </Link>
           <Link
             href="/join"
             className="rounded-lg border-2 border-emerald bg-emerald px-4 py-3 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
