@@ -297,7 +297,6 @@ test("each branch's matrix is exactly one internal + one external item per cell 
 
 test("every item carries a section tag, distinct from question_domain and consistent with it", () => {
   const KNOWN_SECTIONS = ["screener", "index", "driver", "journey", "demographic", "exploration"];
-  // question_domain -> the one section every item in that domain must carry.
   const EXPECTED: Record<string, string> = {
     follow: "index", mission: "index", world: "index",
     drivers: "driver", journey: "journey",
@@ -312,9 +311,19 @@ test("every item carries a section tag, distinct from question_domain and consis
   }
 });
 
-test("approved metadata only — no gender, no city, nothing outside the agreed list", () => {
-  assert.equal(instrument.items.find((i) => i.key === "gender"), undefined);
-  assert.equal(instrument.items.find((i) => i.key === "city"), undefined);
+test("gender and city are the two new, deliberate v4 metadata additions — nothing else outside the agreed list", () => {
+  // v4 reinstates gender (dropped by migration 0019's privacy review) and
+  // adds city/area — both explicit, documented decisions for this version
+  // (see instrument.v4.json's version note), not a silent reversal.
+  const gender = instrument.items.find((i) => i.key === "gender");
+  const city = instrument.items.find((i) => i.key === "city");
+  assert.ok(gender, "gender should be present in v4");
+  assert.ok(city, "city should be present in v4");
+  assert.equal(gender!.session_field, "gender");
+  assert.equal(city!.session_field, "city");
+  assert.equal(gender!.scored, false);
+  assert.equal(city!.scored, false);
+
   const sessionFields = instrument.items.map((i) => i.session_field).filter(Boolean);
   for (const f of sessionFields) {
     assert.ok(
