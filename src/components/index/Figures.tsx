@@ -425,7 +425,7 @@ export function BranchDiagram({ className = "" }: { className?: string }) {
               {TIERS.map((tk) => (
                 <div
                   key={tk}
-                  className="rounded-md px-1 py-2.5 text-center text-[9.5px] font-semibold uppercase tracking-[0.03em]"
+                  className="rounded-md px-0.5 py-2.5 text-center text-[8.5px] font-semibold uppercase leading-[1.15] tracking-normal"
                   style={{ background: TIER_TINT[tk].bg, color: TIER_TINT[tk].fg }}
                 >
                   {TIER_LABEL[tk]}
