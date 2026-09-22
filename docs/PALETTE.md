@@ -157,11 +157,13 @@ colour, which comes from `tierMapColour()` / `tierHeat()` in `src/lib/model.ts`.
 | Multiplication | `--c-map-multiplication` | `#BC2E3A` red | white, 5.9:1 |
 
 **Scope: the map, and the model matrix.** The plain-language 3 × 4 (`<Matrix phrases />`
-on /learn, /tour, /history) also uses these hues (Sept 2026, Collab request), stepping
-light → dark across the tiers via `tierMatrixTint()`: Exposure 20% tint, Response 45%
-tint (ink text), Formation and Multiplication full hue (white text). All AA.
-The scored heat grid, the J12 mark and the other `TIER_TINT` surfaces keep the
-single-hue coral depth ramp (`--c-tier-*`) from §2.
+on /learn, /tour, /history) also uses these hues (Sept 2026, Collab request) via
+`tierMatrixTint()`. Every cell gets the same gradient as the landing-page J12 mark —
+left → right from a 22% tint to the full hue — so only the hue changes per tier.
+Text is ink, semibold, with a soft white halo; ink is ≥ 5.3:1 across the left two-thirds
+of each cell and dips below AA only at the darkest right edge.
+The scored heat grid, the J12 mark and the other `TIER_TINT` surfaces keep their
+existing colouring.
 
 **Known trade-off, accepted:** these hues overlap green ("up"), navy (benchmarks),
 violet (Follow) and vermillion ("down"). On the map they mean *which tier* and nothing

@@ -224,7 +224,12 @@ export function Matrix({
                     className={`px-2.5 py-4 text-center ${phrases ? "text-[13.5px] leading-tight" : "tabular text-[15px]"}`}
                     style={
                       phrases
-                        ? { background: tint.bg, color: tint.fg }
+                        ? {
+                            background: tint.bg,
+                            color: tint.fg,
+                            fontWeight: 600,
+                            textShadow: "0 0 2px rgb(255 255 255 / 0.9)",
+                          }
                         : { background: heat(v) }
                     }
                   >

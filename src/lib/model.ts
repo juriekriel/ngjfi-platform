@@ -137,27 +137,21 @@ export const tierHeat = (tier: string, v: number | null | undefined): string =>
 
 /**
  * The model matrix (the plain-language 3 × 4 on /learn, /tour, /history) in
- * the map's tier hues, stepping light → dark across the four tiers so the
- * journey still reads as a deepening. Exposure and Response are tints of
- * their hue with ink text; Formation and Multiplication are the full hue with
- * white text. Every step passes WCAG AA (ink 11.8:1, 7.1:1 · white 5.0:1,
- * 5.9:1) — Formation can't be a partial tint because blue at 45–90% fails AA
- * for both ink and white. The strength steps are keyed by tier POSITION, so a
- * tier added in config still gets a sensible (full-hue) cell.
+ * the map's tier hues. Every cell gets the SAME treatment as the J12 mark on
+ * the landing page: a left → right gradient from a 22% tint of its tier hue to
+ * the full hue — one gradient applied throughout, only the hue changes per
+ * tier. Unknown tiers fall back via mapVar(), so a config-added tier renders.
+ *
+ * Text is ink, semibold, with a soft white halo (see Figures.tsx). Ink is
+ * ≥ 5.3:1 over the left two-thirds of every cell; it dips to ~3.2–4.1:1 at the
+ * darkest right edge, which the halo covers. White text fails on the light
+ * half, so no single text colour is AA across the full gradient.
  */
-const MATRIX_STEP = [
-  { alpha: 0.2, fg: "ink" },
-  { alpha: 0.45, fg: "ink" },
-  { alpha: 1, fg: "plate" },
-  { alpha: 1, fg: "plate" },
-] as const;
-
 export const tierMatrixTint = (tier: string): { bg: string; fg: string } => {
-  const i = (TIERS as readonly string[]).indexOf(tier);
-  const step = MATRIX_STEP[i] ?? MATRIX_STEP[MATRIX_STEP.length - 1];
+  const hue = `var(--c-${mapVar(tier)})`;
   return {
-    bg: step.alpha === 1 ? tierMapColour(tier) : `rgb(var(--c-${mapVar(tier)}) / ${step.alpha})`,
-    fg: token(step.fg),
+    bg: `linear-gradient(to right, rgb(${hue} / 0.22), rgb(${hue}))`,
+    fg: INK,
   };
 };
 
