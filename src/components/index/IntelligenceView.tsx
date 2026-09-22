@@ -115,8 +115,8 @@ export default function IntelligenceView({
           <p className="mt-4 max-w-2xl leading-relaxed text-slate">
             This is the live view — real organisations, real respondents, and{" "}
             <b>no synthetic data has ever been in it</b>. It stays empty on purpose. Publishing a
-            global picture built on a handful of responses would break the integrity line more
-            quietly than the sandbox would, but just as badly.
+            global picture built on a handful of responses would break the integrity line this
+            project runs on.
           </p>
           <p className="mt-4 max-w-2xl leading-relaxed text-slate">
             {d.reason === "below_critical_mass" ? (
@@ -134,8 +134,8 @@ export default function IntelligenceView({
             )}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <a href="/demo" className="rounded-lg border border-ink px-4 py-2 text-[14px] font-semibold text-ink no-underline">
-              See the sandbox instead →
+            <a href="/tour" className="rounded-lg border border-ink px-4 py-2 text-[14px] font-semibold text-ink no-underline">
+              See how it works instead →
             </a>
             <a href="/join" className="rounded-lg border-2 border-accent bg-accent px-4 py-2 text-[14px] font-semibold text-plate no-underline">
               Join the Index →

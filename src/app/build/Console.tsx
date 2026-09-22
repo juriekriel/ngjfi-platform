@@ -119,9 +119,6 @@ export default function Console() {
             <Link href="/build/wireframes" className="rounded-lg border border-rule-2 px-4 py-2.5 text-[14px] font-semibold text-ink no-underline hover:border-ink">
               What the console will do →
             </Link>
-            <Link href="/demo" className="rounded-lg border border-rule px-4 py-2.5 text-[14px] font-semibold text-ink-2 no-underline hover:border-ink hover:text-ink">
-              The sandbox →
-            </Link>
           </div>
         </Band>
       )}
@@ -512,6 +509,7 @@ function AdminConsole() {
   const [wizard, setWizard] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
+  const [section, setSection] = useState<"pending" | "surveys" | "intelligence" | "console">("pending");
 
   const load = useCallback(async () => {
     if (!sb) return;
@@ -550,10 +548,58 @@ function AdminConsole() {
       .map((o) => ({ label: `${o.name} has no logo set`, meta: "cosmetic" })),
   ];
 
+  const liveCount = (wl?.organisations ?? []).filter((o) => o.campaigns > 0).length;
+
+  const CARDS: { id: "pending" | "surveys" | "intelligence" | "console"; letter: string; title: string; gloss: string; figure: string }[] = [
+    { id: "pending", letter: "A", title: "Pending requests", gloss: "A worklist, not a dashboard. If nothing is here, nobody is blocked on you.", figure: `${pending.length} item${pending.length === 1 ? "" : "s"}` },
+    { id: "surveys", letter: "B", title: "Surveys out", gloss: "Every organisation with a live campaign right now, and how it's going.", figure: `${liveCount} live` },
+    { id: "intelligence", letter: "C", title: "Collab Intelligence", gloss: "The aggregate, coalition-wide picture — opens the public view.", figure: "public view" },
+    { id: "console", letter: "D", title: "Console", gloss: "Field a survey, the live/sandbox reading, the full roll, and platform settings.", figure: "everything else" },
+  ];
+
   return (
     <div className="space-y-10">
       {err && <Trouble message={err} />}
 
+      {/* Four cards, one entry point each. An admin navigates through these
+          rather than scrolling a page that shows every band at once — see
+          the "4 cards to navigate through" brief. Collab Intelligence is a
+          real link to the public page it already is; the other three swap
+          which band renders below. */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {CARDS.map((c) =>
+          c.id === "intelligence" ? (
+            <Link
+              key={c.id}
+              href="/intelligence"
+              className="rounded-xl border border-rule-2 bg-plate p-4 no-underline shadow-sm hover:border-ink"
+            >
+              <p className="tabular text-[11px] text-muted">{c.letter} · {c.figure}</p>
+              <h3 className="mt-1 text-[16px] font-semibold text-ink">{c.title}</h3>
+              <p className="mt-1 text-[13px] leading-snug text-ink-2">{c.gloss}</p>
+            </Link>
+          ) : (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => setSection(c.id)}
+              className={`rounded-xl border p-4 text-left shadow-sm ${
+                section === c.id ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"
+              }`}
+            >
+              <p className={`tabular text-[11px] ${section === c.id ? "text-paper/70" : "text-muted"}`}>
+                {c.letter} · {c.figure}
+              </p>
+              <h3 className="mt-1 text-[16px] font-semibold">{c.title}</h3>
+              <p className={`mt-1 text-[13px] leading-snug ${section === c.id ? "text-paper/80" : "text-ink-2"}`}>
+                {c.gloss}
+              </p>
+            </button>
+          ),
+        )}
+      </div>
+
+      {section === "pending" && (
       <Band letter="A" title="Waiting on you" gloss="A worklist, not a dashboard. If nothing is on it, nobody is blocked on you." figure={`${pending.length} item${pending.length === 1 ? "" : "s"}`}>
         {wl?.access_requests.length ? (
           <ul className="divide-y divide-rule rounded-xl border border-rule bg-plate px-4 shadow-sm sm:px-5">
@@ -586,7 +632,47 @@ function AdminConsole() {
           deliberate act, so nobody becomes an administrator as a side effect of clearing a queue.
         </p>
       </Band>
+      )}
 
+      {section === "surveys" && (
+      <Band
+        letter="B"
+        title="Surveys out"
+        gloss="Every organisation with at least one live campaign — open it, pause it, or shut it down from here."
+        figure={`${liveCount} of ${wl?.organisations.length ?? 0} orgs`}
+      >
+        {liveCount ? (
+          <Rows>
+            {(wl?.organisations ?? [])
+              .filter((o) => o.campaigns > 0)
+              .map((o) => (
+                <Row
+                  key={o.short_name}
+                  label={o.name}
+                  meta={`${o.responses.toLocaleString()} responses${o.country ? ` · ${o.country}` : ""}`}
+                >
+                  <span className="flex items-center gap-2">
+                    <StatusToggle current={o.status} onChange={(s) => setStatus(o.short_name, s)} />
+                    <Link
+                      href={`/${o.short_name}/dashboard`}
+                      className="rounded-md border border-rule-2 px-2.5 py-1 text-[12.5px] font-semibold text-ink-2 no-underline hover:border-ink hover:text-ink"
+                    >
+                      Open
+                    </Link>
+                  </span>
+                </Row>
+              ))}
+          </Rows>
+        ) : (
+          <p className="text-[15px] leading-relaxed text-ink-2">
+            No organisation has a live campaign yet.
+          </p>
+        )}
+      </Band>
+      )}
+
+      {section === "console" && (
+      <div className="space-y-10">
       <Band letter="B" title="Surveys" gloss="Both verbs, unrestricted — and every act of fielding on someone else's behalf is written to the action log with your name on it." figure="unrestricted">
         {wizard ? (
           <SurveyWizard
@@ -722,6 +808,8 @@ function AdminConsole() {
           fifteen others.
         </p>
       </Band>
+      </div>
+      )}
     </div>
   );
 }

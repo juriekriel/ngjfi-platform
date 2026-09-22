@@ -379,7 +379,11 @@ export function J12Grid({ className = "" }: { className?: string }) {
               aria-hidden="true"
               className="aspect-square rounded-md"
               style={{
-                background: colour ?? "transparent",
+                // Each lit cell is its own light-to-dark gradient of the same
+                // hue (left = light, right = dark) rather than a flat fill —
+                // the five colours stay exactly what they were, only how each
+                // box renders them changes.
+                background: colour ? `linear-gradient(to right, ${colour}33, ${colour})` : "transparent",
                 border: colour ? "none" : `1px solid ${RULE}`,
               }}
             />
