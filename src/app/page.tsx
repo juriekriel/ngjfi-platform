@@ -36,7 +36,7 @@ export default function Home() {
             </div>
 
             <p className="mt-9 max-w-measure text-[22px] leading-[1.4]">
-              One four-minute survey, run under your own name, that finally lets you see your young
+              One seven-minute survey, run under your own name, that finally lets you see your young
               people next to your country and the world — instead of alone.
             </p>
 
