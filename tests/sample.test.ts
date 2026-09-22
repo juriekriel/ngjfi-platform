@@ -123,13 +123,17 @@ test("the mark never sits beside the typed wordmark", () => {
   }
 });
 
-test("every public surface carries the never-overclaim label", () => {
-  const banner = src("../src/components/PrototypeBanner.tsx");
-  assert.match(banner, /sample data/i);
-  const layout = src("../src/app/layout.tsx");
-  assert.match(layout, /PrototypeBanner/, "the banner must be mounted in the root layout");
-  assert.match(layout, /index: false/, "the prototype must stay out of search results");
-});
+// <PrototypeBanner> and the noindex flag existed for one situation: every
+// figure on the platform being synthetic. The production-readiness round
+// that deleted the demo dataset and prepared the site for real orgs removed
+// them deliberately, on request — running real data behind a banner that
+// says "sample data, not yet real" would itself be an overclaim in the
+// other direction. The underlying non-negotiable (never report on more than
+// "those who have completed the Index," always show n) is still enforced
+// structurally in the score-display components themselves — see
+// IndexPlate's "n = … · among those who completed the Index" caption in
+// src/components/index/Figures.tsx — which is why it doesn't need a
+// site-wide banner to hold it up.
 
 test("waitlist contact data is kept separate from respondent data", () => {
   const sql = src("../supabase/migrations/0008_waitlist_and_access.sql");

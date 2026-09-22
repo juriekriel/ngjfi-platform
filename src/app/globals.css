@@ -29,6 +29,12 @@
 :root {
   color-scheme: light;
 
+  /* JetBrains Mono is gone — Inter Tight is the only workhorse now, for
+   * numbers and captions too. This alias means every existing `.tabular` /
+   * `.figcap` / `font-mono` call site keeps working unchanged; nothing
+   * downstream needs to know the font swapped. See layout.tsx. */
+  --font-mono: var(--font-ui);
+
   /* Ground: white, near-black ink, hairline rules. Brand Proof № 3 (Sep 2026) —
    * replaces the almanac's warm paper. See docs/PALETTE.md for the option this
    * chose and why (full warm rotation, with "up" moved off the brand colour). */
@@ -99,9 +105,11 @@ label {
   font-family: var(--font-serif), Georgia, serif;
 }
 
-/* Every number is tabular mono, so columns of figures actually line up. */
+/* Every number is tabular, so columns of figures actually line up. Inter
+ * Tight supports OpenType tabular figures (tnum), so this no longer needs a
+ * separate monospace face to do it. */
 .tabular {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-mono), system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }
@@ -113,7 +121,7 @@ label {
 
 /* Figure captions: numbered, sourced, set small. */
 .figcap {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-mono), system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;

@@ -533,7 +533,7 @@ function BeatCollab() {
 function BeatNext() {
   const d = sampleDashboard();
   const weakest = TIERS.reduce((lo, tk) =>
-    (d.tiers[tk] ?? 100) < (d.tiers[lo] ?? 100) ? tk : lo,
+    (d.tiers[tk] ?? 6) < (d.tiers[lo] ?? 6) ? tk : lo,
   TIERS[0]);
 
   return (

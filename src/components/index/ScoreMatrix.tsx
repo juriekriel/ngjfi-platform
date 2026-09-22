@@ -41,7 +41,7 @@ export default function ScoreMatrix({
               {TIERS.map((tk) => {
                 const v = matrix?.[dk]?.[tk] ?? null;
                 const cv = compare?.[dk]?.[tk] ?? null;
-                const dark = v !== null && v >= 55;
+                const dark = v !== null && v >= 3.2;
                 return (
                   <td
                     key={tk}

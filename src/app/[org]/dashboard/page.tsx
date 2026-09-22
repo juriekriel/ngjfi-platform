@@ -77,11 +77,11 @@ const INSIGHT_ITEMS = instrument.items
 const labelFor = (key: string) => ITEM_LABEL[key] ?? key;
 const fmt = (n: number | null | undefined) => (n === null || n === undefined ? "—" : String(n));
 const green = (v: number | null) =>
-  v === null || v === undefined ? "transparent" : `rgba(63,157,114,${Math.max(0.08, v / 100)})`;
+  v === null || v === undefined ? "transparent" : `rgba(63,157,114,${Math.max(0.08, v / 5.5)})`;
 // The Exploration Index's own colour — violet, never the Index's emerald/coral,
 // so the two figures never look like the same measure at a glance.
 const violet = (v: number | null) =>
-  v === null || v === undefined ? "transparent" : `rgba(139,92,246,${Math.max(0.08, v / 100)})`;
+  v === null || v === undefined ? "transparent" : `rgba(139,92,246,${Math.max(0.08, v / 5.5)})`;
 
 /** One pill in the compare-to row. Disabled (not hidden) below the gate, so
  * an org can see the comparison exists and roughly how far off it is. */
@@ -299,11 +299,11 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                   <div key={tk} className="flex items-center gap-2 text-xs">
                     <span className="w-24 shrink-0 text-slate">{TIER_LABEL[tk]}</span>
                     <div className="relative h-2.5 flex-1 rounded bg-paper-deep">
-                      <div className="h-full rounded" style={{ width: `${dash.tiers?.[tk] ?? 0}%`, background: tk === "multiplication" ? "#ff7a47" : "#3f9d72" }} />
+                      <div className="h-full rounded" style={{ width: `${((dash.tiers?.[tk] ?? 0) / 5) * 100}%`, background: tk === "multiplication" ? "#ff7a47" : "#3f9d72" }} />
                       {baseline?.tiers?.[tk] != null && (
                         <div
                           className="absolute top-0 h-full w-[2px] bg-ink"
-                          style={{ left: `${baseline.tiers[tk]}%` }}
+                          style={{ left: `${((baseline.tiers[tk] ?? 0) / 5) * 100}%` }}
                           title={`${baselineLabel} average: ${baseline.tiers[tk]}`}
                         />
                       )}
@@ -381,7 +381,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                 {dash.trend.map((p) => (
                   <div key={p.year} className="flex flex-col items-center gap-1">
                     <div className="text-xs font-bold">{p.index}</div>
-                    <div className="w-10 rounded-t bg-moss" style={{ height: `${Math.max(6, (p.index / 100) * 90)}px` }} />
+                    <div className="w-10 rounded-t bg-moss" style={{ height: `${Math.max(6, (p.index / 5) * 90)}px` }} />
                     <div className="font-mono text-[10px] text-muted">{p.year}</div>
                   </div>
                 ))}
@@ -506,7 +506,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                         <div className="h-2.5 flex-1 rounded bg-paper">
                           <div
                             className="h-full rounded bg-navy"
-                            style={{ width: `${dash.exploration_tiers?.[tk] ?? 0}%` }}
+                            style={{ width: `${((dash.exploration_tiers?.[tk] ?? 0) / 5) * 100}%` }}
                           />
                         </div>
                         <b className="w-7 text-right">{fmt(dash.exploration_tiers?.[tk])}</b>
@@ -529,7 +529,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                         <div className="mt-1 h-2 rounded bg-paper">
                           <div
                             className="h-full rounded bg-navy"
-                            style={{ width: `${dash.exploration_domains?.[dk] ?? 0}%` }}
+                            style={{ width: `${((dash.exploration_domains?.[dk] ?? 0) / 5) * 100}%` }}
                           />
                         </div>
                       </div>
@@ -550,7 +550,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                               <td
                                 key={tk}
                                 className="rounded py-2 font-semibold"
-                                style={{ background: violet(v), color: v !== null && v >= 55 ? "#fff" : "#22252b" }}
+                                style={{ background: violet(v), color: v !== null && v >= 3.2 ? "#fff" : "#22252b" }}
                               >
                                 {fmt(v)}
                               </td>

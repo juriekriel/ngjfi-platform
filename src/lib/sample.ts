@@ -29,23 +29,27 @@ function seeded(key: string): number {
  * The funnel narrows. These centres encode the project's actual headline
  * finding — belief outruns practice, and practice outruns reproduction.
  */
+// Rescaled from the old 0-100 headline centres via `1 + (old/100)*4` for the
+// 1-5 raw-Likert-mean scale (see migration 0029_score_scale_1_to_5.sql).
 const TIER_CENTRE: Record<string, number> = {
-  exposure: 84,
-  response: 63,
-  formation: 44,
-  multiplication: 27,
+  exposure: 4.4,
+  response: 3.5,
+  formation: 2.8,
+  multiplication: 2.1,
 };
 
-/** Small, fixed per-domain lean so the three questions don't read identically. */
-const DOMAIN_LEAN: Record<string, number> = { follow: 4, mission: -3, world: -1 };
+/** Small, fixed per-domain lean so the three questions don't read identically.
+ *  Additive offset (not a score itself), so rescaled by the same 4/100 factor
+ *  as the centres above rather than the 1+(old/100)*4 score conversion. */
+const DOMAIN_LEAN: Record<string, number> = { follow: 0.16, mission: -0.12, world: -0.04 };
 
 const round1 = (x: number) => Math.round(x * 10) / 10;
-const clamp = (x: number) => Math.max(2, Math.min(98, x));
+const clamp = (x: number) => Math.max(1.1, Math.min(4.9, x));
 
 function itemMean(item: InstrumentItem): number {
-  const centre = TIER_CENTRE[item.tier] ?? 50;
+  const centre = TIER_CENTRE[item.tier] ?? 3;
   const lean = DOMAIN_LEAN[item.question_domain] ?? 0;
-  const jitter = (seeded(item.key) - 0.5) * 13;
+  const jitter = (seeded(item.key) - 0.5) * 0.52;
   return round1(clamp(centre + lean + jitter));
 }
 
@@ -131,9 +135,11 @@ export function sampleDashboard(org: SampleOrg = SAMPLE_ORG): DashboardData {
     domains,
     matrix,
     items: rows.sort((a, b) => a.domain.localeCompare(b.domain) || a.tier.localeCompare(b.tier)),
+    // Offsets rescaled by the same 4/100 factor as DOMAIN_LEAN above — these
+    // are additive deltas from the old 0-100 space, not scores themselves.
     trend: index === null ? null : [
-      { year: 2027, index: round1(index - 3.1) },
-      { year: 2028, index: round1(index - 1.2) },
+      { year: 2027, index: round1(index - 3.1 * 0.04) },
+      { year: 2028, index: round1(index - 1.2 * 0.04) },
       { year: 2029, index },
     ],
     demo: true,
