@@ -45,6 +45,8 @@ function fmtWindow(from: string | null, to: string | null) {
  * score here yet (see migration 0028) and never compared to the Collab —
  * that stays house-level only, on the Matrix/Heat map above.
  */
+export type { Link as DistributionLink };
+
 export default function LinksPanel({ sb, orgSlug }: { sb: SupabaseClient; orgSlug: string }) {
   const [links, setLinks] = useState<Link[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -142,10 +144,11 @@ function toLocalInput(iso: string | null) {
   if (!iso) return "";
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  // datetime-local: each link opens and closes at a date AND a time.
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function LinkForm({
+export function LinkForm({
   sb, orgSlug, link, onClose, onSaved,
 }: {
   sb: SupabaseClient;
@@ -212,12 +215,12 @@ function LinkForm({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="font-mono text-[9px] uppercase tracking-wider text-muted">Opens</label>
-            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)}
+            <input type="datetime-local" value={from} onChange={(e) => setFrom(e.target.value)}
               className="mt-1 w-full rounded-lg border border-rule px-2 py-1.5 text-sm" />
           </div>
           <div>
             <label className="font-mono text-[9px] uppercase tracking-wider text-muted">Closes</label>
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)}
+            <input type="datetime-local" value={to} onChange={(e) => setTo(e.target.value)}
               className="mt-1 w-full rounded-lg border border-rule px-2 py-1.5 text-sm" />
           </div>
         </div>

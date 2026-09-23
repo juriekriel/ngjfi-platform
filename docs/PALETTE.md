@@ -156,8 +156,19 @@ colour, which comes from `tierMapColour()` / `tierHeat()` in `src/lib/model.ts`.
 | Formation | `--c-map-formation` | `#4A6CC2` blue | white, 5.0:1 |
 | Multiplication | `--c-map-multiplication` | `#BC2E3A` red | white, 5.9:1 |
 
-**Scope is the map only.** The J12 matrix and heat grid keep the single-hue depth
-ramp (`--c-tier-*`) from §2, where depth-as-lightness is the point.
+**Scope: the map AND the J12 matrix (changed Sept 2026).** By the Collab's decision
+(locked signed-in design), the J12 matrix now paints each tier column in the same
+hue the landing page's map toggle uses, so a tier reads identically everywhere —
+`ScoreMatrix` uses `tierHeat()`, depth still carried by intensity within the hue.
+Cell text is ink or white per cell (`tierCellInk()`), whichever contrasts more.
+The numeric copy of these hues in `src/lib/model.ts` (`MAP_TIER_RGB`) exists only
+for that contrast maths; `tests/palette.test.ts` fails if it drifts from
+`globals.css`. The coral `--c-tier-*` ramp remains for the guided tour's heat grid.
+
+**Orange stays brand and action only** — coral `#FF7A47 → #E8551F → #A8360B`:
+the active tab, primary buttons, "What does this mean?", an organisation's own
+J12 figure. Statuses use a small dot in green / navy / violet with ink text, so the
+exact hues are kept without failing contrast at small sizes.
 
 **Known trade-off, accepted:** these hues overlap green ("up"), navy (benchmarks),
 violet (Follow) and vermillion ("down"). On the map they mean *which tier* and nothing

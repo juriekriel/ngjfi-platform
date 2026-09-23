@@ -29,9 +29,20 @@ export type MapCountry = {
 export default function WorldHeatMap({
   countries,
   tier,
+  reached = [],
+  gate,
 }: {
   countries: MapCountry[];
   tier: string;
+  /**
+   * Country names (as stored on sessions) an organisation's links reached —
+   * outlined, never filled, so an under-threshold country is marked without
+   * being activated. Comes from org_reach_countries() (0033), which already
+   * drops any country below min_group_n.
+   */
+  reached?: string[];
+  /** The country critical-mass gate, from config (collab_intelligence().country_gate). */
+  gate?: number;
 }) {
   const byCode = new Map<string, MapCountry>();
   for (const c of countries) {
@@ -40,6 +51,7 @@ export default function WorldHeatMap({
   }
 
   const scoreFor = (code: string) => byCode.get(code)?.tiers?.[tier] ?? null;
+  const reachedCodes = new Set(reached.map((n) => COUNTRY_CODE_BY_NAME[n]).filter(Boolean));
 
   return (
     <div>
@@ -62,6 +74,9 @@ export default function WorldHeatMap({
             />
           );
         })}
+        {WORLD_FEATURES.filter((f) => f.c && reachedCodes.has(f.c)).map((f) => (
+          <path key={`reached-${f.c}`} d={f.d} fill="none" stroke="rgb(var(--c-ink))" strokeWidth={1.6} />
+        ))}
         {Object.entries(WORLD_CENTROIDS).map(([code, [x, y]]) => {
           const entry = byCode.get(code);
           const score = entry?.tiers?.[tier] ?? null;
@@ -105,8 +120,14 @@ export default function WorldHeatMap({
         <span>5</span>
         <span className="ml-2 inline-flex items-center gap-1.5">
           <span className="h-3 w-3 rounded border border-rule" style={{ background: "#e2e5ea" }} />
-          No data, or below n ≥ 2,000
+          No data, or below n ≥ {(gate ?? 2000).toLocaleString()}
         </span>
+        {reachedCodes.size > 0 && (
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-3 w-3 rounded border-2 border-ink" />
+            Your links reached here
+          </span>
+        )}
       </div>
 
       {countries.length === 0 && (
