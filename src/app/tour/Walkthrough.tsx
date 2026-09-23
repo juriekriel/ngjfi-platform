@@ -194,10 +194,6 @@ function BeatModel() {
           The columns narrow as you move right. That narrowing is the diagnosis: it shows you exactly
           where your people stop moving.
         </p>
-        <p className="margin-note mt-5 border-l-2 border-emerald pl-3">
-          This grid is drawn by the same component as the live dashboard. The only difference is that
-          here the cells hold plain language instead of scores.
-        </p>
       </div>
       <Plate label="The J12 · the model" figure="Step 01">
         <Matrix phrases />

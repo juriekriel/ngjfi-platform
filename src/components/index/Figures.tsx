@@ -184,6 +184,7 @@ export function Matrix({
   matrix?: Record<string, Record<string, number | null>>;
   phrases?: boolean;
 }) {
+  if (phrases) return <PhraseMatrix />;
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[520px] border-collapse text-left">
@@ -194,15 +195,9 @@ export function Matrix({
           <tr>
             <th scope="col" className="figcap border-b border-ink pb-2 pr-3 font-normal" />
             {TIERS.map((tk) => (
-              <th
-                key={tk}
-                scope="col"
-                className="figcap border-b border-ink px-2 pb-2 text-center font-normal"
-              >
+              <th key={tk} scope="col" className="figcap border-b border-ink px-2 pb-2 text-center font-normal">
                 {TIER_LABEL[tk]}
-                <span className="mt-0.5 block normal-case tracking-normal text-muted">
-                  {TIER_GLOSS[tk]}
-                </span>
+                <span className="mt-0.5 block normal-case tracking-normal text-muted">{TIER_GLOSS[tk]}</span>
               </th>
             ))}
           </tr>
@@ -216,18 +211,69 @@ export function Matrix({
               </th>
               {TIERS.map((tk) => {
                 const v = matrix?.[dk]?.[tk] ?? null;
+                return (
+                  <td key={tk} className="tabular px-2.5 py-4 text-center text-[15px]" style={{ background: heat(v) }}>
+                    {fig(v)}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/**
+ * The model in plain language — the landing page's J12 look (separate
+ * rounded tiles with a small gap, each tile a left-to-right gradient) with
+ * the orange depth ramp kept: every tile runs from its own tier's tint
+ * toward the next tier's, so each row reads as one continuous orange
+ * deepening from Exposure to Multiplication. Used by /tour, /learn and
+ * /history, so the three can't drift apart.
+ */
+function PhraseMatrix() {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[520px] table-fixed border-separate border-spacing-1.5 text-left">
+        <caption className="sr-only">
+          The three questions by the four tiers — what we measure, and how deep it has gone
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col" className="w-[132px] font-normal" />
+            {TIERS.map((tk) => (
+              <th key={tk} scope="col" className="figcap px-1 pb-1.5 text-center font-normal">
+                {TIER_LABEL[tk]}
+                <span className="mt-0.5 block normal-case tracking-normal text-muted">{TIER_GLOSS[tk]}</span>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {DOMAINS.map((dk) => (
+            <tr key={dk}>
+              <th scope="row" className="pr-2 text-left align-middle font-normal leading-tight">
+                <span className="block text-[14px] font-semibold">{DOMAIN_SHORT[dk]}</span>
+                <span className="block text-[12px] italic text-muted">{DOMAIN_LABEL[dk]}</span>
+              </th>
+              {TIERS.map((tk, j) => {
                 const tint = TIER_TINT[tk];
+                const next = TIER_TINT[TIERS[Math.min(j + 1, TIERS.length - 1)]];
                 return (
                   <td
                     key={tk}
-                    className={`px-2.5 py-4 text-center ${phrases ? "text-[13.5px] leading-tight" : "tabular text-[15px]"}`}
-                    style={
-                      phrases
-                        ? { background: tint.bg, color: tint.fg }
-                        : { background: heat(v) }
-                    }
+                    className="h-[92px] rounded-xl px-2.5 py-3 text-center align-middle text-[13.5px] leading-tight"
+                    style={{
+                      backgroundColor: tint.bg,
+                      // Toward (not all the way to) the next tier, so the text colour
+                      // chosen for this tier stays legible across the whole tile.
+                      backgroundImage: `linear-gradient(to right, ${tint.bg}, color-mix(in srgb, ${tint.bg} 60%, ${next.bg}))`,
+                      color: tint.fg,
+                    }}
                   >
-                    {phrases ? MATRIX_PHRASE[dk][tk] : fig(v)}
+                    {MATRIX_PHRASE[dk][tk]}
                   </td>
                 );
               })}

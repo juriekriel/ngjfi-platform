@@ -1,3 +1,4 @@
+import { surveyMetadata } from "@/lib/surveyMetadata";
 import Survey from "@/components/survey/Survey";
 
 /**
@@ -8,6 +9,10 @@ import Survey from "@/components/survey/Survey";
  * else. The gap between the two is the most useful number the Index produces,
  * which is why they must never become two different surveys.
  */
+export function generateMetadata({ params }: { params: { org: string } }) {
+  return surveyMetadata(params.org);
+}
+
 export default function SurveyPage({ params }: { params: { org: string } }) {
   return <Survey slug={params.org} audience="community" />;
 }

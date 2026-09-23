@@ -4,11 +4,11 @@ import type { MetadataRoute } from "next";
  * The web app manifest — Next's metadata-route convention, served at
  * /manifest.webmanifest automatically (no <link> tag needed in layout.tsx).
  *
- * This is the icon/installability piece of the PWA checklist (CLAUDE.md §4):
- * the icon set itself (public/icons/*.png, generated from public/icon-mark.svg
- * — see that file for the source). The rest of the PWA layer — service
- * worker, offline shell, offline-tolerant submission queue — is still open
- * and deliberately NOT implied by this file alone.
+ * The platform-wide manifest. Each organisation's survey has its own
+ * (src/app/[org]/manifest.webmanifest), so an installed survey opens straight
+ * to that organisation. The rest of the PWA layer: public/sw.js (offline
+ * shell), src/lib/outbox.ts (answers queued on the phone until there is a
+ * signal), src/components/pwa/OfflineShell.tsx (registration + draining).
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {

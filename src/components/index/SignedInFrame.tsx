@@ -244,14 +244,14 @@ export function SignedInHeader({
   active: "org" | "collab";
   email: string | null;
 }) {
-  const [brand, setBrand] = useState<{ logo_url: string | null; brand_color: string | null } | null>(null);
+  const [brand, setBrand] = useState<{ logo_url: string | null; brand_color: string | null; status?: string } | null>(null);
 
   useEffect(() => {
     sb.from("organisations")
-      .select("logo_url,brand_color")
+      .select("logo_url,brand_color,status")
       .eq("slug", org.slug)
       .maybeSingle()
-      .then(({ data }) => data && setBrand(data as { logo_url: string | null; brand_color: string | null }));
+      .then(({ data }) => data && setBrand(data as { logo_url: string | null; brand_color: string | null; status?: string }));
   }, [sb, org.slug]);
 
   return (
@@ -285,6 +285,18 @@ export function SignedInHeader({
           {email && <span className="hidden rounded-lg border border-rule-2 px-3 py-2 text-[13px] text-ink-2 sm:inline">{email}</span>}
         </div>
       </div>
+      {brand?.status === "pending" && (
+        <div className="border-t border-rule bg-navy/10 px-5 py-2.5 text-center text-[13.5px] text-ink sm:px-8">
+          <b>Waiting for approval.</b> Set up your links, branding and team now — the survey starts
+          accepting responses once the Collab approves {org.name}.
+        </div>
+      )}
+      {(brand?.status === "paused" || brand?.status === "closed") && (
+        <div className="border-t border-rule bg-vermillion/10 px-5 py-2.5 text-center text-[13.5px] text-ink sm:px-8">
+          <b>{brand.status === "paused" ? "Collection is paused." : "This organisation is closed."}</b> The survey
+          isn&apos;t accepting responses. Your results stay here.
+        </div>
+      )}
     </header>
   );
 }

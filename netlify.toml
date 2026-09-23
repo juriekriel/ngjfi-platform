@@ -12,3 +12,11 @@
 # Official Next.js runtime for Netlify (SSR, API routes, image optimisation).
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# The service worker must never be served stale, or a fix to it could take
+# days to reach phones. The browser still caches it for at most a request.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Service-Worker-Allowed = "/"
