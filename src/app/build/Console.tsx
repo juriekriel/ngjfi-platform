@@ -21,7 +21,7 @@ import {
   type WorkItem,
 } from "@/components/console/Bands";
 import SurveyWizard from "@/components/console/SurveyWizard";
-import ConsultingRepository from "@/components/console/ConsultingRepository";
+import { ConsultingRequestsBand, useConsultingRequests } from "@/components/console/ConsultingRequests";
 
 /**
  * The Index — the authenticated engine, at every tier.
@@ -41,7 +41,7 @@ type Ctx = {
   signed_in: boolean;
   email?: string;
   role?: "admin" | "collab" | "org";
-  orgs?: { short_name: string; name: string; is_demo: boolean }[];
+  orgs?: { slug?: string; short_name: string; name: string; is_demo: boolean }[];
   networks?: { short_name: string; name: string; kind: string }[];
 };
 
@@ -83,8 +83,19 @@ export default function Console() {
       else if (c.role === "collab") setScope({ kind: "collab" });
       else if (c.networks?.length)
         setScope({ kind: "network", short_name: c.networks[0].short_name, name: c.networks[0].name });
-      else if (c.orgs?.length)
+      else if (c.orgs?.length) {
+        // An organisation's signed-in home is its two-tab dashboard, not this
+        // console (locked design, Sept 2026). The console stays reachable for
+        // survey setup via /build?settings=1 — the dashboard's "Survey
+        // settings" link.
+        const wantsSettings = new URLSearchParams(window.location.search).has("settings");
+        const home = c.orgs[0].slug;
+        if (!wantsSettings && home) {
+          window.location.replace(`/${home}/dashboard`);
+          return;
+        }
         setScope({ kind: "org", short_name: c.orgs[0].short_name, name: c.orgs[0].name });
+      }
     }
     setReady(true);
   }, [sb]);
@@ -391,7 +402,7 @@ function pct(done: number, of: number) {
   return of ? `${Math.round((done / of) * 100)}%` : "—";
 }
 
-type CollabSection = "organisations" | "surveys" | "intelligence" | "development";
+type CollabSection = "organisations" | "surveys" | "intelligence" | "development" | "consulting";
 
 function CollabConsole() {
   const sb = useMemo(() => getSupabaseBrowser(), []);
@@ -404,6 +415,7 @@ function CollabConsole() {
   const [wizard, setWizard] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [section, setSection] = useState<CollabSection>("organisations");
+  const consulting = useConsultingRequests();
 
   const load = useCallback(async () => {
     if (!sb) return;
@@ -439,7 +451,7 @@ function CollabConsole() {
 
       {/* Same four-across tile row as the Administrator console. Each tile is
           a preview of its band; clicking swaps which band renders below. */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Tile
           letter="A"
           figure={`${orgs.length} total`}
@@ -501,6 +513,29 @@ function CollabConsole() {
           onClick={() => setSection("development")}
         >
           <HouseFigures house={house} selected={section === "development"} />
+        </Tile>
+
+        <Tile
+          letter="E"
+          figure={consulting.items ? `${consulting.counts.new} new` : "…"}
+          title="Consulting Requests"
+          selected={section === "consulting"}
+          onClick={() => setSection("consulting")}
+        >
+          <ul className="space-y-0.5 text-[12.5px] leading-snug">
+            {(
+              [
+                ["New", consulting.counts.new],
+                ["With a facilitator", consulting.counts.assigned],
+                ["Answered", consulting.counts.answered],
+              ] as const
+            ).map(([k, v]) => (
+              <li key={k} className="flex justify-between gap-2">
+                <span className={section === "consulting" ? "text-paper/70" : "text-muted"}>{k}</span>
+                <span className="tabular">{consulting.items ? v : "—"}</span>
+              </li>
+            ))}
+          </ul>
         </Tile>
       </div>
 
@@ -619,13 +654,23 @@ function CollabConsole() {
             >
               Open Collab Intelligence →
             </Link>
-            <ConsultingRepository />
           </Band>
 
           <Band letter="C" title="The roll" gloss="Cohorts, countries and the coverage arithmetic. Concentration beats count: sixty organisations across forty countries unlocks nothing; the same sixty across ten unlocks all ten." figure={`gate ${gate.toLocaleString()}`}>
             <Worklist items={wl?.items ?? []} empty="No completions yet, so no coverage to steer." />
           </Band>
         </div>
+      )}
+
+      {section === "consulting" && (
+        <Band
+          letter="E"
+          title="Consulting Requests"
+          gloss="Every “What does this mean?” from an organisation’s dashboard. Each carries the question and the aggregate view the organisation was looking at — never a respondent’s answers."
+          figure="from either dashboard tab"
+        >
+          <ConsultingRequestsBand {...consulting} />
+        </Band>
       )}
 
       {section === "development" && (

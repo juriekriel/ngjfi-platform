@@ -129,11 +129,49 @@ export const tierMapColour = (tier: string): string => `rgb(var(--c-${mapVar(tie
 export const tierMapInk = (tier: string): string =>
   (TIERS as readonly string[]).includes(tier) ? `rgb(var(--c-map-${tier}-fg))` : INK;
 
+/**
+ * The four map-tier hues as numbers, for the one job CSS variables can't do:
+ * working out, per cell, whether ink or white text reads on a tinted fill.
+ * These MUST equal the --c-map-* triplets in src/app/globals.css —
+ * tests/palette.test.ts parses that file and fails if they ever drift, so the
+ * stylesheet stays the single source of truth for what is actually painted.
+ */
+export const MAP_TIER_RGB: Record<string, [number, number, number]> = {
+  exposure: [46, 131, 88],
+  response: [144, 32, 253],
+  formation: [74, 108, 194],
+  multiplication: [188, 46, 58],
+};
+
+/** Same alpha curve heat() and tierHeat() use, exported so the maths is shared. */
+export const heatAlpha = (v: number): number => Math.max(0.06, Math.min(0.92, v / 5.5));
+
+const INK_RGB: [number, number, number] = [34, 37, 43];
+const channel = (c: number) => {
+  const x = c / 255;
+  return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+};
+const luminance = ([r, g, b]: [number, number, number]) => 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+const contrast = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+
+/**
+ * Ink or white — whichever has the higher contrast against a J12 cell filled
+ * with tierHeat(tier, v) over a white card. Returns a CSS colour.
+ */
+export const tierCellInk = (tier: string, v: number | null | undefined): string => {
+  const hue = MAP_TIER_RGB[tier];
+  if (!hue || v === null || v === undefined) return INK;
+  const a = heatAlpha(v);
+  const mix = hue.map((c) => Math.round(255 + (c - 255) * a)) as [number, number, number];
+  const L = luminance(mix);
+  return contrast(L, 1) > contrast(L, luminance(INK_RGB)) ? PLATE : INK;
+};
+
 /** Same intensity curve as heat(), but in the tier's own hue. */
 export const tierHeat = (tier: string, v: number | null | undefined): string =>
   v === null || v === undefined
     ? "transparent"
-    : `rgb(var(--c-${mapVar(tier)}) / ${Math.max(0.06, Math.min(0.92, v / 5.5))})`;
+    : `rgb(var(--c-${mapVar(tier)}) / ${heatAlpha(v)})`;
 
 /** A figure, or an em dash. Never a zero standing in for "we don't know". */
 export const fig = (n: number | null | undefined): string =>
