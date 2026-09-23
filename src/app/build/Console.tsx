@@ -22,6 +22,7 @@ import {
 } from "@/components/console/Bands";
 import SurveyWizard from "@/components/console/SurveyWizard";
 import { ConsultingRequestsBand, useConsultingRequests } from "@/components/console/ConsultingRequests";
+import { linkError } from "@/lib/authLinks";
 import { ApplicationsBand, NoHouse, OrgManagePanel, useApplications } from "@/components/console/Onboarding";
 
 /**
@@ -117,19 +118,33 @@ export default function Console() {
       </Shell>
     );
 
-  if (!ctx?.signed_in)
+  if (!ctx?.signed_in) {
+    // Arriving from a sign-in link that didn't create a session used to look
+    // exactly like never having signed in — a silent loop. Say why instead.
+    const fromLink =
+      typeof window !== "undefined"
+        ? linkError(window.location.search, window.location.hash) ??
+          (new URLSearchParams(window.location.search).has("code")
+            ? "That link was opened in a different browser than the one that asked for it, or a newer link has been requested since. Request a fresh link and open it on this device — or use the newest email."
+            : null)
+        : null;
     return (
       <Shell tier="" scope={null} ctx={null} onScope={() => {}}>
-        <Band letter="—" title="Not signed in" gloss="The Index is the working engine behind jfindx.org. It needs a ministry email and a one-time sign-in link.">
+        <Band
+          letter="—"
+          title={fromLink ? "That link didn't sign you in" : "Not signed in"}
+          gloss={fromLink ?? "The Index is the working engine behind jfindx.org. It needs a ministry email and a one-time sign-in link."}
+        >
           <Link
             href="/access"
             className="inline-block rounded-lg bg-ink px-5 py-3 text-[14px] font-semibold text-paper no-underline hover:bg-ink/90"
           >
-            Sign in →
+            {fromLink ? "Send me a new link →" : "Sign in →"}
           </Link>
         </Band>
       </Shell>
     );
+  }
 
   const tier = scope ? TIER_LABEL[scope.kind] : "";
 
