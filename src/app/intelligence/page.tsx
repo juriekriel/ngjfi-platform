@@ -1,4 +1,4 @@
-import IntelligenceView from "@/components/index/IntelligenceView";
+import IntelligenceEntry from "@/components/index/IntelligenceEntry";
 
 export const metadata = {
   title: "Collab Intelligence — The Jesus Index",
@@ -11,7 +11,11 @@ export const metadata = {
  * `collab_intelligence()` filters demo organisations inside its own body, so no
  * caller can accidentally include them. It stays honestly empty until the
  * critical-mass gate is passed.
+ *
+ * Signed-in organisation members see it as the second tab of their
+ * dashboard (same frame, same controls); everyone else sees the public page.
+ * See IntelligenceEntry.
  */
 export default function IntelligencePage() {
-  return <IntelligenceView space="live" />;
+  return <IntelligenceEntry />;
 }
