@@ -66,7 +66,7 @@ export default function Home() {
         <LiveSnapshot />
 
         {/* ── closing ───────────────────────────────────────────────── */}
-        <section className="border-t-2 border-ink py-12">
+        <section className="border-t border-ink py-12">
           <div className="grid items-end gap-8 md:grid-cols-[1.4fr_1fr]">
             <div>
               <h2 className="text-[30px] leading-tight">Organisations are joining now.</h2>

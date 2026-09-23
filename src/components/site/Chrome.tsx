@@ -70,7 +70,7 @@ export function Footer() {
           >
             Next Gen Global Collab
           </a>
-          , to see everyone in the next generation follow Jesus.
+          , to see everyone in the next generation having an opportunity to follow Jesus by 2033.
         </p>
       </div>
     </footer>

@@ -203,3 +203,150 @@ export function Trouble({ message }: { message: string }) {
     </p>
   );
 }
+
+/* ── a tile ───────────────────────────────────────────────────────────── */
+
+/**
+ * One entry point on a console's tile row. The Administrator and Collab
+ * consoles use the same four-across grid, so the tile is one implementation
+ * for the same reason the bands are.
+ *
+ * Three shapes, picked by what is passed:
+ *   href     → a link out (e.g. Collab Intelligence's public view)
+ *   onClick  → a switch that swaps which band renders below the row
+ *   neither  → a tile that carries its own content (e.g. the admin worklist,
+ *              whose Approve/Decline buttons cannot live inside a <button>)
+ */
+export function Tile({
+  letter,
+  figure,
+  title,
+  gloss,
+  selected = false,
+  onClick,
+  href,
+  className = "",
+  children,
+}: {
+  letter: string;
+  figure?: string;
+  title: string;
+  gloss?: string;
+  selected?: boolean;
+  onClick?: () => void;
+  href?: string;
+  className?: string;
+  children?: React.ReactNode;
+}) {
+  const shell = `flex flex-col rounded-xl border p-4 text-left shadow-sm ${
+    selected ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"
+  } ${className}`;
+  const inner = (
+    <>
+      <p className={`tabular text-[11px] ${selected ? "text-paper/70" : "text-muted"}`}>
+        {letter}
+        {figure ? ` · ${figure}` : ""}
+      </p>
+      <h3 className="mt-1 text-[16px] font-semibold">{title}</h3>
+      {gloss && (
+        <p className={`mt-1 text-[13px] leading-snug ${selected ? "text-paper/80" : "text-ink-2"}`}>{gloss}</p>
+      )}
+      {children && <div className="mt-3 flex-1">{children}</div>}
+    </>
+  );
+
+  if (href)
+    return (
+      <Link href={href} className={`${shell} no-underline`}>
+        {inner}
+      </Link>
+    );
+  if (onClick)
+    return (
+      <button type="button" onClick={onClick} aria-pressed={selected} className={shell}>
+        {inner}
+      </button>
+    );
+  return <div className={shell}>{inner}</div>;
+}
+
+/**
+ * A short roster inside a tile: the first few names, then "+N more". The tile
+ * is a preview; the band it opens carries the full list.
+ */
+export function TileList({ names, max = 4, selected = false }: { names: string[]; max?: number; selected?: boolean }) {
+  if (!names.length) return null;
+  const shown = names.slice(0, max);
+  return (
+    <ul className={`space-y-0.5 text-[12.5px] leading-snug ${selected ? "text-paper/90" : "text-ink"}`}>
+      {shown.map((n) => (
+        <li key={n} className="truncate">
+          {n}
+        </li>
+      ))}
+      {names.length > max && (
+        <li className={selected ? "text-paper/70" : "text-muted"}>+{names.length - max} more</li>
+      )}
+    </ul>
+  );
+}
+
+/* ── the house, in figures ────────────────────────────────────────────── */
+
+/**
+ * The three settings that change the meaning of every number — the active
+ * instrument, the two critical-mass gates, and the global-view publish switch.
+ * The Administrator's Console tile and the Collab's Development tile show the
+ * same four lines, so it is one component: if they ever disagreed, one of the
+ * two consoles would be describing a platform that does not exist.
+ */
+export type HouseSettings = {
+  instrument: { version: string; status: string; items: number } | null;
+  gate: number;
+  country_gate: number;
+  global_view_published: boolean;
+};
+
+/** The tile-sized preview. */
+export function HouseFigures({ house, selected = false }: { house: HouseSettings | null; selected?: boolean }) {
+  const dim = selected ? "text-paper/70" : "text-muted";
+  const Line = ({ k, v, warn = false }: { k: string; v: string; warn?: boolean }) => (
+    <li className="flex items-baseline justify-between gap-2">
+      <span className={dim}>{k}</span>
+      <span className={`tabular text-right ${warn ? "text-vermillion" : ""}`}>{v}</span>
+    </li>
+  );
+  if (!house) return <p className={`text-[12.5px] ${dim}`}>Loading…</p>;
+  return (
+    <ul className="space-y-0.5 text-[12.5px] leading-snug">
+      <Line
+        k="Instrument"
+        v={house.instrument ? `${house.instrument.version} · ${house.instrument.items} items` : "not loaded"}
+        warn={!house.instrument}
+      />
+      <Line k="Gate · org / region" v={house.gate.toLocaleString()} />
+      <Line k="Gate · country" v={house.country_gate.toLocaleString()} />
+      <Line k="Global view" v={house.global_view_published ? "published" : "not published"} warn={house.global_view_published} />
+    </ul>
+  );
+}
+
+/** The band-sized version — the same four facts, with their status marks. */
+export function HouseRows({ house }: { house: HouseSettings | null }) {
+  return (
+    <Rows>
+      <Row
+        label="Instrument"
+        meta={house?.instrument ? `${house.instrument.version} · ${house.instrument.items} items · ${house.instrument.status}` : "not loaded"}
+        tone={house?.instrument ? "good" : "warn"}
+      />
+      <Row label="Critical-mass gate (org / region)" meta={`${(house?.gate ?? 400).toLocaleString()} completions`} />
+      <Row label="Critical-mass gate (country)" meta={`${(house?.country_gate ?? 2000).toLocaleString()} completions`} />
+      <Row
+        label="Global view published"
+        meta={house?.global_view_published ? "yes" : "no"}
+        tone={house?.global_view_published ? "warn" : "plain"}
+      />
+    </Rows>
+  );
+}
