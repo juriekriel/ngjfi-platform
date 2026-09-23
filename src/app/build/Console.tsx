@@ -4,7 +4,22 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { Masthead } from "@/components/site/Chrome";
-import { Action, Awaiting, Band, LinkRow, Row, Rows, Trouble, Worklist, type WorkItem } from "@/components/console/Bands";
+import {
+  Action,
+  Awaiting,
+  Band,
+  HouseFigures,
+  HouseRows,
+  LinkRow,
+  Row,
+  Rows,
+  Tile,
+  TileList,
+  Trouble,
+  Worklist,
+  type HouseSettings,
+  type WorkItem,
+} from "@/components/console/Bands";
 import SurveyWizard from "@/components/console/SurveyWizard";
 import ConsultingRepository from "@/components/console/ConsultingRepository";
 
@@ -356,6 +371,28 @@ function NetworkConsole({ short, name }: { short: string; name: string }) {
 
 /* ══ Collab ═══════════════════════════════════════════════════════════ */
 
+/** Mirrors collab_overview() (migration 0032). Counts and config only. */
+type CollabOverview = {
+  organisations: { short_name: string; name: string; country: string | null; status: string; fielding: boolean }[];
+  surveys: { started: number; completed: number; languages: { locale: string; started: number; completed: number }[] };
+  development: HouseSettings;
+};
+
+/** "es" → "Spanish". Falls back to the code if the browser can't name it. */
+function languageName(locale: string) {
+  try {
+    return new Intl.DisplayNames(["en"], { type: "language" }).of(locale) ?? locale.toUpperCase();
+  } catch {
+    return locale.toUpperCase();
+  }
+}
+
+function pct(done: number, of: number) {
+  return of ? `${Math.round((done / of) * 100)}%` : "—";
+}
+
+type CollabSection = "organisations" | "surveys" | "intelligence" | "development";
+
 function CollabConsole() {
   const sb = useMemo(() => getSupabaseBrowser(), []);
   const [wl, setWl] = useState<{
@@ -363,79 +400,243 @@ function CollabConsole() {
     waves: { short_name: string; name: string; item_set: string; adopted: number; opens_on: string | null }[];
     items: WorkItem[];
   } | null>(null);
+  const [ov, setOv] = useState<CollabOverview | null>(null);
   const [wizard, setWizard] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [section, setSection] = useState<CollabSection>("organisations");
 
   const load = useCallback(async () => {
     if (!sb) return;
-    const { data, error } = await sb.rpc("collab_worklist");
-    if (error) setErr(error.message);
-    else setWl(data as typeof wl);
+    const [{ data: w, error: e1 }, { data: o, error: e2 }] = await Promise.all([
+      sb.rpc("collab_worklist"),
+      sb.rpc("collab_overview"),
+    ]);
+    if (e1) setErr(e1.message);
+    else if (e2)
+      setErr(
+        /collab_overview/.test(e2.message)
+          ? "The Organisations, Surveys and Development tiles read collab_overview(), which isn't applied to this database yet (migration 0032)."
+          : e2.message,
+      );
+    if (w) setWl(w as typeof wl);
+    if (o) setOv(o as CollabOverview);
   }, [sb]);
 
   useEffect(() => {
     load();
   }, [load]);
 
+  const orgs = ov?.organisations ?? [];
+  const started = ov?.surveys.started ?? 0;
+  const completed = ov?.surveys.completed ?? 0;
+  const langs = ov?.surveys.languages ?? [];
+  const house = ov?.development ?? null;
+  const gate = wl?.gate ?? house?.gate ?? 400;
+
   return (
     <div className="space-y-10">
       {err && <Trouble message={err} />}
 
-      <Band letter="A" title="Waiting on you" gloss="The Collab's worklist is about coverage, not tickets. Every item is a country or a cohort that will or will not reach a benchmark this season." figure={`gate ${wl?.gate ?? 400}`}>
-        <Worklist items={wl?.items ?? []} empty="Nothing pending. No country is close enough to its benchmark to chase, and every organisation that joined has fielded." />
-      </Band>
+      {/* Same four-across tile row as the Administrator console. Each tile is
+          a preview of its band; clicking swaps which band renders below. */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Tile
+          letter="A"
+          figure={`${orgs.length} total`}
+          title="Organisations"
+          selected={section === "organisations"}
+          onClick={() => setSection("organisations")}
+        >
+          {orgs.length ? (
+            <TileList names={orgs.map((o) => o.name)} selected={section === "organisations"} />
+          ) : (
+            <p className={`text-[12.5px] ${section === "organisations" ? "text-paper/70" : "text-muted"}`}>
+              None in the live space yet.
+            </p>
+          )}
+        </Tile>
 
-      <Band letter="B" title="Surveys" gloss="Convening is the Collab's verb and the reason benchmarks exist. A wave fixes the version, item set, audiences and window — organisations adopt it in one click and are automatically comparable." figure={`${wl?.waves.length ?? 0} wave${wl?.waves.length === 1 ? "" : "s"}`}>
-        {wizard ? (
-          <SurveyWizard
-            onDone={() => {
-              setWizard(false);
-              load();
-            }}
-            onCancel={() => setWizard(false)}
-          />
-        ) : (
-          <>
-            <div className="flex flex-wrap gap-3">
+        <Tile
+          letter="B"
+          figure={`${langs.length} language${langs.length === 1 ? "" : "s"}`}
+          title="Surveys sent out"
+          selected={section === "surveys"}
+          onClick={() => setSection("surveys")}
+        >
+          <ul className="space-y-0.5 text-[12.5px] leading-snug">
+            <li className="flex justify-between gap-2">
+              <span className={section === "surveys" ? "text-paper/70" : "text-muted"}>Unique respondents</span>
+              <span className="tabular">{started.toLocaleString()}</span>
+            </li>
+            <li className="flex justify-between gap-2">
+              <span className={section === "surveys" ? "text-paper/70" : "text-muted"}>Completion</span>
+              <span className="tabular">{pct(completed, started)}</span>
+            </li>
+            {langs.slice(0, 3).map((l) => (
+              <li key={l.locale} className="flex justify-between gap-2">
+                <span className={section === "surveys" ? "text-paper/70" : "text-muted"}>{languageName(l.locale)}</span>
+                <span className="tabular">{l.started.toLocaleString()}</span>
+              </li>
+            ))}
+            {langs.length > 3 && (
+              <li className={section === "surveys" ? "text-paper/70" : "text-muted"}>+{langs.length - 3} more</li>
+            )}
+          </ul>
+        </Tile>
+
+        <Tile
+          letter="C"
+          figure="reading · roll"
+          title="Collab Intelligence"
+          gloss="The pooled picture, and the coverage arithmetic that decides which benchmarks unlock."
+          selected={section === "intelligence"}
+          onClick={() => setSection("intelligence")}
+        />
+
+        <Tile
+          letter="D"
+          figure="the house"
+          title="Development"
+          selected={section === "development"}
+          onClick={() => setSection("development")}
+        >
+          <HouseFigures house={house} selected={section === "development"} />
+        </Tile>
+      </div>
+
+      {section === "organisations" && (
+        <Band
+          letter="A"
+          title="Organisations"
+          gloss="Every organisation taking part in the live space. A roster, not a reading — no scores and no per-organisation figures here."
+          figure={`${orgs.length} total`}
+        >
+          {orgs.length ? (
+            <Rows>
+              {orgs.map((o) => (
+                <Row
+                  key={o.short_name}
+                  tone={o.fielding ? "good" : "plain"}
+                  label={o.name}
+                  meta={[o.country, o.fielding ? "fielding" : "not fielding", o.status !== "active" ? o.status : null]
+                    .filter(Boolean)
+                    .join(" · ")}
+                />
+              ))}
+            </Rows>
+          ) : (
+            <p className="text-[15px] leading-relaxed text-ink-2">
+              None yet. The live space stays empty on purpose until a real organisation arrives.
+            </p>
+          )}
+        </Band>
+      )}
+
+      {section === "surveys" && (
+        <Band
+          letter="B"
+          title="Surveys sent out"
+          gloss="Convening is the Collab's verb. A unique respondent is one anonymous pass through the survey — a session, never a person we could identify."
+          figure={`n ${started.toLocaleString()}`}
+        >
+          {started ? (
+            <table className="w-full rounded-xl border border-rule bg-plate text-left shadow-sm">
+              <thead>
+                <tr className="figcap">
+                  <th className="border-b border-rule px-4 pb-2 pt-4 font-normal">Language</th>
+                  <th className="border-b border-rule pb-2 pt-4 text-right font-normal">Started</th>
+                  <th className="border-b border-rule pb-2 pt-4 text-right font-normal">Completed</th>
+                  <th className="border-b border-rule px-4 pb-2 pt-4 text-right font-normal">Completion</th>
+                </tr>
+              </thead>
+              <tbody>
+                {langs.map((l) => (
+                  <tr key={l.locale} className="border-b border-rule">
+                    <th scope="row" className="px-4 py-2.5 text-left text-[15px] font-normal">
+                      {languageName(l.locale)}
+                      <span className="tabular ml-2 text-[12px] text-muted">{l.locale}</span>
+                    </th>
+                    <td className="tabular py-2.5 text-right text-[15px]">{l.started.toLocaleString()}</td>
+                    <td className="tabular py-2.5 text-right text-[15px]">{l.completed.toLocaleString()}</td>
+                    <td className="tabular px-4 py-2.5 text-right text-[15px]">{pct(l.completed, l.started)}</td>
+                  </tr>
+                ))}
+                <tr>
+                  <th scope="row" className="px-4 py-2.5 text-left text-[15px] font-semibold">All languages</th>
+                  <td className="tabular py-2.5 text-right text-[15px] font-semibold">{started.toLocaleString()}</td>
+                  <td className="tabular py-2.5 text-right text-[15px] font-semibold">{completed.toLocaleString()}</td>
+                  <td className="tabular px-4 py-2.5 text-right text-[15px] font-semibold">{pct(completed, started)}</td>
+                </tr>
+              </tbody>
+            </table>
+          ) : (
+            <Awaiting
+              what="No respondents yet"
+              why="Language totals and completion appear here as soon as the first respondent in the live space opens a survey."
+            />
+          )}
+
+          <div className="mt-6">
+            {wizard ? (
+              <SurveyWizard
+                onDone={() => {
+                  setWizard(false);
+                  load();
+                }}
+                onCancel={() => setWizard(false)}
+              />
+            ) : (
               <Action primary onClick={() => setWizard(true)}>
                 Field for an organisation →
               </Action>
-            </div>
-            {wl?.waves.length ? (
-              <Rows>
-                {wl.waves.map((w) => (
-                  <Row key={w.short_name} label={w.name} meta={`${w.item_set} · ${w.adopted} adopted`} />
-                ))}
-              </Rows>
-            ) : (
-              <div className="mt-5">
-                <Awaiting
-                  what="No wave convened yet"
-                  why="A wave collects nothing itself — it is a shape campaigns are cut to, which is what makes forty organisations comparable rather than merely simultaneous. The convening surface is the next build step; wave_upsert() is already applied."
-                />
-              </div>
             )}
-          </>
-        )}
-      </Band>
+          </div>
 
-      <Band letter="C" title="The reading" gloss="The pooled picture — live space only, never the sandbox. Every figure carries its sample size, and no geography is named until it passes the gate." figure="live space">
-        <Link
-          href="/intelligence"
-          className="inline-block rounded-lg bg-ink px-4 py-2.5 text-[14px] font-semibold text-paper no-underline hover:bg-ink/90"
-        >
-          Open Collab Intelligence →
-        </Link>
-        <ConsultingRepository />
-      </Band>
+          <p className="figcap mt-6">Waves</p>
+          {wl?.waves.length ? (
+            <Rows>
+              {wl.waves.map((w) => (
+                <Row key={w.short_name} label={w.name} meta={`${w.item_set} · ${w.adopted} adopted`} />
+              ))}
+            </Rows>
+          ) : (
+            <div className="mt-2">
+              <Awaiting
+                what="No wave convened yet"
+                why="A wave collects nothing itself — it is a shape campaigns are cut to, which is what makes forty organisations comparable rather than merely simultaneous."
+              />
+            </div>
+          )}
+        </Band>
+      )}
 
-      <Band letter="D" title="The roll" gloss="Cohorts, countries and the coverage arithmetic. Concentration beats count: sixty organisations across forty countries unlocks nothing; the same sixty across ten unlocks all ten." figure={`gate ${wl?.gate ?? 400}`}>
-        <Worklist items={wl?.items ?? []} empty="No completions yet, so no coverage to steer." />
-      </Band>
+      {section === "intelligence" && (
+        <div className="space-y-10">
+          <Band letter="C" title="The reading" gloss="The pooled picture — live space only, never the sandbox. Every figure carries its sample size, and no geography is named until it passes the gate." figure="live space">
+            <Link
+              href="/intelligence"
+              className="inline-block rounded-lg bg-ink px-4 py-2.5 text-[14px] font-semibold text-paper no-underline hover:bg-ink/90"
+            >
+              Open Collab Intelligence →
+            </Link>
+            <ConsultingRepository />
+          </Band>
 
-      <Band letter="E" title="The house" gloss="The instrument is researcher-owned. This tier reads every version and proposes changes; it cannot edit a published one, because responses are bound to the version they were captured under." figure="read + propose">
-        <Awaiting what="The instrument register" why="Reading, diffing and proposing arrive with the instrument admin surface." />
-      </Band>
+          <Band letter="C" title="The roll" gloss="Cohorts, countries and the coverage arithmetic. Concentration beats count: sixty organisations across forty countries unlocks nothing; the same sixty across ten unlocks all ten." figure={`gate ${gate.toLocaleString()}`}>
+            <Worklist items={wl?.items ?? []} empty="No completions yet, so no coverage to steer." />
+          </Band>
+        </div>
+      )}
+
+      {section === "development" && (
+        <Band letter="D" title="The house" gloss="The instrument is researcher-owned. This tier reads every version and proposes changes; it cannot edit a published one, because responses are bound to the version they were captured under." figure="read + propose">
+          <HouseRows house={house} />
+          <p className="margin-note mt-3 border-l-2 border-rule pl-3">
+            Read-only here. Changing a gate or the publish switch stays with the administrator;
+            changing the instrument stays with the researchers.
+          </p>
+        </Band>
+      )}
     </div>
   );
 }
@@ -509,7 +710,7 @@ function AdminConsole() {
   const [wizard, setWizard] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
-  const [section, setSection] = useState<"pending" | "surveys" | "intelligence" | "console">("pending");
+  const [section, setSection] = useState<"surveys" | "console">("surveys");
 
   const load = useCallback(async () => {
     if (!sb) return;
@@ -549,90 +750,97 @@ function AdminConsole() {
   ];
 
   const liveCount = (wl?.organisations ?? []).filter((o) => o.campaigns > 0).length;
-
-  const CARDS: { id: "pending" | "surveys" | "intelligence" | "console"; letter: string; title: string; gloss: string; figure: string }[] = [
-    { id: "pending", letter: "A", title: "Pending requests", gloss: "A worklist, not a dashboard. If nothing is here, nobody is blocked on you.", figure: `${pending.length} item${pending.length === 1 ? "" : "s"}` },
-    { id: "surveys", letter: "B", title: "Surveys out", gloss: "Every organisation with a live campaign right now, and how it's going.", figure: `${liveCount} live` },
-    { id: "intelligence", letter: "C", title: "Collab Intelligence", gloss: "The aggregate, coalition-wide picture — opens the public view.", figure: "public view" },
-    { id: "console", letter: "D", title: "Console", gloss: "Field a survey, the live/sandbox reading, the full roll, and platform settings.", figure: "everything else" },
-  ];
+  // Everything on the worklist that is not an access request — those carry
+  // their own Approve / Decline row above.
+  const otherPending = pending.filter((p) => !wl?.access_requests.some((a) => a.email === p.label));
+  const house: HouseSettings | null = wl
+    ? {
+        instrument: wl.instrument,
+        gate: wl.spaces.gate,
+        country_gate: wl.spaces.country_gate,
+        global_view_published: wl.spaces.global_view_published,
+      }
+    : null;
 
   return (
     <div className="space-y-10">
       {err && <Trouble message={err} />}
 
-      {/* Four cards, one entry point each. An admin navigates through these
-          rather than scrolling a page that shows every band at once — see
-          the "4 cards to navigate through" brief. Collab Intelligence is a
-          real link to the public page it already is; the other three swap
-          which band renders below. */}
+      {/* Four tiles, one entry point each. Tile A is the worklist itself —
+          "Waiting on you" merged into it, so the queue is visible without a
+          click — and it is a plain container rather than a switch, because
+          its Approve / Decline buttons cannot live inside a <button>. B and D
+          swap which band renders below; C links to the public view. */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {CARDS.map((c) =>
-          c.id === "intelligence" ? (
-            <Link
-              key={c.id}
-              href="/intelligence"
-              className="rounded-xl border border-rule-2 bg-plate p-4 no-underline shadow-sm hover:border-ink"
-            >
-              <p className="tabular text-[11px] text-muted">{c.letter} · {c.figure}</p>
-              <h3 className="mt-1 text-[16px] font-semibold text-ink">{c.title}</h3>
-              <p className="mt-1 text-[13px] leading-snug text-ink-2">{c.gloss}</p>
-            </Link>
-          ) : (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => setSection(c.id)}
-              className={`rounded-xl border p-4 text-left shadow-sm ${
-                section === c.id ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"
-              }`}
-            >
-              <p className={`tabular text-[11px] ${section === c.id ? "text-paper/70" : "text-muted"}`}>
-                {c.letter} · {c.figure}
-              </p>
-              <h3 className="mt-1 text-[16px] font-semibold">{c.title}</h3>
-              <p className={`mt-1 text-[13px] leading-snug ${section === c.id ? "text-paper/80" : "text-ink-2"}`}>
-                {c.gloss}
-              </p>
-            </button>
-          ),
-        )}
-      </div>
-
-      {section === "pending" && (
-      <Band letter="A" title="Waiting on you" gloss="A worklist, not a dashboard. If nothing is on it, nobody is blocked on you." figure={`${pending.length} item${pending.length === 1 ? "" : "s"}`}>
-        {wl?.access_requests.length ? (
-          <ul className="divide-y divide-rule rounded-xl border border-rule bg-plate px-4 shadow-sm sm:px-5">
-            {wl.access_requests.map((a) => (
-              <li key={a.id} className="flex flex-wrap items-baseline justify-between gap-3 py-3.5">
-                <div className="min-w-0">
-                  <p className="text-[15.5px]">
-                    <span className="mr-2 text-vermillion">▲</span>
+        <Tile
+          letter="A"
+          figure={`${pending.length} item${pending.length === 1 ? "" : "s"}`}
+          title="Pending requests"
+          gloss={pending.length ? undefined : "Nothing pending. Nobody is blocked on you."}
+        >
+          {pending.length > 0 && (
+            <ul className="-mr-1 max-h-64 space-y-2.5 overflow-y-auto pr-1 text-[12.5px] leading-snug">
+              {(wl?.access_requests ?? []).map((a) => (
+                <li key={a.id}>
+                  <p className="break-all">
+                    <span className="mr-1.5 text-vermillion">▲</span>
                     {a.email}
                   </p>
-                  {a.reason && <p className="margin-note mt-0.5">{a.reason}</p>}
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => decide(a.id, "approved")} className="rounded-lg bg-emerald px-3.5 py-1.5 text-[13px] font-semibold text-plate hover:bg-emerald-deep">
-                    Approve
-                  </button>
-                  <button onClick={() => decide(a.id, "declined")} className="rounded-lg border border-rule-2 px-3.5 py-1.5 text-[13px] font-semibold text-ink-2 hover:border-ink hover:text-ink">
-                    Decline
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        <div className={wl?.access_requests.length ? "mt-4" : ""}>
-          <Worklist items={pending.filter((p) => !wl?.access_requests.some((a) => a.email === p.label))} empty="Nothing pending. Nobody is blocked on you." />
-        </div>
-        <p className="margin-note mt-3 border-l-2 border-rule pl-3">
-          Approving records the decision. It does not grant a tier — that stays a separate,
-          deliberate act, so nobody becomes an administrator as a side effect of clearing a queue.
-        </p>
-      </Band>
-      )}
+                  {a.reason && <p className="mt-0.5 text-muted">{a.reason}</p>}
+                  <div className="mt-1.5 flex gap-1.5">
+                    <button onClick={() => decide(a.id, "approved")} className="rounded-md bg-emerald px-2.5 py-1 text-[12px] font-semibold text-plate hover:bg-emerald-deep">
+                      Approve
+                    </button>
+                    <button onClick={() => decide(a.id, "declined")} className="rounded-md border border-rule-2 px-2.5 py-1 text-[12px] font-semibold text-ink-2 hover:border-ink hover:text-ink">
+                      Decline
+                    </button>
+                  </div>
+                </li>
+              ))}
+              {otherPending.map((p, i) => (
+                <li key={`${p.label}-${i}`}>
+                  {p.urgency === "high" && <span className="mr-1.5 text-vermillion">▲</span>}
+                  {p.label}
+                  {p.meta && <span className="tabular ml-1.5 text-[11px] text-muted">{p.meta}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+          {(wl?.access_requests.length ?? 0) > 0 && (
+            <p className="mt-3 border-t border-rule pt-2 text-[11.5px] leading-snug text-muted">
+              Approving records the decision. It does not grant a tier — that stays a separate,
+              deliberate act.
+            </p>
+          )}
+        </Tile>
+
+        <Tile
+          letter="B"
+          figure={`${liveCount} live`}
+          title="Surveys out"
+          gloss="Every organisation with a live campaign right now, and how it's going."
+          selected={section === "surveys"}
+          onClick={() => setSection("surveys")}
+        />
+
+        <Tile
+          letter="C"
+          figure="public view"
+          title="Collab Intelligence"
+          gloss="The aggregate, coalition-wide picture — opens the public view."
+          href="/intelligence"
+        />
+
+        <Tile
+          letter="D"
+          figure="everything else"
+          title="Console"
+          selected={section === "console"}
+          onClick={() => setSection("console")}
+        >
+          <HouseFigures house={house} selected={section === "console"} />
+        </Tile>
+      </div>
 
       {section === "surveys" && (
       <Band
@@ -788,20 +996,7 @@ function AdminConsole() {
       </Band>
 
       <Band letter="E" title="The house" gloss="The instrument register, the reserved names, the settings. Rarely touched — everything here changes the meaning of every number already collected." figure={wl?.instrument?.version ?? "not loaded"}>
-        <Rows>
-          <Row
-            label="Instrument"
-            meta={wl?.instrument ? `${wl.instrument.version} · ${wl.instrument.items} items · ${wl.instrument.status}` : "not loaded"}
-            tone={wl?.instrument ? "good" : "warn"}
-          />
-          <Row label="Critical-mass gate (org / region)" meta={`${wl?.spaces.gate ?? 400} completions`} />
-          <Row label="Critical-mass gate (country)" meta={`${wl?.spaces.country_gate ?? 2000} completions`} />
-          <Row
-            label="Global view published"
-            meta={wl?.spaces.global_view_published ? "yes" : "no"}
-            tone={wl?.spaces.global_view_published ? "warn" : "plain"}
-          />
-        </Rows>
+        <HouseRows house={house} />
         <p className="margin-note mt-3 border-l-2 border-vermillion pl-3">
           The publish switch is the single control on the whole platform that can overclaim. It
           lives here, alone, with the sample size next to it — never on a settings page with
