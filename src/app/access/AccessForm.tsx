@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { sendError } from "@/lib/authLinks";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 
@@ -59,7 +60,7 @@ export default function AccessForm() {
       }
     }
 
-    let otpError: { message: string } | null = null;
+    let otpError: { message: string; code?: string; status?: number } | null = null;
     try {
       const { error } = await sb.auth.signInWithOtp({
         email: email.trim(),
@@ -68,13 +69,20 @@ export default function AccessForm() {
             typeof window !== "undefined" ? `${window.location.origin}/build` : undefined,
         },
       });
-      otpError = error;
+      otpError = error ? { message: error.message, code: (error as { code?: string }).code, status: error.status } : null;
     } catch (e) {
       otpError = { message: e instanceof Error ? e.message : "unknown error" };
     }
 
     setBusy(false);
     if (otpError) {
+      // Say what actually happened when we know (the email rate limit is the
+      // usual one); the generic wording is only for the unknown.
+      const specific = sendError(otpError);
+      if (specific && !(mode === "request" && requestRecorded)) {
+        setError(specific);
+        return;
+      }
       setError(
         mode === "request"
           ? requestRecorded
