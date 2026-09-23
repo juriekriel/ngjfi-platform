@@ -22,6 +22,7 @@ import {
 } from "@/components/console/Bands";
 import SurveyWizard from "@/components/console/SurveyWizard";
 import { ConsultingRequestsBand, useConsultingRequests } from "@/components/console/ConsultingRequests";
+import { ApplicationsBand, NoHouse, OrgManagePanel, useApplications } from "@/components/console/Onboarding";
 
 /**
  * The Index — the authenticated engine, at every tier.
@@ -71,6 +72,11 @@ export default function Console() {
       setReady(true);
       return;
     }
+    // Turn any invitation for this (verified) email into a membership first,
+    // so someone invited before they ever signed in lands in their
+    // organisation on their very first visit (migration 0034). Harmless
+    // before 0034 is applied: the error is ignored and nothing changes.
+    await sb.rpc("claim_my_invites").then(() => undefined, () => undefined);
     const { data, error } = await sb.rpc("my_context");
     if (error) setErr(error.message);
     const c = (data as Ctx) ?? { signed_in: false };
@@ -131,23 +137,7 @@ export default function Console() {
     <Shell tier={tier} scope={scope} ctx={ctx} onScope={setScope}>
       {err && <Trouble message={err} />}
 
-      {!scope && (
-        <Band
-          letter="—"
-          title="No house yet"
-          gloss="You are signed in, but you are not yet attached to an organisation or a network, and you do not hold a Collab or administrator tier."
-        >
-          <p className="max-w-measure text-[15.5px] leading-relaxed text-ink-2">
-            Access is granted deliberately rather than automatically. Ask Jurie or Ulrich to
-            attach you, then reload this page.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Link href="/build/wireframes" className="rounded-lg border border-rule-2 px-4 py-2.5 text-[14px] font-semibold text-ink no-underline hover:border-ink">
-              What the console will do →
-            </Link>
-          </div>
-        </Band>
-      )}
+      {!scope && <NoHouse />}
 
       {scope?.kind === "admin" && <AdminConsole />}
       {scope?.kind === "collab" && <CollabConsole />}
@@ -193,6 +183,9 @@ function OrgConsole({ short, name }: { short: string; name: string }) {
       </Band>
 
       <Band letter="B" title="Surveys" gloss="Your survey, your brand, your links. About seven minutes on a phone." figure={short}>
+        <Link href="/build/instrument" className="mb-4 inline-block rounded-lg border border-rule-2 px-4 py-2.5 text-[14px] font-semibold text-ink no-underline hover:border-ink">
+            The instrument — items, checks, proposals →
+          </Link>
         {wizard ? (
           <SurveyWizard
             fixedOrg={short}
@@ -402,7 +395,7 @@ function pct(done: number, of: number) {
   return of ? `${Math.round((done / of) * 100)}%` : "—";
 }
 
-type CollabSection = "organisations" | "surveys" | "intelligence" | "development";
+type CollabSection = "organisations" | "surveys" | "intelligence" | "development" | "consulting";
 
 function CollabConsole() {
   const sb = useMemo(() => getSupabaseBrowser(), []);
@@ -415,6 +408,7 @@ function CollabConsole() {
   const [wizard, setWizard] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [section, setSection] = useState<CollabSection>("organisations");
+  const consulting = useConsultingRequests();
 
   const load = useCallback(async () => {
     if (!sb) return;
@@ -450,7 +444,7 @@ function CollabConsole() {
 
       {/* Same four-across tile row as the Administrator console. Each tile is
           a preview of its band; clicking swaps which band renders below. */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Tile
           letter="A"
           figure={`${orgs.length} total`}
@@ -512,6 +506,29 @@ function CollabConsole() {
           onClick={() => setSection("development")}
         >
           <HouseFigures house={house} selected={section === "development"} />
+        </Tile>
+
+        <Tile
+          letter="E"
+          figure={consulting.items ? `${consulting.counts.new} new` : "…"}
+          title="Consulting Requests"
+          selected={section === "consulting"}
+          onClick={() => setSection("consulting")}
+        >
+          <ul className="space-y-0.5 text-[12.5px] leading-snug">
+            {(
+              [
+                ["New", consulting.counts.new],
+                ["With a facilitator", consulting.counts.assigned],
+                ["Answered", consulting.counts.answered],
+              ] as const
+            ).map(([k, v]) => (
+              <li key={k} className="flex justify-between gap-2">
+                <span className={section === "consulting" ? "text-paper/70" : "text-muted"}>{k}</span>
+                <span className="tabular">{consulting.items ? v : "—"}</span>
+              </li>
+            ))}
+          </ul>
         </Tile>
       </div>
 
@@ -630,7 +647,6 @@ function CollabConsole() {
             >
               Open Collab Intelligence →
             </Link>
-            <ConsultingRepository />
           </Band>
 
           <Band letter="C" title="The roll" gloss="Cohorts, countries and the coverage arithmetic. Concentration beats count: sixty organisations across forty countries unlocks nothing; the same sixty across ten unlocks all ten." figure={`gate ${gate.toLocaleString()}`}>
@@ -639,8 +655,22 @@ function CollabConsole() {
         </div>
       )}
 
+      {section === "consulting" && (
+        <Band
+          letter="E"
+          title="Consulting Requests"
+          gloss="Every “What does this mean?” from an organisation’s dashboard. Each carries the question and the aggregate view the organisation was looking at — never a respondent’s answers."
+          figure="from either dashboard tab"
+        >
+          <ConsultingRequestsBand {...consulting} />
+        </Band>
+      )}
+
       {section === "development" && (
         <Band letter="D" title="The house" gloss="The instrument is researcher-owned. This tier reads every version and proposes changes; it cannot edit a published one, because responses are bound to the version they were captured under." figure="read + propose">
+          <Link href="/build/instrument" className="mb-4 inline-block rounded-lg border border-rule-2 px-4 py-2.5 text-[14px] font-semibold text-ink no-underline hover:border-ink">
+            The instrument — items, checks, proposals →
+          </Link>
           <HouseRows house={house} />
           <p className="margin-note mt-3 border-l-2 border-rule pl-3">
             Read-only here. Changing a gate or the publish switch stays with the administrator;
@@ -660,7 +690,7 @@ type Worklist = {
   organisations: {
     short_name: string; name: string; country: string | null;
     verified: boolean; has_brand: boolean; campaigns: number; responses: number;
-    status: "active" | "paused" | "closed";
+    status: "pending" | "active" | "paused" | "closed";
   }[];
   clusters: { country: string; completions: number; orgs: number }[];
   instrument: { version: string; status: string; items: number } | null;
@@ -684,7 +714,7 @@ function StatusToggle({
   current,
   onChange,
 }: {
-  current: "active" | "paused" | "closed";
+  current: "pending" | "active" | "paused" | "closed";
   onChange: (status: "active" | "paused" | "closed") => void;
 }) {
   const OPTIONS: { value: "active" | "paused" | "closed"; label: string }[] = [
@@ -721,7 +751,8 @@ function AdminConsole() {
   const [wizard, setWizard] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
-  const [section, setSection] = useState<"surveys" | "console">("surveys");
+  const [section, setSection] = useState<"applications" | "surveys" | "console">("surveys");
+  const applications = useApplications();
 
   const load = useCallback(async () => {
     if (!sb) return;
@@ -736,11 +767,6 @@ function AdminConsole() {
     load();
   }, [load]);
 
-  async function decide(id: string, decision: "approved" | "declined") {
-    if (!sb) return;
-    await sb.rpc("decide_access_request", { p_id: id, p_decision: decision });
-    load();
-  }
 
   async function setStatus(short_name: string, status: "active" | "paused" | "closed") {
     if (!sb) return;
@@ -785,44 +811,23 @@ function AdminConsole() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Tile
           letter="A"
-          figure={`${pending.length} item${pending.length === 1 ? "" : "s"}`}
-          title="Pending requests"
-          gloss={pending.length ? undefined : "Nothing pending. Nobody is blocked on you."}
+          figure={applications.count == null ? "…" : `${applications.count} waiting`}
+          title="Applications & requests"
+          gloss={applications.count === 0 && otherPending.length === 0 ? "Nothing pending. Nobody is blocked on you." : undefined}
+          selected={section === "applications"}
+          onClick={() => setSection("applications")}
         >
-          {pending.length > 0 && (
-            <ul className="-mr-1 max-h-64 space-y-2.5 overflow-y-auto pr-1 text-[12.5px] leading-snug">
-              {(wl?.access_requests ?? []).map((a) => (
-                <li key={a.id}>
-                  <p className="break-all">
-                    <span className="mr-1.5 text-vermillion">▲</span>
-                    {a.email}
-                  </p>
-                  {a.reason && <p className="mt-0.5 text-muted">{a.reason}</p>}
-                  <div className="mt-1.5 flex gap-1.5">
-                    <button onClick={() => decide(a.id, "approved")} className="rounded-md bg-emerald px-2.5 py-1 text-[12px] font-semibold text-plate hover:bg-emerald-deep">
-                      Approve
-                    </button>
-                    <button onClick={() => decide(a.id, "declined")} className="rounded-md border border-rule-2 px-2.5 py-1 text-[12px] font-semibold text-ink-2 hover:border-ink hover:text-ink">
-                      Decline
-                    </button>
-                  </div>
-                </li>
-              ))}
-              {otherPending.map((p, i) => (
-                <li key={`${p.label}-${i}`}>
-                  {p.urgency === "high" && <span className="mr-1.5 text-vermillion">▲</span>}
-                  {p.label}
-                  {p.meta && <span className="tabular ml-1.5 text-[11px] text-muted">{p.meta}</span>}
-                </li>
-              ))}
-            </ul>
-          )}
-          {(wl?.access_requests.length ?? 0) > 0 && (
-            <p className="mt-3 border-t border-rule pt-2 text-[11.5px] leading-snug text-muted">
-              Approving records the decision. It does not grant a tier — that stays a separate,
-              deliberate act.
-            </p>
-          )}
+          <ul className="space-y-1 text-[12.5px] leading-snug">
+            <li className="flex justify-between gap-2"><span className={section === "applications" ? "text-paper/70" : "text-muted"}>Join applications</span><span className="tabular">{applications.apps?.join.length ?? "—"}</span></li>
+            <li className="flex justify-between gap-2"><span className={section === "applications" ? "text-paper/70" : "text-muted"}>Access requests</span><span className="tabular">{applications.apps?.access.length ?? "—"}</span></li>
+            <li className="flex justify-between gap-2"><span className={section === "applications" ? "text-paper/70" : "text-muted"}>Awaiting activation</span><span className="tabular">{applications.apps?.pending_orgs.length ?? "—"}</span></li>
+            {otherPending.slice(0, 2).map((p, i) => (
+              <li key={`${p.label}-${i}`} className={section === "applications" ? "text-paper/80" : "text-ink-2"}>
+                {p.urgency === "high" && <span className="mr-1 text-vermillion">▲</span>}
+                {p.label}
+              </li>
+            ))}
+          </ul>
         </Tile>
 
         <Tile
@@ -852,6 +857,8 @@ function AdminConsole() {
           <HouseFigures house={house} selected={section === "console"} />
         </Tile>
       </div>
+
+      {section === "applications" && <ApplicationsBand {...applications} onChanged={load} />}
 
       {section === "surveys" && (
       <Band
@@ -962,7 +969,7 @@ function AdminConsole() {
                             : "border-rule-2 text-ink-2 hover:border-ink hover:text-ink"
                         }`}
                       >
-                        Links &amp; access
+                        Manage
                       </button>
                       <Link href={`/${o.short_name}/dashboard`} className="rounded-md border border-rule-2 px-2.5 py-1 text-[12.5px] font-semibold text-ink-2 no-underline hover:border-ink hover:text-ink">
                         Open
@@ -990,7 +997,12 @@ function AdminConsole() {
             )}
           </div>
         </div>
-        {selectedOrg && <OrgDetailPanel shortName={selectedOrg} />}
+        {selectedOrg && (
+          <>
+            <OrgDetailPanel shortName={selectedOrg} />
+            <OrgManagePanel shortName={selectedOrg} onChanged={load} />
+          </>
+        )}
         <div className="mt-5">
           <p className="figcap">People</p>
           <Rows>

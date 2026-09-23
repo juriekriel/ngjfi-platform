@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { LinkForm, type DistributionLink } from "@/components/index/LinksPanel";
+import QrCode from "@/components/index/QrCode";
 
 export type RoomSelection = { kind: "house" } | { kind: "room"; link: DistributionLink };
 
@@ -50,7 +51,7 @@ export default function RoomCards({
   const [links, setLinks] = useState<DistributionLink[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [editing, setEditing] = useState<DistributionLink | "new" | null>(null);
-  const [qr, setQr] = useState<{ name: string; url: string } | null>(null);
+  const [qr, setQr] = useState<{ name: string; url: string; cards: string } | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [origin, setOrigin] = useState("https://jfindx.org");
 
@@ -133,7 +134,7 @@ export default function RoomCards({
             <span className="whitespace-nowrap text-[13px] font-semibold">n {houseN == null ? "—" : houseN.toLocaleString()}</span>
             <span className="flex gap-1.5">
               <Mini on={houseOn} onClick={() => copy(houseUrl, "house")}>{copied === "house" ? "Copied" : "Copy"}</Mini>
-              <Mini on={houseOn} onClick={() => setQr({ name: "Your survey", url: houseUrl })}>QR</Mini>
+              <Mini on={houseOn} onClick={() => setQr({ name: "Your survey", url: houseUrl, cards: `/${orgSlug}/dashboard/cards` })}>QR</Mini>
             </span>
           </div>
         </Card>
@@ -175,7 +176,7 @@ export default function RoomCards({
                 <span className="whitespace-nowrap text-[13px] font-semibold">n {l.n.toLocaleString()}</span>
                 <span className="flex gap-1.5">
                   <Mini on={on} onClick={() => copy(url, l.id)}>{copied === l.id ? "Copied" : "Copy"}</Mini>
-                  <Mini on={on} onClick={() => setQr({ name: l.name, url })}>QR</Mini>
+                  <Mini on={on} onClick={() => setQr({ name: l.name, url, cards: `/${orgSlug}/dashboard/cards?link=${encodeURIComponent(l.slug)}` })}>QR</Mini>
                   <Mini on={on} onClick={() => setEditing(l)}>Dates</Mini>
                 </span>
               </div>
@@ -203,16 +204,11 @@ export default function RoomCards({
         <Modal label={`QR code for ${qr.name}`} onClose={() => setQr(null)}>
           <div className="flex flex-col items-center gap-3 p-2 text-center">
             <p className="text-[16px] font-semibold">{qr.name}</p>
-            {/* Same QR service the guided tour uses. It receives only the link URL — never respondent data. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(qr.url)}`}
-              alt={`QR code linking to ${qr.url}`}
-              width={240}
-              height={240}
-              className="rounded-lg border border-rule"
-            />
+            <QrCode value={qr.url} size={240} label={`QR code linking to ${qr.url}`} />
             <p className="font-mono text-[12px] text-ink-2">{qr.url.replace(/^https?:\/\//, "")}</p>
+            <a href={qr.cards} className="rounded-lg bg-ink px-4 py-2.5 text-[14px] font-semibold text-paper no-underline">
+              Print cards →
+            </a>
           </div>
         </Modal>
       )}

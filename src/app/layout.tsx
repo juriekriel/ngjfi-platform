@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Newsreader, Inter_Tight } from "next/font/google";
 import "./globals.css";
+import OfflineShell from "@/components/pwa/OfflineShell";
 
 /**
  * Two voices, bound once. Self-hosted by next/font — no webfont CDN round
@@ -40,7 +41,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${serif.variable} ${ui.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <OfflineShell />
+      </body>
     </html>
   );
 }

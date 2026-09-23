@@ -1,3 +1,4 @@
+import { surveyMetadata } from "@/lib/surveyMetadata";
 import Survey from "@/components/survey/Survey";
 
 /**
@@ -7,6 +8,10 @@ import Survey from "@/components/survey/Survey";
  * now shows it with a Copy button next to it — but the route did not exist, so
  * every public link 404'd. Same component, same instrument, different campaign.
  */
+export function generateMetadata({ params }: { params: { org: string } }) {
+  return surveyMetadata(params.org);
+}
+
 export default function OpenSurveyPage({ params }: { params: { org: string } }) {
   return <Survey slug={params.org} audience="public" />;
 }
