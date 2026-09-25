@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import Survey from "@/components/survey/Survey";
+import { usePhoneLang } from "@/lib/i18n";
 
 type Resolved = {
   name: string;
@@ -23,6 +24,7 @@ type Resolved = {
 export default function DistributionLinkPage({ params }: { params: { org: string; link: string } }) {
   const sb = useMemo(() => getSupabaseBrowser(), []);
   const [resolved, setResolved] = useState<Resolved | null | "not_found">(null);
+  const lang = usePhoneLang();
 
   useEffect(() => {
     if (!sb) return;
@@ -35,10 +37,10 @@ export default function DistributionLinkPage({ params }: { params: { org: string
     return <Centered>Supabase isn&apos;t configured yet.</Centered>;
 
   if (resolved === null)
-    return <Centered>Loading…</Centered>;
+    return <Centered>{lang.ui("loading")}</Centered>;
 
   if (resolved === "not_found")
-    return <Centered>This link doesn&apos;t exist, or has been removed.</Centered>;
+    return <Centered>{lang.ui("link_missing")}</Centered>;
 
   if (!resolved.is_open)
     return (
@@ -46,8 +48,8 @@ export default function DistributionLinkPage({ params }: { params: { org: string
         <p className="text-lg font-semibold text-ink">{resolved.name}</p>
         <p className="mt-2 text-sm text-slate">
           {resolved.active_from && new Date(resolved.active_from) > new Date()
-            ? "This link isn't open yet."
-            : "This link has closed."}
+            ? lang.ui("link_not_open")
+            : lang.ui("link_closed")}
         </p>
       </Centered>
     );

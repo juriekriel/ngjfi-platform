@@ -1,5 +1,6 @@
 "use client";
 
+import { ENGLISH } from "@/lib/i18n";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Question } from "@/components/survey/QuestionCard";
@@ -368,7 +369,7 @@ function SurveyDemo() {
           {i >= 0 && i < steps && (
             <Question
               item={items[i]}
-              locale="en"
+              lang={ENGLISH}
               brand={SAMPLE_ORG.brand}
               busy={false}
               selected={answers[items[i].key]}

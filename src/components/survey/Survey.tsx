@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import {
   instrument,
@@ -16,6 +16,8 @@ import {
 } from "@/lib/instrument";
 import { Question } from "@/components/survey/QuestionCard";
 import InstallHint from "@/components/survey/InstallHint";
+import { ENGLISH, REGISTRY, highlightParts, loadLang, localeInfo, type Lang } from "@/lib/i18n";
+import { bestMatch, offered } from "@/lib/i18nCore";
 import { cacheGet, cacheSet, enqueue, newLocalSession, onPending, startDraining } from "@/lib/outbox";
 
 type Org = {
@@ -63,7 +65,28 @@ export default function Survey({
    */
   distributionLinkSlug?: string;
 }) {
-  const locale: Locale = "en";
+  // Language (docs/TRANSLATION.md). Respondents are offered only LIVE
+  // languages. Reviewers add ?preview=1 to try draft translations — and a
+  // preview in a language that isn't live never records a single answer.
+  const [lang, setLang] = useState<Lang>(ENGLISH);
+  const [preview, setPreview] = useState(false);
+  const choices = useMemo(() => offered(REGISTRY, preview), [preview]);
+  const recording = lang.code === "en" || localeInfo(lang.code)?.status === "live";
+  const pickLang = useCallback(async (code: string) => {
+    const l = await loadLang(code);
+    setLang(l);
+    try { localStorage.setItem("jfindx-lang", code); } catch { /* private mode */ }
+  }, []);
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const isPreview = q.get("preview") === "1";
+    setPreview(isPreview);
+    const avail = offered(REGISTRY, isPreview).map((l) => l.code);
+    let saved: string | null = null;
+    try { saved = localStorage.getItem("jfindx-lang"); } catch { /* ignore */ }
+    const wanted = q.get("lang") ?? (saved && avail.includes(saved) ? saved : bestMatch(navigator.languages ?? [navigator.language], avail));
+    if (avail.includes(wanted) && wanted !== "en") void pickLang(wanted);
+  }, [pickLang]);
   const [itemSet, setItemSet] = useState<"full" | "core">("full");
   // A campaign can field the NGC12 core on its own — same instrument, shorter set.
   const items = useMemo(
@@ -182,14 +205,14 @@ export default function Survey({
 
   function begin() {
     setError(null);
-    if (sb && campaignId) {
+    if (sb && campaignId && recording) {
       // A local key now; the server's session id arrives whenever the outbox
       // can reach it. Everything below writes against the local key.
       const local = newLocalSession();
       setSessionId(local);
       void enqueue(local, "start", {
         p_campaign_id: campaignId,
-        p_locale: locale,
+        p_locale: lang.code,
         p_distribution_link_slug: distributionLinkSlug ?? null,
       });
     }
@@ -201,7 +224,7 @@ export default function Survey({
     const nextAnswers = { ...answers, [item.key]: value };
     setAnswers(nextAnswers);
 
-    if (sb && sessionId) {
+    if (sb && sessionId && recording) {
       void enqueue(sessionId, "save", { p_session_id: sessionId, p_item_key: item.key, p_raw: value });
 
       // Demographic items live on the session row, not only as a response —
@@ -232,7 +255,7 @@ export default function Survey({
 
     const next = nextVisibleIndex(i, nextAnswers, fielded);
     if (next === -1) {
-      if (sb && sessionId) void enqueue(sessionId, "finish", { p_session_id: sessionId });
+      if (sb && sessionId && recording) void enqueue(sessionId, "finish", { p_session_id: sessionId });
       setI(steps);
       return;
     }
@@ -263,7 +286,7 @@ export default function Survey({
   const hasEarlier = i > 0 && prevVisibleIndex(i, answers, fielded) !== -1;
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col px-4 py-6">
+    <main dir={lang.dir} lang={lang.code} className="mx-auto flex min-h-screen max-w-xl flex-col px-4 py-6">
       {/* brand header */}
       <div className="rounded-t-2xl px-6 py-5 text-white" style={{ background: brand }}>
         <div className="flex items-center gap-3">
@@ -287,7 +310,7 @@ export default function Survey({
           )}
           <div>
             <div className="font-semibold leading-tight">{orgName}</div>
-            <div className="text-xs opacity-90">{org?.country || "Powered by the Index"}</div>
+            <div className="text-xs opacity-90">{org?.country || lang.ui("powered")}</div>
           </div>
         </div>
         <div className="mt-4 h-1.5 overflow-hidden rounded bg-white/30">
@@ -302,32 +325,30 @@ export default function Survey({
           </p>
         )}
         {error && <p className="mb-4 text-sm text-accent">{error}</p>}
+        {!recording && (
+          <p role="status" className="mb-4 rounded-lg bg-amber-100 px-3 py-2 text-[13px] font-semibold leading-snug text-ink">
+            {lang.ui("preview_banner")}
+          </p>
+        )}
         {!online && status === "ready" && (
           <p role="status" className="mb-4 rounded-lg bg-paper-deep px-3 py-2 text-[13px] leading-snug text-ink-2">
-            <b className="text-ink">No signal — that&apos;s fine.</b> Your answers are kept on this phone and send
-            automatically when it&apos;s back online.
+            <b className="text-ink">{lang.ui("offline_banner_title")}</b> {lang.ui("offline_banner_body")}
           </p>
         )}
 
-        {status === "loading" && <p className="py-8 text-center text-sm text-muted">Loading…</p>}
+        {status === "loading" && <p className="py-8 text-center text-sm text-muted">{lang.ui("loading")}</p>}
 
         {status === "offline_first_visit" && (
           <div className="py-6">
-            <h1 className="text-xl font-bold leading-tight">You&apos;re offline.</h1>
-            <p className="mt-3 text-sm leading-relaxed text-slate">
-              This survey needs a signal the very first time it opens on a phone. Once it has opened
-              once, it works with no signal at all. Try again when you&apos;re connected.
-            </p>
+            <h1 className="text-xl font-bold leading-tight">{lang.ui("offline_first_title")}</h1>
+            <p className="mt-3 text-sm leading-relaxed text-slate">{lang.ui("offline_first_body")}</p>
           </div>
         )}
 
         {status === "no_org" && (
           <div className="py-6">
-            <h1 className="text-xl font-bold leading-tight">This link doesn&apos;t go anywhere.</h1>
-            <p className="mt-3 text-sm leading-relaxed text-slate">
-              There is no organisation at this address. Check the link you were given — it may have
-              a typo, or it may have been taken down.
-            </p>
+            <h1 className="text-xl font-bold leading-tight">{lang.ui("no_org_title")}</h1>
+            <p className="mt-3 text-sm leading-relaxed text-slate">{lang.ui("no_org_body")}</p>
           </div>
         )}
 
@@ -337,49 +358,78 @@ export default function Survey({
         {status === "not_fielding" && (
           <div className="py-6">
             <h1 className="text-xl font-bold leading-tight">
-              {orgName} isn&apos;t collecting answers yet.
+              {lang.ui("not_fielding_title", { org: orgName })}
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-slate">
-              {audience === "public"
-                ? `${orgName} has not opened its public survey. If someone shared this with you, let them know the link isn't live yet.`
-                : `${orgName} hasn't opened this survey yet. If someone shared it with you, let them know the link isn't live yet.`}
+              {lang.ui(audience === "public" ? "not_fielding_public" : "not_fielding_community", { org: orgName })}
             </p>
             <p className="mt-4 text-xs leading-relaxed text-muted">
-              Nothing you do here is recorded, because there is nothing to record it against.
+              {lang.ui("not_fielding_note")}
             </p>
           </div>
         )}
 
         {status === "ready" && i < 0 && (
           <div>
+            {choices.length > 1 && (
+              <label className="mb-4 flex items-center gap-2 text-[13px] text-slate">
+                <span aria-hidden>🌐</span>
+                <span className="sr-only">{lang.ui("language")}</span>
+                <select
+                  value={lang.code}
+                  onChange={(e) => void pickLang(e.target.value)}
+                  aria-label={lang.ui("language")}
+                  className="min-h-[40px] rounded-lg border border-rule bg-plate px-2.5 py-1.5 text-[14px] text-ink"
+                >
+                  {choices.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.native}
+                      {c.status !== "live" ? ` · ${c.status}` : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <h1 className="text-2xl font-bold leading-tight">
-              You&apos;re invited to share <span style={{ color: brand }}>where you&apos;re at</span>.
+              {(() => {
+                const [a, b, c] = highlightParts(lang.ui("welcome_title"));
+                return (
+                  <>
+                    {a}
+                    <span style={{ color: brand }}>{b}</span>
+                    {c}
+                  </>
+                );
+              })()}
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-slate">
-              {org?.welcome_message ??
-                `${orgName} is learning how to walk with young people as they follow Jesus. Your honest answers help. It takes about 7 minutes and is completely anonymous.`}
+              {/* The organisation's own welcome is one language (written in its
+                  settings); other languages get the translated standard welcome.
+                  The length follows the survey's actual item set. */}
+              {(lang.code === "en" && org?.welcome_message) ||
+                lang.ui("welcome_body", { org: orgName, minutes: itemSet === "core" ? 3 : 7 })}
             </p>
             <button
               onClick={begin}
               className="mt-6 rounded-lg px-6 py-3 font-semibold text-white"
               style={{ background: brand }}
             >
-              Begin →
+              {lang.ui("begin")}
             </button>
-            <InstallHint orgName={orgName} />
+            <InstallHint orgName={orgName} lang={lang} />
           </div>
         )}
 
         {i >= 0 && i < steps && (
           <Question
             item={items[i]}
-            locale={locale}
+            lang={lang}
             brand={brand}
             busy={busy}
             selected={answers[items[i].key]}
             onChoose={choose}
             onBack={hasEarlier ? back : undefined}
-            stepLabel={`Question ${stepNumber} of ${pathLength}`}
+            stepLabel={lang.ui("question_of", { n: stepNumber, total: pathLength })}
           />
         )}
 
@@ -391,12 +441,9 @@ export default function Survey({
             >
               ✓
             </div>
-            <h2 className="text-xl font-bold">Thank you!</h2>
+            <h2 className="text-xl font-bold">{lang.ui("thanks")}</h2>
             <p className="mx-auto mt-2 max-w-sm text-sm text-slate">
-              {pending > 0
-                ? `Your answers are saved on this phone and will be added to ${orgName}'s picture as soon as it has a signal — you don't need to do anything.`
-                : `Your response has been added to ${orgName}'s picture of how their community is following Jesus.`}{" "}
-              They only ever see grouped results, never individual answers.
+              {lang.ui(pending > 0 ? "done_pending" : "done_saved", { org: orgName })} {lang.ui("done_private")}
             </p>
             <button
               type="button"
@@ -404,11 +451,11 @@ export default function Survey({
               className="mt-6 rounded-lg border-2 px-5 py-2.5 text-sm font-semibold"
               style={{ borderColor: brand, color: brand }}
             >
-              Next person on this phone →
+              {lang.ui("next_person")}
             </button>
             {pending > 0 && (
               <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-muted">
-                {online ? "Sending…" : "Waiting for signal"} · {pending} saved on this phone
+                {online ? lang.ui("sending") : lang.ui("waiting_signal")} · {lang.ui("saved_on_phone", { n: pending })}
               </p>
             )}
           </div>
@@ -416,7 +463,7 @@ export default function Survey({
       </div>
 
       <p className="mt-3 text-center font-mono text-[9px] uppercase tracking-widest text-muted">
-        Powered by the Next Gen Jesus-Following Index
+        {lang.ui("powered")}
       </p>
     </main>
   );

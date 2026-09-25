@@ -1,0 +1,6 @@
+{
+ "$comment": "Arabic (Gulf) — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: empty — inherits ar. Items here override the instrument's own text; empty means the language has no question translations yet. Edit via the translation sheet (docs/TRANSLATION.md).",
+ "ui_status": "inherited",
+ "ui": {},
+ "items": {}
+}

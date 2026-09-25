@@ -9,10 +9,11 @@
  * Already installed (standalone), or neither available: renders nothing.
  */
 import { useEffect, useState } from "react";
+import type { Lang } from "@/lib/i18n";
 
 type BIPEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 
-export default function InstallHint({ orgName }: { orgName: string }) {
+export default function InstallHint({ orgName, lang }: { orgName: string; lang: Lang }) {
   const [evt, setEvt] = useState<BIPEvent | null>(null);
   const [ios, setIos] = useState(false);
   const [done, setDone] = useState(false);
@@ -37,10 +38,10 @@ export default function InstallHint({ orgName }: { orgName: string }) {
 
   return (
     <div className="mt-6 rounded-lg border border-rule bg-paper-deep px-3.5 py-3 text-[13px] leading-snug text-ink-2">
-      <b className="text-ink">Running this at a camp?</b>{" "}
+      <b className="text-ink">{lang.ui("install_title")}</b>{" "}
       {evt ? (
         <>
-          Install {orgName}&apos;s survey on this phone so it opens with no signal.{" "}
+          {lang.ui("install_android", { org: orgName })}{" "}
           <button
             type="button"
             onClick={async () => {
@@ -51,11 +52,11 @@ export default function InstallHint({ orgName }: { orgName: string }) {
             }}
             className="ml-1 font-semibold text-ink underline"
           >
-            Install
+            {lang.ui("install_btn")}
           </button>
         </>
       ) : (
-        <>Tap the Share button, then “Add to Home Screen”, so it opens with no signal.</>
+        <>{lang.ui("install_ios")}</>
       )}
     </div>
   );

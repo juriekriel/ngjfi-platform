@@ -19,6 +19,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import QRCode from "qrcode";
 import { instrument } from "@/lib/instrument";
+import { REGISTRY } from "@/lib/i18n";
 import { LOGO_BUCKET, LOGO_MAX_BYTES, fitWithin, logoPath, logoProblem, ourLogoPath } from "@/lib/logoUpload";
 
 type Settings = {
@@ -29,7 +30,6 @@ type Settings = {
   status: string; can_edit: boolean; item_set: "full" | "core" | null; locales: string[];
 };
 
-const LANGS: Record<string, string> = { en: "English", es: "Español", pt: "Português", fr: "Français", sw: "Kiswahili", af: "Afrikaans", zu: "isiZulu", ar: "العربية", hi: "हिन्दी", id: "Bahasa Indonesia", ko: "한국어", zh: "中文" };
 
 export default function OrgSettings({ sb, orgSlug, onSaved }: { sb: SupabaseClient; orgSlug: string; onSaved?: () => void }) {
   const [s, setS] = useState<Settings | null>(null);
@@ -303,7 +303,11 @@ function LinksTile({ orgSlug, origin, name }: { orgSlug: string; origin: string;
 }
 
 function LanguagesTile({ sb, orgSlug, s }: { sb: SupabaseClient; orgSlug: string; s: Settings }) {
-  const available = instrument.locales as string[];
+  // The truth about languages comes from the registry (src/data/locales.json):
+  // only LIVE languages are offered to respondents; the rest are being
+  // translated and checked by researchers before they can collect answers.
+  const live = REGISTRY.filter((l) => l.status === "live");
+  const coming = REGISTRY.filter((l) => l.status !== "live");
   const [lang, setLang] = useState("");
   const [note, setNote] = useState("");
   const [sent, setSent] = useState(false);
@@ -319,22 +323,36 @@ function LanguagesTile({ sb, orgSlug, s }: { sb: SupabaseClient; orgSlug: string
     else setSent(true);
   }
   return (
-    <Tile kicker="Every string translatable" title="Languages">
-      <div className="flex flex-wrap gap-1.5">
-        {available.map((l) => (
-          <span key={l} className="rounded-full bg-paper-deep px-3 py-1 text-[13px]">{LANGS[l] ?? l}</span>
-        ))}
+    <Tile kicker="What respondents can choose" title="Languages">
+      <div>
+        <p className="font-mono text-[10.5px] uppercase tracking-wider text-ink-2">Live now</p>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {live.map((l) => (
+            <span key={l.code} className="rounded-full bg-green/15 px-3 py-1 text-[13px]">{l.native}</span>
+          ))}
+        </div>
       </div>
-      <p className="text-[12.5px] text-ink-2">Respondents choose their language on the first screen.</p>
+      <div>
+        <p className="font-mono text-[10.5px] uppercase tracking-wider text-ink-2">Being translated · {coming.length}</p>
+        <p className="mt-1 text-[12.5px] leading-relaxed text-ink-2">{coming.map((l) => l.native).join(" · ")}</p>
+      </div>
+      <p className="text-[12.5px] leading-relaxed text-ink-2">
+        A young person sees a language picker on the first screen, set to their phone&apos;s language when it&apos;s live.
+        A language goes live once researchers have checked that every question means the same thing in it.
+      </p>
       {sent ? (
-        <p className="rounded-lg bg-green/10 px-3 py-2 text-[13.5px]">Request sent to the Collab. Translations are checked by a researcher before they go live, so meaning stays the same in every language.</p>
+        <p className="rounded-lg bg-green/10 px-3 py-2 text-[13.5px]">Request sent to the Collab. If you can offer a translator or a reviewer who speaks the language, say so when they reply — it speeds things up.</p>
       ) : (
         <>
-          <Field label="Request a language">
-            <input value={lang} onChange={(e) => setLang(e.target.value)} placeholder="e.g. Portuguese (Brazil)" className={input} />
+          <Field label="Need a language sooner, or one not listed?">
+            <select value={lang} onChange={(e) => setLang(e.target.value)} className={input}>
+              <option value="">Choose a language…</option>
+              {coming.map((l) => <option key={l.code} value={`${l.name} (${l.code})`}>{l.name}</option>)}
+              <option value="another language">Another language — say which below</option>
+            </select>
           </Field>
           <Field label="Anything we should know · optional">
-            <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. for a camp in March" className={input} />
+            <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. for a camp in March; we have a translator" className={input} />
           </Field>
           <button onClick={request} disabled={!lang.trim()} className={saveBtn}>Request translation</button>
           {err && <p className="text-[13px] text-vermillion">{err}</p>}
