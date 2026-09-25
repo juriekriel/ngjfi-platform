@@ -152,7 +152,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
 
   // A selected room loads its own J12. Never benchmarked; see RoomCards.
   useEffect(() => {
-    if (!sb || room.kind !== "room") { setRoomDash(null); setRoomErr(null); return; }
+    if (!sb || room.kind !== "room" || room.link.is_test) { setRoomDash(null); setRoomErr(null); return; }
     let live = true;
     sb.rpc("org_link_dashboard", { p_org_slug: slug, p_link_id: room.link.id }).then(({ data, error }) => {
       if (!live) return;
@@ -241,7 +241,12 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
     index = roomDash && !roomDash.suppressed ? roomDash.index : null;
     matrix = roomDash && !roomDash.suppressed ? roomDash.matrix : null;
     const l = room.link;
-    if (roomErr) empty = { title: "This room couldn't load", body: roomErr };
+    if (l.is_test)
+      empty = {
+        title: "This is a test link",
+        body: "Everything works exactly as it will for real — the survey, the offline queue, the thank-you screen — but answers given here are kept apart. They never count in any score, count, map or Collab figure, and they're deleted automatically after 7 days. For a real room, make a new link without the Test box ticked.",
+      };
+    else if (roomErr) empty = { title: "This room couldn't load", body: roomErr };
     else if (!roomDash) empty = { title: "Loading this room…", body: "" };
     else if (roomDash.n === 0 && l.status === "scheduled" && l.active_from)
       empty = {

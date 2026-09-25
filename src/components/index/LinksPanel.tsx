@@ -14,6 +14,8 @@ type Link = {
   n: number;
   places: string[];
   places_total: number;
+  /** A test link (migration 0038): its answers are kept apart, never counted, and deleted after a week. */
+  is_test?: boolean;
 };
 
 const STATUS_LABEL: Record<Link["status"], string> = {
@@ -163,13 +165,14 @@ export function LinkForm({
   const [audience, setAudience] = useState<"community" | "public">(link?.audience ?? "community");
   const [from, setFrom] = useState(toLocalInput(link?.active_from ?? null));
   const [to, setTo] = useState(toLocalInput(link?.active_to ?? null));
+  const [isTest, setIsTest] = useState(Boolean(link?.is_test));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function save() {
     setBusy(true);
     setError(null);
-    const { error } = await sb.rpc("upsert_distribution_link", {
+    const { data, error } = await sb.rpc("upsert_distribution_link", {
       p_org_slug: orgSlug,
       p_id: link?.id ?? null,
       p_name: name,
@@ -178,9 +181,23 @@ export function LinkForm({
       p_active_from: from ? new Date(from).toISOString() : null,
       p_active_to: to ? new Date(to).toISOString() : null,
     });
+    if (error) {
+      setBusy(false);
+      setError(error.message);
+      return;
+    }
+    // Test links (0038): set on a new link, or changed while the link is still empty.
+    const id = (data as { id?: string } | null)?.id ?? link?.id;
+    if (id && isTest !== Boolean(link?.is_test)) {
+      const { error: tErr } = await sb.rpc("set_link_test", { p_org_slug: orgSlug, p_link_id: id, p_is_test: isTest });
+      if (tErr) {
+        setBusy(false);
+        setError(/set_link_test/.test(tErr.message) ? "Test links need migration 0038, which isn't applied to this database yet." : tErr.message);
+        return;
+      }
+    }
     setBusy(false);
-    if (error) setError(error.message);
-    else onSaved();
+    onSaved();
   }
 
   return (
@@ -224,6 +241,13 @@ export function LinkForm({
               className="mt-1 w-full rounded-lg border border-rule px-2 py-1.5 text-sm" />
           </div>
         </div>
+        <label className="flex items-start gap-2.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 text-sm">
+          <input type="checkbox" checked={isTest} onChange={(e) => setIsTest(e.target.checked)} className="mt-0.5 h-4 w-4" />
+          <span>
+            <b>Test link</b> — for demos and trying it out. Everything works the same, but answers are kept apart, never
+            count in any score, map or Collab figure, and are deleted automatically after 7 days.
+          </span>
+        </label>
         <div>
           <label className="font-mono text-[9px] uppercase tracking-wider text-muted">Audience</label>
           <select value={audience} onChange={(e) => setAudience(e.target.value as "community" | "public")}
