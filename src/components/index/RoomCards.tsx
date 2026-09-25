@@ -57,6 +57,8 @@ export default function RoomCards({
   onView?: (v: "results" | "settings" | "share") => void;
 }) {
   const [links, setLinks] = useState<DistributionLink[] | null>(null);
+  // Test links and their test-answer counts (0038) — counted apart from real answers.
+  const [tests, setTests] = useState<Record<string, { started: number; completed: number; retention_days: number }>>({});
   const [err, setErr] = useState<string | null>(null);
   const [editing, setEditing] = useState<DistributionLink | "new" | null>(null);
   const [qr, setQr] = useState<{ name: string; url: string; cards: string } | null>(null);
@@ -66,11 +68,16 @@ export default function RoomCards({
   useEffect(() => setOrigin(window.location.origin), []);
 
   const load = useCallback(async () => {
-    const { data, error } = await sb.rpc("org_distribution_links", { p_org_slug: orgSlug });
+    const [{ data, error }, t] = await Promise.all([
+      sb.rpc("org_distribution_links", { p_org_slug: orgSlug }),
+      sb.rpc("org_test_links", { p_org_slug: orgSlug }),
+    ]);
+    const testMap = (t.error ? {} : (t.data as Record<string, { started: number; completed: number; retention_days: number }>) ?? {});
+    setTests(testMap);
     if (error) setErr(error.message);
     else {
       setErr(null);
-      setLinks(((data as DistributionLink[]) ?? []).slice().reverse());
+      setLinks(((data as DistributionLink[]) ?? []).slice().reverse().map((l) => ({ ...l, is_test: l.id in testMap })));
     }
   }, [sb, orgSlug]);
 
@@ -176,10 +183,15 @@ export default function RoomCards({
           const url = `${origin}/${orgSlug}/l/${l.slug}`;
           const [opens, closes] = windowLines(l);
           const st = STATUS[l.status];
+          const test = l.is_test ? tests[l.id] : undefined;
           return (
             <Card key={l.id} on={on}>
               <button type="button" aria-pressed={on} onClick={() => onSelect({ kind: "room", link: l })} className="flex w-full items-center justify-between text-left">
-                <Kicker on={on}>{l.audience === "public" ? "Public link" : "Community link"}</Kicker>
+                <Kicker on={on}>
+                  {l.is_test ? (
+                    <span className="rounded bg-amber-300 px-1.5 py-0.5 font-bold text-ink">TEST</span>
+                  ) : l.audience === "public" ? "Public link" : "Community link"}
+                </Kicker>
                 <Status on={on} dot={st.dot} label={st.label} />
               </button>
               <label className="flex flex-col gap-0.5">
@@ -198,12 +210,20 @@ export default function RoomCards({
               </label>
               <Mono on={on}>{url.replace(/^https?:\/\//, "")}</Mono>
               <p className={`text-[12.5px] leading-snug ${on ? "text-paper/75" : "text-ink-2"}`}>
-                {opens}
-                <br />
-                {closes}
+                {test ? (
+                  <>Never counted · deleted after {test.retention_days} days</>
+                ) : (
+                  <>
+                    {opens}
+                    <br />
+                    {closes}
+                  </>
+                )}
               </p>
               <div className="mt-auto flex items-center justify-between gap-2 pt-1.5">
-                <span className="whitespace-nowrap text-[13px] font-semibold">n {l.n.toLocaleString()}</span>
+                <span className="whitespace-nowrap text-[13px] font-semibold">
+                  {test ? `${test.completed} test` : `n ${l.n.toLocaleString()}`}
+                </span>
                 <span className="flex gap-1.5">
                   <Mini on={on} onClick={() => copy(url, l.id)}>{copied === l.id ? "Copied" : "Copy"}</Mini>
                   <Mini on={on} onClick={() => setQr({ name: l.name, url, cards: `/${orgSlug}/dashboard/cards?link=${encodeURIComponent(l.slug)}` })}>QR</Mini>

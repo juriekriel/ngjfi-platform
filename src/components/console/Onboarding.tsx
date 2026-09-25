@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { Action, Band, Row, Rows } from "@/components/console/Bands";
+import ResponseDeletion from "@/components/console/ResponseDeletion";
 
 type JoinApp = {
   id: string; email: string; org_name: string; role: string; country: string | null;
@@ -429,6 +430,9 @@ export function OrgManagePanel({ shortName, onChanged }: { shortName: string; on
       {(msg || err) && (
         <p className={`lg:col-span-2 text-[13px] ${err ? "text-vermillion" : "text-ink-2"}`}>{err ?? msg}</p>
       )}
+      <div className="lg:col-span-2">
+        <ResponseDeletion shortName={shortName} onChanged={onChanged} />
+      </div>
     </div>
   );
 }
