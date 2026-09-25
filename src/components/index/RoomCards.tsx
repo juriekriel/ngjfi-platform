@@ -41,12 +41,20 @@ export default function RoomCards({
   houseN,
   selected,
   onSelect,
+  orgName,
+  view = "results",
+  onView,
 }: {
   sb: SupabaseClient;
   orgSlug: string;
   houseN: number | null;
   selected: RoomSelection;
   onSelect: (s: RoomSelection) => void;
+  /** The organisation's registered name — the house card reads "All <name> surveys". */
+  orgName: string;
+  /** Which dashboard view is showing; the two tiles beside "+ New link" switch it. */
+  view?: "results" | "settings" | "share";
+  onView?: (v: "results" | "settings" | "share") => void;
 }) {
   const [links, setLinks] = useState<DistributionLink[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -104,15 +112,37 @@ export default function RoomCards({
 
   return (
     <div className="flex flex-col gap-2.5">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-2">The house and its rooms<span className="hidden sm:inline"> · each link is its own room</span></p>
-        <button
-          type="button"
-          onClick={() => setEditing("new")}
-          className="shrink-0 whitespace-nowrap rounded-lg bg-gradient-to-r from-emerald via-emerald-deep to-emerald-deeper px-4 py-2.5 text-[14px] font-semibold text-plate"
-        >
-          + New link
-        </button>
+        <div className="flex shrink-0 flex-wrap justify-end gap-2">
+          {onView && (
+            <>
+              <button
+                type="button"
+                aria-pressed={view === "share"}
+                onClick={() => onView(view === "share" ? "results" : "share")}
+                className={`whitespace-nowrap rounded-lg border px-4 py-2.5 text-[14px] font-semibold ${view === "share" ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"}`}
+              >
+                Share about the JFINDX
+              </button>
+              <button
+                type="button"
+                aria-pressed={view === "settings"}
+                onClick={() => onView(view === "settings" ? "results" : "settings")}
+                className={`whitespace-nowrap rounded-lg bg-gradient-to-r from-violet via-violet-deep to-violet-deeper px-4 py-2.5 text-[14px] font-semibold text-plate hover:opacity-90 ${view === "settings" ? "ring-2 ring-violet-deeper ring-offset-2" : ""}`}
+              >
+                {view === "settings" ? "← Back to results" : "Survey settings"}
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            onClick={() => setEditing("new")}
+            className="whitespace-nowrap rounded-lg bg-gradient-to-r from-emerald via-emerald-deep to-emerald-deeper px-4 py-2.5 text-[14px] font-semibold text-plate"
+          >
+            + New link
+          </button>
+        </div>
       </div>
 
       {err && <p className="text-[13px] text-vermillion">{err}</p>}
@@ -124,7 +154,7 @@ export default function RoomCards({
             <Status on={houseOn} dot="rgb(var(--c-emerald))" label="total" />
           </button>
           <button type="button" onClick={() => onSelect({ kind: "house" })} className="py-1 text-left text-[16px] font-bold">
-            All of it
+            All {orgName} surveys
           </button>
           <Mono on={houseOn}>{houseUrl.replace(/^https?:\/\//, "")}</Mono>
           <p className={`text-[12.5px] leading-snug ${houseOn ? "text-paper/75" : "text-ink-2"}`}>

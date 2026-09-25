@@ -63,6 +63,8 @@ export type FrameProps = {
   countries: MapCountry[];
   reached?: string[];
   scopeLine: string;
+  /** Replaces the figures, toolbar and view — used by the Survey settings and Share views. */
+  body?: React.ReactNode;
   /** Room name when a room is selected (org tab), for the consult snapshot. */
   roomName?: string | null;
   children?: React.ReactNode;
@@ -99,6 +101,8 @@ export default function SignedInFrame(p: FrameProps) {
           {p.scope}
         </section>
 
+        {p.body ?? (
+          <>
         <div className="grid gap-2.5 sm:grid-cols-3">
           <Figure label="J12 index" note={p.figures.indexNote} value={fig(p.figures.index)} accent={p.active === "org"} />
           <Figure label="Completed the Index" note={p.figures.nNote} value={p.figures.n == null ? "—" : p.figures.n.toLocaleString()} />
@@ -170,6 +174,9 @@ export default function SignedInFrame(p: FrameProps) {
             </div>
           )}
         </div>
+
+          </>
+        )}
 
         {p.children}
       </main>
@@ -279,7 +286,7 @@ export function SignedInHeader({
           </nav>
         </div>
         <div className="flex items-center gap-2 py-3">
-          <Link href="/build?settings=1" className="px-3 py-2.5 text-[14px] font-semibold text-ink-2 no-underline hover:text-ink">
+          <Link href={`/${org.slug}/dashboard?view=settings`} className="px-3 py-2.5 text-[14px] font-semibold text-ink-2 no-underline hover:text-ink">
             Survey settings
           </Link>
           {email && <span className="hidden rounded-lg border border-rule-2 px-3 py-2 text-[13px] text-ink-2 sm:inline">{email}</span>}

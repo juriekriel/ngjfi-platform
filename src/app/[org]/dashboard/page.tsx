@@ -20,6 +20,8 @@ import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { instrument, t } from "@/lib/instrument";
 import SignedInFrame from "@/components/index/SignedInFrame";
 import RoomCards, { type RoomSelection } from "@/components/index/RoomCards";
+import OrgSettings from "@/components/index/OrgSettings";
+import ShareJfindx from "@/components/index/ShareJfindx";
 import type { MapCountry } from "@/components/index/WorldHeatMap";
 import { exportItemsCsv } from "@/lib/exportCsv";
 
@@ -101,6 +103,19 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
   const [roomErr, setRoomErr] = useState<string | null>(null);
 
   const [showDetail, setShowDetail] = useState(false);
+  // Results, Survey settings, or Share — one dashboard, three views (?view=).
+  const [view, setView] = useState<"results" | "settings" | "share">("results");
+  useEffect(() => {
+    const v = new URLSearchParams(window.location.search).get("view");
+    if (v === "settings" || v === "share") setView(v);
+  }, []);
+  const changeView = useCallback((v: "results" | "settings" | "share") => {
+    setView(v);
+    const u = new URL(window.location.href);
+    if (v === "results") u.searchParams.delete("view");
+    else u.searchParams.set("view", v);
+    window.history.replaceState(null, "", u.toString());
+  }, []);
   const [seasons, setSeasons] = useState<Season[] | null>(null);
   const [seasonIdx, setSeasonIdx] = useState(0);
   const [exporting, setExporting] = useState(false);
@@ -250,7 +265,22 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
       org={{ slug, name: dash.org.name }}
       active="org"
       email={userEmail}
-      title={inRoom ? (roomName as string) : `${dash.org.name} · the whole house`}
+      title={
+        view === "settings"
+          ? `${dash.org.name} · survey settings`
+          : view === "share"
+            ? "Share about the JFINDX"
+            : inRoom
+              ? (roomName as string)
+              : `${dash.org.name} · the whole house`
+      }
+      body={
+        view === "settings" && !demoPreview ? (
+          <OrgSettings sb={sb} orgSlug={slug} onSaved={load} />
+        ) : view === "share" ? (
+          <ShareJfindx orgName={dash.org.name} />
+        ) : undefined
+      }
       titleRight={
         !demoPreview && seasons && seasons.length > 1 && !inRoom ? (
           <label className="flex items-center gap-2 text-[13px] text-ink-2">
@@ -269,7 +299,19 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
             reachable after email verification against its own website domain — and shows aggregates only.
           </div>
         ) : (
-          <RoomCards sb={sb} orgSlug={slug} houseN={dash.n} selected={room} onSelect={setRoom} />
+          <RoomCards
+            sb={sb}
+            orgSlug={slug}
+            houseN={dash.n}
+            selected={room}
+            onSelect={(r) => {
+              setRoom(r);
+              if (view !== "results") changeView("results");
+            }}
+            orgName={dash.org.name}
+            view={view}
+            onView={changeView}
+          />
         )
       }
       figures={{
@@ -301,7 +343,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
           : `Of those who completed the Index through any ${dash.org.name} link · n ${dash.n.toLocaleString()}`
       }
     >
-      {!inRoom && (
+      {!inRoom && view === "results" && (
         <section className="rounded-2xl border border-rule bg-plate px-4 py-3 sm:px-6">
           <button type="button" onClick={() => setShowDetail((v) => !v)} aria-expanded={showDetail}
             className="flex w-full items-center justify-between py-1 text-left text-[14px] font-semibold text-ink">
