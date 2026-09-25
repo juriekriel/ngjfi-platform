@@ -5,7 +5,7 @@
  * (same frame, same header, tiles all the way through). Replaces the separate
  * /build console for everything an organisation needs to run its survey.
  *
- *   Name & look      name, colour, logo            org_update_settings()
+ *   Name & look      name, colour, logo (upload)   org_update_settings() + Storage (0037)
  *   Messages         welcome and closing           org_update_settings()
  *   Duration         full (~7 min) / core (~3 min) org_set_duration()
  *   Links & QR       survey links, QR download, print cards
@@ -19,8 +19,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import QRCode from "qrcode";
 import { instrument } from "@/lib/instrument";
+import { LOGO_BUCKET, LOGO_MAX_BYTES, fitWithin, logoPath, logoProblem, ourLogoPath } from "@/lib/logoUpload";
 
 type Settings = {
+  /** Organisation id — its logo folder in storage (migration 0037). */
+  id?: string;
   name: string; short_name: string; logo_url: string | null; brand_color: string | null;
   welcome_message: string | null; closing_message: string | null; country: string | null;
   status: string; can_edit: boolean; item_set: "full" | "core" | null; locales: string[];
@@ -106,11 +109,64 @@ function Feedback({ msg, err }: { msg: string | null; err: string | null }) {
   return <p className={`text-[13px] ${err ? "text-vermillion" : "text-ink-2"}`}>{err ?? msg}</p>;
 }
 
+/** Shrink an image to at most 512 px (keeping transparency) so a logo stays light on a cheap phone. */
+async function shrink(file: File): Promise<Blob> {
+  const bmp = await createImageBitmap(file);
+  const { w, h } = fitWithin(bmp.width, bmp.height);
+  if (w === bmp.width && h === bmp.height && file.size <= LOGO_MAX_BYTES) return file;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  canvas.getContext("2d")?.drawImage(bmp, 0, 0, w, h);
+  const type = file.type === "image/jpeg" ? "image/jpeg" : "image/png";
+  return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Couldn't read that image"))), type, 0.9));
+}
+
 function LookTile({ sb, orgSlug, s, ro, onSaved }: { sb: SupabaseClient; orgSlug: string; s: Settings; ro: boolean; onSaved: () => void }) {
   const [name, setName] = useState(s.name);
   const [color, setColor] = useState(s.brand_color && /^#[0-9a-fA-F]{6}$/.test(s.brand_color) ? s.brand_color : "#FF7A47");
   const [logo, setLogo] = useState(s.logo_url ?? "");
   const sv = useSaver(sb, orgSlug);
+  const [up, setUp] = useState<{ busy: boolean; err: string | null }>({ busy: false, err: null });
+
+  // Upload → save the new address → remove the old upload (never an external
+  // logo the organisation pasted in). Storage policies (0037) allow this only
+  // for the organisation's own admins, in its own folder.
+  async function upload(file: File) {
+    const problem = logoProblem(file);
+    if (problem) return setUp({ busy: false, err: problem });
+    if (!s.id) return setUp({ busy: false, err: "Logo upload needs migration 0037, which isn't applied to this database yet." });
+    setUp({ busy: true, err: null });
+    try {
+      const blob = await shrink(file);
+      if (blob.size > LOGO_MAX_BYTES) throw new Error("Even after shrinking, that image is over 1 MB — try a simpler one.");
+      const type = blob.type || file.type;
+      const path = logoPath(s.id, Date.now(), type);
+      const { error } = await sb.storage.from(LOGO_BUCKET).upload(path, blob, { contentType: type, upsert: false, cacheControl: "31536000" });
+      if (error) throw new Error(/bucket|not found/i.test(error.message) ? "Logo upload needs migration 0037, which isn't applied to this database yet." : error.message);
+      const url = sb.storage.from(LOGO_BUCKET).getPublicUrl(path).data.publicUrl;
+      const old = ourLogoPath(s.logo_url, s.id);
+      const { error: saveErr } = await sb.rpc("org_update_settings", { p_org_slug: orgSlug, p_patch: { logo_url: url } });
+      if (saveErr) throw new Error(saveErr.message);
+      setLogo(url);
+      if (old && old !== path) void sb.storage.from(LOGO_BUCKET).remove([old]);
+      setUp({ busy: false, err: null });
+      onSaved();
+    } catch (e) {
+      setUp({ busy: false, err: e instanceof Error ? e.message : "Upload failed" });
+    }
+  }
+
+  async function removeLogo() {
+    setUp({ busy: true, err: null });
+    const old = s.id ? ourLogoPath(s.logo_url, s.id) : null;
+    const { error } = await sb.rpc("org_update_settings", { p_org_slug: orgSlug, p_patch: { logo_url: "" } });
+    if (error) return setUp({ busy: false, err: error.message });
+    if (old) void sb.storage.from(LOGO_BUCKET).remove([old]);
+    setLogo("");
+    setUp({ busy: false, err: null });
+    onSaved();
+  }
   return (
     <Tile kicker="What respondents see" title="Name & look">
       <Field label="Organisation name">
@@ -122,8 +178,26 @@ function LookTile({ sb, orgSlug, s, ro, onSaved }: { sb: SupabaseClient; orgSlug
           <input value={color} onChange={(e) => setColor(e.target.value)} disabled={ro} className={`${input} flex-1 font-mono`} />
         </span>
       </Field>
-      <Field label="Logo · an https:// image address">
-        <input value={logo} onChange={(e) => setLogo(e.target.value)} disabled={ro} placeholder="https://yourministry.org/logo.png" className={input} />
+      <Field label="Logo">
+        {!ro && (
+          <span className="flex flex-wrap items-center gap-2">
+            <label className={`inline-flex cursor-pointer items-center rounded-lg border border-rule-2 px-3.5 py-2 text-[13.5px] font-semibold hover:border-ink ${up.busy ? "pointer-events-none opacity-50" : ""}`}>
+              {up.busy ? "Uploading…" : logo ? "Replace logo" : "Upload a logo"}
+              <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) upload(f); }} />
+            </label>
+            {logo && (
+              <button type="button" onClick={removeLogo} disabled={up.busy} className="rounded-lg px-2 py-2 text-[13px] font-semibold text-ink-2 hover:text-vermillion">
+                Remove
+              </button>
+            )}
+            <span className="text-[12px] text-ink-2">PNG, JPG or WebP · shrunk to 512 px</span>
+          </span>
+        )}
+        {up.err && <span className="text-[13px] text-vermillion">{up.err}</span>}
+        <details className="text-[12.5px] text-ink-2">
+          <summary className="cursor-pointer">Or use an image address</summary>
+          <input value={logo} onChange={(e) => setLogo(e.target.value)} disabled={ro} placeholder="https://yourministry.org/logo.png" className={`${input} mt-1.5 w-full`} />
+        </details>
       </Field>
       <div className="flex items-center gap-3 rounded-xl p-3 text-plate" style={{ background: /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#FF7A47" }}>
         {/^https:\/\//.test(logo) ? (

@@ -25,6 +25,8 @@ type Org = {
   brand_color: string | null;
   country: string | null;
   welcome_message: string | null;
+  /** The organisation's logo (Survey settings, migrations 0036/0037). */
+  logo_url?: string | null;
 };
 
 /**
@@ -86,6 +88,7 @@ export default function Survey({
   // Offline-first (CLAUDE.md §4): answers are written to the phone first and
   // sent in order by the outbox (src/lib/outbox.ts), so a dropped signal
   // never loses them. `pending` is how many writes are still waiting.
+  const [logoFailed, setLogoFailed] = useState(false);
   const [online, setOnline] = useState(true);
   const [pending, setPending] = useState(0);
   useEffect(() => {
@@ -147,7 +150,7 @@ export default function Survey({
         // short_name is the public identifier (migration 0011). slug is kept in
         // lockstep by a trigger, but the URL is the short name, so look that up.
         const { data: o, error: oErr } = await withTimeout(
-          sb.from("organisations").select("id,slug,name,brand_color,country,welcome_message").eq("short_name", slug).maybeSingle(),
+          sb.from("organisations").select("id,slug,name,brand_color,country,welcome_message,logo_url").eq("short_name", slug).maybeSingle(),
         );
         if (oErr) throw oErr;
         if (!o) {
@@ -264,12 +267,24 @@ export default function Survey({
       {/* brand header */}
       <div className="rounded-t-2xl px-6 py-5 text-white" style={{ background: brand }}>
         <div className="flex items-center gap-3">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-black"
-            style={{ color: brand }}
-          >
-            {orgName.charAt(0)}
-          </div>
+          {org?.logo_url && /^https:\/\//.test(org.logo_url) && !logoFailed ? (
+            // The organisation's own logo. If it can't load (no signal before
+            // it was ever cached, or a broken address) fall back to the initial.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={org.logo_url}
+              alt=""
+              onError={() => setLogoFailed(true)}
+              className="h-10 w-10 rounded-full bg-white object-contain p-0.5"
+            />
+          ) : (
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-black"
+              style={{ color: brand }}
+            >
+              {orgName.charAt(0)}
+            </div>
+          )}
           <div>
             <div className="font-semibold leading-tight">{orgName}</div>
             <div className="text-xs opacity-90">{org?.country || "Powered by the Index"}</div>

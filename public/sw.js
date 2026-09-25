@@ -8,13 +8,17 @@
  *     network-first, falling back to the last copy — so a survey opened once
  *     opens again in a camp with no signal.
  *
- * What it never caches: anything cross-origin (the Supabase API — answers go
+ * Organisation logos (the public `org-logos` storage folder, migration 0037)
+ * are the ONE cross-origin thing kept, cache-first — so a survey opened at a
+ * camp still shows its own logo with no signal. Public branding only.
+ *
+ * What it never caches: anything else cross-origin (the Supabase API — answers go
  * through the survey outbox in IndexedDB, not here), /api/*, and signed-in
  * surfaces (/build, /*\/dashboard, /access) — so no one else's session or a
  * stale dashboard ever lives in a phone's cache. Nothing here holds a
  * respondent's answers.
  */
-const VERSION = "jfi-v1";
+const VERSION = "jfi-v2"; // v2: also keeps organisation logos for offline use
 const PAGES = `${VERSION}-pages`;
 const STATIC = `${VERSION}-static`;
 
@@ -71,11 +75,25 @@ async function cacheFirst(req) {
   return res;
 }
 
+// A logo <img> is a no-cors request, so the response is "opaque" (status 0).
+// That is still safe to keep and replay for an <img>; only cache real images.
+async function logo(req) {
+  const cache = await caches.open(STATIC);
+  const hit = await cache.match(req);
+  if (hit) return hit;
+  const res = await fetch(req);
+  if (res && (res.ok || res.type === "opaque")) cache.put(req, res.clone());
+  return res;
+}
+
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;
+  if (url.origin !== self.location.origin) {
+    if (url.pathname.includes("/storage/v1/object/public/org-logos/")) e.respondWith(logo(req));
+    return;
+  }
   if (NEVER.some((r) => r.test(url.pathname))) return;
 
   if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/") || url.pathname === "/icon-mark.svg") {
