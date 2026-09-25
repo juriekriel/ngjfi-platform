@@ -1,0 +1,27 @@
+{
+  "$comment": "The survey's languages. Only status \"live\" is offered to respondents. \"review\" and \"draft\" can be previewed (?preview=1) but never record answers. A language goes live only after a researcher approves its translation of the instrument (docs/TRANSLATION.md). fallback: where missing text comes from, in order, before English.",
+  "locales": [
+    { "code": "en", "name": "English", "native": "English", "dir": "ltr", "status": "live", "fallback": [] },
+    { "code": "es", "name": "Spanish", "native": "Español", "dir": "ltr", "status": "review", "fallback": [], "note": "Questions translated in the instrument since v0; awaiting researcher sign-off before fielding." },
+    { "code": "es-419", "name": "Spanish (Latin America)", "native": "Español (Latinoamérica)", "dir": "ltr", "status": "draft", "fallback": ["es"], "note": "Inherits Spanish; only regional differences are overridden." },
+    { "code": "es-ES", "name": "Spanish (Europe)", "native": "Español (España)", "dir": "ltr", "status": "draft", "fallback": ["es"], "note": "Inherits Spanish; only regional differences are overridden." },
+    { "code": "pt", "name": "Portuguese", "native": "Português", "dir": "ltr", "status": "draft", "fallback": [] },
+    { "code": "fr", "name": "French", "native": "Français", "dir": "ltr", "status": "draft", "fallback": [] },
+    { "code": "de", "name": "German", "native": "Deutsch", "dir": "ltr", "status": "draft", "fallback": [] },
+    { "code": "it", "name": "Italian", "native": "Italiano", "dir": "ltr", "status": "draft", "fallback": [] },
+    { "code": "ru", "name": "Russian", "native": "Русский", "dir": "ltr", "status": "draft", "fallback": [] },
+    { "code": "ar", "name": "Arabic (Modern Standard)", "native": "العربية", "dir": "rtl", "status": "draft", "fallback": [] },
+    { "code": "ar-EG", "name": "Arabic (Egyptian)", "native": "العربية (مصر)", "dir": "rtl", "status": "requested", "fallback": ["ar"], "note": "Regional dialect. Researchers to confirm which dialects are fielded and whether written dialect or MSA is preferred for a survey." },
+    { "code": "ar-LB", "name": "Arabic (Levantine)", "native": "العربية (الشام)", "dir": "rtl", "status": "requested", "fallback": ["ar"], "note": "Regional dialect — see ar-EG." },
+    { "code": "ar-AE", "name": "Arabic (Gulf)", "native": "العربية (الخليج)", "dir": "rtl", "status": "requested", "fallback": ["ar"], "note": "Regional dialect — see ar-EG." },
+    { "code": "ar-MA", "name": "Arabic (Maghrebi)", "native": "العربية (المغرب)", "dir": "rtl", "status": "requested", "fallback": ["ar"], "note": "Regional dialect — see ar-EG." },
+    { "code": "zh-Hans", "name": "Mandarin Chinese (Simplified)", "native": "简体中文", "dir": "ltr", "status": "draft", "fallback": [], "note": "Written Mandarin, Simplified script. Researchers to confirm whether Traditional (zh-Hant) is also needed." },
+    { "code": "ja", "name": "Japanese", "native": "日本語", "dir": "ltr", "status": "draft", "fallback": [] },
+    { "code": "hi", "name": "Hindi", "native": "हिन्दी", "dir": "ltr", "status": "draft", "fallback": [] },
+    { "code": "id", "name": "Indonesian", "native": "Bahasa Indonesia", "dir": "ltr", "status": "draft", "fallback": [] },
+    { "code": "th", "name": "Thai", "native": "ไทย", "dir": "ltr", "status": "draft", "fallback": [] },
+    { "code": "sw", "name": "Swahili", "native": "Kiswahili", "dir": "ltr", "status": "draft", "fallback": [] },
+    { "code": "zu", "name": "Zulu", "native": "isiZulu", "dir": "ltr", "status": "draft", "fallback": [] },
+    { "code": "af", "name": "Afrikaans", "native": "Afrikaans", "dir": "ltr", "status": "draft", "fallback": [] }
+  ]
+}

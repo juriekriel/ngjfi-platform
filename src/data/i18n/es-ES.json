@@ -1,0 +1,13 @@
+{
+ "$comment": "Spanish (Europe) — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; empty means the language has no question translations yet. Edit via the translation sheet (docs/TRANSLATION.md).",
+ "ui_status": "draft",
+ "ui": {
+  "install_android": "Instala la encuesta de {org} en este móvil para que se abra sin cobertura.",
+  "next_person": "Siguiente persona en este móvil →",
+  "offline_banner_body": "Tus respuestas se guardan en este móvil y se envían solas cuando vuelva la conexión.",
+  "offline_banner_title": "Sin cobertura — no pasa nada.",
+  "saved_on_phone": "{n} guardadas en este móvil",
+  "waiting_signal": "Esperando cobertura"
+ },
+ "items": {}
+}

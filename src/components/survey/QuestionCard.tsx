@@ -1,15 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { t, type AnswerValue, type InstrumentItem, type InstrumentOption, type Locale } from "@/lib/instrument";
+import type { AnswerValue, InstrumentItem, InstrumentOption } from "@/lib/instrument";
+import type { Lang } from "@/lib/i18n";
 
-const LIKERT = [
-  "Not at all true of me",
-  "A little true of me",
-  "Somewhat true of me",
-  "Mostly true of me",
-  "Completely true of me",
-];
 
 /**
  * The respondent question renderer — ONE implementation, used everywhere.
@@ -22,7 +16,7 @@ const LIKERT = [
  */
 export function Question({
   item,
-  locale,
+  lang,
   brand,
   busy,
   selected,
@@ -31,7 +25,8 @@ export function Question({
   stepLabel,
 }: {
   item: InstrumentItem;
-  locale: Locale;
+  /** The chosen language — text lookups walk its fallback chain (src/lib/i18n.ts). */
+  lang: Lang;
   brand: string;
   busy: boolean;
   selected: AnswerValue;
@@ -49,9 +44,9 @@ export function Question({
       <div className="font-mono text-[10px] uppercase tracking-widest" style={{ color: brand }}>
         {stepLabel}
       </div>
-      <h2 className="mb-2 mt-2 text-xl font-medium leading-snug">{t(item.text, locale)}</h2>
+      <h2 dir="auto" className="mb-2 mt-2 text-xl font-medium leading-snug">{lang.item(item)}</h2>
       {item.help && (
-        <p className="mb-4 text-xs leading-relaxed text-muted">{t(item.help, locale)}</p>
+        <p dir="auto" className="mb-4 text-xs leading-relaxed text-muted">{lang.item(item, "help")}</p>
       )}
       {!item.help && <div className="mb-3" />}
 
@@ -80,7 +75,7 @@ export function Question({
               >
                 {n}
               </span>
-              <span>{LIKERT[n - 1]}</span>
+              <span>{lang.ui(`likert_${n}`)}</span>
             </button>
           ))}
         </div>
@@ -106,7 +101,7 @@ export function Question({
               className={optBtn}
               style={style(o.value)}
             >
-              {t(o.text, locale)}
+              <bdi>{lang.option(item, o)}</bdi>
             </button>
           ))}
         </div>
@@ -115,6 +110,7 @@ export function Question({
       {item.type === "open_text" && (
         <OpenText
           key={item.key}
+          lang={lang}
           brand={brand}
           busy={busy}
           maxLength={item.max_length ?? 300}
@@ -130,7 +126,8 @@ export function Question({
           busy={busy}
           options={item.options || []}
           maxSelect={item.max_select}
-          locale={locale}
+          lang={lang}
+          item={item}
           initial={Array.isArray(selected) ? selected.map(String) : []}
           onSubmit={onChoose}
         />
@@ -138,7 +135,7 @@ export function Question({
 
       {onBack && (
         <button onClick={onBack} className="mt-5 text-xs text-muted hover:text-ink">
-          ← Back
+          {lang.ui("back")}
         </button>
       )}
     </div>
@@ -151,12 +148,14 @@ export function Question({
  * hold none, so the prompt warns them and the length is bounded.
  */
 function OpenText({
+  lang,
   brand,
   busy,
   maxLength,
   initial,
   onSubmit,
 }: {
+  lang: Lang;
   brand: string;
   busy: boolean;
   maxLength: number;
@@ -172,7 +171,7 @@ function OpenText({
         value={text}
         onChange={(e) => setText(e.target.value.slice(0, maxLength))}
         rows={4}
-        placeholder="Type as much or as little as you like…"
+        placeholder={lang.ui("type_here")}
         className="w-full rounded-xl border-2 px-4 py-3 text-sm outline-none"
         style={{ borderColor: text ? brand : "#e6e8ec" }}
       />
@@ -186,7 +185,7 @@ function OpenText({
           className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-white disabled:opacity-40"
           style={{ background: brand }}
         >
-          Continue →
+          {lang.ui("continue")}
         </button>
         <button
           disabled={busy}
@@ -194,7 +193,7 @@ function OpenText({
           className="rounded-xl border-2 px-4 py-3 text-sm text-muted"
           style={{ borderColor: "#e6e8ec" }}
         >
-          Skip
+          {lang.ui("skip")}
         </button>
       </div>
     </div>
@@ -214,7 +213,8 @@ function MultiSelect({
   busy,
   options,
   maxSelect,
-  locale,
+  lang,
+  item,
   initial,
   onSubmit,
 }: {
@@ -222,7 +222,8 @@ function MultiSelect({
   busy: boolean;
   options: InstrumentOption[];
   maxSelect?: number;
-  locale: Locale;
+  lang: Lang;
+  item: InstrumentItem;
   initial: string[];
   onSubmit: (v: AnswerValue) => void;
 }) {
@@ -241,7 +242,7 @@ function MultiSelect({
     <div>
       {typeof maxSelect === "number" && (
         <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">
-          Select up to {maxSelect} — {picked.length}/{maxSelect} chosen
+          {lang.ui("select_up_to", { n: maxSelect ?? "" })} — {picked.length}/{maxSelect}
         </p>
       )}
       <div className="flex flex-col gap-2">
@@ -264,7 +265,7 @@ function MultiSelect({
               >
                 {isChecked && <span className="h-1.5 w-1.5 rounded-sm bg-white" />}
               </span>
-              {t(o.text, locale)}
+              <bdi>{lang.option(item, o)}</bdi>
             </button>
           );
         })}

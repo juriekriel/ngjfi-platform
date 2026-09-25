@@ -44,3 +44,6 @@ yarn-error.log*
 *.bak
 *.bak2
 *.tmp*
+
+# Translation sheets are working files (scripts/translation-sheet.mjs); the imported result lives in src/data/i18n/
+translations/
