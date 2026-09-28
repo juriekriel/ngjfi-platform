@@ -13,7 +13,7 @@ export type ConsultView = {
   orgName: string;
   /** Null for the whole house. */
   roomName: string | null;
-  view: "matrix" | "heatmap";
+  view: "matrix" | "heatmap" | "insights";
   tier: string;
   /** Display label for `tier` (TIER_LABEL from model.ts) — passed in so this file has no imports and tests can load it directly. */
   tierLabel: string;
@@ -37,7 +37,9 @@ export function consultContext(v: ConsultView): ConsultContext {
   const viewLabel =
     v.view === "heatmap"
       ? `Heat map, ${v.tierLabel}`
-      : `J12 matrix${v.overlay ? (v.tab === "collab" ? `, ${v.orgName} overlay on` : ", Collab overlay on") : ""}`;
+      : v.view === "insights"
+        ? "Insights — reach, languages and locality conversion"
+        : `J12 matrix${v.overlay ? (v.tab === "collab" ? `, ${v.orgName} overlay on` : ", Collab overlay on") : ""}`;
   const ctx: ConsultContext = {
     tab: v.tab,
     scope,
@@ -58,6 +60,12 @@ export function consultSuggestions(v: ConsultView): string[] {
       "Why is our country still grey on the map?",
       `What does ${tier} look like in the countries that are active?`,
       "How do we help our country reach the threshold?",
+    ];
+  if (v.view === "insights")
+    return [
+      "Why do some localities reach their target once and then drop?",
+      "What helps a locality re-engage year on year?",
+      "Which languages should we prioritise translating next?",
     ];
   if (v.tab === "collab")
     return [

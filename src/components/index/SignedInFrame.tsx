@@ -6,7 +6,8 @@
  * After sign-in an organisation sees exactly two tabs: its own dashboard and
  * Collab Intelligence. Both render through THIS component, so they cannot
  * drift apart: the same three figures, the same J12 matrix / Heat map
- * switch, the same overlay button and the same "What does this mean?" in the
+ * switch (plus an Insights view where the caller passes one — the Collab
+ * tab does, the org tab doesn't), the same overlay button and the same "What does this mean?" in the
  * same places. What differs between them is only the data passed in and the
  * scope row (rooms on the org tab; the whole Collab on the other).
  *
@@ -65,13 +66,18 @@ export type FrameProps = {
   scopeLine: string;
   /** Replaces the figures, toolbar and view — used by the Survey settings and Share views. */
   body?: React.ReactNode;
+  /**
+   * A third view beside J12 matrix / Heat map. Only rendered as a tab when
+   * given — Collab Intelligence passes its reach & re-engagement insights.
+   */
+  insights?: React.ReactNode;
   /** Room name when a room is selected (org tab), for the consult snapshot. */
   roomName?: string | null;
   children?: React.ReactNode;
 };
 
 export default function SignedInFrame(p: FrameProps) {
-  const [view, setView] = useState<"matrix" | "heatmap">("matrix");
+  const [view, setView] = useState<"matrix" | "heatmap" | "insights">("matrix");
   const [tier, setTier] = useState("formation");
   const [overlayWanted, setOverlayWanted] = useState(true);
   const [consult, setConsult] = useState(false);
@@ -82,7 +88,7 @@ export default function SignedInFrame(p: FrameProps) {
     ? p.overlay.reason
     : p.overlay.matrix == null
       ? p.overlay.reason
-      : view === "heatmap"
+      : view !== "matrix"
         ? "Overlay works on the matrix"
         : overlayOn
           ? "Showing both, cell by cell"
@@ -117,6 +123,7 @@ export default function SignedInFrame(p: FrameProps) {
           <div role="group" aria-label="View" className="inline-flex gap-1 rounded-xl bg-rule/70 p-1">
             <Seg on={view === "matrix"} onClick={() => setView("matrix")}>J12 matrix</Seg>
             <Seg on={view === "heatmap"} onClick={() => setView("heatmap")}>Heat map</Seg>
+            {p.insights && <Seg on={view === "insights"} onClick={() => setView("insights")}>Insights</Seg>}
           </div>
           <div className="flex flex-wrap items-center gap-2.5">
             {overlayHint && <span className="text-[13px] text-ink-2">{overlayHint}</span>}
@@ -124,10 +131,10 @@ export default function SignedInFrame(p: FrameProps) {
             <button
               type="button"
               aria-pressed={overlayOn}
-              disabled={!overlayUsable || view === "heatmap"}
+              disabled={!overlayUsable || view !== "matrix"}
               onClick={() => setOverlayWanted((v) => !v)}
               className={`rounded-lg px-4 py-2.5 text-[14px] font-semibold ${
-                !overlayUsable || view === "heatmap"
+                !overlayUsable || view !== "matrix"
                   ? "cursor-not-allowed border border-dashed border-rule-2 bg-paper-deep text-muted"
                   : overlayOn
                     ? "border border-ink bg-ink text-paper"
@@ -140,7 +147,9 @@ export default function SignedInFrame(p: FrameProps) {
         </div>
 
         <div className="flex min-h-[420px] flex-col rounded-2xl border border-rule bg-plate px-4 py-5 shadow-sm sm:px-7 sm:py-6">
-          {p.empty ? (
+          {view === "insights" && p.insights ? (
+            p.insights
+          ) : p.empty ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
               <p className="text-[20px] font-semibold">{p.empty.title}</p>
               <p className="max-w-lg text-[14.5px] leading-relaxed text-ink-2">{p.empty.body}</p>

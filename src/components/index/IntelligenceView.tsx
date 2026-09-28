@@ -10,6 +10,9 @@ import ScoreMatrix from "@/components/index/ScoreMatrix";
 import WorldHeatMap from "@/components/index/WorldHeatMap";
 import MapTierToggle from "@/components/index/MapTierToggle";
 import { GREEN, NAVY, VIOLET, VERMILLION } from "@/lib/model";
+import CollabInsights from "@/components/index/CollabInsights";
+import CollabExport from "@/components/index/CollabExport";
+import type { Insights } from "@/lib/collabInsights";
 
 type Intel = {
   /** Set by the database, not the client — which enforced space produced this. */
@@ -99,6 +102,7 @@ export default function IntelligenceView({
   const [err, setErr] = useState<string | null>(null);
   const [tier, setTier] = useState("formation");
   const [mapView, setMapView] = useState<"countries" | "regions">("countries");
+  const [ins, setIns] = useState<Insights | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -106,6 +110,8 @@ export default function IntelligenceView({
       const rpc = space === "demo" ? "collab_intelligence_demo" : "collab_intelligence";
       const { data, error } = await sb.rpc(rpc);
       if (error) setErr(error.message); else setD(data as Intel);
+      const r = await sb.rpc(space === "demo" ? "collab_insights_demo" : "collab_insights");
+      setIns((r.data as Insights) ?? { published: false });
     })();
   }, [sb, space]);
 
@@ -470,6 +476,17 @@ export default function IntelligenceView({
 
           {/* Insight modules (Belong–Trust) — unscored, beside the Index (CLAUDE.md #6, #9). */}
           <ModuleInsights insights={d.insights} />
+
+          {/* Reach & re-engagement (migration 0041) — the same Insights view
+              the signed-in Collab tab shows, then Export at the foot. */}
+          <section className="mt-6 rounded-xl border border-ink bg-card p-6">
+            <h2 className="font-sans text-xl font-semibold">Insights</h2>
+            <p className="mb-4 mt-1 text-sm text-slate">Reach, languages and how well each locality is re-engaged, year by year.</p>
+            <CollabInsights data={ins} />
+          </section>
+          <div className="mt-6">
+            <CollabExport data={ins} />
+          </div>
 
           <p className="mt-8 font-mono text-[10px] uppercase tracking-wider text-muted">
             Of those who completed the Index — never a whole population. · <Link href="/" className="text-accent">home</Link>

@@ -17,6 +17,9 @@ import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import IntelligenceView from "@/components/index/IntelligenceView";
 import SignedInFrame from "@/components/index/SignedInFrame";
 import type { MapCountry } from "@/components/index/WorldHeatMap";
+import CollabInsights from "@/components/index/CollabInsights";
+import CollabExport from "@/components/index/CollabExport";
+import type { Insights } from "@/lib/collabInsights";
 
 type Matrix = Record<string, Record<string, number | null>>;
 type Ctx = { signed_in: boolean; email?: string; orgs?: { slug: string; name: string; is_demo: boolean }[] };
@@ -61,9 +64,13 @@ function CollabTab({
 }) {
   const [collab, setCollab] = useState<Collab | null>(null);
   const [mine, setMine] = useState<OrgDash | null>(null);
+  const [insights, setInsights] = useState<Insights | null>(null);
 
   useEffect(() => {
     sb.rpc("collab_intelligence").then(({ data }) => setCollab((data as Collab) ?? { published: false }));
+    // Reach & re-engagement (migration 0041) — same publish gate, fetched once
+    // for both the Insights view and the Export section.
+    sb.rpc("collab_insights").then(({ data }) => setInsights((data as Insights) ?? { published: false }));
     sb.rpc("org_dashboard_season", { p_org_slug: org.slug, p_season_start: null, p_season_end: null })
       .then(({ data }) => data && setMine(data as OrgDash));
   }, [sb, org.slug]);
@@ -134,6 +141,9 @@ function CollabTab({
       }}
       countries={published ? collab?.countries ?? [] : []}
       scopeLine={`Of those who completed the Index through any Collab organisation · n ${(n ?? 0).toLocaleString()}`}
-    />
+      insights={<CollabInsights data={insights} />}
+    >
+      <CollabExport data={insights} />
+    </SignedInFrame>
   );
 }
