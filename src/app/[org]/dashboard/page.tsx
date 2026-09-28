@@ -15,6 +15,8 @@
  * click away under "More detail & export", so nothing an organisation relied
  * on has gone.
  */
+import ModuleInsights from "@/components/index/ModuleInsights";
+import { optionsFor } from "@/lib/modules";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { instrument, t } from "@/lib/instrument";
@@ -77,7 +79,8 @@ const INSIGHT_ITEMS = instrument.items
     key: i.key,
     domain: i.question_domain,
     label: t(i.text, "en"),
-    options: (i.options ?? []).map((o) => ({ value: String(o.value), label: t(o.text, "en") })),
+    multi: i.type === "multi_select",
+    options: optionsFor(i),
   }));
 const labelFor = (key: string) => ITEM_LABEL[key] ?? key;
 const fmt = (n: number | null | undefined) => (n === null || n === undefined ? "—" : String(n));
@@ -435,7 +438,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                   return (
                     <div key={item.key}>
                       <div className="flex items-baseline justify-between gap-3">
-                        <span className="text-sm font-medium">{item.label}</span>
+                        <span className="text-sm font-medium">{item.label}{item.multi ? <span className="ml-1.5 font-mono text-[10px] text-muted">check all</span> : null}</span>
                         <span className="shrink-0 font-mono text-[10px] text-muted">n {agg.n}</span>
                       </div>
                       {agg.options ? (
@@ -462,10 +465,13 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                 })}
               </div>
               <p className="mt-3 font-mono text-[9px] uppercase tracking-wider text-muted">
-                Respondents could pick more than one — shares don&apos;t sum to 100%.
+                Check-all questions can have several answers, so their shares don&apos;t sum to 100%; one-answer questions do.
               </p>
             </div>
           )}
+
+          {/* Insight modules (Belong–Trust) — unscored, beside the Index (CLAUDE.md #6, #9). */}
+          <ModuleInsights insights={dash.insights} compact />
 
                 </>
               )}

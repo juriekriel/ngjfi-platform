@@ -286,9 +286,13 @@ export function SignedInHeader({
           </nav>
         </div>
         <div className="flex items-center gap-2 py-3">
-          <Link href={`/${org.slug}/dashboard?view=settings`} className="px-3 py-2.5 text-[14px] font-semibold text-ink-2 no-underline hover:text-ink">
-            Survey settings
-          </Link>
+          {/* Survey settings lives beside "+ New link" (RoomCards) — one entry
+              point, not two. The header keeps a way home to the platform. */}
+          {active === "org" && (
+            <Link href="/" className="whitespace-nowrap px-3 py-2.5 text-[14px] font-semibold text-ink-2 no-underline hover:text-ink">
+              ← Back to JFINDX
+            </Link>
+          )}
           {email && <span className="hidden rounded-lg border border-rule-2 px-3 py-2 text-[13px] text-ink-2 sm:inline">{email}</span>}
         </div>
       </div>

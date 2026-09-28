@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { Action, LinkRow, Row, Rows, Trouble } from "./Bands";
-import { CORE_COUNT, TOTAL_COUNT } from "@/lib/instrument";
+import { TOTAL_COUNT } from "@/lib/instrument";
 
 /**
  * Setting up a survey — one wizard, every tier.
@@ -48,7 +48,8 @@ export default function SurveyWizard({
   const [step, setStep] = useState(fixedOrg ? 1 : 0);
   const [orgs, setOrgs] = useState<Fieldable[] | null>(null);
   const [org, setOrg] = useState<string | null>(fixedOrg ?? null);
-  const [itemSet, setItemSet] = useState<"core" | "full">("core");
+  // One instrument, no shorter versions (migration 0040).
+  const itemSet = "full" as const;
   const [audiences, setAudiences] = useState<Set<string>>(new Set(["community"]));
   const [locale, setLocale] = useState("en");
   const [busy, setBusy] = useState(false);
@@ -164,52 +165,20 @@ export default function SurveyWizard({
         <div className="mt-5">
           <p className="max-w-measure text-[15.5px] leading-relaxed text-ink-2">
             The instrument version is fixed to the current published one, so your results stay
-            comparable with everyone else&apos;s. Choose how much of it to ask.
+            comparable with everyone else&apos;s. Every survey asks the whole instrument — there are no
+            shorter versions — and each respondent only sees the questions their answers lead to.
           </p>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            {(
-              [
-                {
-                  k: "core" as const,
-                  t: "The twelve",
-                  n: `${CORE_COUNT} items · about four minutes`,
-                  b: "The four beliefs, both weekly practices, and the journey either side of them. Enough for an index, a funnel and a benchmark.",
-                },
-                {
-                  k: "full" as const,
-                  t: "The full set",
-                  n: `${TOTAL_COUNT} items · about seven minutes`,
-                  b: "Everything. The only way to fill the whole three-by-four grid, because the twelve deliberately concentrate on belief and practice.",
-                },
-              ]
-            ).map((o) => (
-              <button
-                key={o.k}
-                onClick={() => setItemSet(o.k)}
-                className={`rounded-xl border-2 p-4 text-left ${
-                  itemSet === o.k ? "border-ink bg-paper-deep" : "border-rule hover:border-ink"
-                }`}
-              >
-                <p className="figcap">{o.n}</p>
-                <p className="mt-1 text-[17px]">{o.t}</p>
-                <p className="mt-1.5 text-[14px] leading-relaxed text-ink-2">{o.b}</p>
-              </button>
-            ))}
-          </div>
-          {itemSet === "core" && (
-            <p className="margin-note mt-4 border-l-2 border-vermillion pl-3">
-              <b>What the twelve will not tell you.</b> Four of them are the beliefs, which all sit
-              in one cell of the grid, so a core-only survey leaves four cells empty — how young
-              people first meet mission and justice, and how they first respond. Your index and
-              funnel still work; they lean towards personal faith. Choose the full set if you want
-              the whole picture.
+          <div className="mt-5 rounded-xl border-2 border-ink bg-paper-deep p-4">
+            <p className="figcap">{TOTAL_COUNT} items in the bank · about seven minutes</p>
+            <p className="mt-1 text-[17px]">The full instrument</p>
+            <p className="mt-1.5 text-[14px] leading-relaxed text-ink-2">
+              The whole three-by-four grid, the Exploration Index for those not yet following, and the
+              optional Drivers, Journey and Belong–Trust questions.
             </p>
-          )}
+          </div>
           <p className="margin-note mt-4 border-l-2 border-rule pl-3">
-            The twelve cannot be removed — they are what every organisation has in common, and
-            removing one would take you out of the benchmark for that cell. Individual extras can
-            be dropped later in the survey&apos;s own settings, with that warning shown at the moment
-            you drop them.
+            Every organisation asks the same instrument, so every result sits in the same
+            benchmark — no cell is ever empty because a shorter version was chosen.
           </p>
         </div>
       )}
@@ -308,7 +277,7 @@ export default function SurveyWizard({
             <Row label="Fielding for" meta={chosen?.name ?? org ?? ""} />
             <Row
               label="Questions"
-              meta={itemSet === "core" ? `the twelve · ${CORE_COUNT} items` : `the full set · ${TOTAL_COUNT} items`}
+              meta={`the full instrument · ${TOTAL_COUNT} items`}
             />
             <Row label="Audiences" meta={[...audiences].join(" + ")} />
             <Row label="Language" meta={locale === "en" ? "English" : "Español"} />

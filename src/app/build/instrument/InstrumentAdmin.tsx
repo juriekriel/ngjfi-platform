@@ -4,7 +4,7 @@
  * /build/instrument — the instrument admin UI (administrators and the Collab).
  *
  * Shows exactly what the survey fields: the bundled instrument
- * (src/data/instrument.v4.json — the single source of truth, which is why
+ * (src/data/instrument.v5.json — the single source of truth, which is why
  * the survey runs offline). On top of it:
  *   - integrity checks against the brief (src/lib/instrumentChecks.ts);
  *   - the 3 × 4 coverage — scored items per cell;
@@ -18,8 +18,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
-import v3 from "@/data/instrument.v3.json";
 import v4 from "@/data/instrument.v4.json";
+import v5 from "@/data/instrument.v5.json";
 import { cellCounts, diffKeys, runChecks, QUESTIONS, TIER_ORDER, type CheckItem } from "@/lib/instrumentChecks";
 import { Band, Row, Rows } from "@/components/console/Bands";
 
@@ -36,8 +36,8 @@ type Proposal = {
   proposal: string; reason: string | null; status: string; decision_note: string | null; proposed_by: string | null;
 };
 
-const LIVE = v4 as unknown as { version: string; scoringVersion: string; locales: string[]; items: Item[] };
-const PREV = v3 as unknown as { version: string; items: Item[] };
+const LIVE = v5 as unknown as { version: string; scoringVersion: string; locales: string[]; items: Item[] };
+const PREV = v4 as unknown as { version: string; items: Item[] };
 const KINDS = ["wording", "translation", "tagging", "scoring", "options", "new_item", "remove_item", "other"] as const;
 
 export default function InstrumentAdmin() {

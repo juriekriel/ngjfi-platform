@@ -60,7 +60,9 @@ export function runChecks(items: CheckItem[], locales: string[]): Check[] {
   // hold is that both are ASKED as frequencies — so they can be reported.
   const coreActivitiesOk = coreActivities.length >= 2 && coreActivities.every((i) => i.type === "frequency");
   const noSection = items.filter((i) => !i.section).map((i) => i.key);
-  const insightScored = items.filter((i) => (i.section === "driver" || i.section === "journey") && i.scored).map((i) => i.key);
+  // Modules (e.g. Belong–Trust) are insight layers too: unscored unless a
+  // versioned scoring decision says otherwise (non-negotiable #9).
+  const insightScored = items.filter((i) => (i.section === "driver" || i.section === "journey" || i.section === "module") && i.scored).map((i) => i.key);
 
   return [
     {
@@ -97,7 +99,7 @@ export function runChecks(items: CheckItem[], locales: string[]): Check[] {
     },
     {
       id: "insight",
-      label: "Drivers and Journey stay unscored (non-negotiable #9)",
+      label: "Drivers, Journey and modules stay unscored (non-negotiable #9)",
       ok: insightScored.length === 0,
       detail: insightScored.length ? `Scored: ${insightScored.join(", ")}` : "Reported alongside the Index, never folded in",
     },

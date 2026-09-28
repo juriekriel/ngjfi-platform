@@ -87,12 +87,9 @@ export default function Survey({
     const wanted = q.get("lang") ?? (saved && avail.includes(saved) ? saved : bestMatch(navigator.languages ?? [navigator.language], avail));
     if (avail.includes(wanted) && wanted !== "en") void pickLang(wanted);
   }, [pickLang]);
-  const [itemSet, setItemSet] = useState<"full" | "core">("full");
-  // A campaign can field the NGC12 core on its own — same instrument, shorter set.
-  const items = useMemo(
-    () => orderedItems().filter((it) => itemSet === "full" || it.core || it.session_field),
-    [itemSet],
-  );
+  // One instrument, no shorter versions (migration 0040): every campaign
+  // fields the whole item set, and branching decides who sees what.
+  const items = useMemo(() => orderedItems(), []);
   const steps = items.length;
 
   const sb = useMemo(() => getSupabaseBrowser(), []);
@@ -143,7 +140,7 @@ export default function Survey({
       // public, non-personal fields: the organisation's name and branding and
       // which campaign to write to.
       const cacheKey = `survey:${slug}:${audience}`;
-      type Cached = { org: Org; campaignId: string | null; itemSet: "full" | "core" };
+      type Cached = { org: Org; campaignId: string | null };
       const useCache = async () => {
         const c = await cacheGet<Cached>(cacheKey);
         if (!c) return false;
@@ -153,7 +150,6 @@ export default function Survey({
           return true;
         }
         setCampaignId(c.campaignId);
-        setItemSet(c.itemSet);
         setStatus("ready");
         return true;
       };
@@ -183,18 +179,16 @@ export default function Survey({
         setOrg(o as Org);
 
         const { data: c, error: cErr } = await withTimeout(
-          sb.from("campaigns").select("id,item_set").eq("org_id", (o as Org).id).eq("slug", CAMPAIGN_SLUG[audience]).eq("active", true).maybeSingle(),
+          sb.from("campaigns").select("id").eq("org_id", (o as Org).id).eq("slug", CAMPAIGN_SLUG[audience]).eq("active", true).maybeSingle(),
         );
         if (cErr) throw cErr;
 
-        const set = c?.item_set === "core" ? "core" : "full";
-        void cacheSet(cacheKey, { org: o, campaignId: c ? (c.id as string) : null, itemSet: set });
+        void cacheSet(cacheKey, { org: o, campaignId: c ? (c.id as string) : null });
         if (!c) {
           setStatus("not_fielding");
           return;
         }
         setCampaignId(c.id as string);
-        setItemSet(set);
         setStatus("ready");
       } catch {
         // No signal (or the server is unreachable): open from the phone's copy.
@@ -405,9 +399,9 @@ export default function Survey({
             <p className="mt-3 text-sm leading-relaxed text-slate">
               {/* The organisation's own welcome is one language (written in its
                   settings); other languages get the translated standard welcome.
-                  The length follows the survey's actual item set. */}
+                  One instrument, one length. */}
               {(lang.code === "en" && org?.welcome_message) ||
-                lang.ui("welcome_body", { org: orgName, minutes: itemSet === "core" ? 3 : 7 })}
+                lang.ui("welcome_body", { org: orgName, minutes: 7 })}
             </p>
             <button
               onClick={begin}

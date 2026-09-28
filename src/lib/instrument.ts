@@ -1,4 +1,4 @@
-import instrumentV4 from "@/data/instrument.v4.json";
+import instrumentV5 from "@/data/instrument.v5.json";
 import {
   failedAttentionChecks as failedChecks,
   inOrder,
@@ -29,7 +29,10 @@ export interface InstrumentOption {
 
 export interface InstrumentItem {
   key: string;
-  question_domain: "follow" | "mission" | "world" | "screener" | "drivers" | "journey" | "exploration" | "demographic";
+  question_domain:
+    | "follow" | "mission" | "world" | "screener" | "drivers" | "journey" | "exploration" | "demographic"
+    /** Belong–Trust module (v5): unscored insight domains, reported beside the Index. */
+    | "belong" | "trust" | "context";
   /** Index items only: which parallel branch of the instrument this item belongs to.
    * "engaged" (or omitted) feeds the official Index; "unengaged" feeds the separate
    * Exploration Index (src/lib/scoring.ts) and must never be blended with the Index. */
@@ -71,7 +74,14 @@ export interface InstrumentItem {
    * carries the scoring dimension for Index items (follow/mission/world) and a
    * routing label for everything else; section is the single, versioned answer
    * to "which part of the instrument is this", per CLAUDE.md #3. */
-  section?: "screener" | "index" | "driver" | "journey" | "demographic" | "exploration";
+  section?: "screener" | "index" | "driver" | "journey" | "demographic" | "exploration" | "module";
+  /** section "module" only: which module this item belongs to (e.g. "belong_trust").
+   * Modules are config — a new one needs no code beyond its label (src/lib/modules.ts). */
+  module?: string;
+  /** Wording is a working draft for co-design; not yet researcher-approved. */
+  draft?: boolean;
+  /** Where an item was first drafted, when it has since moved section (e.g. "belong_trust"). */
+  origin?: string;
 }
 
 export interface Instrument {
@@ -81,7 +91,7 @@ export interface Instrument {
   items: InstrumentItem[];
 }
 
-export const instrument = instrumentV4 as unknown as Instrument;
+export const instrument = instrumentV5 as unknown as Instrument;
 
 /**
  * How many questions each item set actually asks.

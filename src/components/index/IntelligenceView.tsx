@@ -1,5 +1,7 @@
 "use client";
 
+import ModuleInsights from "@/components/index/ModuleInsights";
+import { optionsFor } from "@/lib/modules";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
@@ -67,7 +69,8 @@ const INSIGHT_ITEMS = instrument.items
   .map((i) => ({
     key: i.key,
     label: t(i.text, "en"),
-    options: (i.options ?? []).map((o) => ({ value: String(o.value), label: t(o.text, "en") })),
+    multi: i.type === "multi_select",
+    options: optionsFor(i),
   }));
 
 const level = (v: number | null | undefined) =>
@@ -435,7 +438,7 @@ export default function IntelligenceView({
                   return (
                     <div key={item.key}>
                       <div className="flex items-baseline justify-between gap-3">
-                        <span className="text-sm font-medium">{item.label}</span>
+                        <span className="text-sm font-medium">{item.label}{item.multi ? <span className="ml-1.5 font-mono text-[10px] text-muted">check all</span> : null}</span>
                         <span className="shrink-0 font-mono text-[11px] text-muted">n {agg.n}</span>
                       </div>
                       {agg.options ? (
@@ -460,10 +463,13 @@ export default function IntelligenceView({
                 })}
               </div>
               <p className="mt-4 font-mono text-[9px] uppercase tracking-wider text-muted">
-                Respondents could pick more than one — shares don&apos;t sum to 100%.
+                Check-all questions can have several answers, so their shares don&apos;t sum to 100%; one-answer questions do.
               </p>
             </section>
           )}
+
+          {/* Insight modules (Belong–Trust) — unscored, beside the Index (CLAUDE.md #6, #9). */}
+          <ModuleInsights insights={d.insights} />
 
           <p className="mt-8 font-mono text-[10px] uppercase tracking-wider text-muted">
             Of those who completed the Index — never a whole population. · <Link href="/" className="text-accent">home</Link>
