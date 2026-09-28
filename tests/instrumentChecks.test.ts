@@ -9,15 +9,15 @@ import { cellCounts, diffKeys, runChecks } from "../src/lib/instrumentChecks.ts"
  * reach a respondent.
  */
 const load = (v: string) => JSON.parse(readFileSync(new URL(`../src/data/instrument.${v}.json`, import.meta.url), "utf8"));
-const v4 = load("v4");
+const v4 = load("v5"); // the live instrument (name kept so the history below reads the same)
 
-test("every integrity check passes on the live instrument (v4)", () => {
+test("every integrity check passes on the live instrument (v5)", () => {
   for (const c of runChecks(v4.items, v4.locales)) assert.ok(c.ok, `${c.label} — ${c.detail}`);
 });
 
-test("four scored items per cell in v4", () => {
+test("four scored items per cell in the live instrument — six in Follow × Formation", () => {
   const m = cellCounts(v4.items);
-  for (const q of Object.keys(m)) for (const t of Object.keys(m[q])) assert.equal(m[q][t], 4, `${q} × ${t}`);
+  for (const q of Object.keys(m)) for (const t of Object.keys(m[q])) assert.equal(m[q][t], q === "follow" && t === "formation" ? 6 : 4, `${q} × ${t}`);
 });
 
 test("checks catch a broken bank", () => {
@@ -32,6 +32,17 @@ test("checks catch a broken bank", () => {
 });
 
 test("diffKeys reports what changed between versions", () => {
-  const d = diffKeys(load("v3").items, v4.items);
+  const d = diffKeys(load("v4").items, v4.items);
+  assert.equal(d.removed.length, 0, "v5 only adds to v4");
   assert.ok(Array.isArray(d.added) && Array.isArray(d.removed));
+});
+
+test("v5 is a strict, identically-scored superset of v4 (safe to adopt, migration 0039)", () => {
+  const v4old = load("v4");
+  const next = new Map(v4.items.map((i: { key: string }) => [i.key, i]));
+  for (const o of v4old.items) {
+    const n = next.get(o.key) as typeof o | undefined;
+    assert.ok(n, `${o.key} dropped`);
+    for (const f of ["question_domain", "tier", "type", "scored", "reverse_scored"]) assert.deepEqual(n[f], o[f], `${o.key}.${f}`);
+  }
 });

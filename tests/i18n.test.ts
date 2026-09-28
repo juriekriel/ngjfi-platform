@@ -55,7 +55,7 @@ test("fmt fills placeholders", () => {
  * fallback chain before English). Translations are researcher-approved; this
  * test stops a half-translated survey ever reaching a respondent.
  */
-const inst = JSON.parse(readFileSync(new URL("../src/data/instrument.v4.json", import.meta.url), "utf8"));
+const inst = JSON.parse(readFileSync(new URL("../src/data/instrument.v5.json", import.meta.url), "utf8"));
 const file = (c: string) => JSON.parse(readFileSync(new URL(`../src/data/i18n/${c}.json`, import.meta.url), "utf8"));
 const en = file("en");
 

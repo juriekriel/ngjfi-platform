@@ -17,7 +17,7 @@
  * over. Opens in Excel, Google Sheets or Numbers; save back as CSV (UTF-8).
  *
  * Importing writes ONLY the language's own file. It never touches the
- * instrument (src/data/instrument.v4.json — researcher-owned) and never
+ * instrument (src/data/instrument.v5.json — researcher-owned) and never
  * changes a language's status: going live is a separate, reviewed change to
  * src/data/locales.json, and CI refuses it unless the language is complete
  * (tests/i18n.test.ts). See docs/TRANSLATION.md.
@@ -27,7 +27,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 const ROOT = new URL("../", import.meta.url);
 const read = (p) => JSON.parse(readFileSync(new URL(p, ROOT), "utf8"));
 const registry = read("src/data/locales.json").locales;
-const inst = read("src/data/instrument.v4.json");
+const inst = read("src/data/instrument.v5.json");
 const en = read("src/data/i18n/en.json");
 
 // ── CSV (RFC 4180: quotes, commas, newlines inside fields) ──────────────

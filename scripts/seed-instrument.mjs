@@ -2,7 +2,7 @@
 // API, using the same SUPABASE_ACCESS_TOKEN that scripts/apply-migrations.mjs
 // reads. No service-role key required.
 //
-//   node scripts/seed-instrument.mjs           seeds src/data/instrument.v4.json
+//   node scripts/seed-instrument.mjs           seeds src/data/instrument.v5.json
 //   node scripts/seed-instrument.mjs v0        seeds a specific version file
 //
 // WHY THIS EXISTS ALONGSIDE db:seed
@@ -18,7 +18,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const REF = "whtbfhbhkhwfmeekvmxq";
-const version = process.argv[2] ?? "v4";
+const version = process.argv[2] ?? "v5";
 
 function token() {
   let raw = "";
@@ -74,14 +74,20 @@ delete from public.items
  where instrument_version_id = (select id from public.instrument_versions where version = '${inst.version}');
 
 insert into public.items
-  (instrument_version_id, key, question_domain, tier, type, scored, reverse_scored, scale, ord, branch)
+  (instrument_version_id, key, question_domain, tier, type, scored, reverse_scored, scale, ord, branch, section)
 select iv.id, e->>'key', e->>'question_domain', e->>'tier', e->>'type',
        coalesce((e->>'scored')::boolean, true),
        coalesce((e->>'reverse_scored')::boolean, false),
-       e->'scale', (e->>'order')::int, e->>'branch'
+       e->'scale', (e->>'order')::int, e->>'branch', e->>'section'
   from public.instrument_versions iv,
        lateral jsonb_array_elements(iv.definition->'items') e
  where iv.version = '${inst.version}';
+
+-- Move existing campaigns and waves onto this version, but only where it
+-- asks everything their current version asks with identical scoring tags
+-- (migration 0039). Without this, a campaign still on the previous version
+-- would reject every new question the survey now shows.
+select public.adopt_instrument_version('${inst.version}') as adopted;
 
 select jsonb_build_object(
   'version', iv.version,

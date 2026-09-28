@@ -1,4 +1,4 @@
-// Seeds the database from the canonical instrument file (src/data/instrument.v4.json):
+// Seeds the database from the canonical instrument file (src/data/instrument.v5.json):
 //   - upserts the instrument version + its expanded items
 //   - with --with-demo-org, ALSO upserts the Sunrise persona into the SANDBOX
 //
@@ -28,7 +28,7 @@ if (!url || !key) {
 
 const sb = createClient(url, key, { auth: { persistSession: false } });
 const inst = JSON.parse(
-  readFileSync(new URL("../src/data/instrument.v4.json", import.meta.url), "utf8"),
+  readFileSync(new URL("../src/data/instrument.v5.json", import.meta.url), "utf8"),
 );
 
 // 1) instrument version (stores the full definition for reference)
@@ -63,9 +63,17 @@ const items = inst.items.map((it) => ({
   scale: it.scale ?? null,
   ord: it.order ?? null,
   branch: it.branch ?? null,
+  section: it.section ?? null,
 }));
 const { error: e2 } = await sb.from("items").insert(items);
 if (e2) throw e2;
+
+// Move existing campaigns/waves onto this version where it is a strict,
+// identically-scored superset of theirs (migration 0039). Otherwise they keep
+// rejecting any new question the survey now shows.
+const { data: adopted, error: e2b } = await sb.rpc("adopt_instrument_version", { p_version: inst.version });
+if (e2b) throw e2b;
+console.log("✓ Adopted:", JSON.stringify(adopted));
 
 // 3) Sunrise — a Buenos Aires pilot persona. SANDBOX ONLY, and opt-in.
 if (!WITH_DEMO_ORG) {

@@ -27,7 +27,7 @@ type Settings = {
   id?: string;
   name: string; short_name: string; logo_url: string | null; brand_color: string | null;
   welcome_message: string | null; closing_message: string | null; country: string | null;
-  status: string; can_edit: boolean; item_set: "full" | "core" | null; locales: string[];
+  status: string; can_edit: boolean; item_set: string | null; locales: string[];
 };
 
 
@@ -60,7 +60,6 @@ export default function OrgSettings({ sb, orgSlug, onSaved }: { sb: SupabaseClie
       <div className="grid gap-3 lg:grid-cols-3">
         <LookTile sb={sb} orgSlug={orgSlug} s={s} ro={ro} onSaved={() => { load(); onSaved?.(); }} />
         <MessagesTile sb={sb} orgSlug={orgSlug} s={s} ro={ro} />
-        <DurationTile sb={sb} orgSlug={orgSlug} s={s} ro={ro} onSaved={load} />
         <LinksTile orgSlug={orgSlug} origin={origin} name={s.name} />
         <LanguagesTile sb={sb} orgSlug={orgSlug} s={s} />
         <StatusTile s={s} />
@@ -229,39 +228,6 @@ function MessagesTile({ sb, orgSlug, s, ro }: { sb: SupabaseClient; orgSlug: str
       </Field>
       {!ro && <button disabled={sv.busy} onClick={() => sv.save({ welcome_message: welcome, closing_message: closing })} className={saveBtn}>{sv.busy ? "Saving…" : "Save"}</button>}
       <Feedback msg={sv.msg} err={sv.err} />
-    </Tile>
-  );
-}
-
-function DurationTile({ sb, orgSlug, s, ro, onSaved }: { sb: SupabaseClient; orgSlug: string; s: Settings; ro: boolean; onSaved: () => void }) {
-  const [v, setV] = useState<"full" | "core">(s.item_set ?? "full");
-  const [msg, setMsg] = useState<string | null>(null);
-  const [err, setErr] = useState<string | null>(null);
-  async function pick(next: "full" | "core") {
-    setV(next);
-    const { error } = await sb.rpc("org_set_duration", { p_org_slug: orgSlug, p_item_set: next });
-    setErr(error?.message ?? null);
-    setMsg(error ? null : "Saved — new respondents get this length.");
-    if (!error) onSaved();
-  }
-  const opt = (k: "full" | "core", title: string, note: string) => (
-    <button
-      type="button"
-      disabled={ro}
-      aria-pressed={v === k}
-      onClick={() => pick(k)}
-      className={`flex flex-col items-start rounded-xl border px-4 py-3 text-left ${v === k ? "border-violet-deep bg-violet/10" : "border-rule-2 bg-plate hover:border-ink"} disabled:cursor-default`}
-    >
-      <span className="text-[15px] font-semibold">{title}</span>
-      <span className="text-[13px] text-ink-2">{note}</span>
-    </button>
-  );
-  return (
-    <Tile kicker="How long it takes" title="Duration">
-      {opt("full", "Full · about 7 minutes", "Every question — the complete J12 reading plus Drivers and Journey.")}
-      {opt("core", "Short · about 3 minutes", "The twelve core questions — one per cell — for camps and busy moments.")}
-      <p className="text-[12.5px] text-ink-2">Applies to all your links. Answers already given keep the version they were given under.</p>
-      <Feedback msg={msg} err={err} />
     </Tile>
   );
 }
