@@ -171,13 +171,11 @@ test("no single respondent path exceeds the agreed ceiling for a fielded set", (
   const committedCoreCount = visibleItems(committedCore).length;
   const committedFullCount = visibleItems(committed).length;
   const unengagedFull = visibleItems(unengagedDirect).length;
-  // v5 amendment: +2 on every Engaged path for new/committed followers — the
-  // prayer (internal) and scripture (external) Follow × Formation items.
-  assert.equal(committedCoreCount, 36, `Engaged core path length changed to ${committedCoreCount} — update this number`);
+  assert.equal(committedCoreCount, 34, `Engaged core path length changed to ${committedCoreCount} — update this number`);
   // v5: +2 on each full path — belong_religion and belong_community_monthly
   // open for everyone who takes the extras; the rest of Belong–Trust only
   // follows a monthly "yes" (see the Belong–Trust tests below). Core is untouched.
-  assert.equal(committedFullCount, 46, `Engaged full path length changed to ${committedFullCount} — update this number`);
+  assert.equal(committedFullCount, 44, `Engaged full path length changed to ${committedFullCount} — update this number`);
   assert.equal(unengagedFull, 40, `Unengaged full path length changed to ${unengagedFull} — update this number`);
 });
 
@@ -282,7 +280,7 @@ test("every scored Index item, in either branch, is tagged internal or external,
   const indexItems = instrument.items.filter(
     (i) => i.scored && DOMAINS.includes(i.question_domain as (typeof DOMAINS)[number]),
   );
-  assert.equal(indexItems.length, 50, "expected 26 Engaged (24 + prayer and scripture) + 24 Unengaged scored Index items");
+  assert.equal(indexItems.length, 48, "expected 24 Engaged + 24 Unengaged scored Index items");
   for (const i of indexItems) {
     assert.ok(i.measure === "internal" || i.measure === "external", `"${i.key}" has no measure tag`);
     // Unengaged-branch keys carry a trailing "_unengaged" suffix on top of
@@ -301,16 +299,8 @@ test("each branch's matrix is exactly one internal + one external item per cell 
           (i) => i.question_domain === d && i.tier === t && i.scored &&
             (branch === "engaged" ? i.branch !== "unengaged" : i.branch === "unengaged"),
         );
-        // One deliberate exception (v5 amendment): Engaged Follow × Formation
-        // holds prayer and Bible, each measured internally and externally —
-        // still balanced, two of each.
-        const pairs = branch === "engaged" && d === "follow" && t === "formation" ? 2 : 1;
-        assert.equal(cell.length, 2 * pairs, `${branch} ${d}×${t} has ${cell.length} scored items, expected exactly ${2 * pairs}`);
-        assert.deepEqual(
-          cell.map((i) => i.measure).sort(),
-          [...Array(pairs).fill("external"), ...Array(pairs).fill("internal")],
-          `${branch} ${d}×${t} isn't balanced internal/external`,
-        );
+        assert.equal(cell.length, 2, `${branch} ${d}×${t} has ${cell.length} scored items, expected exactly 2`);
+        assert.deepEqual(cell.map((i) => i.measure).sort(), ["external", "internal"], `${branch} ${d}×${t} isn't one of each`);
       }
     }
   }
@@ -576,22 +566,14 @@ test("the four moved items open Drivers & Journey, context first, for both paths
   assert.equal(byKey("trust_real_say").options, undefined);
 });
 
-test("prayer and scripture Likert items score into Follow × Formation — for new and committed followers only", () => {
-  const pr = byKey("follow_formation_prayer_internal");
-  const sc = byKey("follow_formation_scripture_external");
-  for (const [i, m] of [[pr, "internal"], [sc, "external"]] as const) {
-    assert.equal(i.scored, true);
-    assert.equal(i.type, "likert_5");
-    assert.equal(i.question_domain, "follow");
-    assert.equal(i.tier, "formation");
-    assert.equal(i.measure, m);
-    assert.equal(i.branch, "engaged");
-    assert.ok(!i.core, "not part of the J12 core");
-    for (const o of ["new_follower", "committed_growing"]) assert.equal(isVisible(i, { orientation: o }), true, `${i.key} for ${o}`);
-    assert.equal(isVisible(i, ambiguousYes), false, `${i.key} must not follow a follower_check yes`);
-    assert.equal(isVisible(i, unengagedDirect), false);
+test("weekly prayer and scripture are asked once each — as the unscored frequencies", () => {
+  const prayer = instrument.items.filter((i) => /pray/.test(i.key));
+  const scripture = instrument.items.filter((i) => /scripture/.test(i.key));
+  assert.deepEqual(prayer.map((i) => i.key), ["pray_frequency"]);
+  assert.deepEqual(scripture.map((i) => i.key), ["scripture_frequency"]);
+  for (const i of [...prayer, ...scripture]) {
+    assert.equal(i.type, "frequency");
+    assert.equal(i.scored, false);
+    assert.equal(i.core_activity, true, "non-negotiable #5");
   }
-  // Still asked alongside the unscored weekly-practice frequencies (#5).
-  assert.equal(byKey("pray_frequency").scored, false);
-  assert.equal(byKey("scripture_frequency").scored, false);
 });

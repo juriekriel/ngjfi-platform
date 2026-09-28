@@ -15,9 +15,9 @@ test("every integrity check passes on the live instrument (v5)", () => {
   for (const c of runChecks(v4.items, v4.locales)) assert.ok(c.ok, `${c.label} — ${c.detail}`);
 });
 
-test("four scored items per cell in the live instrument — six in Follow × Formation", () => {
+test("four scored items per cell in the live instrument", () => {
   const m = cellCounts(v4.items);
-  for (const q of Object.keys(m)) for (const t of Object.keys(m[q])) assert.equal(m[q][t], q === "follow" && t === "formation" ? 6 : 4, `${q} × ${t}`);
+  for (const q of Object.keys(m)) for (const t of Object.keys(m[q])) assert.equal(m[q][t], 4, `${q} × ${t}`);
 });
 
 test("checks catch a broken bank", () => {
