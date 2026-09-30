@@ -2,12 +2,17 @@
  "$comment": "Spanish — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; empty means the language has no question translations yet. Edit via the translation sheet (docs/TRANSLATION.md).",
  "ui_status": "draft",
  "ui": {
+  "about_body": "No te pedimos tu nombre, correo ni número de teléfono, y no guardamos tu dirección de internet con tus respuestas. Solo preguntamos tu grupo de edad y más o menos dónde vives. {org} solo ve resultados agrupados de muchas personas — nunca tus respuestas por separado. Puedes parar en cualquier momento cerrando esta página.",
+  "about_title": "Qué pasa con tus respuestas",
   "back": "← Atrás",
   "begin": "Comenzar →",
+  "chars_left": "quedan {n} caracteres",
   "continue": "Continuar →",
   "done_pending": "Tus respuestas están guardadas en este teléfono y se sumarán a la imagen de {org} en cuanto haya señal; no tienes que hacer nada.",
   "done_private": "Solo ven resultados agrupados, nunca respuestas individuales.",
   "done_saved": "Tu respuesta se ha sumado a la imagen que {org} tiene de cómo su comunidad sigue a Jesús.",
+  "ended_body": "Esta encuesta es para personas de 13 años o más, así que no hay nada más que responder. No se ha guardado nada de lo que elegiste.",
+  "ended_title": "¡Gracias por pasar!",
   "install_android": "Instala la encuesta de {org} en este teléfono para que se abra sin señal.",
   "install_btn": "Instalar",
   "install_ios": "Toca el botón Compartir y luego “Añadir a pantalla de inicio” para que se abra sin señal.",
@@ -23,6 +28,7 @@
   "link_not_open": "Este enlace aún no está abierto.",
   "loading": "Cargando…",
   "next_person": "Siguiente persona en este teléfono →",
+  "no": "No",
   "no_org_body": "No hay ninguna organización en esta dirección. Revisa el enlace que te dieron: puede tener un error o haber sido retirado.",
   "no_org_title": "Este enlace no lleva a ningún sitio.",
   "not_fielding_community": "{org} aún no ha abierto esta encuesta. Si alguien te la compartió, avísale de que el enlace todavía no está activo.",
@@ -35,6 +41,7 @@
   "offline_first_title": "No tienes conexión.",
   "powered": "Con la tecnología del Next Gen Jesus-Following Index",
   "preview_banner": "Vista previa de una traducción en borrador: las respuestas no se registran.",
+  "privacy_link": "Lee el aviso de privacidad completo",
   "question_of": "Pregunta {n} de {total}",
   "saved_on_phone": "{n} guardadas en este teléfono",
   "select_up_to": "Elige hasta {n}",
@@ -43,8 +50,9 @@
   "thanks": "¡Gracias!",
   "type_here": "Escribe tanto o tan poco como quieras…",
   "waiting_signal": "Esperando señal",
-  "welcome_body": "{org} quiere aprender a acompañar a los jóvenes mientras siguen a Jesús. Tus respuestas sinceras ayudan. Toma unos {minutes} minutos y es completamente anónima.",
-  "welcome_title": "Te invitamos a compartir [dónde estás]."
+  "welcome_body": "{org} quiere aprender a acompañar a los jóvenes mientras siguen a Jesús. Tus respuestas sinceras ayudan. Toma unos {minutes} minutos y es anónima: nunca te pedimos tu nombre.",
+  "welcome_title": "Te invitamos a compartir [dónde estás].",
+  "yes": "Sí"
  },
  "items": {}
 }

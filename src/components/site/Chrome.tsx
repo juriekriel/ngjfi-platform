@@ -72,6 +72,10 @@ export function Footer() {
           </a>
           , to see everyone in the next generation having an opportunity to follow Jesus by 2033.
         </p>
+        <nav aria-label="Legal" className="ml-auto flex gap-4 text-[13px]">
+          <Link href="/privacy" className="text-ink-2 underline decoration-rule-2 underline-offset-2 hover:text-ink">Privacy</Link>
+          <Link href="/terms" className="text-ink-2 underline decoration-rule-2 underline-offset-2 hover:text-ink">Terms</Link>
+        </nav>
       </div>
     </footer>
   );

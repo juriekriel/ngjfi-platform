@@ -11,6 +11,7 @@
  *   Links & QR       survey links, QR download, print cards
  *   Languages        what it runs in; request a translation (→ the Collab)
  *   Status           collecting or waiting for approval
+ *   Consent          the edge-consent confirmation (0042) — links refuse answers until it exists
  *
  * Writes need an organisation admin (checked in the database, migration
  * 0036); a facilitator sees everything read-only.
@@ -18,8 +19,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import QRCode from "qrcode";
-import { instrument } from "@/lib/instrument";
+import { TOTAL_COUNT, instrument } from "@/lib/instrument";
 import { REGISTRY } from "@/lib/i18n";
+import ConsentAttestation from "@/components/console/ConsentAttestation";
 import { LOGO_BUCKET, LOGO_MAX_BYTES, fitWithin, logoPath, logoProblem, ourLogoPath } from "@/lib/logoUpload";
 
 type Settings = {
@@ -63,6 +65,9 @@ export default function OrgSettings({ sb, orgSlug, onSaved }: { sb: SupabaseClie
         <LinksTile orgSlug={orgSlug} origin={origin} name={s.name} />
         <LanguagesTile sb={sb} orgSlug={orgSlug} s={s} />
         <StatusTile s={s} />
+        <Tile kicker="Before your first real response" title="Consent">
+          <ConsentAttestation sb={sb} orgSlug={orgSlug} onChange={() => onSaved?.()} />
+        </Tile>
       </div>
     </div>
   );
@@ -344,7 +349,7 @@ function StatusTile({ s }: { s: Settings }) {
             : "Your survey isn't accepting answers. Your results stay here."}
       </p>
       <div className="rounded-xl bg-paper-deep px-3 py-2.5 text-[13px] text-ink-2">
-        Instrument <b className="text-ink">{instrument.version}</b> · {instrument.items.length} questions · anonymous · works offline
+        Instrument <b className="text-ink">{instrument.version}</b> · {TOTAL_COUNT} questions · anonymous · works offline
       </div>
     </Tile>
   );

@@ -25,7 +25,7 @@
  * it. No name, email or other identifier is ever part of a survey write.
  */
 
-export type OpKind = "start" | "save" | "context" | "delete" | "finish";
+export type OpKind = "start" | "save" | "context" | "delete" | "finish" | "discard";
 
 export type Op = {
   /** Assigned by the store; defines send order. */
@@ -57,6 +57,7 @@ export const RPC_FOR: Record<OpKind, string> = {
   context: "set_session_context",
   delete: "delete_response",
   finish: "finish_session",
+  discard: "discard_session",
 };
 
 /**
@@ -87,11 +88,28 @@ export async function drain(store: OutboxStore, rpc: Rpc): Promise<DrainResult> 
   let stoppedOffline = false;
   const ops = await store.allOps();
 
+  const gone = new Set<number>(); // ops removed mid-drain (a discarded session)
+
   for (const op of ops) {
     const id = op.id as number;
+    if (gone.has(id)) continue;
     const session = await store.getSession(op.session);
 
     if (op.kind === "start") {
+      // Discarded before the server ever heard of it (an ineligible answer,
+      // given offline): drop every write for this session on the phone and
+      // send nothing at all — the best possible outcome for an under-13.
+      if (!session?.server && ops.some((o) => o.session === op.session && o.kind === "discard")) {
+        for (const o of await store.allOps()) {
+          if (o.session === op.session) {
+            await store.deleteOp(o.id as number);
+            gone.add(o.id as number);
+            dropped++;
+          }
+        }
+        await store.deleteSession(op.session);
+        continue;
+      }
       if (session?.server) {
         // Already started (a previous attempt succeeded) — the op is stale.
         await store.deleteOp(id);
@@ -141,7 +159,7 @@ export async function drain(store: OutboxStore, rpc: Rpc): Promise<DrainResult> 
     }
     await store.deleteOp(id);
     sent++;
-    if (op.kind === "finish") {
+    if (op.kind === "finish" || op.kind === "discard") {
       // Nothing else will reference this session; forget the id mapping.
       const rest = (await store.allOps()).some((o) => o.session === op.session);
       if (!rest) await store.deleteSession(op.session);

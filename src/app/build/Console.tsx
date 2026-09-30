@@ -20,6 +20,7 @@ import {
   type HouseSettings,
   type WorkItem,
 } from "@/components/console/Bands";
+import PilotReadiness from "@/components/console/PilotReadiness";
 import SurveyWizard from "@/components/console/SurveyWizard";
 import { ConsultingRequestsBand, useConsultingRequests } from "@/components/console/ConsultingRequests";
 import { linkError } from "@/lib/authLinks";
@@ -914,6 +915,9 @@ function AdminConsole() {
 
       {section === "console" && (
       <div className="space-y-10">
+      <Band letter="0" title="Pilot readiness" gloss="Run this before any organisation hands out a real link. Everything the database can check is checked; the rest is a list to confirm by hand." figure="pre-flight">
+        <PilotReadiness sb={sb} />
+      </Band>
       <Band letter="B" title="Surveys" gloss="Both verbs, unrestricted — and every act of fielding on someone else's behalf is written to the action log with your name on it." figure="unrestricted">
         {wizard ? (
           <SurveyWizard

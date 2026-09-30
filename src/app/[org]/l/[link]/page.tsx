@@ -11,6 +11,8 @@ type Resolved = {
   active_from: string | null;
   active_to: string | null;
   is_open: boolean;
+  /** 0042: test links run before consent is attested (answers go to test tables). */
+  is_test?: boolean;
 };
 
 /**
@@ -54,7 +56,7 @@ export default function DistributionLinkPage({ params }: { params: { org: string
       </Centered>
     );
 
-  return <Survey slug={params.org} audience={resolved.audience} distributionLinkSlug={params.link} />;
+  return <Survey slug={params.org} audience={resolved.audience} distributionLinkSlug={params.link} isTestLink={Boolean(resolved.is_test)} />;
 }
 
 function Centered({ children }: { children: React.ReactNode }) {

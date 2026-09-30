@@ -3,7 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { Action, LinkRow, Row, Rows, Trouble } from "./Bands";
-import { TOTAL_COUNT } from "@/lib/instrument";
+import { TOTAL_COUNT, WELCOME_MINUTES } from "@/lib/instrument";
+import { REGISTRY } from "@/lib/i18n";
+import ConsentAttestation, { useConsentStatus } from "./ConsentAttestation";
+
+/** Only languages researchers have approved can be fielded (locales.json). */
+const LIVE_LOCALES = REGISTRY.filter((l) => l.status === "live");
+const COMING_LOCALES = REGISTRY.filter((l) => l.status !== "live");
 
 /**
  * Setting up a survey — one wizard, every tier.
@@ -55,6 +61,8 @@ export default function SurveyWizard({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [links, setLinks] = useState<Record<string, { url: string; label: string; note: string }> | null>(null);
+  const consent = useConsentStatus(sb, org);
+  const consentDone = !consent.status || !consent.status.required || consent.status.attested;
 
   useEffect(() => {
     if (fixedOrg || !sb) return;
@@ -169,7 +177,7 @@ export default function SurveyWizard({
             shorter versions — and each respondent only sees the questions their answers lead to.
           </p>
           <div className="mt-5 rounded-xl border-2 border-ink bg-paper-deep p-4">
-            <p className="figcap">{TOTAL_COUNT} items in the bank · about seven minutes</p>
+            <p className="figcap">{TOTAL_COUNT} items in the bank · about {WELCOME_MINUTES} minutes for most people</p>
             <p className="mt-1 text-[17px]">The full instrument</p>
             <p className="mt-1.5 text-[14px] leading-relaxed text-ink-2">
               The whole three-by-four grid, the Exploration Index for those not yet following, and the
@@ -229,19 +237,27 @@ export default function SurveyWizard({
           </Rows>
           <div className="mt-5">
             <p className="figcap">Language</p>
-            <div className="mt-2 flex gap-2">
-              {["en", "es"].map((l) => (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {LIVE_LOCALES.map((l) => (
                 <button
-                  key={l}
-                  onClick={() => setLocale(l)}
+                  key={l.code}
+                  type="button"
+                  aria-pressed={locale === l.code}
+                  onClick={() => setLocale(l.code)}
                   className={`rounded-md border px-3 py-1.5 text-[13px] font-semibold ${
-                    locale === l ? "border-ink bg-ink text-paper" : "border-rule-2 text-ink-2"
+                    locale === l.code ? "border-ink bg-ink text-paper" : "border-rule-2 text-ink-2"
                   }`}
                 >
-                  {l === "en" ? "English" : "Español"}
+                  {l.native}
                 </button>
               ))}
             </div>
+            {COMING_LOCALES.length > 0 && (
+              <p className="mt-2 text-[12.5px] leading-relaxed text-muted">
+                Being translated: {COMING_LOCALES.map((l) => l.native).join(" · ")}. A language can be fielded once
+                researchers have approved its translation.
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -257,13 +273,18 @@ export default function SurveyWizard({
             <Row label="Their answers" meta="bound to the instrument version" tone="good" />
             <Row label="An age band" meta="never a birthdate" tone="good" />
             <Row label="A country, and optionally a city" meta="coarse, never precise" tone="good" />
-            <Row label="A name, email, phone or IP address" meta="never — not stored at all" />
+            <Row label="A name, email or phone number" meta="never asked" />
+            <Row label="An IP address" meta="never stored with answers (our hosts see it briefly, as every website's do)" />
+            <Row label="An under-13" meta="the survey ends at the age question and keeps nothing" />
           </Rows>
           <p className="margin-note mt-4 border-l-2 border-emerald pl-3">
             Nothing on that list can identify a young person, which is what makes it safe to run
             with 13-to-17s. Parental consent, where your context requires it, is yours to gather
             before you hand out the link — we deliberately never hold it centrally.
           </p>
+          <div className="mt-5 rounded-xl border border-rule bg-paper-deep p-4">
+            {org && <ConsentAttestation sb={sb} orgSlug={org} onChange={() => consent.reload()} />}
+          </div>
         </div>
       )}
 
@@ -280,7 +301,11 @@ export default function SurveyWizard({
               meta={`the full instrument · ${TOTAL_COUNT} items`}
             />
             <Row label="Audiences" meta={[...audiences].join(" + ")} />
-            <Row label="Language" meta={locale === "en" ? "English" : "Español"} />
+            <Row label="Language" meta={REGISTRY.find((l) => l.code === locale)?.native ?? locale} />
+            <Row
+              label="Consent"
+              meta={consentDone ? "confirmed" : "not yet confirmed — the links will refuse answers until an organisation admin confirms"}
+            />
           </Rows>
           {chosen && chosen.authority !== "own_organisation" && (
             <p className="margin-note mt-4 border-l-2 border-vermillion pl-3">

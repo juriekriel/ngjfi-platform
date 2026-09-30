@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import {
+  WELCOME_MINUTES,
+  endsSurvey,
+  fieldedItems,
   instrument,
   nextVisibleIndex,
-  orderedItems,
   orphanedAnswers,
   prevVisibleIndex,
   t,
@@ -29,7 +31,17 @@ type Org = {
   welcome_message: string | null;
   /** The organisation's logo (Survey settings, migrations 0036/0037). */
   logo_url?: string | null;
+  /** Collecting only when active, and — for real organisations — once consent is attested (0042). */
+  status?: string | null;
+  is_demo?: boolean | null;
+  consent_attested_at?: string | null;
 };
+
+/** Would start_session() accept a live session for this organisation? Mirrors the 0034/0042 triggers. */
+function collecting(o: Org): boolean {
+  if (o.status && o.status !== "active") return false;
+  return Boolean(o.is_demo) || Boolean(o.consent_attested_at);
+}
 
 /**
  * Two audiences, two campaigns, one instrument. `campaign_upsert()` writes
@@ -54,6 +66,7 @@ export default function Survey({
   slug,
   audience = "community",
   distributionLinkSlug,
+  isTestLink = false,
 }: {
   slug: string;
   audience?: "community" | "public";
@@ -64,6 +77,8 @@ export default function Survey({
    * slug itself (org match + active window), so nothing else here changes.
    */
   distributionLinkSlug?: string;
+  /** A test link (0038) records into test tables and may run before consent is attested. */
+  isTestLink?: boolean;
 }) {
   // Language (docs/TRANSLATION.md). Respondents are offered only LIVE
   // languages. Reviewers add ?preview=1 to try draft translations — and a
@@ -88,14 +103,18 @@ export default function Survey({
     if (avail.includes(wanted) && wanted !== "en") void pickLang(wanted);
   }, [pickLang]);
   // One instrument, no shorter versions (migration 0040): every campaign
-  // fields the whole item set, and branching decides who sees what.
-  const items = useMemo(() => orderedItems(), []);
+  // fields the whole item set, and branching decides who sees what. Draft
+  // items are held back until a researcher fields them (instrument config).
+  const items = useMemo(() => fieldedItems(), []);
   const steps = items.length;
 
   const sb = useMemo(() => getSupabaseBrowser(), []);
   const [org, setOrg] = useState<Org | null>(null);
   const [campaignId, setCampaignId] = useState<string | null>(null);
   const [i, setI] = useState(-1); // -1 = welcome, >= steps = done
+  // An answer the instrument marks ends_survey (e.g. under 13): a polite close,
+  // and nothing about this person is kept — on the phone or the server.
+  const [ended, setEnded] = useState(false);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [sessionId, setSessionId] = useState<string | null>(null);
   // Answers are written to the phone instantly now, so a question never waits on the network.
@@ -145,7 +164,7 @@ export default function Survey({
         const c = await cacheGet<Cached>(cacheKey);
         if (!c) return false;
         setOrg(c.org);
-        if (!c.campaignId) {
+        if (!c.campaignId || (!isTestLink && !collecting(c.org))) {
           setStatus("not_fielding");
           return true;
         }
@@ -169,7 +188,7 @@ export default function Survey({
         // short_name is the public identifier (migration 0011). slug is kept in
         // lockstep by a trigger, but the URL is the short name, so look that up.
         const { data: o, error: oErr } = await withTimeout(
-          sb.from("organisations").select("id,slug,name,brand_color,country,welcome_message,logo_url").eq("short_name", slug).maybeSingle(),
+          sb.from("organisations").select("id,slug,name,brand_color,country,welcome_message,logo_url,status,is_demo,consent_attested_at").eq("short_name", slug).maybeSingle(),
         );
         if (oErr) throw oErr;
         if (!o) {
@@ -184,7 +203,10 @@ export default function Survey({
         if (cErr) throw cErr;
 
         void cacheSet(cacheKey, { org: o, campaignId: c ? (c.id as string) : null });
-        if (!c) {
+        // Not collecting (still being set up, paused, or consent not yet
+        // confirmed): say so now, rather than letting a young person answer
+        // forty questions the server will refuse.
+        if (!c || (!isTestLink && !collecting(o as Org))) {
           setStatus("not_fielding");
           return;
         }
@@ -195,7 +217,7 @@ export default function Survey({
         if (!(await useCache())) setStatus("offline_first_visit");
       }
     })();
-  }, [sb, slug, audience]);
+  }, [sb, slug, audience, isTestLink]);
 
   function begin() {
     setError(null);
@@ -215,6 +237,18 @@ export default function Survey({
 
   function choose(value: AnswerValue) {
     const item = items[i];
+
+    if (endsSurvey(item, value)) {
+      // The answer itself is never saved. The session (if the server has it
+      // yet) is deleted; if it hasn't, the phone drops it without sending.
+      if (sb && sessionId && recording) void enqueue(sessionId, "discard", { p_session_id: sessionId });
+      setAnswers({});
+      setSessionId(null);
+      setEnded(true);
+      setI(steps);
+      return;
+    }
+
     const nextAnswers = { ...answers, [item.key]: value };
     setAnswers(nextAnswers);
 
@@ -258,6 +292,7 @@ export default function Survey({
 
   /** A shared phone at a camp: clear this person's answers from the screen and start the next. */
   function nextPerson() {
+    setEnded(false);
     setAnswers({});
     setSessionId(null);
     setError(null);
@@ -401,8 +436,15 @@ export default function Survey({
                   settings); other languages get the translated standard welcome.
                   One instrument, one length. */}
               {(lang.code === "en" && org?.welcome_message) ||
-                lang.ui("welcome_body", { org: orgName, minutes: 7 })}
+                lang.ui("welcome_body", { org: orgName, minutes: WELCOME_MINUTES })}
             </p>
+            <details className="mt-4 rounded-lg bg-paper-deep px-3 py-2 text-[13px] leading-relaxed text-ink-2">
+              <summary className="cursor-pointer font-semibold text-ink">{lang.ui("about_title")}</summary>
+              <p className="mt-2">{lang.ui("about_body", { org: orgName })}</p>
+              <a href="/privacy" target="_blank" rel="noopener" className="mt-2 inline-block font-semibold text-ink underline underline-offset-2">
+                {lang.ui("privacy_link")}
+              </a>
+            </details>
             <button
               onClick={begin}
               className="mt-6 rounded-lg px-6 py-3 font-semibold text-white"
@@ -427,7 +469,22 @@ export default function Survey({
           />
         )}
 
-        {i >= steps && (
+        {i >= steps && ended && (
+          <div className="py-6 text-center" role="status">
+            <h2 className="text-xl font-bold">{lang.ui("ended_title")}</h2>
+            <p className="mx-auto mt-2 max-w-sm text-sm text-slate">{lang.ui("ended_body")}</p>
+            <button
+              type="button"
+              onClick={nextPerson}
+              className="mt-6 rounded-lg border-2 px-5 py-2.5 text-sm font-semibold"
+              style={{ borderColor: brand, color: brand }}
+            >
+              {lang.ui("next_person")}
+            </button>
+          </div>
+        )}
+
+        {i >= steps && !ended && (
           <div className="py-6 text-center">
             <div
               className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full text-3xl text-white"

@@ -3,6 +3,9 @@
 -- NOTE: read results back in a separate statement — a SELECT in the same statement as
 -- the change it checks sees the snapshot from before the change.
 \set ON_ERROR_STOP 1
+-- 0042: live sessions need an edge-consent attestation; this smoke tests something
+-- else, so its fixture organisations are treated as attested.
+alter table public.sessions disable trigger sessions_refuse_without_consent;
 insert into auth.users values ('aaaaaaaa-0000-0000-0000-00000000000a','admin@collab.org'),('bbbbbbbb-0000-0000-0000-00000000000b','pastor@shoreline.org'),('cccccccc-0000-0000-0000-00000000000c','lead@harbour.org'),('dddddddd-0000-0000-0000-00000000000d','someone@gmail.com');
 update app_users set role='admin' where id='aaaaaaaa-0000-0000-0000-00000000000a';
 insert into instrument_versions(version,status) values ('v4','active');

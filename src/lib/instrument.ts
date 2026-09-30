@@ -1,5 +1,7 @@
 import instrumentV5 from "@/data/instrument.v5.json";
 import {
+  endsSurvey as endsRule,
+  fieldable,
   failedAttentionChecks as failedChecks,
   inOrder,
   isVisible as ruleIsVisible,
@@ -25,6 +27,9 @@ export interface LocalizedText {
 export interface InstrumentOption {
   value: string | number;
   text: LocalizedText;
+  /** Choosing this option ends the survey and discards the in-progress session
+   * (e.g. an age below the cohort's range). Config, never an if in code. */
+  ends_survey?: boolean;
 }
 
 export interface InstrumentItem {
@@ -89,6 +94,10 @@ export interface Instrument {
   scoringVersion: string;
   locales: Locale[];
   items: InstrumentItem[];
+  /** What the welcome screen promises for the main set, in minutes (researcher-owned copy). */
+  welcome_minutes?: number;
+  /** When false (the default), items marked `draft` are kept in the definition but never shown. */
+  field_draft_items?: boolean;
 }
 
 export const instrument = instrumentV5 as unknown as Instrument;
@@ -102,7 +111,29 @@ export const instrument = instrumentV5 as unknown as Instrument;
  * constant somebody forgot to update.
  */
 export const CORE_COUNT = instrument.items.filter((i) => i.core).length;
-export const TOTAL_COUNT = instrument.items.length;
+export const TOTAL_COUNT = fieldedItems().length;
+
+/**
+ * The items a respondent can actually be shown. Draft items (wording still in
+ * co-design) stay in the definition — so reports, the admin UI and the tour
+ * know about them — but are only fielded once a researcher sets
+ * `field_draft_items: true` on the instrument. Fielding unapproved wording is a
+ * decision, never a side effect of merging it.
+ */
+export function fieldedItems(inst: Instrument = instrument): InstrumentItem[] {
+  return fieldable(inst.items, Boolean(inst.field_draft_items));
+}
+
+/** Does choosing `value` on `item` end the survey (an ineligible answer)? */
+export function endsSurvey(item: InstrumentItem, value: AnswerValue): boolean {
+  return endsRule(item, value);
+}
+
+/** Minutes promised on the welcome screen. */
+export const WELCOME_MINUTES = instrument.welcome_minutes ?? 7;
+
+/** The instrument as respondents meet it — the default for every path helper below. */
+export const fielded: Instrument = { ...instrument, items: fieldedItems() };
 
 /** Localized string with English fallback. */
 export function t(text: LocalizedText, locale: Locale = "en"): string {
@@ -118,14 +149,14 @@ export function isVisible(item: InstrumentItem, answers: Answers): boolean {
   return ruleIsVisible(item, answers);
 }
 
-export function visibleItems(answers: Answers, inst: Instrument = instrument): InstrumentItem[] {
+export function visibleItems(answers: Answers, inst: Instrument = fielded): InstrumentItem[] {
   return visible(inst.items, answers);
 }
 
 export function nextVisibleIndex(
   fromIndex: number,
   answers: Answers,
-  inst: Instrument = instrument,
+  inst: Instrument = fielded,
 ): number {
   return nextIdx(inst.items, fromIndex, answers);
 }
@@ -133,12 +164,12 @@ export function nextVisibleIndex(
 export function prevVisibleIndex(
   fromIndex: number,
   answers: Answers,
-  inst: Instrument = instrument,
+  inst: Instrument = fielded,
 ): number {
   return prevIdx(inst.items, fromIndex, answers);
 }
 
-export function orphanedAnswers(answers: Answers, inst: Instrument = instrument): InstrumentItem[] {
+export function orphanedAnswers(answers: Answers, inst: Instrument = fielded): InstrumentItem[] {
   return orphaned(inst.items, answers);
 }
 
