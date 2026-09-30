@@ -121,3 +121,30 @@ test("isPermanent: codes are refusals, no code is a network problem", () => {
   assert.equal(isPermanent({ message: "conn", code: "08006" }), false);
   assert.equal(isPermanent(null), false);
 });
+
+test("an ineligible answer given offline never reaches the server at all", async () => {
+  const s = memoryStore();
+  const srv = fakeServer();
+  srv.setOnline(false);
+  await s.add({ session: "L1", kind: "start", args: { p_campaign_id: "c" }, createdAt: Date.now() });
+  await s.add({ session: "L1", kind: "discard", args: { p_session_id: "L1" }, createdAt: Date.now() });
+  await s.add({ session: "L2", kind: "start", args: { p_campaign_id: "c" }, createdAt: Date.now() });
+  srv.setOnline(true);
+  const r = await drain(s, srv.rpc);
+  assert.deepEqual(srv.calls.map((c) => c.fn), ["start_session"], "only the second respondent's session starts");
+  assert.equal(r.remaining, 0);
+  assert.equal(await s.getSession("L1"), undefined);
+});
+
+test("an ineligible answer after the session reached the server discards it there", async () => {
+  const s = memoryStore();
+  const srv = fakeServer();
+  await s.add({ session: "L1", kind: "start", args: {}, createdAt: Date.now() });
+  await drain(s, srv.rpc);
+  await s.add({ session: "L1", kind: "discard", args: { p_session_id: "L1" }, createdAt: Date.now() });
+  const r = await drain(s, srv.rpc);
+  assert.deepEqual(srv.calls.map((c) => c.fn), ["start_session", "discard_session"]);
+  assert.equal(srv.calls[1].args.p_session_id, "srv-1");
+  assert.equal(r.remaining, 0);
+  assert.equal(await s.getSession("L1"), undefined);
+});

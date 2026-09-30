@@ -2,12 +2,17 @@
  "$comment": "English — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: source. Items here override the instrument's own text; empty means the language has no question translations yet. Edit via the translation sheet (docs/TRANSLATION.md).",
  "ui_status": "source",
  "ui": {
+  "about_body": "We don't ask for your name, email or phone number, and we don't store your internet address with your answers. We ask only your age group and roughly where you live. {org} only ever sees results grouped together from many people — never your answers on their own. You can stop at any time by closing this page.",
+  "about_title": "What happens to your answers",
   "back": "← Back",
   "begin": "Begin →",
+  "chars_left": "{n} characters left",
   "continue": "Continue →",
   "done_pending": "Your answers are saved on this phone and will be added to {org}'s picture as soon as it has a signal — you don't need to do anything.",
   "done_private": "They only ever see grouped results, never individual answers.",
   "done_saved": "Your response has been added to {org}'s picture of how their community is following Jesus.",
+  "ended_body": "This survey is for people aged 13 and over, so there's nothing more to answer. Nothing you chose has been kept.",
+  "ended_title": "Thanks for stopping by!",
   "install_android": "Install {org}'s survey on this phone so it opens with no signal.",
   "install_btn": "Install",
   "install_ios": "Tap the Share button, then “Add to Home Screen”, so it opens with no signal.",
@@ -23,6 +28,7 @@
   "link_not_open": "This link isn't open yet.",
   "loading": "Loading…",
   "next_person": "Next person on this phone →",
+  "no": "No",
   "no_org_body": "There is no organisation at this address. Check the link you were given — it may have a typo, or it may have been taken down.",
   "no_org_title": "This link doesn't go anywhere.",
   "not_fielding_community": "{org} hasn't opened this survey yet. If someone shared it with you, let them know the link isn't live yet.",
@@ -35,6 +41,7 @@
   "offline_first_title": "You're offline.",
   "powered": "Powered by the Next Gen Jesus-Following Index",
   "preview_banner": "Preview of a draft translation — answers are not recorded.",
+  "privacy_link": "Read the full privacy notice",
   "question_of": "Question {n} of {total}",
   "saved_on_phone": "{n} saved on this phone",
   "select_up_to": "Select up to {n}",
@@ -43,8 +50,9 @@
   "thanks": "Thank you!",
   "type_here": "Type as much or as little as you like…",
   "waiting_signal": "Waiting for signal",
-  "welcome_body": "{org} is learning how to walk with young people as they follow Jesus. Your honest answers help. It takes about {minutes} minutes and is completely anonymous.",
-  "welcome_title": "You're invited to share [where you're at]."
+  "welcome_body": "{org} is learning how to walk with young people as they follow Jesus. Your honest answers help. It takes about {minutes} minutes, and it's anonymous — we never ask for your name.",
+  "welcome_title": "You're invited to share [where you're at].",
+  "yes": "Yes"
  },
  "items": {}
 }

@@ -1,5 +1,8 @@
 -- Smoke test for 0036. THROWAWAY database only. Part A reproduces the public-link bug; part B checks the fix and org settings.
 \set ON_ERROR_STOP 1
+-- 0042: live sessions need an edge-consent attestation; this smoke tests something
+-- else, so its fixture organisations are treated as attested.
+alter table public.sessions disable trigger sessions_refuse_without_consent;
 insert into auth.users values ('aaaaaaaa-0000-0000-0000-00000000000a','admin@collab.org'),('bbbbbbbb-0000-0000-0000-00000000000b','ulalom@gmail.com'),('cccccccc-0000-0000-0000-00000000000c','viewer@x.org');
 update app_users set role='admin' where id='aaaaaaaa-0000-0000-0000-00000000000a';
 insert into instrument_versions(version,status) values ('v4','active');

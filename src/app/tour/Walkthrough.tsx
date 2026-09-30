@@ -18,7 +18,9 @@ import WorldHeatMap, { type MapCountry } from "@/components/index/WorldHeatMap";
 import {
   instrument,
   nextVisibleIndex,
-  orderedItems,
+  fieldedItems,
+  endsSurvey,
+  WELCOME_MINUTES,
   prevVisibleIndex,
   visibleItems,
   type AnswerValue,
@@ -297,10 +299,11 @@ function BeatPhone() {
  * stops asking certain questions.
  */
 function SurveyDemo() {
-  const items = useMemo(() => orderedItems(), []);
+  const items = useMemo(() => fieldedItems(), []);
   const steps = items.length;
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [i, setI] = useState(-1); // -1 = welcome, matching Survey.tsx exactly
+  const [ended, setEnded] = useState(false); // an ineligible answer, matching Survey.tsx
 
   const path = useMemo(() => visibleItems(answers), [answers]);
   const answeredCount = path.filter((it) => answers[it.key] !== undefined).length;
@@ -310,6 +313,12 @@ function SurveyDemo() {
   const hasEarlier = i > 0 && prevVisibleIndex(i, answers) !== -1;
 
   function choose(v: AnswerValue) {
+    if (endsSurvey(items[i], v)) {
+      setAnswers({});
+      setEnded(true);
+      setI(steps);
+      return;
+    }
     const nextAnswers = { ...answers, [items[i].key]: v };
     setAnswers(nextAnswers);
     const next = nextVisibleIndex(i, nextAnswers);
@@ -321,6 +330,7 @@ function SurveyDemo() {
   }
   function reset() {
     setAnswers({});
+    setEnded(false);
     setI(-1);
   }
 
@@ -353,8 +363,7 @@ function SurveyDemo() {
                 <span style={{ color: SAMPLE_ORG.brand }}>where you&apos;re at</span>.
               </h1>
               <p className="mt-3 text-sm leading-relaxed text-ink-2">
-                {SAMPLE_ORG.name} is learning how to walk with young people as they follow Jesus.
-                Your honest answers help. It takes about 7 minutes and is completely anonymous.
+                {ENGLISH.ui("welcome_body", { org: SAMPLE_ORG.name, minutes: WELCOME_MINUTES })}
               </p>
               <button
                 onClick={() => setI(0)}
@@ -376,10 +385,25 @@ function SurveyDemo() {
               onChoose={choose}
               onBack={hasEarlier ? back : undefined}
               stepLabel={`Question ${stepNumber} of ${pathLength}`}
+              moveFocus={false}
             />
           )}
 
-          {i >= steps && (
+          {i >= steps && ended && (
+            <div className="py-6 text-center">
+              <h2 className="text-xl font-bold text-ink">{ENGLISH.ui("ended_title")}</h2>
+              <p className="mx-auto mt-2 max-w-sm text-sm text-ink-2">{ENGLISH.ui("ended_body")}</p>
+              <button
+                type="button"
+                onClick={reset}
+                className="mt-5 rounded-lg border border-ink px-4 py-2 text-[14px] font-semibold text-ink"
+              >
+                Walk it again
+              </button>
+            </div>
+          )}
+
+          {i >= steps && !ended && (
             <div className="py-6 text-center">
               <div
                 className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full text-3xl text-white"
@@ -448,7 +472,7 @@ function BeatAdapt() {
   const persona = PERSONAS[p];
   const shown = visibleItems(persona.answers);
   const shownKeys = new Set(shown.map((x) => x.key));
-  const all = orderedItems();
+  const all = fieldedItems();
 
   return (
     <div>

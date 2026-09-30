@@ -577,3 +577,51 @@ test("weekly prayer and scripture are asked once each — as the unscored freque
     assert.equal(i.core_activity, true, "non-negotiable #5");
   }
 });
+
+// ---------------------------------------------------------------------------
+// Pilot safeguards (migration 0042 + instrument config)
+// ---------------------------------------------------------------------------
+import { endsSurvey, fieldable } from "../src/lib/branching.ts";
+
+const full = JSON.parse(readFileSync(new URL("../src/data/instrument.v5.json", import.meta.url), "utf8")) as {
+  welcome_minutes?: number;
+  field_draft_items?: boolean;
+  items: (InstrumentItem & { draft?: boolean; options?: { value: string | number; ends_survey?: boolean }[] })[];
+};
+
+test("an under-13 answer ends the survey, and only that answer does", () => {
+  const age = full.items.find((i) => i.key === "age_band")!;
+  assert.equal(age.options![0].value, "under_13", "the youngest option comes first");
+  assert.equal(endsSurvey(age, "under_13"), true);
+  for (const v of ["13_17", "18_22", "23_30"]) assert.equal(endsSurvey(age, v), false, `${v} must not end the survey`);
+  // No other item can end a survey by accident.
+  const enders = full.items.flatMap((i) => (i.options ?? []).filter((o) => o.ends_survey).map((o) => `${i.key}.${o.value}`));
+  assert.deepEqual(enders, ["age_band.under_13"]);
+  // The age question is the very first screen, so an under-13 answers nothing else.
+  assert.equal(inOrder(full.items)[0].key, "age_band");
+});
+
+test("draft items are held back from respondents unless the instrument fields them", () => {
+  const drafts = full.items.filter((i) => i.draft);
+  assert.ok(drafts.length > 0, "v5 carries the draft Belong–Trust module");
+  assert.equal(full.field_draft_items, false, "fielding draft wording is a researcher decision — flip this deliberately");
+  const shown = fieldable(full.items, full.field_draft_items);
+  assert.equal(shown.filter((i) => i.draft).length, 0);
+  assert.equal(shown.length, full.items.length - drafts.length);
+  // Nothing fielded may depend on a held-back draft item, or it could never be reached.
+  const held = new Set(drafts.map((i) => i.key));
+  for (const it of shown) {
+    const refs = [...(it.show_if?.all ?? []), ...(it.show_if?.any ?? [])].map((c) => c.key);
+    for (const r of refs) assert.ok(!held.has(r), `${it.key} is gated on draft item ${r}`);
+  }
+  assert.equal(fieldable(full.items, true).length, full.items.length);
+});
+
+test("the welcome screen's promised minutes match the main follower path", () => {
+  const shown = fieldable(full.items, full.field_draft_items);
+  const screens = visible(shown, committedCore).length;
+  const m = full.welcome_minutes!;
+  // 8–14 seconds a screen is the plausible band for one short statement on a phone.
+  assert.ok(m * 60 >= screens * 8 && m * 60 <= screens * 14,
+    `welcome promises ${m} min for a ${screens}-screen path — retime it (see docs/PILOT_LAUNCH_CHECKLIST.md)`);
+});

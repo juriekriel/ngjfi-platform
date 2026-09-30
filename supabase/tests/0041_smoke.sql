@@ -18,6 +18,9 @@
 --   purge folds counts into retained_activity: the Insights are unchanged after it
 --   collab_insights_for() is not callable by anon/authenticated
 \set ON_ERROR_STOP 1
+-- 0042: live sessions need an edge-consent attestation; this smoke tests something
+-- else, so its fixture organisations are treated as attested.
+alter table public.sessions disable trigger sessions_refuse_without_consent;
 
 update platform_settings set value = '30'::jsonb  where key = 'critical_mass_gate';
 update platform_settings set value = '5'::jsonb   where key = 'min_group_n';
@@ -112,6 +115,7 @@ insert into auth.users values ('aaaaaaaa-0000-0000-0000-00000000000a', 'admin@co
 insert into app_users (id, email) values ('aaaaaaaa-0000-0000-0000-00000000000a', 'admin@collab.org') on conflict (id) do nothing;
 update app_users set role = 'admin' where id = 'aaaaaaaa-0000-0000-0000-00000000000a';
 set request.jwt.claim.sub = 'aaaaaaaa-0000-0000-0000-00000000000a';
+update platform_settings set value = '0'::jsonb where key = 'respondent_retention_months';  -- 0042: purge needs a decided policy
 select 'F purge', purge_stale_respondent_data(0) ->> 'sessions_deleted';
 reset request.jwt.claim.sub;
 select 'F raw sessions gone', (select count(*) from sessions) = 0 as ok;

@@ -31,13 +31,21 @@ Every item carries one question domain and one tier → a **3 × 4 matrix**. The
 
 ## 3. Non-negotiables
 
-1. **Never overclaim.** Report only on *"those who have completed the Index"* — never a whole population. Benchmarks stay hidden until a geography passes the **critical-mass gate** (configurable, e.g. n ≥ 400). Show sample size wherever a score appears.
-2. **Privacy is a feature, not a setting.** Respondents are **anonymous**: no names, emails, precise location or IP. Age is a **band**, never a birthdate. Consent — including parental consent for minors — is handled **at the edge** by each organisation. **Never** design anything that centrally holds identifiable data about under-18s.
-3. **Never lock the instrument.** Items, scales, tags, reverse flags, translations and scoring are **versioned config**, never hard-coded. Responses bind to the instrument + scoring version they were captured under, so re-scoring is always possible.
+1. **Never overclaim.** Report only on *"those who have completed the Index"* — never a whole population. Show sample size wherever a score appears. Benchmarks stay hidden until a geography passes the **critical-mass gate**, which is tiered and checked independently at each level:
+   - **City/area and organisation/region level:** `critical_mass_gate` (e.g. n ≥ 400). City/area is free text, so a small town could become identifying long before its country clears the country gate — no surface may name a city/area below this gate (and no room may name a place below `min_group_n`, migration 0042).
+   - **Country level:** `country_critical_mass_gate` (N ≥ 2,000). Below it the country stays hidden, even if cities inside it have cleared their own gate.
+   - Both are versioned config in `platform_settings`, never hard-coded. A country clearing its gate says nothing about any city inside it, and vice versa.
+2. **Privacy is a feature, not a setting.** Respondents are **anonymous**: no names, emails, precise location or IP stored with answers. Age is a **band**, never a birthdate. Consent — including parental consent for minors — is handled **at the edge** by each organisation, which confirms it has done so before it can collect (migration 0042); the Index never holds consent records. **Never** design anything that centrally holds identifiable data about under-18s. The screener's faith-status answer is sensitive on its own and more so combined with age band + coarse geography — it gets the same anonymity guarantee as every Index response, with no path back to an individual. Free text is redacted of emails, phones, URLs and handles on write (0042). Under-13s are ended at the age question and nothing about them is kept.
+3. **Never lock the instrument.** Items, scales, tags, reverse flags, translations, scoring and **section type** are versioned config, never hard-coded. Every scored item carries an orientation tag (`measure`: internal / external) and every question a section tag (screener / index / driver / journey / demographic / exploration / module) — both config, not code. Responses bind to the instrument + scoring version they were captured under, so re-scoring is always possible — which is why raw rows are only purged under an explicitly decided retention period (`respondent_retention_months`, 0042).
 4. **White-label means theirs.** Org-facing surfaces carry the org's brand; the Index sits in the footer.
-5. **Keep the two core activities** — weekly prayer and weekly scripture engagement must always be measurable.
-6. **Orgs see aggregates only.** No individual response is ever exposed to an organisation.
+5. **Keep the two core activities measurable.** Weekly prayer and weekly scripture engagement must always be measurable. Today they are asked as unscored frequency items (`pray_frequency`, `scripture_frequency`, PR #65) — reported through the insight layer, not the Index score. That is a researcher decision and must be recorded as one before the item bank is treated as final.
+6. **Orgs see aggregates only.** No individual response is ever exposed to an organisation — including Drivers, Journey and module answers. Those are unscored but still respondent data: report them as aggregate option-selection rates only, behind the same gates as scores.
 7. **Clay, not a vase.** This is a starting brief. Flag assumptions, propose better, expect the model to be reshaped by researchers and the Collab.
+8. **Screener eligibility is config, not a hard-coded filter.** Which faith-status answers continue into which branch, and which answers end the survey (`ends_survey` on an option, e.g. under 13), are versioned rules on the item — never an `if` in code. Future cohorts (adult, children) will each need their own rules.
+9. **Insight layers never silently become score.** Drivers, Journey and module answers are never blended into a dimension, tier or cell score without an explicit, versioned scoring decision. They are reported alongside the Index, not folded into it.
+10. **Non-eligible respondents get the same privacy bar.** Anyone routed away from the Index (not following, or under age) gets the same anonymity, consent and no-identifiable-data guarantees as someone who completes it.
+
+Draft wording is never fielded by accident: items marked `draft` stay in the instrument but are only shown when the instrument sets `field_draft_items: true` — a researcher's decision.
 
 ---
 
@@ -69,19 +77,22 @@ When in doubt: ask "would this still work if we added a 45–65 cohort tomorrow?
 
 ---
 
-## 6. Current state (as of Sep 2026)
+## 6. Current state (as of Oct 2026)
 
 A working platform is already live — see **`NGJFI_Session_Context.md`** for the full handover.
 
 - **Live:** `ngjfi-platform.netlify.app` — respondent survey `/[org]`, org dashboard `/[org]/dashboard` (+ `/[org]/dashboard/export` for print/PDF), marketing site (`/`, `/learn`, `/tour`, `/history`, `/organisation`, `/join`, `/access`), Collab Intelligence `/intelligence`
 - **Repo:** `github.com/juriekriel/ngjfi-platform` (public)
 - **Stack:** Next.js (App Router) + TypeScript + Tailwind · Supabase (Postgres + RLS + Auth) · Netlify
-- **Built:** multi-tenant schema + RLS, anonymous-write RPCs, tested scoring engine, versioned v5 instrument (EN/ES; v5 = v4 + the draft Belong–Trust items). One instrument, no shorter versions — core-only campaigns were retired in migration 0040, magic-link auth with **ministry website-domain verification**, funnel / heat-grid / findings / world map / trends, CI with PR previews
+- **Built:** multi-tenant schema + RLS, anonymous-write RPCs, tested scoring engine, versioned v5 instrument (EN live; ES in review; v5 = v4 + the draft Belong–Trust items, which are held back from respondents until fielded). One instrument, no shorter versions — core-only campaigns were retired in migration 0040, magic-link auth with **ministry website-domain verification**, funnel / heat-grid / findings / world map / trends, CI with PR previews
 - **Scores are reported on a 1–5 scale** (raw Likert means), not 0–100 — see migration `0029_score_scale_1_to_5.sql`. Internal storage (`responses.normalized`, `ngjfi_normalize()`) stays 0–100; only each RPC's final output converts, via `ngjfi_to_5()`.
 - **Org dashboard has a season picker** (`org_seasons()`/`org_dashboard_season()`, migration `0030`) — the season boundary (default: 1 Jun) is versioned config in `platform_settings`, not hardcoded — plus CSV exports and a PDF-oriented print view, and a "what do we do with this?" consulting-question button feeding a Collab-facing repository (`consulting_questions`, reviewed from the Collab console).
 - **Demo data:** 26 synthetic orgs, ~79k responses, all flagged `is_demo` — **delete before official testing/launch** via `supabase/delete_demo_data.sql`. Every FK back to `organisations` cascades, so this one statement is sufficient.
 
-**Open:** attach `jfindx.org` (confirm registration + point DNS at Netlify, update Supabase Auth redirect URLs and `NEXT_PUBLIC_SITE_URL`), PWA layer, QR distribution, org self-serve onboarding, instrument admin UI, richer reports, a season-aware benchmark RPC (the season picker currently compares against the Collab's all-time baseline regardless of the season selected).
+- **Pilot safeguards (migration 0042):** edge-consent confirmation gates collection; under-13 exit (`discard_session`); free-text redaction; retention must be decided before any purge; rooms never name a place below `min_group_n`; `pilot_readiness()` behind the admin console's *Pilot readiness* band. See `docs/PILOT_LAUNCH_CHECKLIST.md`.
+- **Also live:** the PWA layer (service worker + offline outbox), QR distribution, org onboarding (pending → active), the instrument admin UI (`/build/instrument`), test links, draft `/privacy` and `/terms` pages (pending counsel).
+
+**Open:** researcher sign-off on the fielded instrument (v5 + the 0042 amendments), Spanish sign-off, a retention decision, counsel review of `/privacy` and `/terms` and the org agreement, the pitch's "major shifts / where you differ / suggested focus" panels, a season-aware benchmark RPC (the season picker currently compares against the Collab's all-time baseline regardless of the season selected), and a city-level reporting surface (none exists yet — build the city gate before one does).
 
 ---
 
@@ -91,7 +102,7 @@ A working platform is already live — see **`NGJFI_Session_Context.md`** for th
 
 - **Never push to `main`.** Branch (`feat/…`, `fix/…`, `db/…`), open a PR, review the Netlify Deploy Preview, keep CI green, squash-merge.
 - **Database changes are always migrations** — a new numbered file in `supabase/migrations/`. **Never hand-edit tables in the Supabase dashboard.**
-- **Instrument changes** go in `src/data/instrument.v4.json` (single source of truth — `src/lib/instrument.ts` imports it directly), then `npm run db:seed`. Earlier versions are archived, not deleted — responses bind to the version they were captured under. If scoring logic changes, update **both** `src/lib/scoring.ts` and the SQL `ngjfi_normalize`/`ngjfi_to_5`, and add a test.
+- **Instrument changes** go in `src/data/instrument.v5.json` (single source of truth — `src/lib/instrument.ts` imports it directly), then `npm run db:seed`. Earlier versions are archived, not deleted — responses bind to the version they were captured under. If scoring logic changes, update **both** `src/lib/scoring.ts` and the SQL `ngjfi_normalize`/`ngjfi_to_5`, and add a test.
 - **The demo must never diverge from the product.** The landing page, the guided tour at `/tour` and the live product render the *same* components — `components/survey/QuestionCard` and `components/index/Figures` — and `lib/sample.ts` derives every sample figure from the instrument JSON at render time. Never write a fixture, never fork a component "just for the demo". `tests/sample.test.ts` fails the build if you do.
 - **Two data spaces.** `is_demo = false` is the live space and the only thing `/intelligence` publishes; `is_demo = true` is the sandbox. The split is enforced inside the SECURITY DEFINER functions and by a trigger, not by remembering a WHERE clause. Verify with `select public.data_space_report();` before any announcement.
 - **Standing up a fresh database:** `npm run db:bootstrap` regenerates `supabase/bootstrap.sql` — every migration in order, one paste into a new project's SQL editor. It deliberately excludes the demo seeds.

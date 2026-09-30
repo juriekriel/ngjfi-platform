@@ -1,5 +1,8 @@
 -- Smoke test for 0038 (test links, admin deletion). THROWAWAY database only. Read counts in separate statements (same-statement snapshot).
 \set ON_ERROR_STOP 1
+-- 0042: live sessions need an edge-consent attestation; this smoke tests something
+-- else, so its fixture organisations are treated as attested.
+alter table public.sessions disable trigger sessions_refuse_without_consent;
 insert into auth.users values ('aaaaaaaa-0000-0000-0000-00000000000a','admin@collab.org'),('bbbbbbbb-0000-0000-0000-00000000000b','pastor@church.org');
 update app_users set role='admin' where id='aaaaaaaa-0000-0000-0000-00000000000a';
 insert into instrument_versions(id,version,status) values ('bbbbbbbb-1111-0000-0000-000000000001','v4','active');

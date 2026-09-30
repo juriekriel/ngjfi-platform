@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AnswerValue, InstrumentItem, InstrumentOption } from "@/lib/instrument";
 import type { Lang } from "@/lib/i18n";
 
@@ -23,6 +23,7 @@ export function Question({
   onChoose,
   onBack,
   stepLabel,
+  moveFocus = true,
 }: {
   item: InstrumentItem;
   /** The chosen language — text lookups walk its fallback chain (src/lib/i18n.ts). */
@@ -33,8 +34,28 @@ export function Question({
   onChoose: (v: AnswerValue) => void;
   onBack?: () => void;
   stepLabel: string;
+  /** Move keyboard/screen-reader focus to each new question (off where the
+   * card is embedded in a page, like the tour, so it can't steal focus). */
+  moveFocus?: boolean;
 }) {
-  const optBtn = "w-full rounded-xl border-2 px-4 py-3 text-left text-sm transition";
+  const focusRing = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
+  const optBtn = `w-full rounded-xl border-2 px-4 py-3 text-left text-sm transition ${focusRing}`;
+  // Screen readers: each new question announces itself, and its choices are a
+  // labelled group whose buttons report whether they are the current answer.
+  const headingId = `q-${item.key}`;
+  const helpId = item.help ? `q-${item.key}-help` : undefined;
+  const heading = useRef<HTMLHeadingElement>(null);
+  const first = useRef(true);
+  useEffect(() => {
+    // In an embedded card, only follow the respondent once they've interacted.
+    if (!moveFocus && first.current) {
+      first.current = false;
+      return;
+    }
+    first.current = false;
+    heading.current?.focus({ preventScroll: !moveFocus });
+  }, [item.key, moveFocus]);
+  const group = { role: "group", "aria-labelledby": headingId, "aria-describedby": helpId } as const;
   const isSel = (v: AnswerValue) => selected === v;
   const style = (v: AnswerValue) =>
     isSel(v) ? { borderColor: brand, background: `${brand}1a` } : { borderColor: "#e6e8ec" };
@@ -44,9 +65,12 @@ export function Question({
       <div className="font-mono text-[10px] uppercase tracking-widest" style={{ color: brand }}>
         {stepLabel}
       </div>
-      <h2 dir="auto" className="mb-2 mt-2 text-xl font-medium leading-snug">{lang.item(item)}</h2>
+      <h2 id={headingId} ref={heading} tabIndex={-1} dir="auto" className="mb-2 mt-2 text-xl font-medium leading-snug outline-none">
+        <span className="sr-only">{stepLabel}. </span>
+        {lang.item(item)}
+      </h2>
       {item.help && (
-        <p dir="auto" className="mb-4 text-xs leading-relaxed text-muted">{lang.item(item, "help")}</p>
+        <p id={helpId} dir="auto" className="mb-4 text-xs leading-relaxed text-muted">{lang.item(item, "help")}</p>
       )}
       {!item.help && <div className="mb-3" />}
 
@@ -56,16 +80,19 @@ export function Question({
         // screen width, unreadable on exactly the cheap phones this survey
         // has to work on. A number badge plus the full label, one per row,
         // matches how yes_no/single_select already read below.
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2" {...group}>
           {[1, 2, 3, 4, 5].map((n) => (
             <button
               key={n}
+              type="button"
               disabled={busy}
+              aria-pressed={isSel(n)}
               onClick={() => onChoose(n)}
-              className="flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition"
+              className={`flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition ${focusRing}`}
               style={style(n)}
             >
               <span
+                aria-hidden
                 className="flex h-7 w-7 flex-none items-center justify-center rounded-full border-2 text-[13px] font-bold"
                 style={
                   isSel(n)
@@ -75,28 +102,33 @@ export function Question({
               >
                 {n}
               </span>
-              <span>{lang.ui(`likert_${n}`)}</span>
+              <span>
+                <span className="sr-only">{n} — </span>
+                {lang.ui(`likert_${n}`)}
+              </span>
             </button>
           ))}
         </div>
       )}
 
       {item.type === "yes_no" && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2" {...group}>
           {["yes", "no"].map((v) => (
-            <button key={v} disabled={busy} onClick={() => onChoose(v)} className={optBtn} style={style(v)}>
-              {v === "yes" ? "Yes" : "No"}
+            <button key={v} type="button" disabled={busy} aria-pressed={isSel(v)} onClick={() => onChoose(v)} className={optBtn} style={style(v)}>
+              {lang.ui(v)}
             </button>
           ))}
         </div>
       )}
 
       {(item.type === "single_select" || item.type === "frequency") && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2" {...group}>
           {(item.options || []).map((o) => (
             <button
               key={String(o.value)}
+              type="button"
               disabled={busy}
+              aria-pressed={isSel(o.value)}
               onClick={() => onChoose(o.value)}
               className={optBtn}
               style={style(o.value)}
@@ -113,6 +145,8 @@ export function Question({
           lang={lang}
           brand={brand}
           busy={busy}
+          labelledBy={headingId}
+          describedBy={helpId}
           maxLength={item.max_length ?? 300}
           initial={typeof selected === "string" ? selected : ""}
           onSubmit={onChoose}
@@ -126,6 +160,7 @@ export function Question({
           busy={busy}
           options={item.options || []}
           maxSelect={item.max_select}
+          labelledBy={headingId}
           lang={lang}
           item={item}
           initial={Array.isArray(selected) ? selected.map(String) : []}
@@ -134,7 +169,7 @@ export function Question({
       )}
 
       {onBack && (
-        <button onClick={onBack} className="mt-5 text-xs text-muted hover:text-ink">
+        <button type="button" onClick={onBack} className={`mt-5 text-xs text-muted hover:text-ink ${focusRing}`}>
           {lang.ui("back")}
         </button>
       )}
@@ -151,6 +186,8 @@ function OpenText({
   lang,
   brand,
   busy,
+  labelledBy,
+  describedBy,
   maxLength,
   initial,
   onSubmit,
@@ -158,6 +195,8 @@ function OpenText({
   lang: Lang;
   brand: string;
   busy: boolean;
+  labelledBy: string;
+  describedBy?: string;
   maxLength: number;
   initial: string;
   onSubmit: (v: AnswerValue) => void;
@@ -171,16 +210,19 @@ function OpenText({
         value={text}
         onChange={(e) => setText(e.target.value.slice(0, maxLength))}
         rows={4}
+        aria-labelledby={labelledBy}
+        aria-describedby={describedBy}
         placeholder={lang.ui("type_here")}
         className="w-full rounded-xl border-2 px-4 py-3 text-sm outline-none"
         style={{ borderColor: text ? brand : "#e6e8ec" }}
       />
-      <div className="mt-1 text-right font-mono text-[10px] text-muted">
-        {left} characters left
+      <div className="mt-1 text-right font-mono text-[10px] text-muted" aria-live="polite">
+        {lang.ui("chars_left", { n: left })}
       </div>
       <div className="mt-3 flex gap-2">
         <button
           disabled={busy || !text.trim()}
+          type="button"
           onClick={() => onSubmit(text.trim())}
           className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-white disabled:opacity-40"
           style={{ background: brand }}
@@ -189,6 +231,7 @@ function OpenText({
         </button>
         <button
           disabled={busy}
+          type="button"
           onClick={() => onSubmit("")}
           className="rounded-xl border-2 px-4 py-3 text-sm text-muted"
           style={{ borderColor: "#e6e8ec" }}
@@ -213,6 +256,7 @@ function MultiSelect({
   busy,
   options,
   maxSelect,
+  labelledBy,
   lang,
   item,
   initial,
@@ -222,6 +266,7 @@ function MultiSelect({
   busy: boolean;
   options: InstrumentOption[];
   maxSelect?: number;
+  labelledBy: string;
   lang: Lang;
   item: InstrumentItem;
   initial: string[];
@@ -245,7 +290,7 @@ function MultiSelect({
           {lang.ui("select_up_to", { n: maxSelect ?? "" })} — {picked.length}/{maxSelect}
         </p>
       )}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2" role="group" aria-labelledby={labelledBy}>
         {options.map((o) => {
           const value = String(o.value);
           const isChecked = picked.includes(value);
@@ -255,11 +300,13 @@ function MultiSelect({
               key={value}
               type="button"
               disabled={disabled}
+              aria-pressed={isChecked}
               onClick={() => toggle(value)}
               className="flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition disabled:opacity-40"
               style={isChecked ? { borderColor: brand, background: `${brand}1a` } : { borderColor: "#e6e8ec" }}
             >
               <span
+                aria-hidden
                 className="flex h-4 w-4 flex-none items-center justify-center rounded border-2"
                 style={isChecked ? { borderColor: brand, background: brand } : { borderColor: "#c7cbd4" }}
               >
@@ -271,12 +318,13 @@ function MultiSelect({
         })}
       </div>
       <button
+        type="button"
         disabled={busy}
         onClick={() => onSubmit(picked)}
         className="mt-4 w-full rounded-xl px-4 py-3 text-sm font-semibold text-white disabled:opacity-40"
         style={{ background: brand }}
       >
-        Continue →
+        {lang.ui("continue")}
       </button>
     </div>
   );

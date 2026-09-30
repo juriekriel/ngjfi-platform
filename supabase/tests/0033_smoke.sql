@@ -10,6 +10,9 @@
 --   org member cannot list requests; non-member cannot read a room or submit
 --   Collab can list (with asker email), assign (→ assigned), mark answered
 \set ON_ERROR_STOP 1
+-- 0042: live sessions need an edge-consent attestation; this smoke tests something
+-- else, so its fixture organisations are treated as attested.
+alter table public.sessions disable trigger sessions_refuse_without_consent;
 update app_users set role = 'collab' where id = '22222222-2222-2222-2222-222222222222';
 \set ON_ERROR_STOP 1
 insert into auth.users values ('11111111-1111-1111-1111-111111111111','pastor@shoreline.org'),('22222222-2222-2222-2222-222222222222','research@collab.org'),('33333333-3333-3333-3333-333333333333','other@else.org');

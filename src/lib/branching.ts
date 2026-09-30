@@ -43,6 +43,23 @@ export interface BranchableItem {
   order?: number;
   show_if?: ShowIf;
   attention_check?: { expected: number | string };
+  /** Wording still in co-design: kept in the definition, fielded only on request. */
+  draft?: boolean;
+  options?: { value: string | number; ends_survey?: boolean }[];
+}
+
+/**
+ * The items a respondent can be shown: drafts are held back unless the
+ * instrument explicitly fields them (`field_draft_items: true`).
+ */
+export function fieldable<T extends BranchableItem>(items: T[], fieldDrafts = false): T[] {
+  return inOrder(items.filter((i) => fieldDrafts || !i.draft));
+}
+
+/** Does this answer end the survey (an option marked `ends_survey`, e.g. under the cohort's age range)? */
+export function endsSurvey(item: BranchableItem, value: AnswerValue): boolean {
+  if (value === undefined || value === null) return false;
+  return (item.options ?? []).some((o) => o.ends_survey && String(o.value) === String(value));
 }
 
 /** Compare answers tolerantly across the yes/no and string/number round-trips. */
