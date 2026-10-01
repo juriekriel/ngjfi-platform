@@ -72,10 +72,9 @@ test("the guided tour mounts the live survey component, not a copy", () => {
 });
 
 test("the live survey and the tour share one question renderer", () => {
-  // The survey body moved to components/survey/Survey.tsx when the public
-  // audience got its own route, so that BOTH audiences mount one implementation
-  // rather than two pages that drift. The invariant this test protects is
-  // unchanged: exactly one question renderer, imported, never copied.
+  // The survey body lives in components/survey/Survey.tsx so every door
+  // (/[org] and /[org]/l/<link>) mounts one implementation rather than pages
+  // that drift. Exactly one question renderer, imported, never copied.
   const survey = src("../src/components/survey/Survey.tsx");
   assert.match(
     survey,
@@ -83,7 +82,7 @@ test("the live survey and the tour share one question renderer", () => {
     "the live survey must import the shared renderer — two copies would diverge",
   );
 
-  for (const route of ["../src/app/[org]/page.tsx", "../src/app/[org]/open/page.tsx"]) {
+  for (const route of ["../src/app/[org]/page.tsx", "../src/app/[org]/l/[link]/page.tsx"]) {
     assert.match(
       src(route),
       /from "@\/components\/survey\/Survey"/,

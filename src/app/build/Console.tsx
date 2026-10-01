@@ -1,5 +1,6 @@
 "use client";
 
+import { TEAM_ROLE_LABEL, normaliseRole } from "@/lib/team";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
@@ -1057,8 +1058,8 @@ function AdminConsole() {
  * staff can flip between organisations without losing their place in the
  * roll. Three RPCs, each already scoped and authorised on its own:
  * admin_org_detail() (new, migration 0029) for countries/responses/members,
- * org_links() (migration 0011, public) for the two fixed Community/Open
- * URLs, org_distribution_links() (migration 0028, widened in 0029) for any
+ * org_links() (migration 0011, public; one link since 0044) for the survey
+ * URL, org_distribution_links() (migration 0028, widened in 0029) for any
  * named rooms. No password field — there are none on this platform; "Resend
  * link" below calls Supabase Auth's own one-time email sign-in directly.
  */
@@ -1069,7 +1070,8 @@ type OrgDetail = {
   countries_count: number;
   members: { name: string; email: string; role: string; status: string }[];
 };
-type FixedLinks = { community: { url: string; label: string; note: string }; public: { url: string; label: string; note: string } };
+/** org_links() — one survey link per organisation since migration 0044. */
+type FixedLinks = { community: { url: string; label: string; note: string } };
 type RoomLink = { id: string; name: string; slug: string; status: "scheduled" | "active" | "ended"; n: number; places: string[]; places_total: number };
 
 function OrgDetailPanel({ shortName }: { shortName: string }) {
@@ -1114,8 +1116,8 @@ function OrgDetailPanel({ shortName }: { shortName: string }) {
     if (error) setErr(error.message);
   }
 
-  const linkCount = (fixed ? 2 : 0) + rooms.length;
-  const activeLinkCount = (fixed ? 2 : 0) + rooms.filter((r) => r.status === "active").length;
+  const linkCount = (fixed ? 1 : 0) + rooms.length;
+  const activeLinkCount = (fixed ? 1 : 0) + rooms.filter((r) => r.status === "active").length;
 
   return (
     <div className="mt-5 rounded-2xl border border-rule bg-plate p-5 shadow-sm sm:p-6">
@@ -1164,7 +1166,7 @@ function OrgDetailPanel({ shortName }: { shortName: string }) {
               {detail.members.length ? (
                 <Rows>
                   {detail.members.map((m) => (
-                    <Row key={m.email} label={m.name} meta={`${m.role} · ${m.status}`}>
+                    <Row key={m.email} label={m.name} meta={`${TEAM_ROLE_LABEL[normaliseRole(m.role) ?? "coordinator"]} · ${m.status}`}>
                       <button
                         onClick={() => resendLink(m.email)}
                         className="rounded-lg border border-rule-2 px-3 py-1.5 text-[13px] font-semibold text-ink-2 hover:border-ink hover:text-ink"
@@ -1194,7 +1196,6 @@ function OrgDetailPanel({ shortName }: { shortName: string }) {
                   {fixed && (
                     <>
                       <LinkRow url={fixed.community.url} label={fixed.community.label} note={fixed.community.note} />
-                      <LinkRow url={fixed.public.url} label={fixed.public.label} note={fixed.public.note} />
                     </>
                   )}
                   {rooms.map((r) => (

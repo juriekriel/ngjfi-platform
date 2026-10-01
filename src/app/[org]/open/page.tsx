@@ -1,17 +1,13 @@
-import { surveyMetadata } from "@/lib/surveyMetadata";
-import Survey from "@/components/survey/Survey";
+import { redirect } from "next/navigation";
 
 /**
- * jfindx.org/<short_name>/open — the PUBLIC link.
+ * jfindx.org/<short_name>/open — retired (migration 0044).
  *
- * `org_links()` has handed this URL out since migration 0011 and the console
- * now shows it with a Copy button next to it — but the route did not exist, so
- * every public link 404'd. Same component, same instrument, different campaign.
+ * There used to be two links per organisation, "community" and "public".
+ * The distinction didn't fit how the survey is built, so every organisation
+ * now has one link. This address stays alive as a redirect because it has
+ * been printed on QR codes and posters.
  */
-export function generateMetadata({ params }: { params: { org: string } }) {
-  return surveyMetadata(params.org);
-}
-
 export default function OpenSurveyPage({ params }: { params: { org: string } }) {
-  return <Survey slug={params.org} audience="public" />;
+  redirect(`/${params.org}`);
 }

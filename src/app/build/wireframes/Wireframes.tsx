@@ -325,7 +325,7 @@ function CollabConsole() {
         title="Surveys"
         state="build"
         rpc="wave_upsert() · wave_adopt()"
-        gloss="Convening is the Collab's main verb and the reason benchmarks exist at all. A wave fixes the instrument version, the item set, the audiences and the window — then organisations adopt it in one click and are automatically comparable."
+        gloss="Convening is the Collab's main verb and the reason benchmarks exist at all. A wave fixes the instrument version, the survey version and the window — then organisations adopt it in one click and are automatically comparable."
       >
         <div className="flex flex-wrap gap-3">
           <Btn primary>Convene a season →</Btn>
@@ -557,13 +557,12 @@ function OrgConsole() {
         <div className="mt-5">
           <p className="figcap">Your links</p>
           <Rows>
-            <Row label="jfindx.org/shoreline" meta="community · your people" action="Copy · QR" />
-            <Row label="jfindx.org/shoreline/open" meta="public · outside your world" action="Copy · QR" />
+            <Row label="jfindx.org/shoreline" meta="your survey link" action="Copy · QR" />
+            <Row label="jfindx.org/shoreline/l/summer-camp" meta="a room · J12 only" action="Copy · QR" />
           </Rows>
           <p className="margin-note mt-3 border-l-2 border-emerald pl-3">
-            Two links, one survey. The comparison between them is the single most useful thing a
-            ministry gets out of the Index: what is true of the young people you already reach,
-            against what is true of the ones you do not.
+            One survey link, plus named rooms when you want to see where answers came from. A room can
+            field the full survey or the J12 only — both count in the same score.
           </p>
         </div>
       </Band>
@@ -578,7 +577,7 @@ function OrgConsole() {
         <div className="grid gap-4 sm:grid-cols-2">
           <FigureSlot label="Fig. 01 · your index" note="With n, always. Below the gate it says so instead of pretending." />
           <FigureSlot label="Fig. 02 · your journey" note="Where your young people fall away between belief and reproduction." />
-          <FigureSlot label="Fig. 03 · community vs public" note="Your two audiences side by side. The gap is your strategy." />
+          <FigureSlot label="Fig. 03 · your rooms" note="Each link's own reading, rolled up into the house." />
           <FigureSlot label="Fig. 04 · the benchmark" note="Locked until your country passes 400 completions. Shown as locked, not as zero." />
         </div>
       </Band>
@@ -695,7 +694,7 @@ function Verbs() {
         <p className="figcap">Verb 02</p>
         <h4 className="mt-1.5 text-[21px] leading-tight">Convene</h4>
         <p className="mt-2 max-w-measure text-[15.5px] leading-relaxed text-ink-2">
-          Define a wave — version, item set, audiences, window, locales — that organisations adopt in
+          Define a wave — version, survey version, window, locales — that organisations adopt in
           one click. <b>Collects nothing itself.</b> It is the thing that makes forty organisations
           comparable instead of merely simultaneous.
         </p>

@@ -3,6 +3,36 @@
   "scoringVersion": "v0.1.0",
   "welcome_minutes": 6,
   "field_draft_items": false,
+  "item_sets": {
+    "full": {
+      "label": {
+        "en": "Full survey"
+      },
+      "description": {
+        "en": "Every question: the J12 reading, the prayer and scripture questions, and the optional Drivers, Journey and Belong–Trust questions."
+      },
+      "welcome_minutes": 6
+    },
+    "j12": {
+      "label": {
+        "en": "J12 only"
+      },
+      "description": {
+        "en": "The J12 internal and external questions only — the same screener and the same 24 scored questions on either path, then the four about-you questions. No Drivers, Journey or optional extras."
+      },
+      "welcome_minutes": 5,
+      "sections": [
+        "demographic",
+        "screener",
+        "index"
+      ],
+      "exclude_keys": [
+        "continue_to_extras",
+        "pray_frequency",
+        "scripture_frequency"
+      ]
+    }
+  },
   "locales": [
     "en",
     "es"

@@ -46,6 +46,39 @@ export interface BranchableItem {
   /** Wording still in co-design: kept in the definition, fielded only on request. */
   draft?: boolean;
   options?: { value: string | number; ends_survey?: boolean }[];
+  /** Which part of the instrument this is (screener / index / driver / …) — item sets select by it. */
+  section?: string;
+}
+
+/**
+ * A named version of the survey an organisation can field (instrument config,
+ * `item_sets`). "full" is the whole instrument. Any other set narrows it by
+ * section and, optionally, by key — e.g. "j12": the screener, the J12 index
+ * items and the demographics, without Drivers, Journey or the extras offer.
+ * It never changes how an item is scored: every set asks each scored item
+ * exactly as the full survey does, so its scores stay comparable.
+ */
+export interface ItemSetDef {
+  label?: { en: string } & Record<string, string>;
+  description?: { en: string } & Record<string, string>;
+  welcome_minutes?: number;
+  /** Sections included. Omitted = every section. */
+  sections?: string[];
+  /** Keys excluded even when their section is included. */
+  exclude_keys?: string[];
+}
+
+/** The items a named set asks. An unknown name falls back to the full instrument. */
+export function inItemSet<T extends BranchableItem>(
+  items: T[],
+  sets: Record<string, ItemSetDef> | undefined,
+  name: string | null | undefined,
+): T[] {
+  const def = name ? sets?.[name] : undefined;
+  if (!def) return items;
+  const sections = def.sections ? new Set(def.sections) : null;
+  const excluded = new Set(def.exclude_keys ?? []);
+  return items.filter((i) => (!sections || sections.has(i.section ?? "")) && !excluded.has(i.key));
 }
 
 /**

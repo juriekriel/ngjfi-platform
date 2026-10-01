@@ -7,7 +7,8 @@ import { usePhoneLang } from "@/lib/i18n";
 
 type Resolved = {
   name: string;
-  audience: "community" | "public";
+  /** The survey version this link fields (0044); null = the organisation's own setting. */
+  item_set?: string | null;
   active_from: string | null;
   active_to: string | null;
   is_open: boolean;
@@ -18,10 +19,10 @@ type Resolved = {
 /**
  * jfindx.org/<org>/l/<link> — a distribution link ("room"), migration 0028.
  *
- * Same instrument, same screens as the two fixed doors (/<org> and
- * /<org>/open) — a link only tags which door a respondent came through, so
- * an org can see where a specific batch of responses came from. It never
- * becomes a third, different survey.
+ * Same instrument, same screens as /<org> — a link tags which door a
+ * respondent came through, so an org can see where a batch of responses came
+ * from. It may field a shorter version (e.g. J12 only, migration 0044), which
+ * leaves out the optional insight questions but never changes a scored one.
  */
 export default function DistributionLinkPage({ params }: { params: { org: string; link: string } }) {
   const sb = useMemo(() => getSupabaseBrowser(), []);
@@ -56,7 +57,7 @@ export default function DistributionLinkPage({ params }: { params: { org: string
       </Centered>
     );
 
-  return <Survey slug={params.org} audience={resolved.audience} distributionLinkSlug={params.link} isTestLink={Boolean(resolved.is_test)} />;
+  return <Survey slug={params.org} linkItemSet={resolved.item_set ?? null} distributionLinkSlug={params.link} isTestLink={Boolean(resolved.is_test)} />;
 }
 
 function Centered({ children }: { children: React.ReactNode }) {

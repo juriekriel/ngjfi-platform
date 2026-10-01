@@ -476,25 +476,20 @@ test("the seed script cannot put a synthetic organisation in the live space", ()
   );
 });
 
-test("both links the console hands out have a route to land on", () => {
+test("one survey link: the old public link redirects and nothing fields a second audience (0044)", () => {
   const app = new URL("../src/app/", import.meta.url);
-  for (const route of ["[org]/page.tsx", "[org]/open/page.tsx"]) {
-    const src = readFileSync(new URL(route, app), "utf8");
-    assert.match(src, /from "@\/components\/survey\/Survey"/, `${route} must mount the one survey`);
-  }
-  const community = readFileSync(new URL("[org]/page.tsx", app), "utf8");
+  const main = readFileSync(new URL("[org]/page.tsx", app), "utf8");
+  assert.match(main, /from "@\/components\/survey\/Survey"/, "the survey link must mount the one survey");
+  assert.doesNotMatch(main, /audience=/, "there is no audience any more");
   const open = readFileSync(new URL("[org]/open/page.tsx", app), "utf8");
-  assert.match(community, /audience="community"/);
-  assert.match(open, /audience="public"/);
+  assert.match(open, /redirect\(`\/\$\{params\.org\}`\)/, "printed /open QR codes must still land on the survey");
 
   const survey = readFileSync(new URL("../src/components/survey/Survey.tsx", import.meta.url), "utf8");
-  assert.match(survey, /community:\s*"default"/);
-  assert.match(survey, /public:\s*"open"/);
-  const sql = readFileSync(
-    new URL("../supabase/migrations/0014_waves_and_survey_setup.sql", import.meta.url),
-    "utf8",
-  );
-  assert.match(sql, /p_audience = 'public' then 'open' else 'default'/);
+  assert.match(survey, /const CAMPAIGN_SLUG = "default"/);
+  assert.doesNotMatch(survey, /"open"/);
+  const sql = readFileSync(new URL("../supabase/migrations/0044_one_link_and_survey_versions.sql", import.meta.url), "utf8");
+  assert.match(sql, /drop trigger if exists campaigns_open_twin/);
+  assert.match(sql, /check \(audience = 'community'\)/);
 });
 
 // ---------------------------------------------------------------------------
@@ -624,4 +619,67 @@ test("the welcome screen's promised minutes match the main follower path", () =>
   // 8–14 seconds a screen is the plausible band for one short statement on a phone.
   assert.ok(m * 60 >= screens * 8 && m * 60 <= screens * 14,
     `welcome promises ${m} min for a ${screens}-screen path — retime it (see docs/PILOT_LAUNCH_CHECKLIST.md)`);
+});
+
+// ---------------------------------------------------------------------------
+// Survey versions — "J12 only" (instrument item_sets, migration 0044)
+// ---------------------------------------------------------------------------
+import { inItemSet, type ItemSetDef } from "../src/lib/branching.ts";
+
+const sets = (full as unknown as { item_sets?: Record<string, ItemSetDef> }).item_sets ?? {};
+type SetItem = InstrumentItem & { section?: string };
+const fieldedAll = fieldable(full.items, full.field_draft_items) as SetItem[];
+const j12 = inItemSet(fieldedAll, sets, "j12");
+
+test("the J12-only version asks every scored question, on both paths, exactly as the full survey does", () => {
+  assert.ok(sets.j12, "v5 defines a j12 item set");
+  const scored = fieldedAll.filter((i) => i.scored);
+  assert.equal(scored.length, 48, "24 Engaged + 24 Unengaged scored items");
+  const inJ12 = new Set(j12.map((i) => i.key));
+  for (const i of scored) assert.ok(inJ12.has(i.key), `${i.key} must be in J12 only — or its cell would be empty`);
+  for (const cell of ["internal", "external"]) {
+    assert.equal(j12.filter((i) => i.scored && i.measure === cell).length, 24, `24 ${cell} items`);
+  }
+});
+
+test("the J12-only version leaves out Drivers, Journey, modules and the extras offer", () => {
+  for (const i of j12) {
+    assert.ok(!["driver", "journey", "module", "exploration"].includes(i.section ?? ""), `${i.key} (${i.section}) is not J12`);
+  }
+  const keys = new Set(j12.map((i) => i.key));
+  assert.ok(!keys.has("continue_to_extras"), "no 'want to help us more?' offer");
+  // DECISION (Collab, Oct 2026): J12 only means the J12 questions only, so the
+  // two unscored core-activity frequency items are left out of this version.
+  // They stay in the full survey, so prayer and scripture remain measurable
+  // platform-wide (non-negotiable #5). Including them is a one-line change:
+  // remove them from item_sets.j12.exclude_keys.
+  assert.ok(!keys.has("pray_frequency") && !keys.has("scripture_frequency"));
+  // …but everything the routing and reporting depend on stays.
+  for (const k of ["age_band", "orientation", "follower_check", "gender", "country", "city"]) assert.ok(keys.has(k), `${k} is needed`);
+});
+
+test("every question in the J12-only version can actually be reached", () => {
+  const keys = new Set(j12.map((i) => i.key));
+  for (const it of j12) {
+    for (const c of [...(it.show_if?.all ?? []), ...(it.show_if?.any ?? [])]) {
+      assert.ok(keys.has(c.key), `${it.key} is gated on ${c.key}, which J12 only never asks`);
+    }
+  }
+  const follower = visible(j12, committedCore);
+  assert.equal(follower.filter((i) => i.scored).length, 24, "a follower answers the 24 Engaged items");
+  const explorer = visible(j12, unengagedDirect);
+  assert.equal(explorer.filter((i) => i.scored).length, 24, "a non-follower answers the 24 Unengaged items");
+});
+
+test("the J12-only welcome promise matches its follower path", () => {
+  const screens = visible(j12, committedCore).length;
+  const m = sets.j12.welcome_minutes!;
+  assert.ok(m * 60 >= screens * 8 && m * 60 <= screens * 14, `J12 only promises ${m} min for a ${screens}-screen path`);
+  assert.ok(m <= (full.welcome_minutes ?? 99), "it is never longer than the full survey");
+});
+
+test("an unknown or missing set name is the full survey", () => {
+  assert.equal(inItemSet(fieldedAll, sets, null).length, fieldedAll.length);
+  assert.equal(inItemSet(fieldedAll, sets, "nope").length, fieldedAll.length);
+  assert.equal(inItemSet(fieldedAll, sets, "full").length, fieldedAll.length);
 });

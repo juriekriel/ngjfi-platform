@@ -227,7 +227,7 @@ def pitch(path):
     steps = [("Before you start", "Have a laptop to present from and a phone to answer on. For a no-risk walkthrough with invented figures, open jfindx.org/tour."),
              ("1 · Sign in", "On the laptop go to jfindx.org → “Sign in to Your Organisation”. Enter your ministry email. Open the link from the newest email — it works on any device."),
              ("2 · Your dashboard", "You land on your organisation's dashboard. Point out the three figures and the J12 matrix. Say: the dashes mean there aren't enough answers yet — that's the privacy floor at work."),
-             ("3 · Make a room", "Click “+ New link”. Name it after your audience (“Demo room”), choose Public, set it to open now and close tomorrow, and save."),
+             ("3 · Make a room", "Click “+ New link”. Name it (“Demo room”), choose a survey version, set it to open now and close tomorrow, and save."),
              ("4 · Show the QR", "On the new card click “QR” and hold it up. Invite people to scan it with their phones.")]
     yy = y - 18
     for h, b in steps:

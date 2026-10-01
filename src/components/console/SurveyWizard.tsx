@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { Action, LinkRow, Row, Rows, Trouble } from "./Bands";
-import { TOTAL_COUNT, WELCOME_MINUTES } from "@/lib/instrument";
+import { ITEM_SETS, TOTAL_COUNT } from "@/lib/instrument";
 import { REGISTRY } from "@/lib/i18n";
 import ConsentAttestation, { useConsentStatus } from "./ConsentAttestation";
 
@@ -54,9 +54,8 @@ export default function SurveyWizard({
   const [step, setStep] = useState(fixedOrg ? 1 : 0);
   const [orgs, setOrgs] = useState<Fieldable[] | null>(null);
   const [org, setOrg] = useState<string | null>(fixedOrg ?? null);
-  // One instrument, no shorter versions (migration 0040).
-  const itemSet = "full" as const;
-  const [audiences, setAudiences] = useState<Set<string>>(new Set(["community"]));
+  // Which version of the survey (instrument item_sets, migration 0044).
+  const [itemSet, setItemSet] = useState<string>("full");
   const [locale, setLocale] = useState("en");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -72,37 +71,22 @@ export default function SurveyWizard({
     });
   }, [sb, fixedOrg]);
 
-  function toggleAudience(a: string) {
-    const next = new Set(audiences);
-    if (next.has(a)) next.delete(a);
-    else next.add(a);
-    // Never let it reach zero — a survey nobody can take is not a survey.
-    if (next.size) setAudiences(next);
-  }
-
   async function publish() {
     if (!sb || !org) return;
     setBusy(true);
     setErr(null);
-    let last: Record<string, { url: string; label: string; note: string }> | null = null;
-
-    // One call per audience. Two links are two campaigns off one instrument —
-    // which is exactly what makes the comparison between them legitimate.
-    for (const audience of audiences) {
-      const { data, error } = await sb.rpc("campaign_upsert", {
-        p_org_short_name: org,
-        p_audience: audience,
-        p_item_set: itemSet,
-        p_locale: locale,
-      });
-      if (error) {
-        setErr(error.message);
-        setBusy(false);
-        return;
-      }
-      last = (data as { links: typeof last })?.links ?? last;
+    // One survey link per organisation (migration 0044).
+    const { data, error } = await sb.rpc("campaign_upsert", {
+      p_org_short_name: org,
+      p_item_set: itemSet,
+      p_locale: locale,
+    });
+    if (error) {
+      setErr(error.message);
+      setBusy(false);
+      return;
     }
-    setLinks(last);
+    setLinks((data as { links: Record<string, { url: string; label: string; note: string }> | null })?.links ?? null);
     setBusy(false);
     setStep(5);
   }
@@ -173,19 +157,26 @@ export default function SurveyWizard({
         <div className="mt-5">
           <p className="max-w-measure text-[15.5px] leading-relaxed text-ink-2">
             The instrument version is fixed to the current published one, so your results stay
-            comparable with everyone else&apos;s. Every survey asks the whole instrument — there are no
-            shorter versions — and each respondent only sees the questions their answers lead to.
+            comparable with everyone else&apos;s. Choose how much of it to ask — each respondent only sees
+            the questions their answers lead to.
           </p>
-          <div className="mt-5 rounded-xl border-2 border-ink bg-paper-deep p-4">
-            <p className="figcap">{TOTAL_COUNT} items in the bank · about {WELCOME_MINUTES} minutes for most people</p>
-            <p className="mt-1 text-[17px]">The full instrument</p>
-            <p className="mt-1.5 text-[14px] leading-relaxed text-ink-2">
-              The whole three-by-four grid, the Exploration Index for those not yet following, and the
-              optional Drivers, Journey and Belong–Trust questions.
-            </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {ITEM_SETS.map((o) => (
+              <button
+                key={o.name}
+                type="button"
+                aria-pressed={itemSet === o.name}
+                onClick={() => setItemSet(o.name)}
+                className={`rounded-xl border-2 p-4 text-left ${itemSet === o.name ? "border-ink bg-paper-deep" : "border-rule-2 bg-plate hover:border-ink"}`}
+              >
+                <p className="figcap">{o.count} items · about {o.minutes} minutes for most people</p>
+                <p className="mt-1 text-[17px]">{o.label}</p>
+                <p className="mt-1.5 text-[14px] leading-relaxed text-ink-2">{o.description}</p>
+              </button>
+            ))}
           </div>
           <p className="margin-note mt-4 border-l-2 border-rule pl-3">
-            Every organisation asks the same instrument, so every result sits in the same
+            Every version asks the twelve-cell grid the same way, so every result sits in the same
             benchmark — no cell is ever empty because a shorter version was chosen.
           </p>
         </div>
@@ -195,46 +186,9 @@ export default function SurveyWizard({
       {step === 2 && (
         <div className="mt-5">
           <p className="max-w-measure text-[15.5px] leading-relaxed text-ink-2">
-            Two links off one survey. The gap between them — what is true of the young people you
-            already reach, against the ones you do not — is the most useful number the Index will
-            give you.
+            One link for everyone you invite — camps, services, groups, social media. Make named
+            links later from the dashboard if you want to see where answers came from.
           </p>
-          <Rows>
-            {[
-              {
-                k: "community",
-                t: "Your community",
-                b: "Camps, services, small groups — the young people already in your world.",
-              },
-              {
-                k: "public",
-                t: "Beyond your community",
-                b: "Social media and the wider city. Uninfluenced by your ministry, which is the point.",
-              },
-            ].map((a) => (
-              <Row
-                key={a.k}
-                tone={audiences.has(a.k) ? "good" : "plain"}
-                label={
-                  <>
-                    {a.t}
-                    <span className="margin-note mt-0.5 block">{a.b}</span>
-                  </>
-                }
-              >
-                <button
-                  onClick={() => toggleAudience(a.k)}
-                  className={`rounded-md border px-2.5 py-1 text-[13px] font-semibold ${
-                    audiences.has(a.k)
-                      ? "border-emerald bg-emerald text-plate"
-                      : "border-rule-2 text-ink-2 hover:border-ink hover:text-ink"
-                  }`}
-                >
-                  {audiences.has(a.k) ? "Included" : "Add"}
-                </button>
-              </Row>
-            ))}
-          </Rows>
           <div className="mt-5">
             <p className="figcap">Language</p>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -298,9 +252,9 @@ export default function SurveyWizard({
             <Row label="Fielding for" meta={chosen?.name ?? org ?? ""} />
             <Row
               label="Questions"
-              meta={`the full instrument · ${TOTAL_COUNT} items`}
+              meta={`${ITEM_SETS.find((o) => o.name === itemSet)?.label ?? itemSet} · ${ITEM_SETS.find((o) => o.name === itemSet)?.count ?? TOTAL_COUNT} items`}
             />
-            <Row label="Audiences" meta={[...audiences].join(" + ")} />
+            <Row label="Link" meta="one survey link" />
             <Row label="Language" meta={REGISTRY.find((l) => l.code === locale)?.native ?? locale} />
             <Row
               label="Consent"
@@ -320,14 +274,11 @@ export default function SurveyWizard({
       {step === 5 && (
         <div className="mt-5">
           <p className="max-w-measure text-[16px] leading-relaxed">
-            It is live. Anyone with these links can answer right now.
+            It is live. Anyone with this link can answer right now.
           </p>
           {links && (
             <ul className="mt-4 border-t border-ink">
-              {audiences.has("community") && links.community && (
-                <LinkRow {...links.community} />
-              )}
-              {audiences.has("public") && links.public && <LinkRow {...links.public} />}
+              {links.community && <LinkRow {...links.community} />}
             </ul>
           )}
           <p className="margin-note mt-4 border-l-2 border-emerald pl-3">

@@ -14,6 +14,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { LinkForm, type DistributionLink } from "@/components/index/LinksPanel";
 import QrCode from "@/components/index/QrCode";
+import { ITEM_SETS } from "@/lib/instrument";
 
 export type RoomSelection = { kind: "house" } | { kind: "room"; link: DistributionLink };
 
@@ -93,7 +94,7 @@ export default function RoomCards({
       p_id: l.id,
       p_name: next,
       p_slug: l.slug,
-      p_audience: l.audience,
+      p_item_set: l.item_set,
       p_active_from: l.active_from,
       p_active_to: l.active_to,
     });
@@ -198,7 +199,9 @@ export default function RoomCards({
                 <Kicker on={on}>
                   {l.is_test ? (
                     <span className="rounded bg-amber-300 px-1.5 py-0.5 font-bold text-ink">TEST</span>
-                  ) : l.audience === "public" ? "Public link" : "Community link"}
+                  ) : l.item_set && l.item_set !== "full" ? (
+                    ITEM_SETS.find((s) => s.name === l.item_set)?.label ?? l.item_set
+                  ) : "Survey link"}
                 </Kicker>
                 <Status on={on} dot={st.dot} label={st.label} />
               </button>
