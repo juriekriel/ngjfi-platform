@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * View-only links (migration 0046) — the dashboard view where an Org
+ * View-only links (migration 0046) — the part of Team & access where an Org
  * Administrator or Coordinator makes a read-only link for people who will
  * never sign in (field leaders, a board), and revokes it again.
  *
