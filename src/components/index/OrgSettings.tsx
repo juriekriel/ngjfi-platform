@@ -279,7 +279,16 @@ function VersionTile({ sb, orgSlug, s, ro, onSaved }: { sb: SupabaseClient; orgS
     const { error } = await sb.rpc("org_set_duration", { p_org_slug: orgSlug, p_item_set: next });
     if (error) {
       setV(prev);
-      setErr(/survey version|full/.test(error.message) ? "Survey versions need migration 0044, which isn't applied to this database yet." : error.message);
+      // Say what actually went wrong. A missing function means 0044 isn't
+      // applied; "no survey version called" means the instrument in the
+      // database predates item_sets — re-seed it (npm run db:seed).
+      setErr(
+        /function .*org_set_duration|Could not find the function/i.test(error.message)
+          ? "Survey versions need migration 0044, which isn't applied to this database yet."
+          : /no survey version called/i.test(error.message)
+            ? "The instrument in the database doesn't define this survey version yet — an administrator needs to re-seed the instrument (npm run db:seed)."
+            : error.message,
+      );
       setMsg(null);
       return;
     }
