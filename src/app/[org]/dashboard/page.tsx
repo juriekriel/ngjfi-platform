@@ -24,6 +24,7 @@ import SignedInFrame from "@/components/index/SignedInFrame";
 import RoomCards, { type RoomSelection } from "@/components/index/RoomCards";
 import OrgSettings from "@/components/index/OrgSettings";
 import ShareJfindx from "@/components/index/ShareJfindx";
+import OrgTeam from "@/components/index/OrgTeam";
 import type { MapCountry } from "@/components/index/WorldHeatMap";
 import { exportItemsCsv } from "@/lib/exportCsv";
 
@@ -59,6 +60,8 @@ type RoomDash = { n: number; suppressed: boolean; min_n: number; index: number |
 /** The pooled Collab picture (collab_intelligence()) — the overlay and the map. */
 type Collab = { published: boolean; matrix?: Matrix; countries?: MapCountry[]; country_gate?: number };
 type Season = { label: string; start: string | null; end: string | null; n: number };
+
+type DashView = "results" | "settings" | "share" | "team";
 
 const TIERS = ["exposure", "response", "formation", "multiplication"];
 const TIER_LABEL: Record<string, string> = {
@@ -106,13 +109,13 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
   const [roomErr, setRoomErr] = useState<string | null>(null);
 
   const [showDetail, setShowDetail] = useState(false);
-  // Results, Survey settings, or Share — one dashboard, three views (?view=).
-  const [view, setView] = useState<"results" | "settings" | "share">("results");
+  // Results, Survey settings, Team & access, or Share — one dashboard, four views (?view=).
+  const [view, setView] = useState<DashView>("results");
   useEffect(() => {
     const v = new URLSearchParams(window.location.search).get("view");
-    if (v === "settings" || v === "share") setView(v);
+    if (v === "settings" || v === "share" || v === "team") setView(v);
   }, []);
-  const changeView = useCallback((v: "results" | "settings" | "share") => {
+  const changeView = useCallback((v: DashView) => {
     setView(v);
     const u = new URL(window.location.href);
     if (v === "results") u.searchParams.delete("view");
@@ -188,8 +191,10 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
     if (!sb) return;
     const { data, error } = await sb.rpc("join_org_by_domain", { p_org_slug: slug });
     if (error) { setMsg(error.message); return; }
-    const res = data as { ok: boolean; email_domain?: string; expected?: string };
+    const res = data as { ok: boolean; reason?: string; email_domain?: string; expected?: string };
     if (res.ok) { setMsg(null); load(); }
+    else if (res.reason === "already_claimed")
+      setMsg("This organisation already has its Org Administrator. Ask them to add you from Team & access on their dashboard — then use the sign-in link they send you.");
     else setMsg(`Your email domain (${res.email_domain}) doesn't match this ministry's domain (${res.expected}).`);
   }
 
@@ -213,7 +218,10 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
     return (
       <Plain slug={slug}>
         <h2 className="text-lg font-semibold">Verify your ministry</h2>
-        <p className="mt-1 text-sm text-slate">You&apos;re signed in but not yet linked to <b>{slug}</b>. We check your email domain matches its website domain.</p>
+        <p className="mt-1 text-sm text-slate">
+          You&apos;re signed in but not yet linked to <b>{slug}</b>. If you were added to its team, this accepts the invitation.
+          If nobody has claimed it yet, we check your email domain matches its website domain and you become its Org Administrator.
+        </p>
         <button onClick={claim} className="mt-4 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white">Verify &amp; claim access</button>
         {msg && <p className="mt-3 text-sm text-accent">{msg}</p>}
       </Plain>
@@ -278,6 +286,8 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
           ? `${dash.org.name} · survey settings`
           : view === "share"
             ? "Share about the JFINDX"
+            : view === "team"
+              ? `${dash.org.name} · team & access`
             : inRoom
               ? (roomName as string)
               : `${dash.org.name} · the whole house`
@@ -285,6 +295,8 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
       body={
         view === "settings" && !demoPreview ? (
           <OrgSettings sb={sb} orgSlug={slug} onSaved={load} />
+        ) : view === "team" && !demoPreview ? (
+          <OrgTeam sb={sb} orgSlug={slug} orgName={dash.org.name} />
         ) : view === "share" ? (
           <ShareJfindx orgName={dash.org.name} />
         ) : undefined

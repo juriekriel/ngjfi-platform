@@ -14,7 +14,7 @@
  *   Consent          the edge-consent confirmation (0042) — links refuse answers until it exists
  *
  * Writes need an organisation admin (checked in the database, migration
- * 0036); a facilitator sees everything read-only.
+ * 0036); a coordinator (migration 0043) sees everything read-only.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";

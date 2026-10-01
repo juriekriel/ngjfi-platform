@@ -18,6 +18,7 @@
  * for self-serve, their own verified email) in the database. Only adult
  * staff contact details are handled; nothing touches respondents.
  */
+import { TEAM_ROLE_LABEL, normaliseRole, type TeamRole } from "@/lib/team";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { Action, Band, Row, Rows } from "@/components/console/Bands";
@@ -314,7 +315,7 @@ export function OrgManagePanel({ shortName, onChanged }: { shortName: string; on
   const [row, setRow] = useState<OrgRow | null>(null);
   const [team, setTeam] = useState<Team | null>(null);
   const [newEmail, setNewEmail] = useState("");
-  const [newRole, setNewRole] = useState<"org_admin" | "facilitator">("org_admin");
+  const [newRole, setNewRole] = useState<TeamRole>("coordinator");
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -348,14 +349,32 @@ export function OrgManagePanel({ shortName, onChanged }: { shortName: string; on
     e.preventDefault();
     if (!sb || !newEmail.trim()) return;
     setErr(null);
-    const { data, error } = await sb.rpc("admin_add_member", { p_short_name: shortName, p_email: newEmail.trim(), p_role: newRole });
+    // One Org Administrator per organisation (0043): naming a new one is a
+    // reassignment — the current one stays on as a coordinator.
+    const { data, error } =
+      newRole === "org_admin"
+        ? await sb.rpc("admin_set_org_admin", { p_short_name: shortName, p_email: newEmail.trim() })
+        : await sb.rpc("admin_add_member", { p_short_name: shortName, p_email: newEmail.trim(), p_role: "coordinator" });
     if (error) setErr(error.message);
     else {
-      const r = data as { email: string; attached: boolean };
-      setMsg(r.attached ? `${r.email} is on the team now.` : `${r.email} is invited — attached the first time they sign in.`);
+      const r = data as { email?: string; org_admin?: string; attached?: boolean; pending?: boolean };
+      const who = r.email ?? r.org_admin ?? newEmail.trim();
+      const live = r.attached ?? r.pending === false;
+      setMsg(
+        newRole === "org_admin"
+          ? live ? `${who} is now the Org Administrator.` : `${who} becomes the Org Administrator the first time they sign in.`
+          : live ? `${who} is a coordinator now.` : `${who} is invited — attached the first time they sign in.`,
+      );
       setNewEmail("");
       load();
     }
+  }
+  async function makeAdmin(email: string) {
+    if (!sb) return;
+    setErr(null);
+    const { error } = await sb.rpc("admin_set_org_admin", { p_short_name: shortName, p_email: email });
+    if (error) setErr(error.message);
+    else { setMsg(`${email} is now the Org Administrator.`); load(); }
   }
   async function remove(email: string) {
     if (!sb) return;
@@ -396,20 +415,23 @@ export function OrgManagePanel({ shortName, onChanged }: { shortName: string; on
       </form>
 
       <div className="rounded-xl border border-rule bg-plate p-4">
-        <p className="figcap">Team · who can open this organisation&apos;s dashboard</p>
+        <p className="figcap">Team · one Org Administrator, up to five coordinators</p>
         {!team ? (
           <p className="mt-2 text-[13px] text-muted">Loading…</p>
         ) : (
           <ul className="mt-2 divide-y divide-rule">
             {team.members.map((m) => (
               <li key={m.email} className="flex items-center justify-between gap-3 py-2.5 text-[14px]">
-                <span className="min-w-0 break-all">{m.email}<span className="ml-2 font-mono text-[11px] text-ink-2">{m.role === "facilitator" ? "facilitator" : "admin"}</span></span>
+                <span className="min-w-0 break-all">{m.email}<span className="ml-2 font-mono text-[11px] text-ink-2">{TEAM_ROLE_LABEL[normaliseRole(m.role) ?? "coordinator"]}</span></span>
+                {normaliseRole(m.role) === "coordinator" && (
+                  <button onClick={() => makeAdmin(m.email)} className="shrink-0 rounded-md border border-rule-2 px-2.5 py-1 text-[12px] font-semibold text-ink-2 hover:border-ink hover:text-ink">Make Org Administrator</button>
+                )}
                 <button onClick={() => remove(m.email)} className="shrink-0 rounded-md border border-rule-2 px-2.5 py-1 text-[12px] font-semibold text-ink-2 hover:border-vermillion hover:text-vermillion">Remove</button>
               </li>
             ))}
             {team.invites.map((i) => (
               <li key={i.email} className="flex items-center justify-between gap-3 py-2.5 text-[14px]">
-                <span className="min-w-0 break-all text-ink-2">{i.email}<span className="ml-2 font-mono text-[11px]">invited · not signed in yet</span></span>
+                <span className="min-w-0 break-all text-ink-2">{i.email}<span className="ml-2 font-mono text-[11px]">invited as {TEAM_ROLE_LABEL[normaliseRole(i.role) ?? "coordinator"]} · not signed in yet</span></span>
                 <button onClick={() => remove(i.email)} className="shrink-0 rounded-md border border-rule-2 px-2.5 py-1 text-[12px] font-semibold text-ink-2 hover:border-vermillion hover:text-vermillion">Cancel</button>
               </li>
             ))}
@@ -419,9 +441,9 @@ export function OrgManagePanel({ shortName, onChanged }: { shortName: string; on
         <form onSubmit={add} className="mt-3 flex flex-wrap gap-2">
           <label className="sr-only" htmlFor={`add-${shortName}`}>Email to add</label>
           <input id={`add-${shortName}`} type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="colleague@ministry.org" className="min-w-[200px] flex-1 rounded-lg border border-rule-2 px-3 py-2 text-[14px]" />
-          <select aria-label="Role" value={newRole} onChange={(e) => setNewRole(e.target.value as "org_admin" | "facilitator")} className="rounded-lg border border-rule-2 bg-plate px-2 py-2 text-[14px]">
-            <option value="org_admin">Admin</option>
-            <option value="facilitator">Facilitator</option>
+          <select aria-label="Role" value={newRole} onChange={(e) => setNewRole(e.target.value as TeamRole)} className="rounded-lg border border-rule-2 bg-plate px-2 py-2 text-[14px]">
+            <option value="coordinator">Coordinator</option>
+            <option value="org_admin">Org Administrator (replaces the current one)</option>
           </select>
           <Action primary>Add</Action>
         </form>

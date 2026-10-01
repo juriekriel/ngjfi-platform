@@ -53,8 +53,8 @@ export default function RoomCards({
   /** The organisation's registered name — the house card reads "All <name> surveys". */
   orgName: string;
   /** Which dashboard view is showing; the two tiles beside "+ New link" switch it. */
-  view?: "results" | "settings" | "share";
-  onView?: (v: "results" | "settings" | "share") => void;
+  view?: "results" | "settings" | "share" | "team";
+  onView?: (v: "results" | "settings" | "share" | "team") => void;
 }) {
   const [links, setLinks] = useState<DistributionLink[] | null>(null);
   // Test links and their test-answer counts (0038) — counted apart from real answers.
@@ -131,6 +131,14 @@ export default function RoomCards({
                 className={`whitespace-nowrap rounded-lg border px-4 py-2.5 text-[14px] font-semibold ${view === "share" ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"}`}
               >
                 Share about the JFINDX
+              </button>
+              <button
+                type="button"
+                aria-pressed={view === "team"}
+                onClick={() => onView(view === "team" ? "results" : "team")}
+                className={`whitespace-nowrap rounded-lg border px-4 py-2.5 text-[14px] font-semibold ${view === "team" ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"}`}
+              >
+                Team &amp; access
               </button>
               <button
                 type="button"
