@@ -18,7 +18,7 @@ import { ITEM_SETS } from "@/lib/instrument";
 
 export type RoomSelection = { kind: "house" } | { kind: "room"; link: DistributionLink };
 /** The dashboard's views (?view=) — switched by the tiles beside "+ New link". */
-export type DashboardView = "results" | "settings" | "share" | "team" | "viewlinks";
+export type DashboardView = "results" | "settings" | "share" | "team";
 
 const STATUS: Record<DistributionLink["status"], { label: string; dot: string }> = {
   active: { label: "Open", dot: "rgb(var(--c-green))" },
@@ -134,14 +134,6 @@ export default function RoomCards({
                 className={`whitespace-nowrap rounded-lg border px-4 py-2.5 text-[14px] font-semibold ${view === "share" ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"}`}
               >
                 Share about the JFINDX
-              </button>
-              <button
-                type="button"
-                aria-pressed={view === "viewlinks"}
-                onClick={() => onView(view === "viewlinks" ? "results" : "viewlinks")}
-                className={`whitespace-nowrap rounded-lg border px-4 py-2.5 text-[14px] font-semibold ${view === "viewlinks" ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"}`}
-              >
-                View-only links
               </button>
               <button
                 type="button"

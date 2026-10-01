@@ -82,7 +82,9 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
   const [view, setView] = useState<DashView>("results");
   useEffect(() => {
     const v = new URLSearchParams(window.location.search).get("view");
-    if (v === "settings" || v === "share" || v === "team" || v === "viewlinks") setView(v);
+    if (v === "settings" || v === "share" || v === "team") setView(v);
+    // View-only links live in Team & access; keep any bookmarked ?view=viewlinks working.
+    else if (v === "viewlinks") setView("team");
   }, []);
   const changeView = useCallback((v: DashView) => {
     setView(v);
@@ -263,8 +265,6 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
             ? "Share about the JFINDX"
             : view === "team"
               ? `${dash.org.name} · team & access`
-            : view === "viewlinks"
-              ? `${dash.org.name} · view-only links`
             : inRoom
               ? (roomName as string)
               : `${dash.org.name} · the whole house`
@@ -273,9 +273,11 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
         view === "settings" && !demoPreview ? (
           <OrgSettings sb={sb} orgSlug={slug} onSaved={load} />
         ) : view === "team" && !demoPreview ? (
-          <OrgTeam sb={sb} orgSlug={slug} orgName={dash.org.name} />
-        ) : view === "viewlinks" && !demoPreview ? (
-          <ShareLinksPanel sb={sb} orgSlug={slug} orgName={dash.org.name} />
+          // Who can open the dashboard, and who can see it without signing in (0046).
+          <div className="flex flex-col gap-3">
+            <OrgTeam sb={sb} orgSlug={slug} orgName={dash.org.name} />
+            <ShareLinksPanel sb={sb} orgSlug={slug} orgName={dash.org.name} />
+          </div>
         ) : view === "share" ? (
           <ShareJfindx orgName={dash.org.name} />
         ) : undefined
