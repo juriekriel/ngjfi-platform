@@ -2,17 +2,15 @@ import { surveyMetadata } from "@/lib/surveyMetadata";
 import Survey from "@/components/survey/Survey";
 
 /**
- * jfindx.org/<short_name> — the COMMUNITY link.
+ * jfindx.org/<short_name> — the organisation's survey link.
  *
- * For the young people a ministry already reaches: camps, services, groups.
- * Its sibling at /<short_name>/open fields the same instrument to everyone
- * else. The gap between the two is the most useful number the Index produces,
- * which is why they must never become two different surveys.
+ * One link per organisation (migration 0044). Distribution links
+ * (/<short_name>/l/<link>) are the same survey, tagged by room.
  */
 export function generateMetadata({ params }: { params: { org: string } }) {
   return surveyMetadata(params.org);
 }
 
 export default function SurveyPage({ params }: { params: { org: string } }) {
-  return <Survey slug={params.org} audience="community" />;
+  return <Survey slug={params.org} />;
 }

@@ -67,12 +67,12 @@ on conflict (version) do update
 update public.instrument_versions set status = 'archived'
  where version <> '${inst.version}';
 
--- Replace the item set for this version rather than merging: a removed item
--- must actually disappear, or the survey would keep asking a question the
--- research panel has retired.
-delete from public.items
- where instrument_version_id = (select id from public.instrument_versions where version = '${inst.version}');
-
+-- Bring the items table in line with the JSON. Upsert by key, then remove
+-- keys the JSON no longer has — so a retired item really disappears. On a
+-- LOCKED version (migration 0045) this is a no-op when nothing frozen
+-- changed, and the database refuses it when something did: that's the lock.
+-- (The old delete-then-reinsert could never work once answers existed, and
+-- would have refused on any locked version.)
 insert into public.items
   (instrument_version_id, key, question_domain, tier, type, scored, reverse_scored, scale, ord, branch, section)
 select iv.id, e->>'key', e->>'question_domain', e->>'tier', e->>'type',
@@ -81,18 +81,34 @@ select iv.id, e->>'key', e->>'question_domain', e->>'tier', e->>'type',
        e->'scale', (e->>'order')::int, e->>'branch', e->>'section'
   from public.instrument_versions iv,
        lateral jsonb_array_elements(iv.definition->'items') e
- where iv.version = '${inst.version}';
+ where iv.version = '${inst.version}'
+on conflict (instrument_version_id, key) do update
+  set question_domain = excluded.question_domain, tier = excluded.tier, type = excluded.type,
+      scored = excluded.scored, reverse_scored = excluded.reverse_scored, scale = excluded.scale,
+      ord = excluded.ord, branch = excluded.branch, section = excluded.section
+  where (items.question_domain, items.tier, items.type, items.scored, items.reverse_scored, items.scale, items.ord, items.branch, items.section)
+        is distinct from
+        (excluded.question_domain, excluded.tier, excluded.type, excluded.scored, excluded.reverse_scored, excluded.scale, excluded.ord, excluded.branch, excluded.section);
+
+delete from public.items i
+ using public.instrument_versions iv
+ where iv.version = '${inst.version}' and i.instrument_version_id = iv.id
+   and not exists (select 1 from jsonb_array_elements(iv.definition->'items') e where e->>'key' = i.key);
 
 -- Move existing campaigns and waves onto this version, but only where it
 -- asks everything their current version asks with identical scoring tags
 -- (migration 0039). Without this, a campaign still on the previous version
 -- would reject every new question the survey now shows.
 select public.adopt_instrument_version('${inst.version}') as adopted;
-
+${inst.lock?.locked ? `
+-- The JSON says this version is locked (instrument.${inst.version}.json "lock").
+select public.lock_instrument_version('${inst.version}', $lock$${JSON.stringify(inst.lock)}$lock$) as locked;
+` : ""}
 select jsonb_build_object(
   'version', iv.version,
   'status',  iv.status,
-  'items',   (select count(*) from public.items i where i.instrument_version_id = iv.id)
+  'items',   (select count(*) from public.items i where i.instrument_version_id = iv.id),
+  'locked_at', iv.locked_at
 ) as seeded
 from public.instrument_versions iv where iv.version = '${inst.version}';
 `;

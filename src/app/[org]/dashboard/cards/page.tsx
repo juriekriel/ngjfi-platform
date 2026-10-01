@@ -32,7 +32,7 @@ export default function CardsPage({ params }: { params: { org: string } }) {
 function Cards({ org: slug }: { org: string }) {
   const q = useSearchParams();
   const linkSlug = q.get("link");
-  const audience = q.get("audience") === "public" ? "public" : "community";
+  // ?audience=public is ignored since migration 0044 — there is one survey link.
   const sb = useMemo(() => getSupabaseBrowser(), []);
   const [org, setOrg] = useState<Org | null>(null);
   const [roomName, setRoomName] = useState<string | null>(null);
@@ -51,7 +51,7 @@ function Cards({ org: slug }: { org: string }) {
       });
   }, [sb, slug, linkSlug]);
 
-  const url = linkSlug ? `${origin}/${slug}/l/${linkSlug}` : audience === "public" ? `${origin}/${slug}/open` : `${origin}/${slug}`;
+  const url = linkSlug ? `${origin}/${slug}/l/${linkSlug}` : `${origin}/${slug}`;
   const short = url.replace(/^https?:\/\//, "");
   const brand = org?.brand_color && /^#[0-9a-fA-F]{6}$/.test(org.brand_color) ? org.brand_color : "#FF7A47";
   const name = org?.name ?? slug;
@@ -67,7 +67,7 @@ function Cards({ org: slug }: { org: string }) {
       <div className="no-print mx-auto flex max-w-4xl flex-wrap items-end justify-between gap-4 px-5 py-6">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-wider text-ink-2">{name} · printable cards</p>
-          <h1 className="mt-1 text-[24px] font-bold tracking-tight">{roomName ?? (linkSlug ? linkSlug : audience === "public" ? "Public link" : "Your survey")}</h1>
+          <h1 className="mt-1 text-[24px] font-bold tracking-tight">{roomName ?? (linkSlug ? linkSlug : "Your survey")}</h1>
           <p className="mt-1 font-mono text-[12px] text-ink-2">{short}</p>
         </div>
         <div className="flex flex-wrap items-end gap-3">

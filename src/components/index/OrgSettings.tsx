@@ -7,19 +7,19 @@
  *
  *   Name & look      name, colour, logo (upload)   org_update_settings() + Storage (0037)
  *   Messages         welcome and closing           org_update_settings()
- *   Duration         full (~7 min) / core (~3 min) org_set_duration()
- *   Links & QR       survey links, QR download, print cards
+ *   Survey version   full / J12 only (instrument item_sets)  org_set_duration() (0044)
+ *   Link & QR        the survey link, QR download, print cards
  *   Languages        what it runs in; request a translation (→ the Collab)
  *   Status           collecting or waiting for approval
  *   Consent          the edge-consent confirmation (0042) — links refuse answers until it exists
  *
  * Writes need an organisation admin (checked in the database, migration
- * 0036); a facilitator sees everything read-only.
+ * 0036); a coordinator (migration 0043) sees everything read-only.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import QRCode from "qrcode";
-import { TOTAL_COUNT, instrument } from "@/lib/instrument";
+import { ITEM_SETS, TOTAL_COUNT, instrument, knownItemSet } from "@/lib/instrument";
 import { REGISTRY } from "@/lib/i18n";
 import ConsentAttestation from "@/components/console/ConsentAttestation";
 import { LOGO_BUCKET, LOGO_MAX_BYTES, fitWithin, logoPath, logoProblem, ourLogoPath } from "@/lib/logoUpload";
@@ -62,6 +62,7 @@ export default function OrgSettings({ sb, orgSlug, onSaved }: { sb: SupabaseClie
       <div className="grid gap-3 lg:grid-cols-3">
         <LookTile sb={sb} orgSlug={orgSlug} s={s} ro={ro} onSaved={() => { load(); onSaved?.(); }} />
         <MessagesTile sb={sb} orgSlug={orgSlug} s={s} ro={ro} />
+        <VersionTile sb={sb} orgSlug={orgSlug} s={s} ro={ro} onSaved={() => { load(); onSaved?.(); }} />
         <LinksTile orgSlug={orgSlug} origin={origin} name={s.name} />
         <LanguagesTile sb={sb} orgSlug={orgSlug} s={s} />
         <StatusTile s={s} />
@@ -239,13 +240,8 @@ function MessagesTile({ sb, orgSlug, s, ro }: { sb: SupabaseClient; orgSlug: str
 
 function LinksTile({ orgSlug, origin, name }: { orgSlug: string; origin: string; name: string }) {
   const [copied, setCopied] = useState<string | null>(null);
-  const links = useMemo(
-    () => [
-      { key: "community", label: "Community · the people you reach", url: `${origin}/${orgSlug}` },
-      { key: "public", label: "Public · everyone else", url: `${origin}/${orgSlug}/open` },
-    ],
-    [origin, orgSlug],
-  );
+  // One link for everyone you invite (migration 0044).
+  const links = useMemo(() => [{ key: "survey", label: "Your survey link", url: `${origin}/${orgSlug}` }], [origin, orgSlug]);
   async function downloadQr(url: string, key: string) {
     const data = await QRCode.toDataURL(url, { width: 1200, margin: 2, errorCorrectionLevel: "M", color: { dark: "#22252b", light: "#ffffff" } });
     const a = document.createElement("a");
@@ -254,7 +250,7 @@ function LinksTile({ orgSlug, origin, name }: { orgSlug: string; origin: string;
     a.click();
   }
   return (
-    <Tile kicker="Where people answer" title="Links & QR codes">
+    <Tile kicker="Where people answer" title="Link & QR code">
       {links.map((l) => (
         <div key={l.key} className="rounded-xl border border-rule px-3 py-2.5">
           <p className="text-[13px] font-semibold">{l.label}</p>
@@ -262,13 +258,55 @@ function LinksTile({ orgSlug, origin, name }: { orgSlug: string; origin: string;
           <div className="mt-2 flex flex-wrap gap-1.5">
             <button onClick={async () => { await navigator.clipboard.writeText(l.url); setCopied(l.key); setTimeout(() => setCopied(null), 1500); }} className="rounded-md border border-rule-2 px-2.5 py-1 text-[12px] font-semibold hover:border-ink">{copied === l.key ? "Copied" : "Copy"}</button>
             <button onClick={() => downloadQr(l.url, l.key)} className="rounded-md border border-rule-2 px-2.5 py-1 text-[12px] font-semibold hover:border-ink">Download QR</button>
-            <a href={`/${orgSlug}/dashboard/cards${l.key === "public" ? "?audience=public" : ""}`} className="rounded-md border border-rule-2 px-2.5 py-1 text-[12px] font-semibold text-ink no-underline hover:border-ink">Print cards</a>
+            <a href={`/${orgSlug}/dashboard/cards`} className="rounded-md border border-rule-2 px-2.5 py-1 text-[12px] font-semibold text-ink no-underline hover:border-ink">Print cards</a>
           </div>
         </div>
       ))}
       <p className="text-[12.5px] leading-relaxed text-ink-2">
         <b className="text-ink">Custom links:</b> “+ New link” makes a link with its own name and address — {origin.replace(/^https?:\/\//, "")}/{orgSlug}/l/<i>your-name</i> — and its own open and close times. Each one is a room in {name}&apos;s results.
       </p>
+    </Tile>
+  );
+}
+
+function VersionTile({ sb, orgSlug, s, ro, onSaved }: { sb: SupabaseClient; orgSlug: string; s: Settings; ro: boolean; onSaved: () => void }) {
+  const [v, setV] = useState<string>(knownItemSet(s.item_set));
+  const [msg, setMsg] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  async function pick(next: string) {
+    const prev = v;
+    setV(next);
+    const { error } = await sb.rpc("org_set_duration", { p_org_slug: orgSlug, p_item_set: next });
+    if (error) {
+      setV(prev);
+      setErr(/survey version|full/.test(error.message) ? "Survey versions need migration 0044, which isn't applied to this database yet." : error.message);
+      setMsg(null);
+      return;
+    }
+    setErr(null);
+    setMsg("Saved — new respondents get this version. Answers already given keep the version they were given under.");
+    onSaved();
+  }
+  return (
+    <Tile kicker="What respondents are asked" title="Survey version">
+      {ITEM_SETS.map((o) => (
+        <button
+          key={o.name}
+          type="button"
+          disabled={ro}
+          aria-pressed={v === o.name}
+          onClick={() => pick(o.name)}
+          className={`flex flex-col items-start rounded-xl border px-4 py-3 text-left ${v === o.name ? "border-violet-deep bg-violet/10" : "border-rule-2 bg-plate hover:border-ink"} disabled:cursor-default`}
+        >
+          <span className="text-[15px] font-semibold">{o.label} · about {o.minutes} minutes</span>
+          <span className="text-[13px] leading-snug text-ink-2">{o.description}</span>
+        </button>
+      ))}
+      <p className="text-[12.5px] leading-relaxed text-ink-2">
+        Applies to your survey link and to any room set to &ldquo;Same as your survey settings&rdquo;. Both versions ask the
+        J12 questions identically, so your score and benchmarks are comparable either way.
+      </p>
+      <Feedback msg={msg} err={err} />
     </Tile>
   );
 }

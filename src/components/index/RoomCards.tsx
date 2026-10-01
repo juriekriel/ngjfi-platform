@@ -14,6 +14,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { LinkForm, type DistributionLink } from "@/components/index/LinksPanel";
 import QrCode from "@/components/index/QrCode";
+import { ITEM_SETS } from "@/lib/instrument";
 
 export type RoomSelection = { kind: "house" } | { kind: "room"; link: DistributionLink };
 
@@ -53,8 +54,8 @@ export default function RoomCards({
   /** The organisation's registered name — the house card reads "All <name> surveys". */
   orgName: string;
   /** Which dashboard view is showing; the two tiles beside "+ New link" switch it. */
-  view?: "results" | "settings" | "share";
-  onView?: (v: "results" | "settings" | "share") => void;
+  view?: "results" | "settings" | "share" | "team";
+  onView?: (v: "results" | "settings" | "share" | "team") => void;
 }) {
   const [links, setLinks] = useState<DistributionLink[] | null>(null);
   // Test links and their test-answer counts (0038) — counted apart from real answers.
@@ -93,7 +94,7 @@ export default function RoomCards({
       p_id: l.id,
       p_name: next,
       p_slug: l.slug,
-      p_audience: l.audience,
+      p_item_set: l.item_set,
       p_active_from: l.active_from,
       p_active_to: l.active_to,
     });
@@ -131,6 +132,14 @@ export default function RoomCards({
                 className={`whitespace-nowrap rounded-lg border px-4 py-2.5 text-[14px] font-semibold ${view === "share" ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"}`}
               >
                 Share about the JFINDX
+              </button>
+              <button
+                type="button"
+                aria-pressed={view === "team"}
+                onClick={() => onView(view === "team" ? "results" : "team")}
+                className={`whitespace-nowrap rounded-lg border px-4 py-2.5 text-[14px] font-semibold ${view === "team" ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"}`}
+              >
+                Team &amp; access
               </button>
               <button
                 type="button"
@@ -190,7 +199,9 @@ export default function RoomCards({
                 <Kicker on={on}>
                   {l.is_test ? (
                     <span className="rounded bg-amber-300 px-1.5 py-0.5 font-bold text-ink">TEST</span>
-                  ) : l.audience === "public" ? "Public link" : "Community link"}
+                  ) : l.item_set && l.item_set !== "full" ? (
+                    ITEM_SETS.find((s) => s.name === l.item_set)?.label ?? l.item_set
+                  ) : "Survey link"}
                 </Kicker>
                 <Status on={on} dot={st.dot} label={st.label} />
               </button>

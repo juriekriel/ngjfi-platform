@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { ITEM_SETS } from "@/lib/instrument";
 
 type Link = {
   id: string;
   name: string;
   slug: string;
-  audience: "community" | "public";
+  /** The survey version this link fields (0044); null = the organisation's own setting. */
+  item_set: string | null;
   active_from: string | null;
   active_to: string | null;
   status: "scheduled" | "active" | "ended";
@@ -162,7 +164,7 @@ export function LinkForm({
   const [name, setName] = useState(link?.name ?? "");
   const [slug, setSlug] = useState(link?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(Boolean(link));
-  const [audience, setAudience] = useState<"community" | "public">(link?.audience ?? "community");
+  const [itemSet, setItemSet] = useState<string>(link?.item_set ?? "");
   const [from, setFrom] = useState(toLocalInput(link?.active_from ?? null));
   const [to, setTo] = useState(toLocalInput(link?.active_to ?? null));
   const [isTest, setIsTest] = useState(Boolean(link?.is_test));
@@ -177,7 +179,7 @@ export function LinkForm({
       p_id: link?.id ?? null,
       p_name: name,
       p_slug: slug || slugify(name),
-      p_audience: audience,
+      p_item_set: itemSet || null,
       p_active_from: from ? new Date(from).toISOString() : null,
       p_active_to: to ? new Date(to).toISOString() : null,
     });
@@ -249,12 +251,17 @@ export function LinkForm({
           </span>
         </label>
         <div>
-          <label className="font-mono text-[9px] uppercase tracking-wider text-muted">Audience</label>
-          <select value={audience} onChange={(e) => setAudience(e.target.value as "community" | "public")}
+          <label htmlFor="link-item-set" className="font-mono text-[9px] uppercase tracking-wider text-muted">Survey version</label>
+          <select id="link-item-set" value={itemSet} onChange={(e) => setItemSet(e.target.value)}
             className="mt-1 w-full rounded-lg border border-rule px-2 py-1.5 text-sm">
-            <option value="community">Community — the young people you already reach</option>
-            <option value="public">Open — anyone this link is shared with</option>
+            <option value="">Same as your survey settings</option>
+            {ITEM_SETS.map((s) => (
+              <option key={s.name} value={s.name}>{s.label} · about {s.minutes} minutes</option>
+            ))}
           </select>
+          <p className="mt-1 text-[12px] leading-snug text-muted">
+            Every version asks the J12 questions the same way, so this link&apos;s answers count in your score either way.
+          </p>
         </div>
       </div>
       {error && <p className="mt-3 text-sm text-vermillion">{error}</p>}

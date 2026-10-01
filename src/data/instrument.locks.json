@@ -1,0 +1,7 @@
+{
+  "_about": "Fingerprints of locked instrument versions (src/lib/instrumentLock.ts). tests/instrumentLock.test.ts fails if a locked version's frozen content changes. Never edit a fingerprint to make a test pass: make a new version instead.",
+  "v5": {
+    "locked_on": "2026-10-01",
+    "sha256": "d99003360518ccb47174a8cbb9b2d8dfa52dadd8e199df5f9112f72b635000f7"
+  }
+}

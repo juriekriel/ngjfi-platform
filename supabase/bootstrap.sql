@@ -61,6 +61,9 @@
 --   0040_single_instrument_no_core_only.sql
 --   0041_collab_insights_and_export.sql
 --   0042_pilot_safeguards.sql
+--   0043_org_team_tiers.sql
+--   0044_one_link_and_survey_versions.sql
+--   0045_instrument_lock.sql
 -- ============================================================================
 
 
@@ -10232,4 +10235,1224 @@ begin
   );
 end;
 $$;
+
+
+-- ─── 0043_org_team_tiers.sql ───────────────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — organisation team tiers (migration 0043)
+--
+-- Four tiers of access, from the Collab down to a young person:
+--
+--   Administrator      app_users.role = 'admin' (the Collab backbone). Unchanged.
+--   Org Administrator  org_members.role = 'org_admin' — EXACTLY ONE active per
+--                      organisation. The person who claims the organisation
+--                      (sign-in link + website-domain check, or an invitation
+--                      from the Collab). Manages the team, survey settings,
+--                      consent and branding.
+--   Coordinator        org_members.role = 'coordinator' — up to N per
+--                      organisation (platform_settings.org_coordinator_limit,
+--                      default 5; config, not code). Added BY EMAIL by the Org
+--                      Administrator. Uses the dashboard exactly as it is:
+--                      results, rooms, links, QR codes, exports, consulting.
+--                      Cannot change settings, consent, branding or the team.
+--   Respondent         no account at all. Anonymous, as ever.
+--
+-- What changes:
+--   1. 'facilitator' (and the never-used legacy values) become 'coordinator'.
+--   2. Organisations that had several org_admins keep the EARLIEST as Org
+--      Administrator; the others become Coordinators. Nobody loses access.
+--   3. A unique index holds "one active Org Administrator per organisation".
+--   4. A trigger holds the coordinator limit for every new or re-activated
+--      coordinator (sandbox organisations are exempt — the public demo org
+--      is claimable by any gmail address on purpose).
+--   5. join_org_by_domain(): a matching email domain claims an UNCLAIMED
+--      organisation only. Once an organisation has its Org Administrator,
+--      further people come in by invitation — that is the whole point.
+--   6. Org-facing team functions: org_team(), org_add_coordinator(),
+--      org_remove_member(), org_transfer_admin(); Collab-facing
+--      admin_set_org_admin(). Every team change is written to
+--      campaign_action_log.
+--
+-- Read access is untouched: every dashboard function already admits any
+-- active member, and every write that should be the Org Administrator's
+-- alone already checks role = 'org_admin' (0036 settings, 0037 logo, 0042
+-- consent). So a Coordinator sees the dashboard as is, with no reporting
+-- function rewritten. Everything here is about ADULT STAFF; nothing touches
+-- respondents or their answers.
+-- ============================================================================
+
+
+-- ----------------------------------------------------------------------------
+-- 1. Roles: org_admin | coordinator.
+-- ----------------------------------------------------------------------------
+alter table public.org_members drop constraint if exists org_members_role_check;
+update public.org_members set role = 'coordinator' where role <> 'org_admin';
+
+alter table public.org_invites drop constraint if exists org_invites_role_check;
+update public.org_invites set role = 'coordinator' where role <> 'org_admin';
+
+
+-- ----------------------------------------------------------------------------
+-- 2. One Org Administrator per organisation — the earliest keeps it.
+-- ----------------------------------------------------------------------------
+with ranked as (
+  select id, row_number() over (partition by org_id order by created_at, id) as rn
+    from public.org_members
+   where role = 'org_admin' and status = 'active'
+)
+update public.org_members m set role = 'coordinator'
+  from ranked r where r.id = m.id and r.rn > 1;
+
+-- Pending org_admin invitations for an organisation that already has its
+-- administrator would collide on acceptance; they become coordinator invites.
+update public.org_invites i set role = 'coordinator'
+ where i.role = 'org_admin' and i.accepted_at is null
+   and exists (select 1 from public.org_members m
+                where m.org_id = i.org_id and m.role = 'org_admin' and m.status = 'active');
+-- …and only the earliest pending org_admin invite per unclaimed organisation stays one.
+with ranked as (
+  select id, row_number() over (partition by org_id order by created_at, id) as rn
+    from public.org_invites where role = 'org_admin' and accepted_at is null
+)
+update public.org_invites i set role = 'coordinator' from ranked r where r.id = i.id and r.rn > 1;
+
+alter table public.org_members
+  add constraint org_members_role_check check (role in ('org_admin', 'coordinator'));
+alter table public.org_members alter column role set default 'coordinator';
+alter table public.org_invites
+  add constraint org_invites_role_check check (role in ('org_admin', 'coordinator'));
+alter table public.org_invites alter column role set default 'coordinator';
+
+create unique index if not exists org_members_one_admin
+  on public.org_members (org_id) where role = 'org_admin' and status = 'active';
+
+comment on column public.org_members.role is
+  'org_admin = the one Org Administrator (unique per org); coordinator = shares dashboard access (limit: platform_settings.org_coordinator_limit). Collab administrators live on app_users.role.';
+
+
+-- ----------------------------------------------------------------------------
+-- 3. The coordinator limit is config.
+-- ----------------------------------------------------------------------------
+insert into public.platform_settings (key, value, note) values
+  ('org_coordinator_limit', '5'::jsonb,
+   'How many Coordinators (besides its one Org Administrator) an organisation may have, counting pending invitations. Sandbox organisations are exempt.')
+on conflict (key) do nothing;
+
+create or replace function public._coordinator_count(p_org uuid, p_except_email text default null)
+returns int language sql stable security definer set search_path = public as $$
+  select (
+    select count(*) from org_members m join app_users u on u.id = m.user_id
+     where m.org_id = p_org and m.role = 'coordinator' and m.status = 'active'
+       and (p_except_email is null or lower(u.email) <> lower(p_except_email))
+  )::int + (
+    select count(*) from org_invites i
+     where i.org_id = p_org and i.role = 'coordinator' and i.accepted_at is null
+       and (p_except_email is null or lower(i.email) <> lower(p_except_email))
+       -- an invite for someone who is already a member is not a second seat
+       and not exists (select 1 from org_members m join app_users u on u.id = m.user_id
+                        where m.org_id = p_org and lower(u.email) = lower(i.email))
+  )::int;
+$$;
+revoke all on function public._coordinator_count(uuid, text) from public, anon, authenticated;
+
+create or replace function public.enforce_coordinator_limit()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare v_limit int := setting_int('org_coordinator_limit', 5); v_n int;
+begin
+  if new.role <> 'coordinator' or new.status <> 'active' then return new; end if;
+  if tg_op = 'UPDATE' and old.role = 'coordinator' and old.status = 'active' then return new; end if;
+  -- A handover swaps two people's roles; the count is unchanged by the end.
+  if current_setting('jfindx.team_swap', true) = 'on' then return new; end if;
+  if exists (select 1 from organisations o where o.id = new.org_id and o.is_demo) then return new; end if;
+  select count(*) into v_n from org_members
+   where org_id = new.org_id and role = 'coordinator' and status = 'active' and id <> new.id;
+  if v_n >= v_limit then
+    raise exception 'this organisation already has % coordinators — the most it can have. Remove one first.', v_limit;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists org_members_coordinator_limit on public.org_members;
+create trigger org_members_coordinator_limit
+  before insert or update of role, status on public.org_members
+  for each row execute function public.enforce_coordinator_limit();
+
+
+-- ----------------------------------------------------------------------------
+-- 4. Invitations, now tier-aware. Same signature as 0034, so admin_create_org
+-- and admin_add_member keep working unchanged.
+-- ----------------------------------------------------------------------------
+create or replace function public._invite_member(p_org_id uuid, p_email text, p_role text, p_by uuid)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_email text := lower(btrim(p_email));
+  v_uid uuid;
+  v_role text := case when p_role = 'facilitator' then 'coordinator' else p_role end;
+  v_demo boolean;
+  v_current_role text;
+begin
+  if v_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then raise exception 'that is not an email address'; end if;
+  if v_role not in ('org_admin', 'coordinator') then raise exception 'role must be org_admin or coordinator'; end if;
+  select is_demo into v_demo from organisations where id = p_org_id;
+
+  select m.role into v_current_role
+    from org_members m join app_users u on u.id = m.user_id
+   where m.org_id = p_org_id and lower(u.email) = v_email and m.status = 'active';
+
+  if v_role = 'org_admin' then
+    if v_current_role = 'org_admin' then
+      return jsonb_build_object('email', v_email, 'attached', true, 'role', 'org_admin');
+    end if;
+    if exists (select 1 from org_members where org_id = p_org_id and role = 'org_admin' and status = 'active')
+       or exists (select 1 from org_invites where org_id = p_org_id and role = 'org_admin'
+                   and accepted_at is null and email <> v_email) then
+      raise exception 'this organisation already has its Org Administrator — hand the role over instead (admin_set_org_admin / org_transfer_admin)';
+    end if;
+  else
+    if v_current_role = 'org_admin' then
+      raise exception '% is this organisation''s Org Administrator — hand the role over before making them a coordinator', v_email;
+    end if;
+    if v_current_role = 'coordinator' then
+      return jsonb_build_object('email', v_email, 'attached', true, 'role', 'coordinator');
+    end if;
+    if not v_demo and _coordinator_count(p_org_id, v_email) >= setting_int('org_coordinator_limit', 5) then
+      raise exception 'this organisation already has % coordinators — the most it can have. Remove one first.',
+        setting_int('org_coordinator_limit', 5);
+    end if;
+  end if;
+
+  insert into org_invites (org_id, email, role, invited_by)
+  values (p_org_id, v_email, v_role, p_by)
+  on conflict (org_id, email) do update
+    set role = excluded.role, invited_by = excluded.invited_by, accepted_at = null, created_at = now();
+
+  select id into v_uid from auth.users where lower(email) = v_email;
+  if v_uid is not null then
+    insert into app_users (id, email) values (v_uid, v_email) on conflict (id) do nothing;
+    insert into org_members (org_id, user_id, role) values (p_org_id, v_uid, v_role)
+    on conflict (org_id, user_id) do update set role = excluded.role, status = 'active';
+    update org_invites set accepted_at = coalesce(accepted_at, now()) where org_id = p_org_id and email = v_email;
+    return jsonb_build_object('email', v_email, 'attached', true, 'role', v_role);
+  end if;
+  return jsonb_build_object('email', v_email, 'attached', false, 'role', v_role);
+end;
+$$;
+revoke all on function public._invite_member(uuid, text, text, uuid) from public, anon, authenticated;
+
+
+-- claim_my_invites(): one invitation that can no longer be honoured (the
+-- organisation found its administrator another way, or is full) never
+-- blocks the others — it simply stays pending for the Org Administrator.
+create or replace function public.claim_my_invites()
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_uid uuid := auth.uid(); v_email text; v_n int := 0; v_role text; r record;
+begin
+  if v_uid is null then return jsonb_build_object('attached', 0); end if;
+  select lower(email) into v_email from auth.users where id = v_uid;
+  if v_email is null then return jsonb_build_object('attached', 0); end if;
+
+  insert into app_users (id, email) values (v_uid, v_email) on conflict (id) do nothing;
+
+  for r in select i.id, i.org_id, i.role from org_invites i where i.email = v_email and i.accepted_at is null loop
+    v_role := r.role;
+    if v_role = 'org_admin' and exists (
+      select 1 from org_members where org_id = r.org_id and role = 'org_admin' and status = 'active' and user_id <> v_uid
+    ) then
+      v_role := 'coordinator';
+    end if;
+    begin
+      insert into org_members (org_id, user_id, role) values (r.org_id, v_uid, v_role)
+      on conflict (org_id, user_id) do update
+        set status = 'active',
+            role = case when org_members.role = 'org_admin' then 'org_admin' else excluded.role end;
+      update org_invites set accepted_at = now() where id = r.id;
+      v_n := v_n + 1;
+    exception when others then
+      null; -- left pending; the Org Administrator sees it on their Team view
+    end;
+  end loop;
+
+  return jsonb_build_object('attached', v_n);
+end;
+$$;
+grant execute on function public.claim_my_invites() to authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- 5. join_org_by_domain(): claims an UNCLAIMED organisation only.
+-- Same signature and success shape as 0002, so the dashboard keeps working.
+-- ----------------------------------------------------------------------------
+create or replace function public.join_org_by_domain(p_org_slug text)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  v_uid uuid := auth.uid();
+  v_email text;
+  v_email_domain text;
+  v_org public.organisations%rowtype;
+  v_mine text;
+begin
+  if v_uid is null then raise exception 'authentication required'; end if;
+  select email into v_email from auth.users where id = v_uid;
+  if v_email is null then raise exception 'no email on account'; end if;
+  v_email_domain := lower(split_part(v_email, '@', 2));
+
+  select * into v_org from organisations where slug = p_org_slug;
+  if not found then raise exception 'org not found'; end if;
+
+  insert into app_users (id, email) values (v_uid, v_email)
+    on conflict (id) do update set email = excluded.email;
+
+  -- An invitation always wins: accept it first.
+  perform claim_my_invites();
+  select role into v_mine from org_members where org_id = v_org.id and user_id = v_uid and status = 'active';
+  if v_mine is not null then
+    return jsonb_build_object('ok', true, 'org_id', v_org.id, 'role', v_mine);
+  end if;
+
+  if v_org.website_domain is null then raise exception 'organisation has no website domain set'; end if;
+  if lower(v_org.website_domain) <> v_email_domain
+     and v_email_domain not like ('%.' || lower(v_org.website_domain)) then
+    return jsonb_build_object(
+      'ok', false, 'reason', 'email_domain_mismatch',
+      'email_domain', v_email_domain, 'expected', lower(v_org.website_domain));
+  end if;
+
+  if exists (select 1 from org_members where org_id = v_org.id and role = 'org_admin' and status = 'active')
+     or exists (select 1 from org_invites where org_id = v_org.id and role = 'org_admin' and accepted_at is null) then
+    -- The sandbox stays open to anyone at its domain, as a coordinator.
+    if v_org.is_demo then
+      insert into org_members (org_id, user_id, role) values (v_org.id, v_uid, 'coordinator')
+      on conflict (org_id, user_id) do update set status = 'active';
+      return jsonb_build_object('ok', true, 'org_id', v_org.id, 'role', 'coordinator');
+    end if;
+    return jsonb_build_object('ok', false, 'reason', 'already_claimed');
+  end if;
+
+  insert into org_members (org_id, user_id, role) values (v_org.id, v_uid, 'org_admin')
+  on conflict (org_id, user_id) do update set role = 'org_admin', status = 'active';
+  update organisations set verified = true where id = v_org.id;
+
+  insert into campaign_action_log (actor, org_id, authority, action, detail)
+  values (v_uid, v_org.id, 'own_organisation', 'team_claim_org_admin', jsonb_build_object('email', lower(v_email)));
+
+  return jsonb_build_object('ok', true, 'org_id', v_org.id, 'role', 'org_admin');
+end;
+$$;
+grant execute on function public.join_org_by_domain(text) to authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- 6. The organisation's own team.
+-- ----------------------------------------------------------------------------
+create or replace function public._team_org(p_org_slug text, p_need_admin boolean)
+returns uuid language plpgsql stable security definer set search_path = public as $$
+declare v_org uuid;
+begin
+  select id into v_org from organisations where slug = p_org_slug or short_name = p_org_slug limit 1;
+  if v_org is null then raise exception 'org not found'; end if;
+  if auth.uid() is null then raise exception 'sign in first'; end if;
+  if my_role() = 'admin' then return v_org; end if;
+  if p_need_admin then
+    if not exists (select 1 from org_members where org_id = v_org and user_id = auth.uid()
+                    and status = 'active' and role = 'org_admin') then
+      raise exception 'only the Org Administrator can change who has access';
+    end if;
+  elsif not exists (select 1 from org_members where org_id = v_org and user_id = auth.uid() and status = 'active') then
+    raise exception 'not authorised for this organisation';
+  end if;
+  return v_org;
+end;
+$$;
+revoke all on function public._team_org(text, boolean) from public, anon, authenticated;
+
+create or replace function public._team_log(p_org uuid, p_action text, p_detail jsonb)
+returns void language sql security definer set search_path = public as $$
+  insert into campaign_action_log (actor, org_id, authority, action, detail)
+  values (auth.uid(), p_org,
+          case when exists (select 1 from org_members where org_id = p_org and user_id = auth.uid() and status = 'active')
+               then 'own_organisation' else 'administrator' end,
+          p_action, p_detail);
+$$;
+revoke all on function public._team_log(uuid, text, jsonb) from public, anon, authenticated;
+
+
+-- Who has access. Any member sees their colleagues (adult staff only).
+create or replace function public.org_team(p_org_slug text)
+returns jsonb language plpgsql stable security definer set search_path = public as $$
+declare v_org uuid := _team_org(p_org_slug, false); v_demo boolean;
+begin
+  select is_demo into v_demo from organisations where id = v_org;
+  return jsonb_build_object(
+    'my_role', coalesce((select role from org_members where org_id = v_org and user_id = auth.uid() and status = 'active'),
+                        case when my_role() = 'admin' then 'administrator' end),
+    'can_manage', my_role() = 'admin' or exists (
+      select 1 from org_members where org_id = v_org and user_id = auth.uid() and status = 'active' and role = 'org_admin'),
+    'coordinator_limit', case when v_demo then null else setting_int('org_coordinator_limit', 5) end,
+    'coordinators_used', _coordinator_count(v_org),
+    'members', coalesce((
+      select jsonb_agg(jsonb_build_object('email', u.email, 'role', m.role, 'since', m.created_at,
+                                          'is_me', m.user_id = auth.uid())
+                       order by (m.role = 'org_admin') desc, m.created_at)
+        from org_members m join app_users u on u.id = m.user_id
+       where m.org_id = v_org and m.status = 'active'), '[]'::jsonb),
+    'invites', coalesce((
+      select jsonb_agg(jsonb_build_object('email', i.email, 'role', i.role, 'created_at', i.created_at) order by i.created_at)
+        from org_invites i
+       where i.org_id = v_org and i.accepted_at is null
+         and not exists (select 1 from org_members m join app_users u on u.id = m.user_id
+                          where m.org_id = v_org and m.status = 'active' and lower(u.email) = lower(i.email))), '[]'::jsonb)
+  );
+end;
+$$;
+grant execute on function public.org_team(text) to authenticated;
+
+
+create or replace function public.org_add_coordinator(p_org_slug text, p_email text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_org uuid := _team_org(p_org_slug, true); v_res jsonb;
+begin
+  v_res := _invite_member(v_org, p_email, 'coordinator', auth.uid());
+  perform _team_log(v_org, 'team_add_coordinator', jsonb_build_object('email', v_res->>'email'));
+  return v_res;
+end;
+$$;
+grant execute on function public.org_add_coordinator(text, text) to authenticated;
+
+
+-- The Org Administrator removes a coordinator or a pending invitation; a
+-- coordinator may remove themselves (leave). Nobody removes the Org
+-- Administrator — the role is handed over, never left empty by accident.
+create or replace function public.org_remove_member(p_org_slug text, p_email text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_email text := lower(btrim(p_email));
+  v_self boolean := v_email = (select lower(email) from auth.users where id = auth.uid());
+  v_org uuid := _team_org(p_org_slug, not v_self);
+  v_m int; v_i int;
+begin
+  if exists (select 1 from org_members m join app_users u on u.id = m.user_id
+              where m.org_id = v_org and lower(u.email) = v_email and m.role = 'org_admin' and m.status = 'active') then
+    raise exception 'the Org Administrator can''t be removed — hand the role over to a coordinator first';
+  end if;
+  delete from org_members m using app_users u
+   where m.org_id = v_org and m.user_id = u.id and lower(u.email) = v_email;
+  get diagnostics v_m = row_count;
+  delete from org_invites where org_id = v_org and email = v_email;
+  get diagnostics v_i = row_count;
+  if v_m + v_i = 0 then raise exception '% doesn''t have access to this organisation', v_email; end if;
+  perform _team_log(v_org, case when v_self then 'team_leave' else 'team_remove' end, jsonb_build_object('email', v_email));
+  return jsonb_build_object('removed', v_email);
+end;
+$$;
+grant execute on function public.org_remove_member(text, text) to authenticated;
+
+
+-- Hand the Org Administrator role to someone else. Shared by the org-facing
+-- and Collab-facing entry points. The outgoing administrator becomes a
+-- coordinator (or, for a Collab reassignment where that would exceed the
+-- limit, is told to make room first).
+create or replace function public._set_org_admin(p_org uuid, p_email text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_email text := lower(btrim(p_email)); v_uid uuid; v_old uuid;
+begin
+  select id into v_uid from auth.users where lower(email) = v_email;
+  select user_id into v_old from org_members where org_id = p_org and role = 'org_admin' and status = 'active';
+  if v_old is not null and v_old = v_uid then
+    return jsonb_build_object('org_admin', v_email, 'pending', false);
+  end if;
+
+  -- Handing over to an existing coordinator swaps two roles: the number of
+  -- coordinators is the same at the end, so the limit is not re-checked mid-swap.
+  if v_uid is not null and exists (select 1 from org_members where org_id = p_org and user_id = v_uid
+                                     and role = 'coordinator' and status = 'active') then
+    perform set_config('jfindx.team_swap', 'on', true);
+  end if;
+
+  -- Free the seat first (the unique index holds one active org_admin).
+  if v_old is not null then
+    update org_members set role = 'coordinator' where org_id = p_org and user_id = v_old;
+  end if;
+  update org_invites set role = 'coordinator' where org_id = p_org and role = 'org_admin' and accepted_at is null;
+
+  if v_uid is not null then
+    insert into app_users (id, email) values (v_uid, v_email) on conflict (id) do nothing;
+    insert into org_members (org_id, user_id, role) values (p_org, v_uid, 'org_admin')
+    on conflict (org_id, user_id) do update set role = 'org_admin', status = 'active';
+    insert into org_invites (org_id, email, role, invited_by, accepted_at)
+    values (p_org, v_email, 'org_admin', auth.uid(), now())
+    on conflict (org_id, email) do update set role = 'org_admin', accepted_at = coalesce(org_invites.accepted_at, now());
+    perform set_config('jfindx.team_swap', 'off', true);
+    return jsonb_build_object('org_admin', v_email, 'pending', false);
+  end if;
+
+  insert into org_invites (org_id, email, role, invited_by)
+  values (p_org, v_email, 'org_admin', auth.uid())
+  on conflict (org_id, email) do update set role = 'org_admin', accepted_at = null, invited_by = excluded.invited_by;
+  return jsonb_build_object('org_admin', v_email, 'pending', true);
+end;
+$$;
+revoke all on function public._set_org_admin(uuid, text) from public, anon, authenticated;
+
+
+-- From inside the organisation: only to an existing coordinator, so a
+-- handover can never hand the organisation to a stranger by a typo.
+create or replace function public.org_transfer_admin(p_org_slug text, p_email text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_org uuid := _team_org(p_org_slug, true); v_email text := lower(btrim(p_email)); v_res jsonb;
+begin
+  if not exists (select 1 from org_members m join app_users u on u.id = m.user_id
+                  where m.org_id = v_org and lower(u.email) = v_email and m.role = 'coordinator' and m.status = 'active') then
+    raise exception 'hand the role to someone already on your team as a coordinator — add them first, and they must have signed in once';
+  end if;
+  v_res := _set_org_admin(v_org, v_email);
+  perform _team_log(v_org, 'team_transfer_admin', jsonb_build_object('to', v_email));
+  return v_res;
+end;
+$$;
+grant execute on function public.org_transfer_admin(text, text) to authenticated;
+
+
+-- From the Collab: reassign to anyone (they may not have signed in yet).
+create or replace function public.admin_set_org_admin(p_short_name text, p_email text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_org uuid; v_res jsonb;
+begin
+  if my_role() <> 'admin' then raise exception 'only an administrator can reassign an organisation''s Org Administrator'; end if;
+  if lower(btrim(p_email)) !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then raise exception 'that is not an email address'; end if;
+  select id into v_org from organisations where short_name = lower(btrim(p_short_name));
+  if v_org is null then raise exception 'no organisation with short name %', p_short_name; end if;
+  v_res := _set_org_admin(v_org, p_email);
+  perform _team_log(v_org, 'team_set_org_admin', jsonb_build_object('to', lower(btrim(p_email))));
+  return v_res;
+end;
+$$;
+grant execute on function public.admin_set_org_admin(text, text) to authenticated;
+
+
+-- my_context() gains each organisation's tier, so the console can label it.
+create or replace function public.my_context()
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare v_uid uuid := auth.uid();
+begin
+  if v_uid is null then return jsonb_build_object('signed_in', false); end if;
+
+  return jsonb_build_object(
+    'signed_in', true,
+    'email',     (select email from app_users where id = v_uid),
+    'role',      my_role(),
+    'orgs',      coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'slug', o.slug, 'short_name', o.short_name, 'name', o.name, 'is_demo', o.is_demo,
+               'org_role', m.role)
+             order by o.name)
+        from org_members m join organisations o on o.id = m.org_id
+       where m.user_id = v_uid and m.status = 'active'), '[]'::jsonb),
+    'networks',  coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'short_name', n.short_name, 'name', n.name, 'kind', n.kind)
+             order by n.name)
+        from network_members_users u join networks n on n.id = u.network_id
+       where u.user_id = v_uid and u.status = 'active'), '[]'::jsonb)
+  );
+end;
+$$;
+grant execute on function public.my_context() to anon, authenticated;
+
+
+-- ─── 0044_one_link_and_survey_versions.sql ─────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — one survey link, and survey versions (migration 0044)
+--
+-- A. ONE LINK PER ORGANISATION.
+--    The "community" vs "public" split (0010, 0014, 0028, 0036) is retired:
+--    with the way the survey is built it does not make sense to field two.
+--      - New sessions all write to the organisation's 'default' campaign.
+--      - The 'open' twin campaigns are no longer created (triggers dropped).
+--        Existing ones are LEFT ACTIVE on purpose: a phone that cached the old
+--        public link may still be holding queued answers, and they must land.
+--        Their sessions stay what they were — nothing historical is rewritten.
+--      - Distribution links no longer carry an audience (all 'community').
+--      - org_links() returns the one link. /<org>/open redirects in the app.
+--
+-- B. SURVEY VERSIONS ("item sets").
+--    An organisation can field the full survey or the J12 only — the J12
+--    internal and external questions, with the screener that routes to them
+--    and the demographics, but no Drivers, Journey or extras. (This replaces
+--    the 'core' set that 0040 retired; that one dropped the screener, so its
+--    respondents were asked four questions.)
+--      - WHICH sets exist, and what each contains, is INSTRUMENT CONFIG
+--        (definition->'item_sets'), never code. 'full' always exists.
+--      - campaigns.item_set is the organisation's default; a distribution
+--        link can override it (distribution_links.item_set, null = inherit).
+--      - Every session records the version it was shown (sessions.item_set),
+--        as the phone reports it — so a cached survey is never mislabelled.
+--      - Scored items are asked identically in every set, so a J12-only
+--        respondent counts in the same Index, cell for cell. Insight answers
+--        are simply absent for them; every insight figure already reports
+--        its own n.
+-- ============================================================================
+
+
+-- ----------------------------------------------------------------------------
+-- B1. Is this a set the instrument version defines?
+-- ----------------------------------------------------------------------------
+create or replace function public.item_set_valid(p_instrument_version_id uuid, p_item_set text)
+returns boolean language sql stable security definer set search_path = public as $$
+  select p_item_set = 'full'
+      or exists (select 1 from instrument_versions v
+                  where v.id = p_instrument_version_id
+                    and coalesce(v.definition->'item_sets', '{}'::jsonb) ? p_item_set);
+$$;
+grant execute on function public.item_set_valid(uuid, text) to anon, authenticated;
+
+-- 0040's "always full" lock becomes "always a set the instrument defines".
+-- Old callers still passing 'core' (campaign_upsert's and the wave RPCs'
+-- historical default) get 'full', exactly as they did under 0040.
+alter table public.campaigns drop constraint if exists campaigns_item_set_check;
+alter table public.waves     drop constraint if exists waves_item_set_check;
+drop trigger if exists trg_campaigns_full_item_set on public.campaigns;
+drop trigger if exists trg_waves_full_item_set on public.waves;
+drop function if exists public.force_full_item_set();
+
+create or replace function public.validate_item_set()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.item_set is null or new.item_set = 'core' then new.item_set := 'full'; end if;
+  if not item_set_valid(new.instrument_version_id, new.item_set) then
+    raise exception 'instrument version has no survey version called "%"', new.item_set;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger trg_campaigns_item_set
+  before insert or update of item_set, instrument_version_id on public.campaigns
+  for each row execute function public.validate_item_set();
+create trigger trg_waves_item_set
+  before insert or update of item_set, instrument_version_id on public.waves
+  for each row execute function public.validate_item_set();
+
+comment on column public.campaigns.item_set is
+  'Which survey version this campaign fields by default — a key of the instrument''s item_sets, or ''full''. A distribution link may override it.';
+
+
+-- B2. A link may field its own version.
+alter table public.distribution_links add column if not exists item_set text;
+comment on column public.distribution_links.item_set is
+  'Survey version this link fields (an instrument item_sets key). Null = the organisation''s default campaign setting.';
+
+create or replace function public.validate_link_item_set()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare v_iv uuid;
+begin
+  if new.item_set is null then return new; end if;
+  if new.item_set = 'core' then new.item_set := 'full'; end if;
+  select instrument_version_id into v_iv from campaigns
+   where org_id = new.org_id and slug = 'default' order by created_at limit 1;
+  if v_iv is not null and not item_set_valid(v_iv, new.item_set) then
+    raise exception 'there is no survey version called "%"', new.item_set;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists trg_links_item_set on public.distribution_links;
+create trigger trg_links_item_set
+  before insert or update of item_set on public.distribution_links
+  for each row execute function public.validate_link_item_set();
+
+
+-- B3. Every session records the version it was shown.
+alter table public.sessions add column if not exists item_set text not null default 'full';
+comment on column public.sessions.item_set is
+  'The survey version this respondent was shown (0044). Bound like the instrument version: never changed after the fact.';
+
+
+-- ----------------------------------------------------------------------------
+-- B4. start_session(): + p_item_set. Body otherwise exactly 0038's.
+-- Dropped first so there is never a second overload (the 0027 lesson).
+-- ----------------------------------------------------------------------------
+drop function if exists public.start_session(uuid, text, text, text, jsonb, text);
+
+create function public.start_session(
+  p_campaign_id uuid,
+  p_age_band text default null,
+  p_country text default null,
+  p_locale text default 'en',
+  p_consent jsonb default '{}'::jsonb,
+  p_distribution_link_slug text default null,
+  p_item_set text default null
+) returns uuid
+language plpgsql security definer set search_path = public as $$
+declare
+  new_id uuid;
+  v_org_status text;
+  v_org_id uuid;
+  v_link_id uuid;
+  v_now timestamptz := now();
+  v_iv uuid;
+  v_set text;
+begin
+  -- The version the phone says it is asking, if the instrument defines it;
+  -- otherwise the link's, then the campaign's. Never an unknown name.
+  select c.instrument_version_id, c.item_set into v_iv, v_set from campaigns c where c.id = p_campaign_id;
+  if p_item_set is not null and p_item_set <> 'core' and item_set_valid(v_iv, p_item_set) then
+    v_set := p_item_set;
+  elsif p_distribution_link_slug is not null then
+    v_set := coalesce((select dl.item_set from distribution_links dl join campaigns c on c.org_id = dl.org_id
+                        where c.id = p_campaign_id and dl.slug = p_distribution_link_slug), v_set);
+  end if;
+  v_set := coalesce(v_set, 'full');
+
+  -- Test links (migration 0038): a session started through a TEST link is
+  -- written to test_sessions, never to sessions, so no score, count, map or
+  -- Collab figure can ever see it. It still honours the link's open window.
+  if p_distribution_link_slug is not null then
+    declare v_tl public.distribution_links%rowtype; v_tid uuid;
+    begin
+      select dl.* into v_tl
+        from public.distribution_links dl
+        join public.campaigns c on c.org_id = dl.org_id
+       where c.id = p_campaign_id and dl.slug = p_distribution_link_slug and dl.is_test;
+      if found then
+        if (v_tl.active_from is not null and now() < v_tl.active_from)
+           or (v_tl.active_to is not null and now() > v_tl.active_to) then
+          raise exception 'link is not open right now';
+        end if;
+        perform public.purge_expired_test_data();
+        insert into public.test_sessions (link_id, org_id, locale, context)
+        values (v_tl.id, v_tl.org_id, coalesce(p_locale, 'en'),
+                jsonb_strip_nulls(jsonb_build_object('age_band', p_age_band, 'country', p_country, 'item_set', v_set)))
+        returning id into v_tid;
+        return v_tid;
+      end if;
+    end;
+  end if;
+  if not exists (select 1 from campaigns c where c.id = p_campaign_id and c.active) then
+    raise exception 'campaign not found or inactive';
+  end if;
+
+  select o.status, o.id into v_org_status, v_org_id
+  from campaigns c join organisations o on o.id = c.org_id
+  where c.id = p_campaign_id;
+
+  if v_org_status = 'paused' then
+    raise exception 'organisation access is paused';
+  elsif v_org_status = 'closed' then
+    raise exception 'organisation access is closed';
+  end if;
+
+  if p_distribution_link_slug is not null then
+    select l.id into v_link_id
+    from distribution_links l
+    where l.org_id = v_org_id and l.slug = p_distribution_link_slug;
+
+    if v_link_id is null then
+      raise exception 'link not found';
+    end if;
+
+    if not exists (
+      select 1 from distribution_links l
+      where l.id = v_link_id
+        and (l.active_from is null or l.active_from <= v_now)
+        and (l.active_to   is null or l.active_to   >= v_now)
+    ) then
+      raise exception 'link is not open right now';
+    end if;
+  end if;
+
+  insert into sessions (campaign_id, age_band, country, locale, consent, distribution_link_id, item_set)
+  values (p_campaign_id, p_age_band, p_country,
+          coalesce(p_locale,'en'), coalesce(p_consent,'{}'::jsonb), v_link_id, v_set)
+  returning id into new_id;
+  return new_id;
+end;
+$$;
+grant execute on function public.start_session(uuid, text, text, text, jsonb, text, text) to anon, authenticated;
+
+do $$
+declare v_count int;
+begin
+  select count(*) into v_count from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname = 'start_session';
+  if v_count <> 1 then
+    raise exception 'expected exactly 1 start_session() after this migration, found %', v_count;
+  end if;
+end $$;
+
+
+-- ----------------------------------------------------------------------------
+-- A1. No more 'open' twins.
+-- ----------------------------------------------------------------------------
+drop trigger if exists campaigns_open_twin on public.campaigns;
+drop function if exists public.ensure_open_twin();
+drop trigger if exists distribution_links_ensure_campaign on public.distribution_links;
+drop function if exists public.ensure_campaign_for_link();
+
+comment on column public.campaigns.audience is
+  'Historical (0010–0043). Since 0044 there is one survey link per organisation and every new session writes to the ''default'' campaign. Existing ''open'' campaigns stay active only so answers queued on phones still land.';
+
+-- A2. Links no longer carry an audience.
+update public.distribution_links set audience = 'community' where audience is distinct from 'community';
+alter table public.distribution_links drop constraint if exists distribution_links_audience_check;
+alter table public.distribution_links
+  add constraint distribution_links_audience_check check (audience = 'community');
+comment on column public.distribution_links.audience is
+  'Always ''community'' since 0044 (one survey link). Kept so old clients that still send it don''t fail.';
+
+-- A3. The one link.
+create or replace function public.org_links(p_short_name text)
+returns jsonb
+language sql stable security definer set search_path = public as $$
+  select jsonb_build_object(
+    'community', jsonb_build_object(
+      'url',   'https://jfindx.org/' || o.short_name,
+      'label', 'Your survey link',
+      'note',  'One link for everyone you invite — camps, services, groups, social media.'
+    )
+  )
+  from public.organisations o
+  where o.short_name = lower(btrim(p_short_name))
+  limit 1;
+$$;
+grant execute on function public.org_links(text) to anon, authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- A4 + B5. upsert_distribution_link(): audience ignored, + p_item_set.
+-- ----------------------------------------------------------------------------
+drop function if exists public.upsert_distribution_link(text, text, text, uuid, text, timestamptz, timestamptz);
+
+create function public.upsert_distribution_link(
+  p_org_slug text,
+  p_name text,
+  p_slug text,
+  p_id uuid default null,
+  p_audience text default null,          -- ignored since 0044; accepted so old clients don't fail
+  p_active_from timestamptz default null,
+  p_active_to timestamptz default null,
+  p_item_set text default null           -- null = the organisation's own setting
+) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_uid uuid := auth.uid(); v_org public.organisations%rowtype; v_id uuid;
+begin
+  select * into v_org from organisations where slug = p_org_slug;
+  if not found then raise exception 'org not found'; end if;
+
+  if v_uid is null or not exists (
+    select 1 from org_members m where m.org_id = v_org.id and m.user_id = v_uid and m.status = 'active'
+  ) then
+    raise exception 'not authorised for this organisation';
+  end if;
+
+  if p_name is null or length(trim(p_name)) = 0 then raise exception 'name is required'; end if;
+  if p_slug is null or p_slug !~ '^[a-z0-9][a-z0-9-]{0,63}$' then raise exception 'slug must be lowercase letters, numbers and hyphens'; end if;
+
+  if p_id is not null then
+    update distribution_links
+       set name = trim(p_name), slug = p_slug,
+           active_from = p_active_from, active_to = p_active_to,
+           item_set = nullif(p_item_set, '')
+     where id = p_id and org_id = v_org.id
+    returning id into v_id;
+    if v_id is null then raise exception 'link not found'; end if;
+  else
+    insert into distribution_links (org_id, name, slug, audience, active_from, active_to, created_by, item_set)
+    values (v_org.id, trim(p_name), p_slug, 'community', p_active_from, p_active_to, v_uid, nullif(p_item_set, ''))
+    returning id into v_id;
+  end if;
+
+  return jsonb_build_object('id', v_id);
+exception
+  when unique_violation then
+    raise exception 'a link with that URL already exists for this organisation';
+end;
+$$;
+grant execute on function public.upsert_distribution_link(text, text, text, uuid, text, timestamptz, timestamptz, text) to authenticated;
+
+
+-- resolve_distribution_link(): + item_set (0042 body otherwise).
+create or replace function public.resolve_distribution_link(p_org_slug text, p_link_slug text)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare v_org_id uuid; v_link record; v_now timestamptz := now();
+begin
+  select id into v_org_id from organisations where slug = p_org_slug;
+  if v_org_id is null then raise exception 'organisation not found'; end if;
+
+  select * into v_link from distribution_links where org_id = v_org_id and slug = p_link_slug;
+  if not found then raise exception 'link not found'; end if;
+
+  return jsonb_build_object(
+    'name', v_link.name,
+    'audience', 'community',
+    'item_set', v_link.item_set,
+    'active_from', v_link.active_from,
+    'active_to', v_link.active_to,
+    'is_open', (v_link.active_from is null or v_link.active_from <= v_now)
+           and (v_link.active_to   is null or v_link.active_to   >= v_now),
+    'is_test', coalesce(v_link.is_test, false)
+  );
+end;
+$$;
+grant execute on function public.resolve_distribution_link(text, text) to anon, authenticated;
+
+
+-- org_distribution_links(): + item_set (0042 body otherwise, incl. its place floor).
+create or replace function public.org_distribution_links(p_org_slug text)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare v_uid uuid := auth.uid(); v_org public.organisations%rowtype; v_now timestamptz := now();
+begin
+  select * into v_org from organisations where slug = p_org_slug;
+  if not found then raise exception 'org not found'; end if;
+
+  if v_uid is null or (
+    not exists (select 1 from org_members m where m.org_id = v_org.id and m.user_id = v_uid and m.status = 'active')
+    and my_role() not in ('admin', 'collab')
+  ) then
+    raise exception 'not authorised for this organisation';
+  end if;
+
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id', l.id,
+      'name', l.name,
+      'slug', l.slug,
+      'audience', 'community',
+      'item_set', l.item_set,
+      'active_from', l.active_from,
+      'active_to', l.active_to,
+      'status', case
+        when l.active_from is not null and l.active_from > v_now then 'scheduled'
+        when l.active_to   is not null and l.active_to   < v_now then 'ended'
+        else 'active'
+      end,
+      'n', coalesce(cnt.n, 0),
+      'places', coalesce(places.list, '[]'::jsonb),
+      'places_total', coalesce(places.total, 0)
+    ) order by l.created_at desc)
+    from distribution_links l
+    left join (
+      select s.distribution_link_id, count(*) n
+      from sessions s
+      where s.distribution_link_id is not null and s.completed
+      group by s.distribution_link_id
+    ) cnt on cnt.distribution_link_id = l.id
+    left join lateral (
+      select
+        jsonb_agg(numbered.place order by numbered.place) filter (where numbered.rn <= 8) as list,
+        max(numbered.rn) as total
+      from (
+        select distinct_places.place, row_number() over (order by distinct_places.place) as rn
+        from (
+          select trim(both ', ' from coalesce(s.city, '') ||
+                      case when s.city is not null and s.country is not null then ', ' else '' end ||
+                      coalesce(s.country, '')) as place
+          from sessions s
+          where s.distribution_link_id = l.id and s.completed and (s.city is not null or s.country is not null)
+          group by 1
+          having count(*) >= setting_int('min_group_n', 10)
+        ) distinct_places
+      ) numbered
+    ) places on true
+    where l.org_id = v_org.id
+  ), '[]'::jsonb);
+end;
+$$;
+grant execute on function public.org_distribution_links(text) to authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- campaign_upsert(): audience ignored (one link), item_set validated by the
+-- trigger above. Same signature as 0014, so the console keeps working.
+-- ----------------------------------------------------------------------------
+create or replace function public.campaign_upsert(
+  p_org_short_name  text,
+  p_audience        text default 'community',
+  p_item_set        text default 'full',
+  p_locale          text default 'en',
+  p_wave_short_name text default null,
+  p_source_label    text default null
+)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  v_org    public.organisations%rowtype;
+  v_wave   public.waves%rowtype;
+  v_auth   text;
+  v_iv     uuid;
+  v_camp   uuid;
+begin
+  select * into v_org from organisations o where o.short_name = lower(btrim(p_org_short_name));
+  if not found then raise exception 'organisation not found'; end if;
+
+  v_auth := field_authority(v_org.id);
+  if v_auth is null then
+    raise exception 'not authorised to field for "%"', v_org.short_name;
+  end if;
+
+  if p_wave_short_name is not null then
+    select * into v_wave from waves w where w.short_name = lower(btrim(p_wave_short_name));
+    if not found then raise exception 'wave not found'; end if;
+    if v_wave.is_demo <> v_org.is_demo then
+      raise exception 'a % wave cannot be adopted by a % organisation',
+        case when v_wave.is_demo then 'sandbox' else 'live' end,
+        case when v_org.is_demo  then 'sandbox' else 'live' end;
+    end if;
+    v_iv       := v_wave.instrument_version_id;
+    p_item_set := v_wave.item_set;
+  else
+    select id into v_iv from instrument_versions where status = 'active' order by created_at desc limit 1;
+    if v_iv is null then raise exception 'no active instrument version — run npm run db:seed first'; end if;
+  end if;
+
+  insert into campaigns as c
+    (org_id, slug, instrument_version_id, locale, active, source_label, item_set, audience)
+  values
+    (v_org.id, 'default', v_iv, p_locale, true, p_source_label, coalesce(p_item_set, 'full'), 'community')
+  on conflict (org_id, slug) do update
+     set instrument_version_id = excluded.instrument_version_id,
+         locale                = excluded.locale,
+         item_set              = excluded.item_set,
+         active                = true
+  returning c.id into v_camp;
+
+  if v_wave.id is not null then
+    insert into wave_adoptions (wave_id, org_id, campaign_id, adopted_by)
+    values (v_wave.id, v_org.id, v_camp, auth.uid())
+    on conflict (wave_id, org_id) do update set campaign_id = excluded.campaign_id;
+  end if;
+
+  if v_auth <> 'own_organisation' then
+    insert into campaign_action_log (actor, org_id, authority, action, detail)
+    values (auth.uid(), v_org.id, v_auth, 'campaign_upsert',
+            jsonb_build_object('item_set', p_item_set, 'wave', v_wave.short_name));
+  end if;
+
+  return jsonb_build_object(
+    'campaign_id', v_camp,
+    'authority',   v_auth,
+    'item_set',    (select item_set from campaigns where id = v_camp),
+    'links',       org_links(v_org.short_name)
+  );
+end;
+$$;
+grant execute on function public.campaign_upsert(text, text, text, text, text, text) to authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- org_set_duration(): the organisation's default survey version.
+-- ----------------------------------------------------------------------------
+create or replace function public.org_set_duration(p_org_slug text, p_item_set text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_org uuid := _require_org_admin(p_org_slug);
+begin
+  -- validate_item_set() refuses a name the instrument doesn't define.
+  update campaigns set item_set = p_item_set where org_id = v_org and slug = 'default';
+  return jsonb_build_object('item_set', (select item_set from campaigns where org_id = v_org and slug = 'default' limit 1));
+end;
+$$;
+grant execute on function public.org_set_duration(text, text) to authenticated;
+
+
+-- ─── 0045_instrument_lock.sql ──────────────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — locking an instrument version (migration 0045)
+--
+-- v5 is confirmed as the fielded instrument and LOCKED (instrument.v5.json
+-- "lock", 2026-10-01). Until now nothing stopped a version being edited
+-- after answers were captured under it: the seed scripts deleted and
+-- re-inserted every item on each run. A lock makes "a change is a new
+-- version" a rule the database holds, not a habit.
+--
+-- Frozen once locked (same projection as src/lib/instrumentLock.ts):
+--   every item (keys, order, sections, tags, branch rules, scales, options,
+--   ENGLISH wording), the scoring version, field_draft_items, and which items
+--   each survey version (item_sets) contains.
+-- Still editable: translations, notes, survey-version labels, welcome minutes.
+--
+--   1. instrument_versions.locked_at / lock_note.
+--   2. instrument_lock_projection(definition) — the frozen part.
+--   3. Triggers: a locked version's definition can only change outside the
+--      projection; its items rows can't be added, removed or re-scored; a
+--      lock can't be lifted or the version deleted.
+--   4. lock_instrument_version(version, note) — service tooling or an
+--      administrator; idempotent.
+--   5. instrument_status() — public: which version is live and whether it
+--      is locked, so anyone can confirm it.
+-- ============================================================================
+
+alter table public.instrument_versions
+  add column if not exists locked_at timestamptz,
+  add column if not exists lock_note text;
+
+comment on column public.instrument_versions.locked_at is
+  'When this version was locked (0045). A locked version never changes what it asks or how it scores; a change is a new version.';
+
+
+-- Localized text ({en, es, …}) reduced to its English master, recursively.
+create or replace function public._en_only(j jsonb)
+returns jsonb language plpgsql immutable as $$
+declare out jsonb; k text; v jsonb;
+begin
+  if j is null then return null; end if;
+  if jsonb_typeof(j) = 'array' then
+    select coalesce(jsonb_agg(public._en_only(e) order by ord), '[]'::jsonb) into out
+      from jsonb_array_elements(j) with ordinality as t(e, ord);
+    return out;
+  elsif jsonb_typeof(j) = 'object' then
+    if jsonb_typeof(j->'en') = 'string' then return jsonb_build_object('en', j->'en'); end if;
+    out := '{}'::jsonb;
+    for k, v in select * from jsonb_each(j) loop
+      out := out || jsonb_build_object(k, public._en_only(v));
+    end loop;
+    return out;
+  end if;
+  return j;
+end;
+$$;
+
+create or replace function public.instrument_lock_projection(p_def jsonb)
+returns jsonb language sql immutable as $$
+  select jsonb_build_object(
+    'version',           p_def->'version',
+    'scoringVersion',    p_def->'scoringVersion',
+    'field_draft_items', coalesce((p_def->>'field_draft_items')::boolean, false),
+    'item_sets', coalesce((
+      select jsonb_object_agg(s.key, jsonb_build_object(
+               'sections',     coalesce(s.value->'sections', 'null'::jsonb),
+               'exclude_keys', coalesce(s.value->'exclude_keys', 'null'::jsonb)))
+        from jsonb_each(coalesce(p_def->'item_sets', '{}'::jsonb)) s), '{}'::jsonb),
+    'items', coalesce((
+      select jsonb_agg(public._en_only(e) order by e->>'key')
+        from jsonb_array_elements(coalesce(p_def->'items', '[]'::jsonb)) e), '[]'::jsonb)
+  );
+$$;
+
+
+create or replace function public.guard_locked_instrument()
+returns trigger language plpgsql as $$
+begin
+  if tg_op = 'DELETE' then
+    if old.locked_at is not null then
+      raise exception 'instrument % is locked and can''t be deleted', old.version;
+    end if;
+    return old;
+  end if;
+  if old.locked_at is not null then
+    if new.locked_at is null then
+      raise exception 'instrument % is locked; a lock can''t be lifted — make a new version instead', old.version;
+    end if;
+    if new.version is distinct from old.version or new.scoring_version is distinct from old.scoring_version then
+      raise exception 'instrument % is locked; its version and scoring version can''t change', old.version;
+    end if;
+    if instrument_lock_projection(new.definition) is distinct from instrument_lock_projection(old.definition) then
+      raise exception 'instrument % is locked: what it asks or how it scores can''t change (translations and notes can). Make a new version instead.', old.version;
+    end if;
+    new.locked_at := old.locked_at;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists instrument_versions_lock_guard on public.instrument_versions;
+create trigger instrument_versions_lock_guard
+  before update or delete on public.instrument_versions
+  for each row execute function public.guard_locked_instrument();
+
+
+create or replace function public.guard_locked_items()
+returns trigger language plpgsql as $$
+declare v_iv uuid := coalesce(new.instrument_version_id, old.instrument_version_id); v_ver text;
+begin
+  select version into v_ver from instrument_versions where id = v_iv and locked_at is not null;
+  if v_ver is null then return coalesce(new, old); end if;
+  if tg_op = 'INSERT' then
+    -- An upsert of an UNCHANGED item fires this before Postgres sees the
+    -- conflict; let it through (the conflict turns it into a no-op update).
+    if exists (select 1 from items o
+                where o.instrument_version_id = new.instrument_version_id and o.key = new.key
+                  and (o.question_domain, o.tier, o.type, o.scored, o.reverse_scored, o.scale, o.ord, o.branch, o.section)
+                      is not distinct from
+                      (new.question_domain, new.tier, new.type, new.scored, new.reverse_scored, new.scale, new.ord, new.branch, new.section)) then
+      return new;
+    end if;
+    raise exception 'instrument % is locked; it can''t gain or re-tag an item (%)', v_ver, new.key;
+  end if;
+  if tg_op = 'DELETE' then raise exception 'instrument % is locked; it can''t lose an item', v_ver; end if;
+  if (new.key, new.question_domain, new.tier, new.type, new.scored, new.reverse_scored, new.scale, new.ord, new.branch, new.section, new.instrument_version_id)
+     is distinct from
+     (old.key, old.question_domain, old.tier, old.type, old.scored, old.reverse_scored, old.scale, old.ord, old.branch, old.section, old.instrument_version_id) then
+    raise exception 'instrument % is locked; item % can''t be re-tagged or re-scored', v_ver, old.key;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists items_lock_guard on public.items;
+create trigger items_lock_guard
+  before insert or update or delete on public.items
+  for each row execute function public.guard_locked_items();
+
+
+-- Lock a version. Idempotent. Refuses a version with no items, or whose
+-- items table disagrees with its own definition (keys or scoring tags) —
+-- locking something inconsistent would freeze the inconsistency.
+create or replace function public.lock_instrument_version(p_version text, p_note text default null)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v public.instrument_versions%rowtype; v_mismatch int;
+begin
+  -- Service tooling (Management API / service role: no auth.uid()) or an administrator.
+  if auth.uid() is not null and my_role() <> 'admin' then
+    raise exception 'only an administrator can lock an instrument version';
+  end if;
+  select * into v from instrument_versions where version = p_version;
+  if not found then raise exception 'instrument version % not found', p_version; end if;
+  if v.locked_at is not null then
+    return jsonb_build_object('version', v.version, 'locked_at', v.locked_at, 'already', true);
+  end if;
+  if not exists (select 1 from items where instrument_version_id = v.id) then
+    raise exception 'instrument % has no items — seed it before locking', p_version;
+  end if;
+
+  select count(*) into v_mismatch
+  from (
+    select e->>'key' k, e->>'question_domain' d, e->>'tier' t, e->>'type' ty,
+           coalesce((e->>'scored')::boolean, true) s, coalesce((e->>'reverse_scored')::boolean, false) r
+      from jsonb_array_elements(v.definition->'items') e
+    except
+    select key, question_domain, tier, type, scored, reverse_scored from items where instrument_version_id = v.id
+  ) x;
+  if v_mismatch > 0 or (select count(*) from items where instrument_version_id = v.id)
+                       <> jsonb_array_length(v.definition->'items') then
+    raise exception 'instrument % items table disagrees with its definition — re-seed before locking', p_version;
+  end if;
+
+  update instrument_versions set locked_at = now(), lock_note = p_note where id = v.id;
+  return jsonb_build_object('version', v.version, 'locked_at', now(), 'already', false);
+end;
+$$;
+revoke all on function public.lock_instrument_version(text, text) from public, anon;
+grant execute on function public.lock_instrument_version(text, text) to authenticated;
+
+
+-- Anyone can confirm what is live.
+create or replace function public.instrument_status()
+returns jsonb language sql stable security definer set search_path = public as $$
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'version', v.version, 'status', v.status, 'scoring_version', v.scoring_version,
+           'locked_at', v.locked_at,
+           'items', (select count(*) from items i where i.instrument_version_id = v.id),
+           'item_sets', coalesce((select jsonb_agg(k order by k) from jsonb_object_keys(coalesce(v.definition->'item_sets', '{}'::jsonb)) k), '[]'::jsonb),
+           'campaigns', (select count(*) from campaigns c where c.instrument_version_id = v.id)
+         ) order by v.created_at desc), '[]'::jsonb)
+    from instrument_versions v;
+$$;
+grant execute on function public.instrument_status() to anon, authenticated;
 

@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import {
-  WELCOME_MINUTES,
   endsSurvey,
-  fieldedItems,
+  itemSetItems,
+  itemSetMinutes,
+  knownItemSet,
   instrument,
   nextVisibleIndex,
   orphanedAnswers,
@@ -44,35 +45,40 @@ function collecting(o: Org): boolean {
 }
 
 /**
- * Two audiences, two campaigns, one instrument. `campaign_upsert()` writes
- * these same two slugs, so the link the console copies and the campaign the
- * survey looks for cannot disagree.
+ * One survey link per organisation (migration 0044): every respondent writes
+ * to the organisation's 'default' campaign. The old public/community split
+ * is gone — the survey is the same for everyone who answers it.
  */
-const CAMPAIGN_SLUG = { community: "default", public: "open" } as const;
+const CAMPAIGN_SLUG = "default";
 
 /**
- * The respondent survey — ONE implementation, two audiences.
+ * The respondent survey — ONE implementation for every door.
  *
- * /[org]      fields the `community` campaign — the young people a ministry
- *             already reaches.
- * /[org]/open fields the `public` campaign — everyone else, uninfluenced.
+ * /[org]            the organisation's survey link.
+ * /[org]/l/<link>   a distribution link ("room", 0028) — same survey, tagged
+ *                   so the organisation can see where answers came from, and
+ *                   optionally fielding a shorter version (item set, 0044).
+ * /[org]/open       retired (0044); redirects to /[org] so printed QR codes
+ *                   keep working.
  *
- * They are the same instrument and the same screens on purpose: the comparison
- * between the two is only legitimate if nothing but the audience differs. That
- * is why this is one component with an `audience` prop rather than two pages
- * that will drift.
+ * Same instrument and the same screens everywhere: a version may leave out
+ * the optional insight questions, but never changes a scored question.
  */
 export default function Survey({
   slug,
-  audience = "community",
   distributionLinkSlug,
+  linkItemSet = null,
   isTestLink = false,
 }: {
   slug: string;
-  audience?: "community" | "public";
+  /**
+   * The survey version a distribution link fields (0044), if it sets one —
+   * e.g. "j12". Null follows the organisation's own setting.
+   */
+  linkItemSet?: string | null;
   /**
    * Which distribution link ("room") this respondent came through, if any —
-   * see migration 0028. Optional: the two fixed audience links above pass
+   * see migration 0028. Optional: the organisation's own link passes
    * nothing, exactly as before. start_session() resolves and validates the
    * slug itself (org match + active window), so nothing else here changes.
    */
@@ -105,7 +111,11 @@ export default function Survey({
   // One instrument, no shorter versions (migration 0040): every campaign
   // fields the whole item set, and branching decides who sees what. Draft
   // items are held back until a researcher fields them (instrument config).
-  const items = useMemo(() => fieldedItems(), []);
+  // Which version of the survey (item set, instrument config): the link's own
+  // choice, else the organisation's. Scored items are asked identically in
+  // every set, so a J12-only answer counts in the same Index.
+  const [itemSet, setItemSet] = useState<string>(knownItemSet(linkItemSet));
+  const items = useMemo(() => itemSetItems(itemSet), [itemSet]);
   const steps = items.length;
 
   const sb = useMemo(() => getSupabaseBrowser(), []);
@@ -158,8 +168,8 @@ export default function Survey({
       // successful visit, so it opens again in a camp with no signal. Only
       // public, non-personal fields: the organisation's name and branding and
       // which campaign to write to.
-      const cacheKey = `survey:${slug}:${audience}`;
-      type Cached = { org: Org; campaignId: string | null };
+      const cacheKey = `survey:${slug}:${distributionLinkSlug ?? ""}`;
+      type Cached = { org: Org; campaignId: string | null; itemSet?: string };
       const useCache = async () => {
         const c = await cacheGet<Cached>(cacheKey);
         if (!c) return false;
@@ -169,6 +179,7 @@ export default function Survey({
           return true;
         }
         setCampaignId(c.campaignId);
+        setItemSet(knownItemSet(c.itemSet));
         setStatus("ready");
         return true;
       };
@@ -198,11 +209,13 @@ export default function Survey({
         setOrg(o as Org);
 
         const { data: c, error: cErr } = await withTimeout(
-          sb.from("campaigns").select("id").eq("org_id", (o as Org).id).eq("slug", CAMPAIGN_SLUG[audience]).eq("active", true).maybeSingle(),
+          sb.from("campaigns").select("id,item_set").eq("org_id", (o as Org).id).eq("slug", CAMPAIGN_SLUG).eq("active", true).maybeSingle(),
         );
         if (cErr) throw cErr;
 
-        void cacheSet(cacheKey, { org: o, campaignId: c ? (c.id as string) : null });
+        const set = knownItemSet(linkItemSet ?? (c?.item_set as string | null | undefined));
+        void cacheSet(cacheKey, { org: o, campaignId: c ? (c.id as string) : null, itemSet: set });
+        setItemSet(set);
         // Not collecting (still being set up, paused, or consent not yet
         // confirmed): say so now, rather than letting a young person answer
         // forty questions the server will refuse.
@@ -217,7 +230,7 @@ export default function Survey({
         if (!(await useCache())) setStatus("offline_first_visit");
       }
     })();
-  }, [sb, slug, audience, isTestLink]);
+  }, [sb, slug, distributionLinkSlug, linkItemSet, isTestLink]);
 
   function begin() {
     setError(null);
@@ -230,6 +243,8 @@ export default function Survey({
         p_campaign_id: campaignId,
         p_locale: lang.code,
         p_distribution_link_slug: distributionLinkSlug ?? null,
+        // Which version this phone is actually asking — stamped on the session (0044).
+        p_item_set: itemSet,
       });
     }
     setI(0);
@@ -390,7 +405,7 @@ export default function Survey({
               {lang.ui("not_fielding_title", { org: orgName })}
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-slate">
-              {lang.ui(audience === "public" ? "not_fielding_public" : "not_fielding_community", { org: orgName })}
+              {lang.ui("not_fielding_community", { org: orgName })}
             </p>
             <p className="mt-4 text-xs leading-relaxed text-muted">
               {lang.ui("not_fielding_note")}
@@ -436,7 +451,7 @@ export default function Survey({
                   settings); other languages get the translated standard welcome.
                   One instrument, one length. */}
               {(lang.code === "en" && org?.welcome_message) ||
-                lang.ui("welcome_body", { org: orgName, minutes: WELCOME_MINUTES })}
+                lang.ui("welcome_body", { org: orgName, minutes: itemSetMinutes(itemSet) })}
             </p>
             <details className="mt-4 rounded-lg bg-paper-deep px-3 py-2 text-[13px] leading-relaxed text-ink-2">
               <summary className="cursor-pointer font-semibold text-ink">{lang.ui("about_title")}</summary>

@@ -50,8 +50,9 @@ const { error: e1b } = await sb
   .neq("version", inst.version);
 if (e1b) throw e1b;
 
-// 2) items (replace the set for this version)
-await sb.from("items").delete().eq("instrument_version_id", iv.id);
+// 2) items — upsert by key, then drop keys the JSON no longer has. On a
+// LOCKED version (migration 0045) this is a no-op unless something frozen
+// changed, in which case the database refuses: that's the lock working.
 const items = inst.items.map((it) => ({
   instrument_version_id: iv.id,
   key: it.key,
@@ -65,8 +66,16 @@ const items = inst.items.map((it) => ({
   branch: it.branch ?? null,
   section: it.section ?? null,
 }));
-const { error: e2 } = await sb.from("items").insert(items);
+const { error: e2 } = await sb.from("items").upsert(items, { onConflict: "instrument_version_id,key" });
 if (e2) throw e2;
+const keep = new Set(items.map((i) => i.key));
+const { data: existing, error: e2a } = await sb.from("items").select("key").eq("instrument_version_id", iv.id);
+if (e2a) throw e2a;
+const gone = (existing ?? []).map((r) => r.key).filter((k) => !keep.has(k));
+if (gone.length) {
+  const { error: e2c } = await sb.from("items").delete().eq("instrument_version_id", iv.id).in("key", gone);
+  if (e2c) throw e2c;
+}
 
 // Move existing campaigns/waves onto this version where it is a strict,
 // identically-scored superset of theirs (migration 0039). Otherwise they keep
@@ -74,6 +83,13 @@ if (e2) throw e2;
 const { data: adopted, error: e2b } = await sb.rpc("adopt_instrument_version", { p_version: inst.version });
 if (e2b) throw e2b;
 console.log("✓ Adopted:", JSON.stringify(adopted));
+
+// The JSON says this version is locked (instrument.<v>.json "lock", migration 0045).
+if (inst.lock?.locked) {
+  const { data: locked, error: e2d } = await sb.rpc("lock_instrument_version", { p_version: inst.version, p_note: JSON.stringify(inst.lock) });
+  if (e2d) throw e2d;
+  console.log("✓ Locked:", JSON.stringify(locked));
+}
 
 // 3) Sunrise — a Buenos Aires pilot persona. SANDBOX ONLY, and opt-in.
 if (!WITH_DEMO_ORG) {

@@ -2,6 +2,7 @@ import instrumentV5 from "@/data/instrument.v5.json";
 import {
   endsSurvey as endsRule,
   fieldable,
+  inItemSet,
   failedAttentionChecks as failedChecks,
   inOrder,
   isVisible as ruleIsVisible,
@@ -13,9 +14,10 @@ import {
   type AnswerValue,
   type ShowIf,
   type ShowIfCondition,
+  type ItemSetDef,
 } from "@/lib/branching";
 
-export type { Answers, AnswerValue, ShowIf, ShowIfCondition };
+export type { Answers, AnswerValue, ShowIf, ShowIfCondition, ItemSetDef };
 
 export type Locale = "en" | "es";
 
@@ -98,6 +100,8 @@ export interface Instrument {
   welcome_minutes?: number;
   /** When false (the default), items marked `draft` are kept in the definition but never shown. */
   field_draft_items?: boolean;
+  /** Named versions of the survey an organisation can field ("full", "j12"). Config, never code. */
+  item_sets?: Record<string, ItemSetDef>;
 }
 
 export const instrument = instrumentV5 as unknown as Instrument;
@@ -131,6 +135,38 @@ export function endsSurvey(item: InstrumentItem, value: AnswerValue): boolean {
 
 /** Minutes promised on the welcome screen. */
 export const WELCOME_MINUTES = instrument.welcome_minutes ?? 7;
+
+/**
+ * Item sets — the versions of the survey an organisation can field (instrument
+ * config `item_sets`; migration 0044 stores which one each session was shown).
+ * "full" always exists, whether or not the instrument spells it out.
+ */
+export type ItemSetName = string;
+export const ITEM_SETS: { name: ItemSetName; label: string; description: string; minutes: number; count: number }[] = (() => {
+  const sets = { full: {}, ...(instrument.item_sets ?? {}) } as Record<string, ItemSetDef>;
+  return Object.entries(sets).map(([name, d]) => ({
+    name,
+    label: d.label?.en ?? (name === "full" ? "Full survey" : name),
+    description: d.description?.en ?? "",
+    minutes: d.welcome_minutes ?? WELCOME_MINUTES,
+    count: inItemSet(fieldedItems(), instrument.item_sets, name).length,
+  }));
+})();
+
+/** A name the instrument knows, or "full". */
+export function knownItemSet(name: string | null | undefined): ItemSetName {
+  return name && ITEM_SETS.some((s) => s.name === name) ? name : "full";
+}
+
+/** The fielded items of one set, in order. */
+export function itemSetItems(name: string | null | undefined, inst: Instrument = instrument): InstrumentItem[] {
+  return inItemSet(fieldedItems(inst), inst.item_sets, knownItemSet(name));
+}
+
+/** Minutes the welcome screen promises for a set. */
+export function itemSetMinutes(name: string | null | undefined): number {
+  return ITEM_SETS.find((s) => s.name === knownItemSet(name))?.minutes ?? WELCOME_MINUTES;
+}
 
 /** The instrument as respondents meet it — the default for every path helper below. */
 export const fielded: Instrument = { ...instrument, items: fieldedItems() };
