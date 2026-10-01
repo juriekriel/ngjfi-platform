@@ -15,7 +15,9 @@
  *   - every score shows its n; "of those who have completed the Index";
  *   - the overlay is house-level only — callers pass allowed=false for a room;
  *   - the map colours a country only if the server returned it (the country
- *     gate, 2,000 by config, is enforced in collab_intelligence()).
+ *     gate, 2,000 by config, is enforced in collab_intelligence());
+ *   - the Unengaged matrix (0047) is its own view, never overlaid, never
+ *     drawn in the J12's colours, and unlocked only where the server says so.
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -24,6 +26,7 @@ import ScoreMatrix, { MatrixLegend } from "@/components/index/ScoreMatrix";
 import WorldHeatMap, { type MapCountry } from "@/components/index/WorldHeatMap";
 import MapTierToggle from "@/components/index/MapTierToggle";
 import ConsultDrawer, { ConsultButton } from "@/components/index/ConsultDrawer";
+import UnengagedMatrix, { type UnengagedData } from "@/components/index/UnengagedMatrix";
 import { TIER_LABEL, fig } from "@/lib/model";
 
 type Matrix = Record<string, Record<string, number | null>>;
@@ -31,8 +34,11 @@ type Matrix = Record<string, Record<string, number | null>>;
 export type FrameFigures = {
   index: number | null;
   indexNote: string;
+  /** Completions shown in the second figure — on the org tab, everyone, segmented in nNote (0047). */
   n: number | null;
   nNote: string;
+  /** The J12's own n (followers) when it differs from `n`. */
+  scoredN?: number | null;
   activeCountries: number | null;
   countryGate: number;
 };
@@ -71,13 +77,19 @@ export type FrameProps = {
    * given — Collab Intelligence passes its reach & re-engagement insights.
    */
   insights?: React.ReactNode;
+  /**
+   * The Unengaged matrix for this scope (house or room) — a view beside the
+   * J12, unlocked at the same floor. Omit to hide the tab (Collab tab).
+   */
+  unengaged?: UnengagedData | null;
+  unengagedScopeLine?: string;
   /** Room name when a room is selected (org tab), for the consult snapshot. */
   roomName?: string | null;
   children?: React.ReactNode;
 };
 
 export default function SignedInFrame(p: FrameProps) {
-  const [view, setView] = useState<"matrix" | "heatmap" | "insights">("matrix");
+  const [view, setView] = useState<"matrix" | "unengaged" | "heatmap" | "insights">("matrix");
   const [tier, setTier] = useState("formation");
   const [overlayWanted, setOverlayWanted] = useState(true);
   const [consult, setConsult] = useState(false);
@@ -122,6 +134,7 @@ export default function SignedInFrame(p: FrameProps) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div role="group" aria-label="View" className="inline-flex gap-1 rounded-xl bg-rule/70 p-1">
             <Seg on={view === "matrix"} onClick={() => setView("matrix")}>J12 matrix</Seg>
+            {p.unengaged && <Seg on={view === "unengaged"} onClick={() => setView("unengaged")}>Unengaged matrix</Seg>}
             <Seg on={view === "heatmap"} onClick={() => setView("heatmap")}>Heat map</Seg>
             {p.insights && <Seg on={view === "insights"} onClick={() => setView("insights")}>Insights</Seg>}
           </div>
@@ -149,6 +162,8 @@ export default function SignedInFrame(p: FrameProps) {
         <div className="flex min-h-[420px] flex-col rounded-2xl border border-rule bg-plate px-4 py-5 shadow-sm sm:px-7 sm:py-6">
           {view === "insights" && p.insights ? (
             p.insights
+          ) : view === "unengaged" && p.unengaged ? (
+            <UnengagedMatrix data={p.unengaged} scopeLine={p.unengagedScopeLine ?? ""} />
           ) : p.empty ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
               <p className="text-[20px] font-semibold">{p.empty.title}</p>
@@ -211,7 +226,7 @@ export default function SignedInFrame(p: FrameProps) {
             tier,
             tierLabel: TIER_LABEL[tier] ?? tier,
             overlay: overlayOn,
-            n: p.figures.n,
+            n: view === "unengaged" && p.unengaged ? p.unengaged.n : p.figures.scoredN ?? p.figures.n,
           }}
         />
       )}
@@ -219,7 +234,7 @@ export default function SignedInFrame(p: FrameProps) {
   );
 }
 
-function Figure({ label, note, value, accent = false }: { label: string; note: string; value: string; accent?: boolean }) {
+export function Figure({ label, note, value, accent = false }: { label: string; note: string; value: string; accent?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-3 rounded-2xl border border-rule bg-plate px-4 py-4 sm:px-5">
       <div className="min-w-0">
@@ -231,7 +246,7 @@ function Figure({ label, note, value, accent = false }: { label: string; note: s
   );
 }
 
-function Seg({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
+export function Seg({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       type="button"

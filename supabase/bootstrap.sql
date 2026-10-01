@@ -64,6 +64,8 @@
 --   0043_org_team_tiers.sql
 --   0044_one_link_and_survey_versions.sql
 --   0045_instrument_lock.sql
+--   0046_view_only_share_links.sql
+--   0047_non_followers_counted_scored_apart.sql
 -- ============================================================================
 
 
@@ -11455,4 +11457,1409 @@ returns jsonb language sql stable security definer set search_path = public as $
     from instrument_versions v;
 $$;
 grant execute on function public.instrument_status() to anon, authenticated;
+
+
+-- ─── 0046_view_only_share_links.sql ────────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — view-only share links (migration 0046)
+--
+-- An organisation asked for a way to put its results in front of 90+ field
+-- leaders without giving each of them an account. This is a tokenised,
+-- read-only link an Org Administrator or Coordinator creates from the
+-- dashboard, scoped to the whole organisation (the "house") or to one
+-- distribution link (a "room"):
+--
+--     https://jfindx.org/view/<token>
+--
+-- What a link shows: the organisation's OWN figures — J12 index, n, the
+-- 3 × 4 matrix and the "more detail" panels — and, optionally, the heat map,
+-- which (like the dashboard's) is linked to all data gathered per country.
+-- What it never shows: a Collab benchmark or overlay on the organisation's
+-- matrix; any individual response; anything below the platform's minimums.
+--
+-- THE SAME MINIMUMS, EVERYWHERE (decided Oct 2026 with the requesting org):
+-- a shared link holds exactly the floors the signed-in dashboard holds, read
+-- from the same platform_settings rows — no share-specific threshold exists.
+--   - house score:    min_group_n                  (0019)
+--   - room score:     room_min_n                   (0033)
+--   - country colour: country_critical_mass_gate   (0020) — all data for
+--                     that country, the dashboard's own map (see 6)
+--   - country outline: min_group_n / room_min_n    (as org_reach_countries)
+--   - insight layers: insight_aggregates()' own gate (0021/0039)
+--   - trend years:    min_group_n per year (new here — see 2)
+-- A survey (room) below its floor shows its count only; the house, which
+-- pools every room, will usually have cleared its own floor by then.
+--
+-- To guarantee a shared view can never drift from the dashboard, the bodies
+-- of org_dashboard_season() (0030) and org_link_dashboard() (0033) move,
+-- verbatim, into two internal functions. The signed-in RPCs become an auth
+-- check + a call; the share RPC is a token check + the SAME call. One path.
+--
+--   1. Settings (versioned config) and the reserved 'view' short name.
+--   2. _gated_trend()          — the trend, with years below min_group_n dropped.
+--   3. _org_dashboard_core()   — org_dashboard_season()'s body, no auth.
+--   4. _link_dashboard_core()  — org_link_dashboard()'s body, no auth.
+--   5. org_dashboard_season() / org_link_dashboard() re-pointed at the cores.
+--   6. _scope_country_map()    — the map: every country's full data, as the dashboard.
+--   7. share_links             — hashed tokens; no client access.
+--   8. create_share_link() / org_share_links() / revoke_share_link().
+--   9. shared_dashboard(token, passcode) — the only anon-callable read.
+-- ============================================================================
+
+
+-- ----------------------------------------------------------------------------
+-- 1. Config. Every number a researcher or the Collab might want to change is
+-- a platform_settings row, never a literal in a function body.
+-- ----------------------------------------------------------------------------
+insert into public.platform_settings (key, value, note) values
+  ('share_link_default_days', '90'::jsonb,
+   'Default lifetime of a view-only share link, in days (0046).'),
+  ('share_link_max_days', '365'::jsonb,
+   'Longest a view-only share link may be set to last, in days (0046). Links always expire.'),
+  ('share_link_limit', '25'::jsonb,
+   'Most live (not expired, not revoked) view-only share links one organisation may hold at once (0046).'),
+  ('share_link_passcode_max_failures', '10'::jsonb,
+   'Wrong passcodes in a row before a passcode-protected share link locks (0046).'),
+  ('share_link_lockout_minutes', '60'::jsonb,
+   'How long a share link stays locked after too many wrong passcodes (0046).')
+on conflict (key) do nothing;
+
+-- /view/<token> is a top-level route, so 'view' can never be an organisation.
+insert into public.reserved_short_names (name, reason) values ('view', 'share links (0046)')
+on conflict (name) do nothing;
+
+do $$ begin
+  if exists (select 1 from public.organisations where slug = 'view' or short_name = 'view') then
+    raise warning 'An organisation already uses "view" as its slug — its /view/* pages are shadowed by share links. Rename it.';
+  end if;
+end $$;
+
+
+-- ----------------------------------------------------------------------------
+-- 2. _gated_trend(org, is_demo, min_n) — blended_trend() (0029) with every
+-- year below min_group_n completions removed. Until now the dashboard's
+-- "movement over time" showed a year's index however few people it held;
+-- that is the one place the house view did not hold the floor. A year counts
+-- the distinct live sessions it holds. Years that survive only as
+-- retained_aggregates (after a retention purge) are dropped too, because
+-- that table stores response counts, not people — flagged in the PR; no
+-- purge has run yet (respondent_retention_months is still null).
+-- ----------------------------------------------------------------------------
+create or replace function public._gated_trend(p_org_id uuid, p_is_demo boolean, p_min int)
+returns jsonb
+language sql stable security definer set search_path = public as $$
+  with yearly as (
+    select extract(year from s.created_at)::int as yr, count(distinct s.id) as n
+      from sessions s
+      join campaigns c  on c.id = s.campaign_id
+      join responses r  on r.session_id = s.id
+     where c.org_id = p_org_id and r.normalized is not null
+     group by 1
+  )
+  select coalesce(jsonb_agg(t order by (t->>'year')::int), '[]'::jsonb)
+    from jsonb_array_elements(coalesce(blended_trend(p_org_id, p_is_demo), '[]'::jsonb)) t
+    join yearly y on y.yr = (t->>'year')::int
+   where y.n >= p_min;
+$$;
+
+revoke all on function public._gated_trend(uuid, boolean, int) from public, anon, authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- 3. _org_dashboard_core(org_id, season_start, season_end) — the body of
+-- org_dashboard_season() (0030), moved here unchanged except: no auth check
+-- (callers do that), and 'trend' comes from _gated_trend(). Internal only.
+-- ----------------------------------------------------------------------------
+create or replace function public._org_dashboard_core(
+  p_org_id uuid,
+  p_season_start date default null,
+  p_season_end date default null
+)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare
+  v_org public.organisations%rowtype; result jsonb; result2 jsonb;
+  v_n bigint; v_explore_n bigint; v_min_group_n int;
+begin
+  select * into v_org from organisations where id = p_org_id;
+  if not found then raise exception 'org not found'; end if;
+
+  v_min_group_n := setting_int('min_group_n', 10);
+
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.created_at, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+      and (rsp.branch is distinct from 'unengaged')
+      and (p_season_start is null or s.created_at::date >= p_season_start)
+      and (p_season_end   is null or s.created_at::date <= p_season_end)
+  )
+  select count(distinct sid) into v_n from r;
+
+  with re as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+      and rsp.branch = 'unengaged'
+      and (p_season_start is null or s.created_at::date >= p_season_start)
+      and (p_season_end   is null or s.created_at::date <= p_season_end)
+  )
+  select count(distinct sid) into v_explore_n from re;
+
+  if v_n < v_min_group_n and v_explore_n < v_min_group_n then
+    return jsonb_build_object(
+      'org', jsonb_build_object('slug', v_org.slug, 'name', v_org.name, 'verified', v_org.verified),
+      'season', jsonb_build_object('start', p_season_start, 'end', p_season_end),
+      'n', v_n,
+      'suppressed', true,
+      'min_group_n', v_min_group_n,
+      'scale', 5,
+      'index', null, 'tiers', '{}'::jsonb, 'domains', '{}'::jsonb, 'matrix', '{}'::jsonb,
+      'items', '[]'::jsonb, 'trend', null, 'insights', '{}'::jsonb,
+      'exploration_n', v_explore_n, 'exploration_suppressed', true,
+      'exploration_index', null, 'exploration_tiers', '{}'::jsonb,
+      'exploration_domains', '{}'::jsonb, 'exploration_matrix', '{}'::jsonb
+    );
+  end if;
+
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.created_at, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+      and (rsp.branch is distinct from 'unengaged')
+      and (p_season_start is null or s.created_at::date >= p_season_start)
+      and (p_season_end   is null or s.created_at::date <= p_season_end)
+  )
+  select jsonb_build_object(
+    'org', jsonb_build_object('slug', v_org.slug, 'name', v_org.name, 'verified', v_org.verified),
+    'season', jsonb_build_object('start', p_season_start, 'end', p_season_end),
+    'n', v_n,
+    'suppressed', v_n < v_min_group_n,
+    'scale', 5,
+    'tiers',   case when v_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(tier, m) from (select tier, ngjfi_to_5(avg(normalized)) m from r group by tier) t) end,
+    'domains', case when v_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(question_domain, m) from (select question_domain, ngjfi_to_5(avg(normalized)) m from r group by question_domain) d) end,
+    'matrix',  case when v_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(question_domain, tiers) from
+                 (select question_domain, jsonb_object_agg(tier, m) tiers from
+                    (select question_domain, tier, ngjfi_to_5(avg(normalized)) m from r group by question_domain, tier) x
+                  group by question_domain) y) end,
+    'items',   case when v_n < v_min_group_n then '[]'::jsonb else
+               (select jsonb_agg(jsonb_build_object('key', item_key, 'domain', question_domain, 'tier', tier, 'mean', m, 'n', n)
+                          order by question_domain, tier) from
+                 (select item_key, question_domain, tier, ngjfi_to_5(avg(normalized)) m, count(distinct sid) n
+                    from r group by item_key, question_domain, tier) z) end,
+    'trend',   _gated_trend(v_org.id, v_org.is_demo, v_min_group_n),
+    'insights', insight_aggregates(v_org.id, v_org.is_demo, v_min_group_n)
+  ) into result;
+
+  if v_n >= v_min_group_n then
+    result := result || jsonb_build_object('index',
+      (select round(avg(value::numeric),1) from jsonb_each_text(coalesce(result->'tiers','{}'::jsonb))
+         where key in ('exposure','response','formation','multiplication')));
+  else
+    result := result || jsonb_build_object('index', null);
+  end if;
+
+  with re as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+      and rsp.branch = 'unengaged'
+      and (p_season_start is null or s.created_at::date >= p_season_start)
+      and (p_season_end   is null or s.created_at::date <= p_season_end)
+  )
+  select jsonb_build_object(
+    'exploration_n', v_explore_n,
+    'exploration_suppressed', v_explore_n < v_min_group_n,
+    'exploration_tiers',   case when v_explore_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(tier, m) from (select tier, ngjfi_to_5(avg(normalized)) m from re group by tier) t) end,
+    'exploration_domains', case when v_explore_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(question_domain, m) from (select question_domain, ngjfi_to_5(avg(normalized)) m from re group by question_domain) d) end,
+    'exploration_matrix',  case when v_explore_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(question_domain, tiers) from
+                 (select question_domain, jsonb_object_agg(tier, m) tiers from
+                    (select question_domain, tier, ngjfi_to_5(avg(normalized)) m from re group by question_domain, tier) x
+                  group by question_domain) y) end
+  ) into result2;
+
+  result := result || result2;
+
+  if v_explore_n >= v_min_group_n then
+    result := result || jsonb_build_object('exploration_index',
+      (select round(avg(value::numeric),1) from jsonb_each_text(coalesce(result->'exploration_tiers','{}'::jsonb))
+         where key in ('exposure','response','formation','multiplication')));
+  else
+    result := result || jsonb_build_object('exploration_index', null);
+  end if;
+
+  return result;
+end;
+$$;
+
+revoke all on function public._org_dashboard_core(uuid, date, date) from public, anon, authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- 4. _link_dashboard_core(link_id) — the body of org_link_dashboard() (0033),
+-- moved here unchanged except for the auth check. Internal only.
+-- ----------------------------------------------------------------------------
+create or replace function public._link_dashboard_core(p_link_id uuid)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare
+  v_link public.distribution_links%rowtype;
+  v_min int;
+  v_n bigint;
+  result jsonb;
+begin
+  select * into v_link from distribution_links where id = p_link_id;
+  if not found then raise exception 'link not found'; end if;
+
+  v_min := setting_int('room_min_n', setting_int('min_group_n', 10));
+
+  select count(distinct s.id) into v_n
+    from sessions s
+    join responses rsp on rsp.session_id = s.id
+   where s.distribution_link_id = v_link.id
+     and rsp.normalized is not null
+     and (rsp.branch is distinct from 'unengaged');
+
+  if v_n < v_min then
+    return jsonb_build_object(
+      'link', jsonb_build_object('id', v_link.id, 'name', v_link.name, 'slug', v_link.slug),
+      'n', v_n, 'suppressed', true, 'min_n', v_min, 'scale', 5,
+      'index', null, 'tiers', '{}'::jsonb, 'domains', '{}'::jsonb, 'matrix', '{}'::jsonb
+    );
+  end if;
+
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.normalized
+    from responses rsp
+    join sessions s on s.id = rsp.session_id
+    where s.distribution_link_id = v_link.id
+      and rsp.normalized is not null
+      and (rsp.branch is distinct from 'unengaged')
+  )
+  select jsonb_build_object(
+    'link', jsonb_build_object('id', v_link.id, 'name', v_link.name, 'slug', v_link.slug),
+    'n', v_n, 'suppressed', false, 'min_n', v_min, 'scale', 5,
+    'tiers',   (select jsonb_object_agg(tier, m) from (select tier, ngjfi_to_5(avg(normalized)) m from r group by tier) t),
+    'domains', (select jsonb_object_agg(question_domain, m) from (select question_domain, ngjfi_to_5(avg(normalized)) m from r group by question_domain) d),
+    'matrix',  (select jsonb_object_agg(question_domain, tiers) from
+                 (select question_domain, jsonb_object_agg(tier, m) tiers from
+                    (select question_domain, tier, ngjfi_to_5(avg(normalized)) m from r group by question_domain, tier) x
+                  group by question_domain) y)
+  ) into result;
+
+  result := result || jsonb_build_object('index',
+    (select round(avg(value::numeric), 1) from jsonb_each_text(coalesce(result->'tiers', '{}'::jsonb))
+      where key in ('exposure', 'response', 'formation', 'multiplication')));
+
+  return result;
+end;
+$$;
+
+revoke all on function public._link_dashboard_core(uuid) from public, anon, authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- 5. The signed-in RPCs keep their names, signatures and contracts; they now
+-- authorise and delegate. The output is identical to before except that
+-- trend years below min_group_n are no longer returned.
+-- ----------------------------------------------------------------------------
+create or replace function public.org_dashboard_season(
+  p_org_slug text,
+  p_season_start date default null,
+  p_season_end date default null
+)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_uid uuid := auth.uid(); v_org public.organisations%rowtype;
+begin
+  select * into v_org from organisations where slug = p_org_slug;
+  if not found then raise exception 'org not found'; end if;
+  if v_uid is null or not exists (
+    select 1 from org_members m where m.org_id = v_org.id and m.user_id = v_uid and m.status = 'active'
+  ) then
+    raise exception 'not authorised for this organisation';
+  end if;
+  return _org_dashboard_core(v_org.id, p_season_start, p_season_end);
+end;
+$$;
+
+grant execute on function public.org_dashboard_season(text, date, date) to authenticated;
+
+create or replace function public.org_link_dashboard(p_org_slug text, p_link_id uuid)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare v_uid uuid := auth.uid(); v_org public.organisations%rowtype;
+begin
+  select * into v_org from organisations where slug = p_org_slug;
+  if not found then raise exception 'org not found'; end if;
+  if v_uid is null or not exists (
+    select 1 from org_members m where m.org_id = v_org.id and m.user_id = v_uid and m.status = 'active'
+  ) then
+    raise exception 'not authorised for this organisation';
+  end if;
+  if not exists (select 1 from distribution_links where id = p_link_id and org_id = v_org.id) then
+    raise exception 'link not found';
+  end if;
+  return _link_dashboard_core(p_link_id);
+end;
+$$;
+
+grant execute on function public.org_link_dashboard(text, uuid) to authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- 6. _scope_country_map(org, link) — the heat map on a shared view.
+--
+-- Decided Oct 2026: the map stays linked to ALL data gathered for each
+-- country, exactly as on the signed-in dashboard — the map is the one
+-- picture on a share link that is not the organisation's alone.
+--   countries[] — straight from collab_intelligence(): the same countries,
+--                 the same 2,000 country gate, the same publish switch. Until
+--                 the Collab publishes its view (publish_global_view), no
+--                 country is coloured here either, as on the dashboard.
+--   reached[]   — names only, outlined: where THIS scope (the house, or one
+--                 room) has at least its own floor of completions —
+--                 min_group_n for the house, room_min_n for a room — the
+--                 same rule as org_reach_countries().
+-- ----------------------------------------------------------------------------
+create or replace function public._scope_country_map(p_org_id uuid, p_link_id uuid default null)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_floor int; v_collab jsonb; v_published boolean;
+begin
+  v_floor := case when p_link_id is null then setting_int('min_group_n', 10)
+                  else setting_int('room_min_n', setting_int('min_group_n', 10)) end;
+  v_collab := collab_intelligence();
+  v_published := coalesce((v_collab->>'published')::boolean, false);
+
+  return jsonb_build_object(
+    'published', v_published,
+    'country_gate', coalesce((v_collab->>'country_gate')::int, setting_int('country_critical_mass_gate', 2000)),
+    'floor', v_floor,
+    'countries', case when v_published then coalesce(v_collab->'countries', '[]'::jsonb) else '[]'::jsonb end,
+    'reached', coalesce((
+      select jsonb_agg(country order by country) from (
+        select s.country
+          from sessions s
+          join campaigns c on c.id = s.campaign_id
+         where c.org_id = p_org_id
+           and (p_link_id is null or s.distribution_link_id = p_link_id)
+           and s.completed and s.country is not null and btrim(s.country) <> ''
+         group by s.country
+        having count(*) >= v_floor
+      ) x), '[]'::jsonb)
+  );
+end;
+$$;
+
+revoke all on function public._scope_country_map(uuid, uuid) from public, anon, authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- 7. share_links. The token itself is never stored — only its sha256 — so a
+-- read of this table cannot reconstruct a working link. The creator copies
+-- the link once, at creation. No client policies: every read and write goes
+-- through the RPCs below, like every other org-scoped table here.
+--
+-- distribution_link_id cascades on delete: if a room goes, its share links
+-- go with it. (SET NULL would silently widen a room link to the whole house.)
+-- ----------------------------------------------------------------------------
+create table if not exists public.share_links (
+  id                   uuid primary key default gen_random_uuid(),
+  org_id               uuid not null references public.organisations(id) on delete cascade,
+  distribution_link_id uuid references public.distribution_links(id) on delete cascade,
+  label                text not null check (length(btrim(label)) between 1 and 80),
+  token_hash           text not null unique,
+  passcode_hash        text,
+  show_map             boolean not null default true,
+  show_detail          boolean not null default true,
+  created_by           uuid references auth.users(id) on delete set null,
+  created_at           timestamptz not null default now(),
+  expires_at           timestamptz not null,
+  revoked_at           timestamptz,
+  revoked_by           uuid references auth.users(id) on delete set null,
+  view_count           bigint not null default 0,
+  last_viewed_at       timestamptz,
+  failed_attempts      int not null default 0,
+  locked_until         timestamptz
+);
+
+comment on table public.share_links is
+  'View-only share links (0046). Token stored as sha256 only. Read through shared_dashboard(); managed through create_share_link / org_share_links / revoke_share_link. Records views as a count — never who viewed.';
+
+alter table public.share_links enable row level security;
+revoke all on public.share_links from anon, authenticated;
+create index if not exists idx_share_links_org on public.share_links(org_id);
+
+create or replace function public._share_hash(p_text text)
+returns text language sql immutable set search_path = public as $$
+  select encode(sha256(convert_to(p_text, 'UTF8')), 'hex');
+$$;
+
+revoke all on function public._share_hash(text) from public, anon, authenticated;
+
+-- Only an Org Administrator or Coordinator of the organisation (0043).
+create or replace function public._require_org_team(p_org_slug text)
+returns public.organisations
+language plpgsql stable security definer set search_path = public as $$
+declare v_org public.organisations%rowtype;
+begin
+  select * into v_org from organisations where slug = p_org_slug;
+  if not found then raise exception 'org not found'; end if;
+  if auth.uid() is null or not exists (
+    select 1 from org_members m
+     where m.org_id = v_org.id and m.user_id = auth.uid()
+       and m.status = 'active' and m.role in ('org_admin', 'coordinator')
+  ) then
+    raise exception 'only an Org Administrator or Coordinator can manage view-only links';
+  end if;
+  return v_org;
+end;
+$$;
+
+revoke all on function public._require_org_team(text) from public, anon, authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- 8a. create_share_link — returns the link's token ONCE. Never again.
+-- ----------------------------------------------------------------------------
+create or replace function public.create_share_link(
+  p_org_slug    text,
+  p_label       text,
+  p_link_id     uuid    default null,
+  p_days        int     default null,
+  p_passcode    text    default null,
+  p_show_map    boolean default true,
+  p_show_detail boolean default true
+)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  v_org public.organisations%rowtype;
+  v_link public.distribution_links%rowtype;
+  v_days int; v_max int; v_limit int; v_live int;
+  v_label text := btrim(coalesce(p_label, ''));
+  v_pass text := nullif(btrim(coalesce(p_passcode, '')), '');
+  v_token text; v_id uuid := gen_random_uuid(); v_expires timestamptz;
+begin
+  v_org := _require_org_team(p_org_slug);
+
+  if length(v_label) = 0 then raise exception 'give the link a name, so you can tell it apart later'; end if;
+  if length(v_label) > 80 then raise exception 'keep the name under 80 characters'; end if;
+
+  if p_link_id is not null then
+    select * into v_link from distribution_links where id = p_link_id and org_id = v_org.id;
+    if not found then raise exception 'link not found'; end if;
+    if v_link.is_test then raise exception 'a test link has no results to share'; end if;
+  end if;
+
+  v_max  := setting_int('share_link_max_days', 365);
+  v_days := coalesce(p_days, setting_int('share_link_default_days', 90));
+  if v_days < 1 or v_days > v_max then
+    raise exception 'a view-only link can last between 1 and % days', v_max;
+  end if;
+
+  v_limit := setting_int('share_link_limit', 25);
+  select count(*) into v_live from share_links
+   where org_id = v_org.id and revoked_at is null and expires_at > now();
+  if v_live >= v_limit then
+    raise exception 'you already have % live view-only links — revoke one first', v_limit;
+  end if;
+
+  if v_pass is not null and (length(v_pass) < 4 or length(v_pass) > 32) then
+    raise exception 'a passcode is 4 to 32 characters';
+  end if;
+
+  -- Two v4 UUIDs: 244 random bits. Unguessable; stored only as a hash.
+  v_token := replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', '');
+  v_expires := now() + make_interval(days => v_days);
+
+  insert into share_links (id, org_id, distribution_link_id, label, token_hash, passcode_hash,
+                           show_map, show_detail, created_by, expires_at)
+  values (v_id, v_org.id, p_link_id, v_label, _share_hash(v_token),
+          case when v_pass is null then null else _share_hash(v_id::text || ':' || v_pass) end,
+          coalesce(p_show_map, true),
+          -- a room never had per-item rows or insight layers (0033): too small.
+          case when p_link_id is null then coalesce(p_show_detail, true) else false end,
+          auth.uid(), v_expires);
+
+  return jsonb_build_object('id', v_id, 'token', v_token, 'expires_at', v_expires);
+end;
+$$;
+
+revoke all on function public.create_share_link(text, text, uuid, int, text, boolean, boolean) from public, anon;
+grant execute on function public.create_share_link(text, text, uuid, int, text, boolean, boolean) to authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- 8b. org_share_links — the team's list. No tokens (there are none to give).
+-- ----------------------------------------------------------------------------
+create or replace function public.org_share_links(p_org_slug text)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare v_org public.organisations%rowtype;
+begin
+  v_org := _require_org_team(p_org_slug);
+  return coalesce((
+    select jsonb_agg(row order by (row->>'live')::boolean desc, row->>'created_at' desc) from (
+      select jsonb_build_object(
+        'id', sl.id,
+        'label', sl.label,
+        'scope', case when sl.distribution_link_id is null then 'house' else 'room' end,
+        'room_name', dl.name,
+        'created_at', sl.created_at,
+        'created_by', u.email,
+        'expires_at', sl.expires_at,
+        'revoked_at', sl.revoked_at,
+        'live', sl.revoked_at is null and sl.expires_at > now(),
+        'has_passcode', sl.passcode_hash is not null,
+        'show_map', sl.show_map,
+        'show_detail', sl.show_detail,
+        'view_count', sl.view_count,
+        'last_viewed_at', sl.last_viewed_at
+      ) as row
+        from share_links sl
+        left join distribution_links dl on dl.id = sl.distribution_link_id
+        left join auth.users u on u.id = sl.created_by
+       where sl.org_id = v_org.id
+         and (sl.revoked_at is null and sl.expires_at > now()
+              or coalesce(sl.revoked_at, sl.expires_at) > now() - interval '90 days')
+    ) x
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function public.org_share_links(text) from public, anon;
+grant execute on function public.org_share_links(text) to authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- 8c. revoke_share_link — any Org Administrator or Coordinator may revoke any
+-- of the organisation's links (revoking only ever narrows access). Idempotent.
+-- ----------------------------------------------------------------------------
+create or replace function public.revoke_share_link(p_org_slug text, p_id uuid)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_org public.organisations%rowtype;
+begin
+  v_org := _require_org_team(p_org_slug);
+  update share_links set revoked_at = now(), revoked_by = auth.uid()
+   where id = p_id and org_id = v_org.id and revoked_at is null;
+  if not exists (select 1 from share_links where id = p_id and org_id = v_org.id) then
+    raise exception 'link not found';
+  end if;
+  return jsonb_build_object('id', p_id, 'revoked', true);
+end;
+$$;
+
+revoke all on function public.revoke_share_link(text, uuid) from public, anon;
+grant execute on function public.revoke_share_link(text, uuid) to authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- 9. shared_dashboard(token, passcode) — the ONLY function anon can call here.
+--
+-- Returns a status, never an exception, so a wrong passcode's counter
+-- survives (an exception would roll it back). Unknown, revoked and expired
+-- tokens all answer the same 'unavailable', so the endpoint can't be used to
+-- learn which links once existed. Only the org's name and branding are shown
+-- before a passcode is accepted.
+--
+-- The payload is the same core the signed-in dashboard reads, minus anything
+-- the creator switched off. The organisation's figures carry no Collab
+-- overlay or benchmark; the map's country colours are the dashboard's own.
+-- ----------------------------------------------------------------------------
+create or replace function public.shared_dashboard(p_token text, p_passcode text default null)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  v_share public.share_links%rowtype;
+  v_org public.organisations%rowtype;
+  v_link public.distribution_links%rowtype;
+  v_brand jsonb; v_dash jsonb; v_max int; v_until timestamptz;
+begin
+  if p_token is null or p_token !~ '^[0-9a-f]{64}$' then
+    return jsonb_build_object('status', 'unavailable');
+  end if;
+
+  select * into v_share from share_links where token_hash = _share_hash(p_token) for update;
+  if not found or v_share.revoked_at is not null or v_share.expires_at <= now() then
+    return jsonb_build_object('status', 'unavailable');
+  end if;
+
+  select * into v_org from organisations where id = v_share.org_id;
+  if v_share.distribution_link_id is not null then
+    select * into v_link from distribution_links where id = v_share.distribution_link_id;
+    if not found or v_link.is_test then return jsonb_build_object('status', 'unavailable'); end if;
+  end if;
+
+  v_brand := jsonb_build_object('name', v_org.name, 'logo_url', v_org.logo_url, 'brand_color', v_org.brand_color);
+
+  if v_share.passcode_hash is not null then
+    if v_share.locked_until is not null and v_share.locked_until > now() then
+      return jsonb_build_object('status', 'locked', 'org', v_brand, 'until', v_share.locked_until);
+    end if;
+    if nullif(btrim(coalesce(p_passcode, '')), '') is null then
+      return jsonb_build_object('status', 'passcode_required', 'org', v_brand);
+    end if;
+    if _share_hash(v_share.id::text || ':' || btrim(p_passcode)) <> v_share.passcode_hash then
+      v_max := setting_int('share_link_passcode_max_failures', 10);
+      if v_share.failed_attempts + 1 >= v_max then
+        update share_links
+           set failed_attempts = 0,
+               locked_until = now() + make_interval(mins => setting_int('share_link_lockout_minutes', 60))
+         where id = v_share.id
+         returning locked_until into v_until;
+        return jsonb_build_object('status', 'locked', 'org', v_brand, 'until', v_until);
+      end if;
+      update share_links set failed_attempts = failed_attempts + 1 where id = v_share.id;
+      return jsonb_build_object('status', 'passcode_wrong', 'org', v_brand);
+    end if;
+  end if;
+
+  update share_links
+     set view_count = view_count + 1, last_viewed_at = now(), failed_attempts = 0, locked_until = null
+   where id = v_share.id;
+
+  if v_share.distribution_link_id is null then
+    v_dash := _org_dashboard_core(v_org.id, null, null) - 'season' - 'org';
+    if not v_share.show_detail then
+      v_dash := v_dash - 'items' - 'insights' - 'trend'
+                       - 'exploration_n' - 'exploration_suppressed' - 'exploration_index'
+                       - 'exploration_tiers' - 'exploration_domains' - 'exploration_matrix';
+    end if;
+  else
+    v_dash := _link_dashboard_core(v_link.id) - 'link';
+  end if;
+
+  return jsonb_build_object(
+    'status', 'ok',
+    'org', v_brand,
+    'min_group_n', setting_int('min_group_n', 10),
+    'label', v_share.label,
+    'scope', jsonb_build_object(
+      'kind', case when v_share.distribution_link_id is null then 'house' else 'room' end,
+      'room_name', v_link.name),
+    'expires_at', v_share.expires_at,
+    'show_map', v_share.show_map,
+    'show_detail', v_share.show_detail and v_share.distribution_link_id is null,
+    'dashboard', v_dash,
+    'map', case when v_share.show_map then _scope_country_map(v_org.id, v_share.distribution_link_id) else null end
+  );
+end;
+$$;
+
+comment on function public.shared_dashboard(text, text) is
+  'View-only share link read (0046). Token + optional passcode → the organisation''s own aggregates through the same core as the signed-in dashboard, behind the same minimums. Never a Collab figure, never an individual response.';
+
+revoke all on function public.shared_dashboard(text, text) from public;
+grant execute on function public.shared_dashboard(text, text) to anon, authenticated;
+
+
+-- ─── 0047_non_followers_counted_scored_apart.sql ───────────────────────
+
+-- ============================================================================
+-- The Jesus Index — non-followers: counted in completions, scored apart
+-- (migration 0047)
+--
+-- Decided Oct 2026 with the Collab:
+--   * Everyone who completes the Index counts in an organisation's completion
+--     total — followers and those not yet following alike — and the total is
+--     shown SEGMENTED (following / not yet following), never as one score.
+--   * Non-followers' answers never enter the J12 matrix, its index, the trend
+--     or any benchmark. They are scored only in their own Unengaged matrix
+--     (the Exploration Index, 0026): same 3 × 4 model, same maths, its own n.
+--   * The Unengaged matrix unlocks in any space — the house, a season, a
+--     room (a distribution link) — once that space has the SAME minimum of
+--     non-followers it needs of followers: min_group_n for the house and a
+--     season, room_min_n for a room. No separate threshold exists.
+--
+-- Until now the house kept the two apart, but several aggregates did not:
+-- they averaged every scored answer, so non-followers' answers ran into the
+-- J12 figure they were compared with. Each is fixed here with ONE added
+-- condition — (rsp.branch is distinct from 'unengaged') — and nothing else
+-- in its body changes:
+--     blended_trend()        the "movement over time" line, org and Collab
+--     org_benchmark()        country and global baselines
+--     network_console()      network roll-ups
+--     org_dashboard_admin()  the Collab console's per-org view
+-- and, for the archive a retention purge would leave behind:
+--     retained_aggregates    gains a branch column (part of its key)
+--     _purge_stale_respondent_data_unchecked()  archives each branch apart
+--     blended_trend()        reads only the 'index' branch from the archive
+-- No purge has run (respondent_retention_months is still unset), so the
+-- archive is empty and nothing already archived is relabelled.
+--
+--   1. retained_aggregates.branch
+--   2. the four aggregates + the purge, each with the branch condition
+--   3. _gated_trend() — the trend's per-year floor counts followers only
+--   4. _org_dashboard_core() — adds `completions` and `exploration_min_n`
+--   5. _link_dashboard_core() — a room's own Unengaged matrix + completions
+--   6. org_dashboard_demo() — the signed-out preview reads the same core,
+--      so the sample organisation can never diverge from the product
+-- ============================================================================
+
+
+-- ----------------------------------------------------------------------------
+-- 1. retained_aggregates.branch — 'index' (followers, the J12) or 'unengaged'.
+-- ----------------------------------------------------------------------------
+alter table public.retained_aggregates
+  add column if not exists branch text not null default 'index';
+
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'retained_aggregates_branch_check') then
+    alter table public.retained_aggregates
+      add constraint retained_aggregates_branch_check check (branch in ('index', 'unengaged'));
+  end if;
+end $$;
+
+alter table public.retained_aggregates drop constraint if exists retained_aggregates_pkey;
+alter table public.retained_aggregates
+  add constraint retained_aggregates_pkey primary key (org_id, year, question_domain, tier, branch);
+
+comment on column public.retained_aggregates.branch is
+  'Which matrix the archived answers belong to (0047): index = followers (the J12), unengaged = the Unengaged matrix. Never summed together.';
+
+
+-- ----------------------------------------------------------------------------
+-- 2. Non-followers out of every score that is not their own.
+-- ----------------------------------------------------------------------------
+create or replace function public.blended_trend(p_org_id uuid, p_is_demo boolean)
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  with live as (
+    select extract(year from s.created_at)::int as yr, rsp.question_domain as dom, rsp.tier,
+           avg(rsp.normalized) as m, count(*) as n
+    from responses rsp
+    join sessions s      on s.id = rsp.session_id
+    join campaigns c     on c.id = s.campaign_id
+    join organisations o on o.id = c.org_id
+    where rsp.normalized is not null
+      and (rsp.branch is distinct from 'unengaged')
+      and o.is_demo = p_is_demo
+      and (p_org_id is null or o.id = p_org_id)
+    group by 1, 2, 3
+  ),
+  archived as (
+    select year as yr, question_domain as dom, tier, mean as m, n
+    from retained_aggregates
+    where is_demo = p_is_demo
+      and branch = 'index'
+      and (p_org_id is null or org_id = p_org_id)
+  ),
+  combined as (
+    select yr, dom, tier, m, n from live
+    union all
+    select yr, dom, tier, m, n from archived
+  ),
+  yearly_tier as (
+    select yr, tier, sum(m * n) / nullif(sum(n), 0) as tm
+    from combined group by yr, tier
+  )
+  select coalesce(jsonb_agg(jsonb_build_object('year', yr, 'index', ngjfi_to_5(idx)) order by yr), '[]'::jsonb)
+  from (select yr, avg(tm) as idx from yearly_tier group by yr) y;
+$function$;
+
+create or replace function public.org_benchmark(p_org_slug text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_uid uuid := auth.uid();
+  v_org public.organisations%rowtype;
+  v_gate int;
+  v_country_gate int;
+  v_publish_global boolean;
+  v_country_n bigint;
+  v_country_tiers jsonb;
+  v_country_index numeric;
+  v_global_n bigint;
+  v_global_tiers jsonb;
+  v_global_index numeric;
+begin
+  select * into v_org from organisations where slug = p_org_slug;
+  if not found then raise exception 'org not found'; end if;
+
+  if v_uid is null or not exists (
+    select 1 from org_members m where m.org_id = v_org.id and m.user_id = v_uid and m.status = 'active'
+  ) then
+    raise exception 'not authorised for this organisation';
+  end if;
+
+  v_gate           := setting_int('critical_mass_gate', 400);
+  v_country_gate   := setting_int('country_critical_mass_gate', 2000);
+  v_publish_global := setting_bool('publish_global_view', false);
+
+  if v_org.country is not null then
+    with country_r as (
+      select rsp.tier, rsp.normalized, s.id as sid
+      from responses rsp
+      join sessions s      on s.id = rsp.session_id
+      join campaigns c     on c.id = s.campaign_id
+      join organisations o on o.id = c.org_id
+      where o.is_demo = false
+        and o.country = v_org.country
+        and o.id <> v_org.id
+        and rsp.normalized is not null
+        and (rsp.branch is distinct from 'unengaged')
+    )
+    select
+      (select count(distinct sid) from country_r),
+      (select jsonb_object_agg(tier, m) from (select tier, ngjfi_to_5(avg(normalized)) m from country_r group by tier) t)
+    into v_country_n, v_country_tiers;
+  end if;
+
+  if v_country_n >= v_country_gate then
+    select round(avg(value::numeric),1) into v_country_index
+    from jsonb_each_text(coalesce(v_country_tiers, '{}'::jsonb))
+    where key in ('exposure','response','formation','multiplication');
+  else
+    v_country_tiers := null;
+  end if;
+
+  if v_publish_global then
+    with global_r as (
+      select rsp.tier, rsp.normalized, s.id as sid
+      from responses rsp
+      join sessions s      on s.id = rsp.session_id
+      join campaigns c     on c.id = s.campaign_id
+      join organisations o on o.id = c.org_id
+      where o.is_demo = false
+        and o.id <> v_org.id
+        and rsp.normalized is not null
+        and (rsp.branch is distinct from 'unengaged')
+    )
+    select
+      (select count(distinct sid) from global_r),
+      (select jsonb_object_agg(tier, m) from (select tier, ngjfi_to_5(avg(normalized)) m from global_r group by tier) t)
+    into v_global_n, v_global_tiers;
+  end if;
+
+  if v_global_n >= v_gate then
+    select round(avg(value::numeric),1) into v_global_index
+    from jsonb_each_text(coalesce(v_global_tiers, '{}'::jsonb))
+    where key in ('exposure','response','formation','multiplication');
+  else
+    v_global_tiers := null;
+  end if;
+
+  return jsonb_build_object(
+    'gate', v_gate,
+    'scale', 5,
+    'country', jsonb_build_object(
+      'geography', v_org.country,
+      'available', v_country_n >= v_country_gate,
+      'gate', v_country_gate,
+      'n', coalesce(v_country_n, 0),
+      'index', v_country_index,
+      'tiers', v_country_tiers
+    ),
+    'global', jsonb_build_object(
+      'available', v_publish_global and v_global_n >= v_gate,
+      'n', coalesce(v_global_n, 0),
+      'index', v_global_index,
+      'tiers', v_global_tiers
+    )
+  );
+end;
+$function$;
+
+create or replace function public.network_console(p_short_name text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare v_net public.networks%rowtype; v_uid uuid := auth.uid(); result jsonb;
+begin
+  select * into v_net from networks where short_name = lower(btrim(p_short_name));
+  if not found then raise exception 'network not found'; end if;
+
+  if my_role() <> 'admin' and not exists (
+    select 1 from network_members_users m
+     where m.network_id = v_net.id and m.user_id = v_uid and m.status = 'active'
+  ) then
+    raise exception 'not authorised for this network';
+  end if;
+
+  with mem as (
+    select o.id, o.short_name, o.name, o.country, nm.shares_index
+      from network_members nm join organisations o on o.id = nm.org_id
+     where nm.network_id = v_net.id
+  ),
+  r as (
+    select rsp.tier, rsp.question_domain, rsp.normalized, s.id sid, m.id oid, m.shares_index
+      from mem m
+      join campaigns c on c.org_id = m.id
+      join sessions s on s.campaign_id = c.id
+      join responses rsp on rsp.session_id = s.id
+     where rsp.normalized is not null
+       and (rsp.branch is distinct from 'unengaged')
+  )
+  select jsonb_build_object(
+    'network', jsonb_build_object('short_name', v_net.short_name, 'name', v_net.name, 'kind', v_net.kind),
+    'members', (select count(*) from mem),
+    'scale', 5,
+    'headline', jsonb_build_object(
+      'organisations', (select count(distinct oid) from r),
+      'responses',     (select count(distinct sid) from r)
+    ),
+    'funnel',  (select jsonb_object_agg(tier, m) from
+                 (select tier, ngjfi_to_5(avg(normalized)) m from r group by tier) t),
+    'domains', (select jsonb_object_agg(question_domain, m) from
+                 (select question_domain, ngjfi_to_5(avg(normalized)) m from r group by question_domain) d),
+    'organisations', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'short_name', m.short_name, 'name', m.name, 'country', m.country,
+        'shares_index', m.shares_index,
+        'index', case when m.shares_index then (
+          select ngjfi_to_5(avg(x.normalized)) from r x where x.oid = m.id
+        ) else null end,
+        'responses', (select count(distinct x.sid) from r x where x.oid = m.id)
+      ) order by m.name) from mem m
+    ), '[]'::jsonb)
+  ) into result;
+
+  return result;
+end;
+$function$;
+
+create or replace function public.org_dashboard_admin(p_short_name text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare v_org public.organisations%rowtype; result jsonb;
+begin
+  if my_role() <> 'admin' then raise exception 'administrators only'; end if;
+  select * into v_org from organisations where short_name = lower(btrim(p_short_name));
+  if not found then raise exception 'organisation not found'; end if;
+
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.id sid, c.audience
+      from responses rsp
+      join sessions s on s.id = rsp.session_id
+      join campaigns c on c.id = s.campaign_id
+     where c.org_id = v_org.id and rsp.normalized is not null
+       and (rsp.branch is distinct from 'unengaged')
+  )
+  select jsonb_build_object(
+    'org', jsonb_build_object('short_name', v_org.short_name, 'name', v_org.name,
+                              'country', v_org.country, 'verified', v_org.verified),
+    'n', (select count(distinct sid) from r),
+    'scale', 5,
+    'tiers',   (select jsonb_object_agg(tier, m) from (select tier, ngjfi_to_5(avg(normalized)) m from r group by tier) t),
+    'domains', (select jsonb_object_agg(question_domain, m) from (select question_domain, ngjfi_to_5(avg(normalized)) m from r group by question_domain) d),
+    'by_audience', (select jsonb_object_agg(audience, m) from
+                     (select audience, ngjfi_to_5(avg(normalized)) m from r group by audience) a)
+  ) into result;
+  return result;
+end;
+$function$;
+
+create or replace function public._purge_stale_respondent_data_unchecked(p_cutoff_months integer DEFAULT 24)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_cutoff timestamptz := now() - (p_cutoff_months || ' months')::interval;
+  v_archived_rows int;
+  v_activity_rows int;
+  v_deleted_sessions int;
+begin
+  if my_role() <> 'admin' then
+    raise exception 'only an administrator can purge respondent data';
+  end if;
+
+  with stale as (
+    select rsp.question_domain, rsp.tier, rsp.normalized,
+           case when rsp.branch = 'unengaged' then 'unengaged' else 'index' end as branch,
+           extract(year from s.created_at)::int as yr, c.org_id, o.is_demo
+    from responses rsp
+    join sessions s      on s.id = rsp.session_id
+    join campaigns c     on c.id = s.campaign_id
+    join organisations o on o.id = c.org_id
+    where s.created_at < v_cutoff and rsp.normalized is not null
+  ),
+  agg as (
+    select org_id, is_demo, yr, question_domain, tier, branch, round(avg(normalized),1) m, count(*) n
+    from stale group by org_id, is_demo, yr, question_domain, tier, branch
+  )
+  insert into retained_aggregates (org_id, is_demo, year, question_domain, tier, branch, mean, n)
+  select org_id, is_demo, yr, question_domain, tier, branch, m, n from agg
+  on conflict (org_id, year, question_domain, tier, branch) do update
+    set mean = round(
+          ((retained_aggregates.mean * retained_aggregates.n) + (excluded.mean * excluded.n))
+          / nullif(retained_aggregates.n + excluded.n, 0), 1),
+        n = retained_aggregates.n + excluded.n,
+        updated_at = now();
+
+  get diagnostics v_archived_rows = row_count;
+
+  -- New in 0041: the counts behind the Insights timeline and retention, additive.
+  insert into retained_activity (org_id, is_demo, year, country, locale, started, completed, answered, matched)
+  select org_id, is_demo, yr, coalesce(loc, ''), locale,
+         count(*), count(*) filter (where completed),
+         count(*) filter (where completed and said is not null),
+         count(*) filter (where completed and said is not null and lower(said) = lower(loc))
+  from (
+    select c.org_id, o.is_demo, extract(year from s.created_at)::int yr,
+           session_locality(s.distribution_link_id, s.campaign_id) loc,
+           coalesce(s.locale, '') locale, s.completed, nullif(btrim(s.country), '') said
+      from sessions s
+      join campaigns c     on c.id = s.campaign_id
+      join organisations o on o.id = c.org_id
+     where s.created_at < v_cutoff
+  ) x
+  group by 1, 2, 3, 4, 5
+  on conflict (org_id, year, country, locale) do update
+    set started    = retained_activity.started   + excluded.started,
+        completed  = retained_activity.completed + excluded.completed,
+        answered   = retained_activity.answered  + excluded.answered,
+        matched    = retained_activity.matched   + excluded.matched,
+        updated_at = now();
+
+  get diagnostics v_activity_rows = row_count;
+
+  -- responses cascade-delete with their session (0001: on delete cascade)
+  delete from sessions where created_at < v_cutoff;
+  get diagnostics v_deleted_sessions = row_count;
+
+  return jsonb_build_object(
+    'cutoff', v_cutoff,
+    'sessions_deleted', v_deleted_sessions,
+    'aggregate_buckets_touched', v_archived_rows,
+    'activity_buckets_touched', v_activity_rows
+  );
+end;
+$function$;
+
+
+-- ----------------------------------------------------------------------------
+-- 3. _gated_trend() (0046): a trend year is the followers' J12, so its floor
+-- counts followers.
+-- ----------------------------------------------------------------------------
+create or replace function public._gated_trend(p_org_id uuid, p_is_demo boolean, p_min int)
+returns jsonb
+language sql stable security definer set search_path = public as $$
+  with yearly as (
+    select extract(year from s.created_at)::int as yr, count(distinct s.id) as n
+      from sessions s
+      join campaigns c  on c.id = s.campaign_id
+      join responses r  on r.session_id = s.id
+     where c.org_id = p_org_id and r.normalized is not null
+       and (r.branch is distinct from 'unengaged')
+     group by 1
+  )
+  select coalesce(jsonb_agg(t order by (t->>'year')::int), '[]'::jsonb)
+    from jsonb_array_elements(coalesce(blended_trend(p_org_id, p_is_demo), '[]'::jsonb)) t
+    join yearly y on y.yr = (t->>'year')::int
+   where y.n >= p_min;
+$$;
+
+revoke all on function public._gated_trend(uuid, boolean, int) from public, anon, authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- 4. _org_dashboard_core() (0046) — unchanged except:
+--      completions        {total, following, not_following}: everyone counted,
+--                         segmented. `n` stays the J12's own n (followers).
+--      exploration_min_n  the floor the Unengaged matrix unlocks at — the
+--                         same min_group_n the J12 holds.
+-- ----------------------------------------------------------------------------
+create or replace function public._org_dashboard_core(
+  p_org_id uuid,
+  p_season_start date default null,
+  p_season_end date default null
+)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare
+  v_org public.organisations%rowtype; result jsonb; result2 jsonb;
+  v_n bigint; v_explore_n bigint; v_total bigint; v_min_group_n int; v_completions jsonb;
+begin
+  select * into v_org from organisations where id = p_org_id;
+  if not found then raise exception 'org not found'; end if;
+
+  v_min_group_n := setting_int('min_group_n', 10);
+
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.created_at, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+      and (rsp.branch is distinct from 'unengaged')
+      and (p_season_start is null or s.created_at::date >= p_season_start)
+      and (p_season_end   is null or s.created_at::date <= p_season_end)
+  )
+  select count(distinct sid) into v_n from r;
+
+  with re as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+      and rsp.branch = 'unengaged'
+      and (p_season_start is null or s.created_at::date >= p_season_start)
+      and (p_season_end   is null or s.created_at::date <= p_season_end)
+  )
+  select count(distinct sid) into v_explore_n from re;
+
+  -- Everyone who completed scored questions, on either branch. Followers'
+  -- answers make the J12; non-followers' make the Unengaged matrix. Both
+  -- count as completions — one total, segmented, never one score.
+  select count(distinct s.id) into v_total
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+   where c.org_id = v_org.id and rsp.normalized is not null
+     and (p_season_start is null or s.created_at::date >= p_season_start)
+     and (p_season_end   is null or s.created_at::date <= p_season_end);
+  v_completions := jsonb_build_object('total', v_total, 'following', v_n, 'not_following', v_explore_n);
+
+  if v_n < v_min_group_n and v_explore_n < v_min_group_n then
+    return jsonb_build_object(
+      'org', jsonb_build_object('slug', v_org.slug, 'name', v_org.name, 'verified', v_org.verified),
+      'season', jsonb_build_object('start', p_season_start, 'end', p_season_end),
+      'n', v_n,
+      'completions', v_completions,
+      'suppressed', true,
+      'min_group_n', v_min_group_n,
+      'scale', 5,
+      'index', null, 'tiers', '{}'::jsonb, 'domains', '{}'::jsonb, 'matrix', '{}'::jsonb,
+      'items', '[]'::jsonb, 'trend', null, 'insights', '{}'::jsonb,
+      'exploration_n', v_explore_n, 'exploration_min_n', v_min_group_n, 'exploration_suppressed', true,
+      'exploration_index', null, 'exploration_tiers', '{}'::jsonb,
+      'exploration_domains', '{}'::jsonb, 'exploration_matrix', '{}'::jsonb
+    );
+  end if;
+
+  with r as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.created_at, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+      and (rsp.branch is distinct from 'unengaged')
+      and (p_season_start is null or s.created_at::date >= p_season_start)
+      and (p_season_end   is null or s.created_at::date <= p_season_end)
+  )
+  select jsonb_build_object(
+    'org', jsonb_build_object('slug', v_org.slug, 'name', v_org.name, 'verified', v_org.verified),
+    'season', jsonb_build_object('start', p_season_start, 'end', p_season_end),
+    'n', v_n,
+    'completions', v_completions,
+    'suppressed', v_n < v_min_group_n,
+    'scale', 5,
+    'tiers',   case when v_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(tier, m) from (select tier, ngjfi_to_5(avg(normalized)) m from r group by tier) t) end,
+    'domains', case when v_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(question_domain, m) from (select question_domain, ngjfi_to_5(avg(normalized)) m from r group by question_domain) d) end,
+    'matrix',  case when v_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(question_domain, tiers) from
+                 (select question_domain, jsonb_object_agg(tier, m) tiers from
+                    (select question_domain, tier, ngjfi_to_5(avg(normalized)) m from r group by question_domain, tier) x
+                  group by question_domain) y) end,
+    'items',   case when v_n < v_min_group_n then '[]'::jsonb else
+               (select jsonb_agg(jsonb_build_object('key', item_key, 'domain', question_domain, 'tier', tier, 'mean', m, 'n', n)
+                          order by question_domain, tier) from
+                 (select item_key, question_domain, tier, ngjfi_to_5(avg(normalized)) m, count(distinct sid) n
+                    from r group by item_key, question_domain, tier) z) end,
+    'trend',   _gated_trend(v_org.id, v_org.is_demo, v_min_group_n),
+    'insights', insight_aggregates(v_org.id, v_org.is_demo, v_min_group_n)
+  ) into result;
+
+  if v_n >= v_min_group_n then
+    result := result || jsonb_build_object('index',
+      (select round(avg(value::numeric),1) from jsonb_each_text(coalesce(result->'tiers','{}'::jsonb))
+         where key in ('exposure','response','formation','multiplication')));
+  else
+    result := result || jsonb_build_object('index', null);
+  end if;
+
+  with re as (
+    select rsp.tier, rsp.question_domain, rsp.item_key, rsp.normalized, s.id as sid
+    from responses rsp
+    join sessions s  on s.id = rsp.session_id
+    join campaigns c on c.id = s.campaign_id
+    where c.org_id = v_org.id and rsp.normalized is not null
+      and rsp.branch = 'unengaged'
+      and (p_season_start is null or s.created_at::date >= p_season_start)
+      and (p_season_end   is null or s.created_at::date <= p_season_end)
+  )
+  select jsonb_build_object(
+    'exploration_n', v_explore_n,
+    'exploration_min_n', v_min_group_n,
+    'exploration_suppressed', v_explore_n < v_min_group_n,
+    'exploration_tiers',   case when v_explore_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(tier, m) from (select tier, ngjfi_to_5(avg(normalized)) m from re group by tier) t) end,
+    'exploration_domains', case when v_explore_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(question_domain, m) from (select question_domain, ngjfi_to_5(avg(normalized)) m from re group by question_domain) d) end,
+    'exploration_matrix',  case when v_explore_n < v_min_group_n then '{}'::jsonb else
+               (select jsonb_object_agg(question_domain, tiers) from
+                 (select question_domain, jsonb_object_agg(tier, m) tiers from
+                    (select question_domain, tier, ngjfi_to_5(avg(normalized)) m from re group by question_domain, tier) x
+                  group by question_domain) y) end
+  ) into result2;
+
+  result := result || result2;
+
+  if v_explore_n >= v_min_group_n then
+    result := result || jsonb_build_object('exploration_index',
+      (select round(avg(value::numeric),1) from jsonb_each_text(coalesce(result->'exploration_tiers','{}'::jsonb))
+         where key in ('exposure','response','formation','multiplication')));
+  else
+    result := result || jsonb_build_object('exploration_index', null);
+  end if;
+
+  return result;
+end;
+$$;
+
+revoke all on function public._org_dashboard_core(uuid, date, date) from public, anon, authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- 5. _link_dashboard_core() (0046) — a room now carries its own Unengaged
+-- matrix, unlocked at room_min_n non-followers (the same room_min_n its J12
+-- holds), and its segmented completions. Its J12 is unchanged. Still no
+-- per-item rows and no insight layers for a room.
+-- ----------------------------------------------------------------------------
+create or replace function public._link_dashboard_core(p_link_id uuid)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare
+  v_link public.distribution_links%rowtype;
+  v_min int;
+  v_n bigint; v_explore_n bigint;
+  result jsonb; ex jsonb;
+begin
+  select * into v_link from distribution_links where id = p_link_id;
+  if not found then raise exception 'link not found'; end if;
+
+  v_min := setting_int('room_min_n', setting_int('min_group_n', 10));
+
+  select count(distinct s.id) filter (where rsp.branch is distinct from 'unengaged'),
+         count(distinct s.id) filter (where rsp.branch = 'unengaged')
+    into v_n, v_explore_n
+    from sessions s
+    join responses rsp on rsp.session_id = s.id
+   where s.distribution_link_id = v_link.id
+     and rsp.normalized is not null;
+
+  result := jsonb_build_object(
+    'link', jsonb_build_object('id', v_link.id, 'name', v_link.name, 'slug', v_link.slug),
+    'n', v_n, 'suppressed', v_n < v_min, 'min_n', v_min, 'scale', 5,
+    'completions', jsonb_build_object('total',
+        (select count(distinct s.id) from sessions s join responses rsp on rsp.session_id = s.id
+          where s.distribution_link_id = v_link.id and rsp.normalized is not null),
+        'following', v_n, 'not_following', v_explore_n),
+    'index', null, 'tiers', '{}'::jsonb, 'domains', '{}'::jsonb, 'matrix', '{}'::jsonb,
+    'exploration_n', v_explore_n, 'exploration_min_n', v_min,
+    'exploration_suppressed', v_explore_n < v_min,
+    'exploration_index', null, 'exploration_tiers', '{}'::jsonb,
+    'exploration_domains', '{}'::jsonb, 'exploration_matrix', '{}'::jsonb
+  );
+
+  -- The room's J12 — followers only, behind room_min_n (unchanged from 0033).
+  if v_n >= v_min then
+    with r as (
+      select rsp.tier, rsp.question_domain, rsp.normalized
+      from responses rsp
+      join sessions s on s.id = rsp.session_id
+      where s.distribution_link_id = v_link.id
+        and rsp.normalized is not null
+        and (rsp.branch is distinct from 'unengaged')
+    )
+    select jsonb_build_object(
+      'tiers',   (select jsonb_object_agg(tier, m) from (select tier, ngjfi_to_5(avg(normalized)) m from r group by tier) t),
+      'domains', (select jsonb_object_agg(question_domain, m) from (select question_domain, ngjfi_to_5(avg(normalized)) m from r group by question_domain) d),
+      'matrix',  (select jsonb_object_agg(question_domain, tiers) from
+                   (select question_domain, jsonb_object_agg(tier, m) tiers from
+                      (select question_domain, tier, ngjfi_to_5(avg(normalized)) m from r group by question_domain, tier) x
+                    group by question_domain) y)
+    ) into ex;
+    result := result || ex;
+    result := result || jsonb_build_object('index',
+      (select round(avg(value::numeric), 1) from jsonb_each_text(coalesce(result->'tiers', '{}'::jsonb))
+        where key in ('exposure', 'response', 'formation', 'multiplication')));
+  end if;
+
+  -- The room's Unengaged matrix — non-followers only, behind the SAME floor.
+  if v_explore_n >= v_min then
+    with re as (
+      select rsp.tier, rsp.question_domain, rsp.normalized
+      from responses rsp
+      join sessions s on s.id = rsp.session_id
+      where s.distribution_link_id = v_link.id
+        and rsp.normalized is not null
+        and rsp.branch = 'unengaged'
+    )
+    select jsonb_build_object(
+      'exploration_tiers',   (select jsonb_object_agg(tier, m) from (select tier, ngjfi_to_5(avg(normalized)) m from re group by tier) t),
+      'exploration_domains', (select jsonb_object_agg(question_domain, m) from (select question_domain, ngjfi_to_5(avg(normalized)) m from re group by question_domain) d),
+      'exploration_matrix',  (select jsonb_object_agg(question_domain, tiers) from
+                   (select question_domain, jsonb_object_agg(tier, m) tiers from
+                      (select question_domain, tier, ngjfi_to_5(avg(normalized)) m from re group by question_domain, tier) x
+                    group by question_domain) y)
+    ) into ex;
+    result := result || ex;
+    result := result || jsonb_build_object('exploration_index',
+      (select round(avg(value::numeric), 1) from jsonb_each_text(coalesce(result->'exploration_tiers', '{}'::jsonb))
+        where key in ('exposure', 'response', 'formation', 'multiplication')));
+  end if;
+
+  return result;
+end;
+$$;
+
+revoke all on function public._link_dashboard_core(uuid) from public, anon, authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- 6. org_dashboard_demo() — the open preview of a demo organisation reads
+-- the same core as a real dashboard (CLAUDE.md: the demo must never diverge
+-- from the product). Before this it was a separate copy with no branch
+-- condition, so its J12 included non-followers.
+-- ----------------------------------------------------------------------------
+create or replace function public.org_dashboard_demo(p_org_slug text)
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_org public.organisations%rowtype;
+begin
+  select * into v_org from organisations where slug = p_org_slug;
+  if not found then raise exception 'org not found'; end if;
+  if not coalesce(v_org.is_demo, false) then
+    raise exception 'demo preview is only available for demo organisations';
+  end if;
+  return _org_dashboard_core(v_org.id, null, null) || jsonb_build_object('demo', true);
+end;
+$$;
+
+grant execute on function public.org_dashboard_demo(text) to anon, authenticated;
 
