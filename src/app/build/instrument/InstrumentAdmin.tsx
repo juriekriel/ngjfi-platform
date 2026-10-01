@@ -36,7 +36,11 @@ type Proposal = {
   proposal: string; reason: string | null; status: string; decision_note: string | null; proposed_by: string | null;
 };
 
-const LIVE = v5 as unknown as { version: string; scoringVersion: string; locales: string[]; items: Item[] };
+const LIVE = v5 as unknown as {
+  version: string; scoringVersion: string; locales: string[]; items: Item[];
+  /** Instrument lock (migration 0045): a change to a locked version is a new version. */
+  lock?: { locked?: boolean; locked_on?: string; decided_by?: string };
+};
 const PREV = v4 as unknown as { version: string; items: Item[] };
 const KINDS = ["wording", "translation", "tagging", "scoring", "options", "new_item", "remove_item", "other"] as const;
 
@@ -148,6 +152,14 @@ export default function InstrumentAdmin() {
         <p className="mt-2 text-[13px] text-ink-2">
           Since {PREV.version}: {diff.added.length} added · {diff.removed.length} removed · {diff.retagged.length} re-tagged or re-scored.
         </p>
+        {LIVE.lock?.locked && (
+          <p className="mt-3 rounded-xl border border-violet/40 bg-violet/5 px-4 py-3 text-[13.5px] leading-relaxed text-ink-2">
+            <b className="text-ink">{LIVE.version} is locked</b> ({LIVE.lock.locked_on}, {LIVE.lock.decided_by}). Translations can still be
+            corrected. Anything that changes what a respondent is asked or how it is scored — wording, items, tags, branching,
+            fielding the drafts — goes into the next version, so every answer stays bound to the version it was given under.
+            Proposals below are collected for that version.
+          </p>
+        )}
       </Band>
 
       <Band letter="C" title="The item bank" gloss="Everything a respondent can be asked, in order, with every tag. Open a row for its options, branching and translations — and to propose a change." figure={`${items.length} shown`}>
