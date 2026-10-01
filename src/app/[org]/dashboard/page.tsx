@@ -15,80 +15,49 @@
  * click away under "More detail & export", so nothing an organisation relied
  * on has gone.
  */
-import ModuleInsights from "@/components/index/ModuleInsights";
-import { optionsFor } from "@/lib/modules";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
-import { instrument, t } from "@/lib/instrument";
 import SignedInFrame from "@/components/index/SignedInFrame";
-import RoomCards, { type RoomSelection } from "@/components/index/RoomCards";
+import ResultsDetail, { type DetailDash, type DetailItem } from "@/components/index/ResultsDetail";
+import { unengagedFrom } from "@/components/index/UnengagedMatrix";
+import { completionsNote, type Completions } from "@/lib/completions";
+import RoomCards, { type RoomSelection, type DashboardView } from "@/components/index/RoomCards";
 import OrgSettings from "@/components/index/OrgSettings";
 import ShareJfindx from "@/components/index/ShareJfindx";
 import OrgTeam from "@/components/index/OrgTeam";
+import ShareLinksPanel from "@/components/index/ShareLinksPanel";
 import type { MapCountry } from "@/components/index/WorldHeatMap";
 import { exportItemsCsv } from "@/lib/exportCsv";
 
 type Matrix = Record<string, Record<string, number | null>>;
-type Item = { key: string; domain: string; tier: string; mean: number | null; n: number };
-/** Drivers/Journey are unscored (option-selection rates, not means) — reported
- * alongside the Index, never blended into it. Below min_group_n, `options`
- * is null but `n` is still shown, same suppression style as everything else. */
-type InsightAgg = { n: number; options: Record<string, number> | null };
-type Dash = {
+/** The house's full payload — ResultsDetail's shape plus what the frame and exports read. */
+type Dash = DetailDash & {
   org: { slug: string; name: string; verified: boolean };
-  n: number;
   suppressed?: boolean;
   min_group_n?: number;
   index: number | null;
   tiers: Record<string, number | null>;
   domains: Record<string, number | null>;
   matrix: Matrix;
-  items: Item[];
-  trend?: { year: number; index: number }[] | null;
-  insights?: Record<string, InsightAgg>;
-  /** The Exploration Index (0026) — a SEPARATE figure, never blended with the Index. */
-  exploration_n?: number;
-  exploration_suppressed?: boolean;
-  exploration_index?: number | null;
-  exploration_tiers?: Record<string, number | null>;
-  exploration_domains?: Record<string, number | null>;
-  exploration_matrix?: Matrix;
+  items: DetailItem[];
   season?: { start: string | null; end: string | null };
+  /** Everyone who completed, segmented (0047). `n` above stays the J12's own n. */
+  completions?: Completions;
+  exploration_min_n?: number;
 };
 /** org_link_dashboard() (0033) — one room's J12, never benchmarked. */
-type RoomDash = { n: number; suppressed: boolean; min_n: number; index: number | null; matrix: Matrix };
+type RoomDash = {
+  n: number; suppressed: boolean; min_n: number; index: number | null; matrix: Matrix;
+  /** 0047: a room's completions, segmented, and its own Unengaged matrix. */
+  completions?: Completions;
+  exploration_n?: number; exploration_min_n?: number; exploration_suppressed?: boolean;
+  exploration_index?: number | null; exploration_matrix?: Matrix;
+};
 /** The pooled Collab picture (collab_intelligence()) — the overlay and the map. */
 type Collab = { published: boolean; matrix?: Matrix; countries?: MapCountry[]; country_gate?: number };
 type Season = { label: string; start: string | null; end: string | null; n: number };
 
-type DashView = "results" | "settings" | "share" | "team";
-
-const TIERS = ["exposure", "response", "formation", "multiplication"];
-const TIER_LABEL: Record<string, string> = {
-  exposure: "Exposure", response: "Response", formation: "Formation", multiplication: "Multiplication",
-};
-const DOMAINS = ["follow", "mission", "world"];
-const DOMAIN_LABEL: Record<string, string> = {
-  follow: "Follow Jesus", mission: "Participate in mission", world: "World looks different",
-};
-const ITEM_LABEL: Record<string, string> = Object.fromEntries(
-  instrument.items.map((i) => [i.key, t(i.text, "en")]),
-);
-// Drivers/Journey, in instrument order — derived from the instrument, never hard-coded.
-const INSIGHT_ITEMS = instrument.items
-  .filter((i) => i.question_domain === "drivers" || i.question_domain === "journey")
-  .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-  .map((i) => ({
-    key: i.key,
-    domain: i.question_domain,
-    label: t(i.text, "en"),
-    multi: i.type === "multi_select",
-    options: optionsFor(i),
-  }));
-const labelFor = (key: string) => ITEM_LABEL[key] ?? key;
-const fmt = (n: number | null | undefined) => (n === null || n === undefined ? "—" : String(n));
-const violet = (v: number | null) =>
-  v === null || v === undefined ? "transparent" : `rgba(139,92,246,${Math.max(0.08, v / 5.5)})`;
+type DashView = DashboardView;
 
 export default function DashboardPage({ params }: { params: { org: string } }) {
   const slug = params.org;
@@ -113,7 +82,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
   const [view, setView] = useState<DashView>("results");
   useEffect(() => {
     const v = new URLSearchParams(window.location.search).get("view");
-    if (v === "settings" || v === "share" || v === "team") setView(v);
+    if (v === "settings" || v === "share" || v === "team" || v === "viewlinks") setView(v);
   }, []);
   const changeView = useCallback((v: DashView) => {
     setView(v);
@@ -272,6 +241,12 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
     else empty = null;
   }
 
+  // 0047: completions count everyone, segmented; the two matrices stay apart.
+  const shownCompletions: Completions | undefined = inRoom
+    ? (room.link.is_test ? undefined : roomDash?.completions)
+    : dash.completions;
+  const unengaged = inRoom ? (room.link.is_test || roomErr ? null : unengagedFrom(roomDash)) : unengagedFrom(dash);
+
   const houseNote = dash.suppressed ? `${dash.n} of ${floor} needed` : `n ${dash.n.toLocaleString()} · every link`;
   const roomNote = roomDash ? (roomDash.suppressed ? `${roomDash.n} of ${roomDash.min_n} needed` : `n ${roomDash.n.toLocaleString()} · this link`) : "loading";
 
@@ -288,6 +263,8 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
             ? "Share about the JFINDX"
             : view === "team"
               ? `${dash.org.name} · team & access`
+            : view === "viewlinks"
+              ? `${dash.org.name} · view-only links`
             : inRoom
               ? (roomName as string)
               : `${dash.org.name} · the whole house`
@@ -297,6 +274,8 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
           <OrgSettings sb={sb} orgSlug={slug} onSaved={load} />
         ) : view === "team" && !demoPreview ? (
           <OrgTeam sb={sb} orgSlug={slug} orgName={dash.org.name} />
+        ) : view === "viewlinks" && !demoPreview ? (
+          <ShareLinksPanel sb={sb} orgSlug={slug} orgName={dash.org.name} />
         ) : view === "share" ? (
           <ShareJfindx orgName={dash.org.name} />
         ) : undefined
@@ -322,7 +301,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
           <RoomCards
             sb={sb}
             orgSlug={slug}
-            houseN={dash.n}
+            houseN={dash.completions?.total ?? dash.n}
             selected={room}
             onSelect={(r) => {
               setRoom(r);
@@ -337,8 +316,11 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
       figures={{
         index,
         indexNote: inRoom ? roomNote : houseNote,
-        n,
-        nNote: inRoom ? "through this link · also counted in the house" : "across every link",
+        n: shownCompletions?.total ?? n,
+        nNote: shownCompletions
+          ? completionsNote(shownCompletions)
+          : inRoom ? "through this link · also counted in the house" : "across every link",
+        scoredN: n,
         activeCountries: collab ? countries.length : null,
         countryGate: gate,
       }}
@@ -353,6 +335,12 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
           ? "Comparing to the Collab is for the whole house only"
           : "The Collab's pooled view isn't published yet",
       }}
+      unengaged={unengaged}
+      unengagedScopeLine={
+        inRoom
+          ? `Of those not yet following who completed the Index through “${roomName}”`
+          : `Of those not yet following who completed the Index through any ${dash.org.name} link`
+      }
       consultEnabled={!demoPreview}
       countries={countries}
       reached={reached}
@@ -396,202 +384,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
                   </a>
                 </div>
               )}
-              {!dash.suppressed && (
-                <>
-          {/* trend over waves */}
-          {dash.trend && dash.trend.length > 1 && (
-            <div className="mt-4 rounded-lg border border-rule bg-paper p-4">
-              <div className="font-mono text-[9px] uppercase tracking-wider text-muted">Movement over time</div>
-              <div className="mt-3 flex items-end gap-5">
-                {dash.trend.map((p) => (
-                  <div key={p.year} className="flex flex-col items-center gap-1">
-                    <div className="text-xs font-bold">{p.index}</div>
-                    <div className="w-10 rounded-t bg-moss" style={{ height: `${Math.max(6, (p.index / 5) * 90)}px` }} />
-                    <div className="font-mono text-[10px] text-muted">{p.year}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* per-item table */}
-          <div className="mt-4 rounded-lg border border-rule bg-paper p-4">
-            <div className="font-mono text-[9px] uppercase tracking-wider text-muted">Per-question detail</div>
-            <table className="mt-3 w-full text-sm">
-              <thead>
-                <tr className="text-left font-mono text-[9px] uppercase tracking-wider text-muted">
-                  <th className="pb-2">Item</th><th className="pb-2">Tier</th><th className="pb-2 text-right">Mean</th><th className="pb-2 text-right">n</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(dash.items || []).map((it) => (
-                  <tr key={it.key} className="border-t border-rule">
-                    <td className="py-1.5 pr-2">{labelFor(it.key) || it.key}</td>
-                    <td className="py-1.5 font-mono text-[10px] uppercase text-muted">{TIER_LABEL[it.tier] || it.tier}</td>
-                    <td className="py-1.5 text-right font-semibold">{fmt(it.mean)}</td>
-                    <td className="py-1.5 text-right font-mono text-[11px] text-muted">{it.n}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Drivers & Journey — unscored insight layers, reported separately from
-              the Index above, never blended into it (CLAUDE.md #6, #9). */}
-          {dash.insights && Object.keys(dash.insights).length > 0 && (
-            <div className="mt-4 rounded-lg border border-rule bg-paper p-4">
-              <div className="font-mono text-[9px] uppercase tracking-wider text-muted">
-                Drivers &amp; journey — not part of the Index score
-              </div>
-              <div className="mt-3 space-y-4">
-                {INSIGHT_ITEMS.map((item) => {
-                  const agg = dash.insights?.[item.key];
-                  if (!agg) return null;
-                  return (
-                    <div key={item.key}>
-                      <div className="flex items-baseline justify-between gap-3">
-                        <span className="text-sm font-medium">{item.label}{item.multi ? <span className="ml-1.5 font-mono text-[10px] text-muted">check all</span> : null}</span>
-                        <span className="shrink-0 font-mono text-[10px] text-muted">n {agg.n}</span>
-                      </div>
-                      {agg.options ? (
-                        <div className="mt-1.5 space-y-1">
-                          {item.options.map((o) => {
-                            const count = agg.options?.[o.value] ?? 0;
-                            const pct = agg.n > 0 ? Math.round((count / agg.n) * 100) : 0;
-                            return (
-                              <div key={o.value} className="flex items-center gap-2 text-xs">
-                                <span className="w-44 shrink-0 truncate text-slate" title={o.label}>{o.label}</span>
-                                <div className="h-2 flex-1 rounded bg-paper-deep">
-                                  <div className="h-full rounded bg-bench" style={{ width: `${pct}%` }} />
-                                </div>
-                                <b className="w-9 shrink-0 text-right font-mono text-[10px]">{pct}%</b>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div className="mt-1 font-mono text-[10px] text-muted">Not enough data yet.</div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              <p className="mt-3 font-mono text-[9px] uppercase tracking-wider text-muted">
-                Check-all questions can have several answers, so their shares don&apos;t sum to 100%; one-answer questions do.
-              </p>
-            </div>
-          )}
-
-          {/* Insight modules (Belong–Trust) — unscored, beside the Index (CLAUDE.md #6, #9). */}
-          <ModuleInsights insights={dash.insights} compact />
-
-                </>
-              )}
-      {/* The Exploration Index — v4's parallel figure for the Unengaged branch
-          (migration 0026). Rendered independently of the block above: the two
-          figures are suppressed on their own separate n, so an org can clear
-          one gate without clearing the other. Never shown as part of, or
-          combined with, the Index score above. */}
-      {dash && typeof dash.exploration_n === "number" && dash.exploration_n > 0 && (
-        <div className="mt-6 rounded-lg border-2 border-violet bg-paper p-4">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <div className="font-mono text-[9px] uppercase tracking-wider text-violet">
-              The Exploration Index — not the Index score
-            </div>
-            <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
-              n = {dash.exploration_n.toLocaleString()}
-            </span>
-          </div>
-          <p className="mt-1.5 max-w-lg text-xs leading-relaxed text-slate">
-            A separate, equally-structured measure for respondents who don&apos;t yet identify as
-            followers of Jesus. Same 3×4 model, same math as the Index above — never summed,
-            averaged, or otherwise blended with it.
-          </p>
-
-          {dash.exploration_suppressed ? (
-            <p className="mt-4 text-sm text-slate">
-              {dash.exploration_n} of {dash.min_group_n ?? 10} needed before we show a score.
-            </p>
-          ) : (
-            <>
-              <div className="mt-4 grid gap-4 sm:grid-cols-[160px_1fr]">
-                <div className="rounded-lg border border-rule bg-paper-deep p-4">
-                  <div className="font-mono text-[9px] uppercase tracking-wider text-muted">Exploration score</div>
-                  <div className="mt-2 text-4xl font-bold text-violet">{fmt(dash.exploration_index)}</div>
-                </div>
-                <div className="rounded-lg border border-rule bg-paper-deep p-4">
-                  <div className="font-mono text-[9px] uppercase tracking-wider text-muted">The journey</div>
-                  <div className="mt-2 space-y-1.5">
-                    {TIERS.map((tk) => (
-                      <div key={tk} className="flex items-center gap-2 text-xs">
-                        <span className="w-24 shrink-0 text-slate">{TIER_LABEL[tk]}</span>
-                        <div className="h-2.5 flex-1 rounded bg-paper">
-                          <div
-                            className="h-full rounded bg-navy"
-                            style={{ width: `${((dash.exploration_tiers?.[tk] ?? 0) / 5) * 100}%` }}
-                          />
-                        </div>
-                        <b className="w-7 text-right">{fmt(dash.exploration_tiers?.[tk])}</b>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <div className="rounded-lg border border-rule bg-paper-deep p-4">
-                  <div className="font-mono text-[9px] uppercase tracking-wider text-muted">By question</div>
-                  <div className="mt-3 space-y-2.5">
-                    {DOMAINS.map((dk) => (
-                      <div key={dk} className="text-sm">
-                        <div className="flex justify-between">
-                          <span>{DOMAIN_LABEL[dk]}</span>
-                          <b>{fmt(dash.exploration_domains?.[dk])}</b>
-                        </div>
-                        <div className="mt-1 h-2 rounded bg-paper">
-                          <div
-                            className="h-full rounded bg-navy"
-                            style={{ width: `${((dash.exploration_domains?.[dk] ?? 0) / 5) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-lg border border-rule bg-paper-deep p-4">
-                  <div className="font-mono text-[9px] uppercase tracking-wider text-muted">Questions × tiers</div>
-                  <table className="mt-3 w-full border-separate border-spacing-1 text-center text-xs">
-                    <thead><tr><th /></tr></thead>
-                    <tbody>
-                      {DOMAINS.map((dk) => (
-                        <tr key={dk}>
-                          <td className="text-left text-[11px]">{DOMAIN_LABEL[dk]}</td>
-                          {TIERS.map((tk) => {
-                            const v = dash.exploration_matrix?.[dk]?.[tk] ?? null;
-                            return (
-                              <td
-                                key={tk}
-                                className="rounded py-2 font-semibold"
-                                style={{ background: violet(v), color: v !== null && v >= 3.2 ? "#fff" : "#22252b" }}
-                              >
-                                {fmt(v)}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </>
-          )}
-
-          <p className="mt-4 font-mono text-[9px] uppercase tracking-wider text-violet">
-            Aggregates only — never individual responses. Of those who completed the Index. Never blended with the Index score.
-          </p>
-        </div>
-      )}
+              <ResultsDetail dash={dash} />
 
             </div>
           )}

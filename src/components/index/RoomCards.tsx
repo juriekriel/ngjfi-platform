@@ -17,6 +17,8 @@ import QrCode from "@/components/index/QrCode";
 import { ITEM_SETS } from "@/lib/instrument";
 
 export type RoomSelection = { kind: "house" } | { kind: "room"; link: DistributionLink };
+/** The dashboard's views (?view=) — switched by the tiles beside "+ New link". */
+export type DashboardView = "results" | "settings" | "share" | "team" | "viewlinks";
 
 const STATUS: Record<DistributionLink["status"], { label: string; dot: string }> = {
   active: { label: "Open", dot: "rgb(var(--c-green))" },
@@ -54,8 +56,8 @@ export default function RoomCards({
   /** The organisation's registered name — the house card reads "All <name> surveys". */
   orgName: string;
   /** Which dashboard view is showing; the two tiles beside "+ New link" switch it. */
-  view?: "results" | "settings" | "share" | "team";
-  onView?: (v: "results" | "settings" | "share" | "team") => void;
+  view?: DashboardView;
+  onView?: (v: DashboardView) => void;
 }) {
   const [links, setLinks] = useState<DistributionLink[] | null>(null);
   // Test links and their test-answer counts (0038) — counted apart from real answers.
@@ -132,6 +134,14 @@ export default function RoomCards({
                 className={`whitespace-nowrap rounded-lg border px-4 py-2.5 text-[14px] font-semibold ${view === "share" ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"}`}
               >
                 Share about the JFINDX
+              </button>
+              <button
+                type="button"
+                aria-pressed={view === "viewlinks"}
+                onClick={() => onView(view === "viewlinks" ? "results" : "viewlinks")}
+                className={`whitespace-nowrap rounded-lg border px-4 py-2.5 text-[14px] font-semibold ${view === "viewlinks" ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"}`}
+              >
+                View-only links
               </button>
               <button
                 type="button"

@@ -14,7 +14,7 @@
  *
  * What it never caches: anything else cross-origin (the Supabase API — answers go
  * through the survey outbox in IndexedDB, not here), /api/*, and signed-in
- * surfaces (/build, /*\/dashboard, /access) — so no one else's session or a
+ * surfaces (/build, /*\/dashboard, /access) and view-only share links (/view/*) — so no one else's session or a
  * stale dashboard ever lives in a phone's cache. Nothing here holds a
  * respondent's answers.
  */
@@ -38,7 +38,8 @@ self.addEventListener("activate", (e) => {
   );
 });
 
-const NEVER = [/^\/api\//, /^\/build(\/|$)/, /^\/access(\/|$)/, /^\/[^/]+\/dashboard(\/|$)/, /^\/auth\//];
+// /view/<token> (0046): a share link is a credential — never kept in a phone's cache.
+const NEVER = [/^\/api\//, /^\/build(\/|$)/, /^\/access(\/|$)/, /^\/[^/]+\/dashboard(\/|$)/, /^\/auth\//, /^\/view(\/|$)/];
 
 function timeout(ms) {
   return new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));

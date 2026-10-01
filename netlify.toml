@@ -20,3 +20,13 @@
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
     Service-Worker-Allowed = "/"
+
+# View-only share links (migration 0046). The token in the path is the
+# credential: keep it out of search engines, out of Referer headers sent to
+# anything the page links to, and out of every cache.
+[[headers]]
+  for = "/view/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+    Referrer-Policy = "no-referrer"
+    Cache-Control = "no-store"
