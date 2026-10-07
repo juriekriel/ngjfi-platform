@@ -93,6 +93,12 @@ export default function Survey({
   const [preview, setPreview] = useState(false);
   const choices = useMemo(() => offered(REGISTRY, preview), [preview]);
   const recording = lang.code === "en" || localeInfo(lang.code)?.status === "live";
+  // Collection lock (migration 0048): until pilot readiness is signed off the
+  // survey runs end to end but nothing is sent. The server enforces this on its
+  // own; the phone mirrors it so it doesn't queue answers that will be dropped,
+  // and so the respondent is told honestly. Test links are unaffected.
+  const [locked, setLocked] = useState(false);
+  const saving = recording && (isTestLink || !locked);
   const pickLang = useCallback(async (code: string) => {
     const l = await loadLang(code);
     setLang(l);
@@ -169,11 +175,12 @@ export default function Survey({
       // public, non-personal fields: the organisation's name and branding and
       // which campaign to write to.
       const cacheKey = `survey:${slug}:${distributionLinkSlug ?? ""}`;
-      type Cached = { org: Org; campaignId: string | null; itemSet?: string };
+      type Cached = { org: Org; campaignId: string | null; itemSet?: string; locked?: boolean };
       const useCache = async () => {
         const c = await cacheGet<Cached>(cacheKey);
         if (!c) return false;
         setOrg(c.org);
+        setLocked(c.locked ?? false);
         if (!c.campaignId || (!isTestLink && !collecting(c.org))) {
           setStatus("not_fielding");
           return true;
@@ -198,10 +205,16 @@ export default function Survey({
       try {
         // short_name is the public identifier (migration 0011). slug is kept in
         // lockstep by a trigger, but the URL is the short name, so look that up.
-        const { data: o, error: oErr } = await withTimeout(
-          sb.from("organisations").select("id,slug,name,brand_color,country,welcome_message,logo_url,status,is_demo,consent_attested_at").eq("short_name", slug).maybeSingle(),
+        const [{ data: o, error: oErr }, { data: lockRow }] = await withTimeout(
+          Promise.all([
+            sb.from("organisations").select("id,slug,name,brand_color,country,welcome_message,logo_url,status,is_demo,consent_attested_at").eq("short_name", slug).maybeSingle(),
+            // platform_settings is publicly readable (0009). Missing row = locked, as on the server.
+            sb.from("platform_settings").select("value").eq("key", "collection_locked").maybeSingle(),
+          ]),
         );
         if (oErr) throw oErr;
+        const isLocked = lockRow ? lockRow.value !== false : true;
+        setLocked(isLocked);
         if (!o) {
           setStatus("no_org");
           return;
@@ -214,7 +227,7 @@ export default function Survey({
         if (cErr) throw cErr;
 
         const set = knownItemSet(linkItemSet ?? (c?.item_set as string | null | undefined));
-        void cacheSet(cacheKey, { org: o, campaignId: c ? (c.id as string) : null, itemSet: set });
+        void cacheSet(cacheKey, { org: o, campaignId: c ? (c.id as string) : null, itemSet: set, locked: isLocked });
         setItemSet(set);
         // Not collecting (still being set up, paused, or consent not yet
         // confirmed): say so now, rather than letting a young person answer
@@ -234,7 +247,7 @@ export default function Survey({
 
   function begin() {
     setError(null);
-    if (sb && campaignId && recording) {
+    if (sb && campaignId && saving) {
       // A local key now; the server's session id arrives whenever the outbox
       // can reach it. Everything below writes against the local key.
       const local = newLocalSession();
@@ -256,7 +269,7 @@ export default function Survey({
     if (endsSurvey(item, value)) {
       // The answer itself is never saved. The session (if the server has it
       // yet) is deleted; if it hasn't, the phone drops it without sending.
-      if (sb && sessionId && recording) void enqueue(sessionId, "discard", { p_session_id: sessionId });
+      if (sb && sessionId && saving) void enqueue(sessionId, "discard", { p_session_id: sessionId });
       setAnswers({});
       setSessionId(null);
       setEnded(true);
@@ -267,7 +280,7 @@ export default function Survey({
     const nextAnswers = { ...answers, [item.key]: value };
     setAnswers(nextAnswers);
 
-    if (sb && sessionId && recording) {
+    if (sb && sessionId && saving) {
       void enqueue(sessionId, "save", { p_session_id: sessionId, p_item_key: item.key, p_raw: value });
 
       // Demographic items live on the session row, not only as a response —
@@ -298,7 +311,7 @@ export default function Survey({
 
     const next = nextVisibleIndex(i, nextAnswers, fielded);
     if (next === -1) {
-      if (sb && sessionId && recording) void enqueue(sessionId, "finish", { p_session_id: sessionId });
+      if (sb && sessionId && saving) void enqueue(sessionId, "finish", { p_session_id: sessionId });
       setI(steps);
       return;
     }
@@ -372,6 +385,11 @@ export default function Survey({
         {!recording && (
           <p role="status" className="mb-4 rounded-lg bg-amber-100 px-3 py-2 text-[13px] font-semibold leading-snug text-ink">
             {lang.ui("preview_banner")}
+          </p>
+        )}
+        {locked && !isTestLink && recording && status === "ready" && (
+          <p role="status" className="mb-4 rounded-lg bg-amber-100 px-3 py-2 text-[13px] font-semibold leading-snug text-ink">
+            {lang.ui("collection_locked_banner")}
           </p>
         )}
         {!online && status === "ready" && (

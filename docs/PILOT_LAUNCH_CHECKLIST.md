@@ -44,7 +44,8 @@ leadership / counsel · **O** = each pilot organisation.
 - [ ] Go offline after opening the survey; answer everything; reconnect — the response arrives once.
 - [ ] Type an email address and phone number into the free-text question — they arrive as `[removed]`.
 - [ ] A real link for an organisation that hasn't confirmed consent says it isn't collecting yet; its **test** link still works.
-- [ ] Confirm consent; the real link now records.
+- [ ] While collection is locked (0048): a real link runs end to end, shows the *Preview — not collecting yet* notice, and leaves no session or response behind. Its **test** link still records to test tables.
+- [ ] Confirm consent; with collection unlocked on a Deploy Preview database, the real link now records.
 - [ ] Keyboard only, and a phone screen reader (VoiceOver / TalkBack): every question and choice is announced and reachable.
 - [ ] Time three real 13–17-year-olds through the main set. If the median is far from the 6 minutes the welcome promises, change `welcome_minutes` (a test keeps it plausible).
 - [ ] The organisation's dashboard shows sample size next to every score, and a room with fewer than `min_group_n` people from a place never names that place.
@@ -57,6 +58,15 @@ leadership / counsel · **O** = each pilot organisation.
 - [ ] A test link tried by their team; test answers purged (Admin → Manage → purge test data).
 - [ ] Real links / QR codes created per room (camp, youth night, …).
 - [ ] A completion target agreed (e.g. "120 at camp in March").
+
+## 6. Unlock collection (the last step)
+
+Real links run but collect nothing until this is done (migration 0048,
+`platform_settings.collection_locked`). Only when sections 1–5 are complete:
+
+- [ ] The Pilot readiness band is all green, and the items it can't check are ticked above.
+- [ ] Open a PR adding a new migration that sets `collection_locked` to `false` — **never** a toggle in the Supabase dashboard. The PR description names who signed off readiness.
+- [ ] After it merges and the publisher applies it: one real completion appears on the pilot org's dashboard.
 
 ## After the first wave
 
