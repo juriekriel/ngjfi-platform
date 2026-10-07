@@ -41,6 +41,7 @@
   "offline_first_title": "You're offline.",
   "powered": "Powered by the Next Gen Jesus-Following Index",
   "preview_banner": "Preview of a draft translation — answers are not recorded.",
+  "collection_locked_banner": "Preview — the Index isn't collecting yet, so your answers are not saved.",
   "privacy_link": "Read the full privacy notice",
   "question_of": "Question {n} of {total}",
   "saved_on_phone": "{n} saved on this phone",

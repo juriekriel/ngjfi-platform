@@ -41,6 +41,7 @@
   "offline_first_title": "No tienes conexión.",
   "powered": "Con la tecnología del Next Gen Jesus-Following Index",
   "preview_banner": "Vista previa de una traducción en borrador: las respuestas no se registran.",
+  "collection_locked_banner": "Vista previa: el Índice aún no está recopilando respuestas, así que las tuyas no se guardan.",
   "privacy_link": "Lee el aviso de privacidad completo",
   "question_of": "Pregunta {n} de {total}",
   "saved_on_phone": "{n} guardadas en este teléfono",
