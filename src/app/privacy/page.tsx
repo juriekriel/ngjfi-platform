@@ -123,8 +123,8 @@ export default function PrivacyPage() {
                 </li>
                 <li>
                   <b>After 60 days:</b> we remove anything that could help point to a person. The exact time becomes
-                  just the month, your city becomes a wider region, the words you typed yourself are deleted, and the
-                  link you used is folded into the organisation&apos;s overall survey.
+                  just the month, your city or area is deleted (we keep only your country), the words you typed yourself
+                  are deleted, and the link you used is folded into the organisation&apos;s overall survey.
                 </li>
                 <li>
                   <b>Up to 5 years:</b> we keep these cleaned answers to check and improve how the Index is scored.

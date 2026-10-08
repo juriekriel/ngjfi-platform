@@ -20,3 +20,6 @@ create table if not exists storage.buckets (id text primary key, name text, publ
 create table if not exists storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text, name text, owner uuid, metadata jsonb, created_at timestamptz default now());
 create or replace function storage.foldername(name text) returns text[] language sql immutable as $$ select string_to_array(name,'/') $$;
 create schema if not exists extensions;
+-- PostgREST connects as authenticator and SET ROLEs to anon/authenticated.
+grant anon, authenticated, service_role to authenticator;
+grant usage on schema public, auth to anon, authenticated, service_role;
