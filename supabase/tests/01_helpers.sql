@@ -67,7 +67,19 @@ begin
   select id into v from public.instrument_versions where version = 'vtest';
   if v is not null then return v; end if;
   insert into public.instrument_versions (version, scoring_version, status, definition)
-  values ('vtest', 'v0.1.0', 'draft', '{}'::jsonb) returning id into v;
+  values ('vtest', 'v0.1.0', 'draft', '{"items": [
+      {"key": "age_band",          "section": "demographic", "order": 10},
+      {"key": "orientation",       "section": "screener",    "order": 50},
+      {"key": "who_is_jesus",      "section": "screener",    "order": 60},
+      {"key": "f_exp",             "section": "index",       "order": 70},
+      {"key": "f_res",             "section": "index",       "order": 80},
+      {"key": "attn",              "section": "screener",    "order": 85, "attention_check": {"expected": 2}},
+      {"key": "f_for",             "section": "index",       "order": 90},
+      {"key": "f_mul",             "section": "index",       "order": 100},
+      {"key": "continue_to_extras","section": "screener",    "order": 320},
+      {"key": "driver_x",          "section": "driver",      "order": 400},
+      {"key": "gender",            "section": "demographic", "order": 900}
+    ]}'::jsonb) returning id into v;
   insert into public.items (instrument_version_id, key, question_domain, tier, type, scored) values
     (v, 'f_exp', 'follow', 'exposure', 'likert_5', true),
     (v, 'f_res', 'follow', 'response', 'likert_5', true),
