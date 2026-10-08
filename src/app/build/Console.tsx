@@ -23,6 +23,7 @@ import {
 } from "@/components/console/Bands";
 import PilotReadiness from "@/components/console/PilotReadiness";
 import CollabCompletion from "@/components/console/CollabCompletion";
+import ConsentRegister from "@/components/console/ConsentRegister";
 import SurveyWizard from "@/components/console/SurveyWizard";
 import { ConsultingRequestsBand, useConsultingRequests } from "@/components/console/ConsultingRequests";
 import { linkError } from "@/lib/authLinks";
@@ -919,6 +920,9 @@ function AdminConsole() {
       <div className="space-y-10">
       <Band letter="0" title="Pilot readiness" gloss="Run this before any organisation hands out a real link. Everything the database can check is checked; the rest is a list to confirm by hand." figure="pre-flight">
         <PilotReadiness sb={sb} />
+      </Band>
+      <Band letter="2" title="Consent register" gloss="Which organisations have agreed to consent, and which not — for their organisation and for every survey they send: for what, by whom and when. No consent, no participation." figure="two levels">
+        <ConsentRegister sb={sb} />
       </Band>
       <Band letter="1" title="Survey completion" gloss="Who started, who finished, and where people stop — per organisation. Counts only; the attention check is a data-quality line for researchers." figure="completion">
         <CollabCompletion sb={sb} />

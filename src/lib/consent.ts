@@ -62,3 +62,9 @@ export function surveyConsentStatement(d: SurveyConsentDetails): string[] {
   if (d.localAdviceReference) lines.push(`Local legal advice: ${d.localAdviceReference}.`);
   return lines;
 }
+
+/** "13_17" → true. Bands are instrument data; the upper bound decides. Mirrors _band_is_minor() (0053). */
+export function bandIncludesMinors(band: string): boolean {
+  const m = /^\d+_(\d+)$/.exec(band);
+  return m ? Number(m[1]) < 18 : false;
+}

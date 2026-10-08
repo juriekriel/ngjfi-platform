@@ -68,7 +68,8 @@ begin
   if v is not null then return v; end if;
   insert into public.instrument_versions (version, scoring_version, status, definition)
   values ('vtest', 'v0.1.0', 'draft', '{"items": [
-      {"key": "age_band",          "section": "demographic", "order": 10},
+      {"key": "age_band",          "section": "demographic", "order": 10, "options": [
+        {"value": "under_13", "ends_survey": true}, {"value": "13_17"}, {"value": "18_22"}, {"value": "23_30"}]},
       {"key": "orientation",       "section": "screener",    "order": 50},
       {"key": "who_is_jesus",      "section": "screener",    "order": 60},
       {"key": "f_exp",             "section": "index",       "order": 70},
@@ -110,6 +111,17 @@ create or replace function test.make_session(
 ) returns uuid language plpgsql as $$
 declare v uuid; v_inst uuid := test.make_instrument();
 begin
+  -- 0053: a live session needs a survey consent; data tests get one for free.
+  if not exists (select 1 from public.organisations where id = p_org and is_demo)
+     and to_regclass('public.survey_consents') is not null then
+    execute $c$
+      insert into public.survey_consents (org_id, distribution_link_id, survey_statement_version, why_consent_version,
+                                          country_codes, age_bands, includes_minors, parental_consent_method)
+      select $1, $2, 'test', 'test', '{AR}', '{13_17,18_22,23_30}', true, 'written_form'
+       where not exists (select 1 from public.survey_consents
+                          where org_id = $1 and distribution_link_id is not distinct from $2 and revoked_at is null)$c$
+    using p_org, p_link;
+  end if;
   insert into public.sessions (campaign_id, age_band, gender, country, city, locale, completed, created_at, distribution_link_id)
   values (test.campaign(p_org), p_age_band, p_gender, p_country, p_city, 'en', true, now() - p_age, p_link)
   returning id into v;
