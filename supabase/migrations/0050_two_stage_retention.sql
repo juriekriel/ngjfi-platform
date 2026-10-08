@@ -37,9 +37,11 @@
 -- (Supabase: Database → Extensions → pg_cron). pilot_readiness() turns red
 -- if anything is more than a day past the window — a stalled job shows up.
 --
--- Trade-off recorded: season filters compare session dates; after stage 1 a
+-- Trade-offs recorded: season filters compare session dates; after stage 1 a
 -- session is dated to the first of its month, so a season that starts
--- mid-month will no longer include that month's older sessions.
+-- mid-month will no longer include that month's older sessions. And the
+-- 60-month purge measures from that truncated date, so a row can be purged
+-- up to one grain (a month or a quarter) before its exact fifth anniversary.
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
@@ -94,9 +96,11 @@ alter table public.free_text_holding enable row level security;
 create or replace function public._retention_caller_ok()
 returns boolean language sql stable set search_path = public as $$
   select my_role() = 'admin'
-      or coalesce(nullif(current_setting('request.jwt.claim.role', true), ''), '') = 'service_role'
+      or coalesce(nullif(current_setting('request.jwt.claim.role', true), ''),
+                  nullif(current_setting('request.jwt.claims', true), '')::jsonb->>'role', '') = 'service_role'
       or session_user in ('postgres', 'supabase_admin');
 $$;
+revoke all on function public._retention_caller_ok() from public, anon, authenticated;
 
 -- ----------------------------------------------------------------------------
 -- 4. Stage 1 — de-identify
@@ -139,7 +143,10 @@ begin
   if v_sessions > 0 then
     -- free text: by the item's type, never a key list
     create temporary table _ft on commit drop as
-      select r.id, r.item_key, r.raw_value #>> '{}' as txt, d.created_at
+      select r.id, r.item_key, r.raw_value #>> '{}' as txt, d.created_at,
+             -- place answers (country, city: section 'demographic') are never held for coding
+             coalesce((select i.section from items i where i.id = r.item_id),
+                      (select i.section from items i where i.key = r.item_key limit 1)) as section
         from responses r
         join _deid d on d.id = r.session_id
        where r.raw_value is not null
@@ -149,7 +156,8 @@ begin
 
     if v_text = 'code_then_delete' then
       insert into free_text_holding (item_key, text, captured_month)
-      select item_key, txt, date_trunc(v_grain, created_at)::date from _ft where nullif(btrim(txt), '') is not null;
+      select item_key, txt, date_trunc(v_grain, created_at)::date from _ft
+       where nullif(btrim(txt), '') is not null and section is distinct from 'demographic';
       get diagnostics v_held = row_count;
     end if;
 
@@ -202,7 +210,7 @@ returns bigint language sql stable security definer set search_path = public as 
      and not o.is_demo
      and s.created_at < now() - make_interval(days => setting_int('respondent_deidentify_after_days', 60) + 1);
 $$;
-revoke all on function public.deidentify_overdue_count() from public, anon;
+revoke all on function public.deidentify_overdue_count() from public, anon, authenticated;
 
 -- ----------------------------------------------------------------------------
 -- 5. Stage 2 — the 0042 public purge de-identifies first, and refuses to

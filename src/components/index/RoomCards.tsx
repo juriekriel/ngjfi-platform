@@ -15,6 +15,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { LinkForm, type DistributionLink } from "@/components/index/LinksPanel";
 import QrCode from "@/components/index/QrCode";
 import SurveyConsentStep, { consentOpen, type SurveyConsentStatus } from "@/components/index/SurveyConsentStep";
+import { isMissingFunction } from "@/lib/breakdown";
 import { ITEM_SETS } from "@/lib/instrument";
 
 export type RoomSelection = { kind: "house" } | { kind: "room"; link: DistributionLink };
@@ -71,6 +72,7 @@ export default function RoomCards({
   // Two-level consent (0053): a survey's link and QR appear only once it is consented.
   const [consents, setConsents] = useState<Record<string, SurveyConsentStatus> | null>(null);
   const [consenting, setConsenting] = useState<{ linkId: string | null; name: string } | null>(null);
+  const [canConfirm, setCanConfirm] = useState(false);
 
   useEffect(() => setOrigin(window.location.origin), []);
 
@@ -80,11 +82,13 @@ export default function RoomCards({
       sb.rpc("org_test_links", { p_org_slug: orgSlug }),
       sb.rpc("org_survey_consents", { p_org_slug: orgSlug }),
     ]);
-    // A database without 0053 has no survey consents: show links as before.
-    if (c.error) setConsents(null);
+    // Only a database without 0053 shows links as before. Any other failure
+    // keeps them hidden — never hand out a link we couldn't check.
+    if (c.error) setConsents(isMissingFunction(c.error) ? null : {});
     else {
-      const list = ((c.data as { surveys: SurveyConsentStatus[] | null })?.surveys ?? []);
-      setConsents(Object.fromEntries(list.map((x) => [x.link_id ?? "house", x])));
+      const d = c.data as { surveys: SurveyConsentStatus[] | null; can_confirm?: boolean };
+      setConsents(Object.fromEntries((d?.surveys ?? []).map((x) => [x.link_id ?? "house", x])));
+      setCanConfirm(Boolean(d?.can_confirm));
     }
     const testMap = (t.error ? {} : (t.data as Record<string, { started: number; completed: number; retention_days: number }>) ?? {});
     setTests(testMap);
@@ -204,7 +208,7 @@ export default function RoomCards({
                   <Mini on={houseOn} onClick={() => setQr({ name: "Your survey", url: houseUrl, cards: `/${orgSlug}/dashboard/cards` })}>QR</Mini>
                 </>
               ) : (
-                <Mini on={houseOn} onClick={() => setConsenting({ linkId: null, name: "Your survey" })}>Confirm consent</Mini>
+                canConfirm && <Mini on={houseOn} onClick={() => setConsenting({ linkId: null, name: "Your survey" })}>Confirm consent</Mini>
               )}
             </span>
           </div>
@@ -269,7 +273,7 @@ export default function RoomCards({
                       <Mini on={on} onClick={() => setQr({ name: l.name, url, cards: `/${orgSlug}/dashboard/cards?link=${encodeURIComponent(l.slug)}` })}>QR</Mini>
                     </>
                   ) : (
-                    <Mini on={on} onClick={() => setConsenting({ linkId: l.id, name: l.name })}>Confirm consent</Mini>
+                    canConfirm && <Mini on={on} onClick={() => setConsenting({ linkId: l.id, name: l.name })}>Confirm consent</Mini>
                   )}
                   <Mini on={on} onClick={() => setEditing(l)}>Dates</Mini>
                 </span>
@@ -389,7 +393,7 @@ function Modal({ label, onClose, children, wide = false }: { label: string; onCl
 function NeedsConsent({ on }: { on: boolean }) {
   return (
     <p className={`rounded-md border border-dashed px-2 py-1 text-[12.5px] leading-snug ${on ? "border-paper/40 text-paper/85" : "border-rule-2 text-ink-2"}`}>
-      Needs consent — the link and QR appear once it&apos;s confirmed.
+      Needs consent — the link and QR appear once your Org Administrator confirms it.
     </p>
   );
 }

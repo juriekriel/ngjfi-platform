@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
+import { isMissingFunction } from "@/lib/breakdown";
 import {
   endsSurvey,
   itemSetItems,
@@ -218,9 +219,12 @@ export default function Survey({
             sb.rpc("survey_consent_public", { p_org_slug: slug, p_link_slug: distributionLinkSlug ?? null }),
           ]),
         );
-        // A database without 0053 answers with an error: behave as before.
+        // Only a database without 0053 means "behave as before". Any other
+        // failure keeps the survey closed — and isn't cached — so a young person
+        // never answers questions the server will refuse.
+        const missing = consentRes.error ? isMissingFunction(consentRes.error) : false;
         const sc = consentRes.error ? null : (consentRes.data as { open: boolean; age_bands: string[] | null } | null);
-        const surveyOpen = sc ? sc.open : true;
+        const surveyOpen = sc ? sc.open : missing;
         const bands = sc?.age_bands ?? null;
         setAllowedBands(bands);
         if (oErr) throw oErr;
@@ -238,7 +242,8 @@ export default function Survey({
         if (cErr) throw cErr;
 
         const set = knownItemSet(linkItemSet ?? (c?.item_set as string | null | undefined));
-        void cacheSet(cacheKey, { org: o, campaignId: c ? (c.id as string) : null, itemSet: set, locked: isLocked, surveyOpen, bands });
+        if (!consentRes.error || missing)
+          void cacheSet(cacheKey, { org: o, campaignId: c ? (c.id as string) : null, itemSet: set, locked: isLocked, surveyOpen, bands });
         setItemSet(set);
         // Not collecting (still being set up, paused, or consent not yet
         // confirmed): say so now, rather than letting a young person answer

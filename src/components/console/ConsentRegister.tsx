@@ -64,7 +64,13 @@ function matches(f: string, o: OrgRow, s: Survey): boolean {
 
 function csv(rows: OrgRow[]): string {
   const head = ["organisation", "org_consent", "org_consent_by", "org_consent_at", "survey", "state", "countries", "age_bands", "includes_minors", "method", "ethics_reference", "local_advice_reference", "confirmed_by", "confirmed_at", "statement_version", "why_consent_version", "revoked_at", "revoke_reason"];
-  const q = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  // Quote every cell, and defuse anything a spreadsheet would run as a formula
+  // (references and reasons are typed by organisation admins).
+  const q = (v: unknown) => {
+    let t = String(v ?? "");
+    if (/^[=+\-@\t\r]/.test(t)) t = `'${t}`;
+    return `"${t.replace(/"/g, '""')}"`;
+  };
   const lines = [head.join(",")];
   for (const o of rows)
     for (const s of o.surveys)
@@ -98,10 +104,11 @@ export default function ConsentRegister({ sb }: { sb: SupabaseClient | null }) {
     if (!rows) return;
     const blob = new Blob([csv(shown)], { type: "text/csv" });
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
+    const href = URL.createObjectURL(blob);
+    a.href = href;
     a.download = `consent-register-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
-    URL.revokeObjectURL(a.href);
+    setTimeout(() => URL.revokeObjectURL(href), 0);
   }
 
   if (err) return <p className="text-[14px] text-vermillion">{err}</p>;

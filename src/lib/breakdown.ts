@@ -54,8 +54,14 @@ const SOURCE_ITEM: Partial<Record<Dimension, string>> = {
   faith_status: "orientation",
 };
 
+/** A database error that means "this function doesn't exist yet" (an older database), not a real failure. */
+export function isMissingFunction(e: { code?: string; message?: string } | null | undefined): boolean {
+  return Boolean(e && (e.code === "PGRST202" || e.code === "42883" || /could not find the function|does not exist/i.test(e.message ?? "")));
+}
+
 export function groupLabel(dim: Dimension, value: string, inst: Inst, locales: Loc[] = []): string {
   if (value === "_not_given") return "Not given";
+  if (value === "_hidden") return "Other groups — hidden to protect small numbers";
   const key = SOURCE_ITEM[dim];
   if (key) {
     const opt = inst.items.find((i) => i.key === key)?.options?.find((o) => o.value === value);

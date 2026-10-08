@@ -10,6 +10,7 @@ test("labels come from the instrument, so new bands need no code", () => {
   assert.equal(groupLabel("age_band", "13_17", inst), "13–17");
   assert.equal(groupLabel("faith_status", "committed_growing", inst), "Committed, actively growing");
   assert.equal(groupLabel("gender", "_not_given", inst), "Not given");
+  assert.match(groupLabel("country", "_hidden", inst), /hidden to protect small numbers/);
   const withNewBand = { ...inst, items: inst.items.map((i: { key: string; options?: unknown[] }) =>
     i.key === "age_band" ? { ...i, options: [...(i.options ?? []), { value: "31_45", text: { en: "31–45" } }] } : i) };
   assert.equal(groupLabel("age_band", "31_45", withNewBand), "31–45");

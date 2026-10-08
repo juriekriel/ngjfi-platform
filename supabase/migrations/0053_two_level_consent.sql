@@ -108,7 +108,10 @@ on conflict (country_code) do update set
 create table if not exists public.survey_consents (
   id                       uuid primary key default gen_random_uuid(),
   org_id                   uuid not null references public.organisations(id) on delete cascade,
-  distribution_link_id     uuid references public.distribution_links(id) on delete cascade,
+  -- no cascade: a room with consent history can't be deleted out from under
+  -- the register (links are deactivated, never deleted; an org delete still
+  -- removes both, because this is checked at the end of the statement)
+  distribution_link_id     uuid references public.distribution_links(id),
   survey_statement_version text not null,
   why_consent_version      text not null,
   country_codes            text[] not null,
@@ -199,6 +202,13 @@ returns boolean language sql stable security definer set search_path = public as
   select _survey_consent_state(p_org, p_link) in ('current', 'outdated');
 $$;
 
+-- Internal only: these read consent rows by org id (ids are public), so no
+-- client role may call them; the entry points below check who is asking.
+revoke all on function public._invitable_age_bands() from public, anon, authenticated;
+revoke all on function public._survey_consent_current(uuid, uuid) from public, anon, authenticated;
+revoke all on function public._survey_consent_state(uuid, uuid) from public, anon, authenticated;
+revoke all on function public.survey_consent_ok(uuid, uuid) from public, anon, authenticated;
+
 -- ----------------------------------------------------------------------------
 -- 4. Enforcement — no consent, no participation
 -- ----------------------------------------------------------------------------
@@ -257,6 +267,7 @@ returns text language sql stable security definer set search_path = public as $$
     when my_role() = 'admin' then 'administrator'
   end;
 $$;
+revoke all on function public._org_admin_authority(uuid) from public, anon, authenticated;
 
 create or replace function public.survey_consent_status(p_org_slug text, p_link_id uuid)
 returns jsonb language plpgsql stable security definer set search_path = public as $$
@@ -385,6 +396,8 @@ declare v_org uuid := _require_org_member(p_org_slug);
 begin
   return jsonb_build_object(
     'org_attested', (select consent_attested_at is not null from organisations where id = v_org),
+    -- only an org admin (or a platform admin) can confirm; the UI hides the button otherwise
+    'can_confirm', _org_admin_authority(v_org) is not null,
     'surveys', (
       select jsonb_agg(survey_consent_status(p_org_slug, x.id) || jsonb_build_object('name', x.name) order by x.ord, x.name)
         from (select null::uuid id, 'Your survey'::text name, 0 ord
@@ -456,3 +469,113 @@ begin
     from organisations o where not o.is_demo), '[]'::jsonb);
 end $$;
 grant execute on function public.admin_consent_register() to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 7. Readiness: 0051's body plus one NON-blocking line — which organisations
+--    have confirmed consent but not yet for their own survey link.
+-- ----------------------------------------------------------------------------
+create or replace function public.pilot_readiness()
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare
+  v_checks jsonb := '[]'::jsonb;
+  v_retention jsonb := (select value from platform_settings where key = 'respondent_retention_months');
+  v_unattested jsonb;
+  v_attested jsonb;
+  v_versions jsonb;
+  v_locked boolean := public.collection_locked();
+  v_overdue bigint := public.deidentify_overdue_count();
+begin
+  if my_role() <> 'admin' then
+    raise exception 'only an administrator can run the readiness check';
+  end if;
+
+  select coalesce(jsonb_agg(o.short_name order by o.short_name), '[]'::jsonb) into v_unattested
+    from organisations o
+   where not o.is_demo and o.status = 'active' and o.consent_attested_at is null;
+
+  select coalesce(jsonb_agg(o.short_name order by o.short_name), '[]'::jsonb) into v_attested
+    from organisations o
+   where not o.is_demo and o.status = 'active' and o.consent_attested_at is not null;
+
+  select coalesce(jsonb_agg(v.version order by v.created_at desc), '[]'::jsonb) into v_versions
+    from instrument_versions v where v.status = 'active';
+
+  v_checks := v_checks
+    || jsonb_build_object('check', 'Global view is not published yet',
+         'blocking', true,
+         'ok', not setting_bool('publish_global_view', false),
+         'detail', 'publish_global_view stays false until the live space has crossed the gate.')
+    || jsonb_build_object('check', 'Organisations collect once they confirm consent',
+         'blocking', false,
+         'ok', jsonb_array_length(v_unattested) = 0,
+         'detail',
+           case when jsonb_array_length(v_attested) = 0 then 'Collecting: none yet. '
+                else 'Collecting: ' || (select string_agg(x, ', ') from jsonb_array_elements_text(v_attested) x) || '. ' end
+           || case when jsonb_array_length(v_unattested) = 0 then 'Every active organisation has confirmed.'
+                   else 'Waiting to confirm (their real links stay closed): '
+                        || (select string_agg(x, ', ') from jsonb_array_elements_text(v_unattested) x) || '.' end)
+    || jsonb_build_object('check', 'Each survey sent has its own consent',
+         'blocking', false,
+         'ok', not exists (select 1 from organisations o
+                            where not o.is_demo and o.status = 'active' and o.consent_attested_at is not null
+                              and not survey_consent_ok(o.id, null)),
+         'detail', coalesce((
+           select 'Organisations whose own link still needs survey consent (it stays closed until then): '
+                  || string_agg(o.short_name, ', ' order by o.short_name) || '.'
+             from organisations o
+            where not o.is_demo and o.status = 'active' and o.consent_attested_at is not null
+              and not survey_consent_ok(o.id, null)),
+           'Every consented organisation has confirmed consent for its own link (rooms are confirmed one by one).'))
+    || jsonb_build_object('check', 'A retention period has been decided',
+         'blocking', true,
+         'ok', v_retention is not null and jsonb_typeof(v_retention) = 'number',
+         'detail', format('De-identified after %s days; kept up to %s months, then folded into totals.',
+                          setting_int('respondent_deidentify_after_days', 60),
+                          coalesce(v_retention #>> '{}', '—')))
+    || jsonb_build_object('check', 'Nothing is past the de-identification window',
+         'blocking', true,
+         'ok', v_overdue = 0,
+         'detail', case when v_overdue = 0 then 'The daily de-identification job is up to date.'
+                        else v_overdue || ' live sessions are overdue — run deidentify_stale_sessions() and check the schedule.' end)
+    || jsonb_build_object('check', 'Exactly one instrument version is active',
+         'blocking', true,
+         'ok', jsonb_array_length(v_versions) = 1,
+         'detail', 'Active: ' || coalesce((select string_agg(x, ', ') from jsonb_array_elements_text(v_versions) x), 'none') || '. Run npm run db:seed after an instrument change.')
+    || jsonb_build_object('check', 'Critical-mass gates are set',
+         'blocking', true,
+         'ok', setting_int('critical_mass_gate', 0) > 0 and setting_int('country_critical_mass_gate', 0) >= setting_int('critical_mass_gate', 0),
+         'detail', format('org/region %s · country %s · smallest group %s',
+                          setting_int('critical_mass_gate', 0), setting_int('country_critical_mass_gate', 0), setting_int('min_group_n', 0)))
+    || jsonb_build_object('check', 'Collection lock',
+         'blocking', false,
+         'ok', not v_locked,
+         'detail', case when v_locked
+                        then 'Locked: the survey runs end to end but nothing is stored. Unlock by migration when you go live (0048).'
+                        else 'Unlocked: live answers are being stored.' end);
+
+  return jsonb_build_object(
+    'ready', not exists (select 1 from jsonb_array_elements(v_checks) c
+                          where coalesce((c->>'blocking')::boolean, true) and not (c->>'ok')::boolean),
+    'collection_locked', v_locked,
+    'checks', v_checks,
+    'data_spaces', data_space_report(),
+    -- kept for older clients: the same items as plain strings
+    'not_checkable_here', (select jsonb_agg(label order by ord) from pilot_signoff_items),
+    'hand_checks', (select jsonb_agg(jsonb_build_object(
+                      'item', i.item, 'label', i.label, 'requires_note', i.requires_note,
+                      'confirmed', s.confirmed_at is not null,
+                      'confirmed_at', s.confirmed_at,
+                      'confirmed_by', coalesce(u.full_name, u.email),
+                      'note', s.note) order by i.ord)
+                    from pilot_signoff_items i
+                    left join pilot_signoffs s on s.item = i.item and s.revoked_at is null
+                    left join app_users u on u.id = s.confirmed_by),
+    'all_signed_off', not exists (select 1 from pilot_signoff_items i
+                                   where not exists (select 1 from pilot_signoffs s
+                                                      where s.item = i.item and s.revoked_at is null)),
+    'checked_at', now()
+  );
+end;
+$$;
+grant execute on function public.pilot_readiness() to authenticated;

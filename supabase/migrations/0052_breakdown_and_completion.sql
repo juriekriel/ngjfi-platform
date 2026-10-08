@@ -14,7 +14,11 @@
 --        (critical_mass_gate) before a country is named.
 --      * COMPLEMENTARY SUPPRESSION: if exactly one group is hidden, the next
 --        smallest is hidden too — otherwise total minus the visible groups
---        would reveal it.
+--        would reveal it. Hidden groups are never NAMED: they fold into one
+--        '_hidden' row with no n (naming a hidden country or faith status
+--        would itself disclose that someone from it answered).
+--      * the follower / non-follower split of a visible group is shown only
+--        when both parts clear the floor (or one is zero).
 --      * followers' groups get the J12 Index; non-followers' the Exploration
 --        Index. Never averaged together (CLAUDE.md #9, 0047).
 --    Base = completions, as everywhere since 0047: sessions with at least one
@@ -117,26 +121,37 @@ begin
               from _bd group by 1, 2, 3) x
      group by grp, branch_kind
   )
+  -- Visible groups are named; hidden ones are NEVER named — they fold into one
+  -- '_hidden' row with no n and no score (naming a hidden country or faith
+  -- status would itself disclose that someone from it answered).
   select coalesce(jsonb_agg(jsonb_build_object(
            'value',      h.grp,
-           'n',          case when h.suppressed then null else h.n end,
-           'suppressed', h.suppressed,
-           'share',      case when h.suppressed or v_total = 0 then null else round(h.n::numeric / v_total, 3) end,
-           'following_n',     case when h.suppressed then null else h.n_follow end,
-           'not_following_n', case when h.suppressed then null else h.n_explore end,
-           'tiers',  case when not h.suppressed and h.n_follow >= v_floor then tf.t end,
-           'index',  case when not h.suppressed and h.n_follow >= v_floor then
+           'n',          h.n,
+           'suppressed', false,
+           'share',      case when v_total = 0 then null else round(h.n::numeric / v_total, 3) end,
+           -- the follower / non-follower split only when BOTH parts clear the floor
+           'following_n',     case when least(h.n_follow, h.n_explore) = 0 or least(h.n_follow, h.n_explore) >= v_floor then h.n_follow end,
+           'not_following_n', case when least(h.n_follow, h.n_explore) = 0 or least(h.n_follow, h.n_explore) >= v_floor then h.n_explore end,
+           'tiers',  case when h.n_follow >= v_floor then tf.t end,
+           'index',  case when h.n_follow >= v_floor then
                        (select round(avg(value::numeric), 1) from jsonb_each_text(tf.t)
                          where key in ('exposure', 'response', 'formation', 'multiplication')) end,
-           'exploration_tiers', case when not h.suppressed and h.n_explore >= v_floor then te.t end,
-           'exploration_index', case when not h.suppressed and h.n_explore >= v_floor then
+           'exploration_tiers', case when h.n_explore >= v_floor then te.t end,
+           'exploration_index', case when h.n_explore >= v_floor then
                        (select round(avg(value::numeric), 1) from jsonb_each_text(te.t)
                          where key in ('exposure', 'response', 'formation', 'multiplication')) end
-         ) order by h.suppressed, h.n desc, h.grp), '[]'::jsonb)
+         ) order by h.n desc, h.grp), '[]'::jsonb)
+         || case when exists (select 1 from hidden where suppressed)
+                 then jsonb_build_array(jsonb_build_object(
+                        'value', '_hidden', 'n', null, 'suppressed', true, 'share', null,
+                        'following_n', null, 'not_following_n', null,
+                        'tiers', null, 'index', null, 'exploration_tiers', null, 'exploration_index', null))
+                 else '[]'::jsonb end
     into v_groups
     from hidden h
     left join tiers tf on tf.grp = h.grp and tf.branch_kind = 'follow'
-    left join tiers te on te.grp = h.grp and te.branch_kind = 'explore';
+    left join tiers te on te.grp = h.grp and te.branch_kind = 'explore'
+   where not h.suppressed;
 
   return jsonb_build_object(
     'dimension', p_dimension,
@@ -165,7 +180,7 @@ begin
   end if;
   return v_org;
 end $$;
-revoke all on function public._require_org_member(text) from public, anon;
+revoke all on function public._require_org_member(text) from public, anon, authenticated;
 
 create or replace function public.org_breakdown(
   p_org_slug text, p_dimension text, p_season_start date default null, p_season_end date default null
@@ -219,8 +234,11 @@ begin
   -- each answered item's stage, from the instrument definition (section + order)
   create temporary table if not exists _st (sid uuid, stage text, ord int) on commit drop;
   truncate _st;
-  insert into _st
-  select cs.sid,
+  -- key → stage, computed once per instrument version in play
+  create temporary table if not exists _stagemap (inst uuid, item_key text, stage text, ord int) on commit drop;
+  truncate _stagemap;
+  insert into _stagemap
+  select v.id, it->>'key',
          case
            when it->>'section' in ('module', 'driver', 'journey') then 'extras'
            when it->>'section' = 'index' then 'index'
@@ -230,16 +248,20 @@ begin
            else 'about_you'
          end,
          (it->>'order')::int
-    from _cs cs
-    join responses r on r.session_id = cs.sid
-    join instrument_versions v on v.id = cs.inst
+    from instrument_versions v
     cross join lateral jsonb_array_elements(coalesce(v.definition->'items', '[]'::jsonb)) it
     cross join lateral (
       select coalesce(max((x->>'order')::int) filter (where x->>'section' = 'index'), 0) max_index,
              coalesce(min((x->>'order')::int) filter (where x->>'section' = 'screener'), 0) min_screener
         from jsonb_array_elements(coalesce(v.definition->'items', '[]'::jsonb)) x
     ) b
-   where it->>'key' = r.item_key;
+   where v.id in (select distinct inst from _cs);
+
+  insert into _st
+  select cs.sid, m.stage, m.ord
+    from _cs cs
+    join responses r on r.session_id = cs.sid
+    join _stagemap m on m.inst = cs.inst and m.item_key = r.item_key;
 
   select coalesce(jsonb_object_agg(stage, n), '{}'::jsonb) into v_stops
     from (select coalesce(last.stage, 'not_started') stage, count(*) n

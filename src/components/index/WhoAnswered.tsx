@@ -129,7 +129,7 @@ export default function WhoAnswered({ sb, orgSlug, linkId, season }: Props) {
               {bd.groups.map((g) => (
                 <tr key={g.value}>
                   <td className="py-1.5 text-ink">{groupLabel(dim, g.value, instrument as never, locales)}</td>
-                  <td className="tabular py-1.5 text-right text-ink">{g.suppressed ? <span className="text-muted">fewer than {bd.min_n}</span> : g.n}</td>
+                  <td className="tabular py-1.5 text-right text-ink">{g.suppressed ? <span className="text-muted">—</span> : g.n}</td>
                   <td className="py-1.5 pl-3">
                     {g.share != null && (
                       <span className="block h-2 rounded bg-paper-deep" aria-hidden>
@@ -147,7 +147,7 @@ export default function WhoAnswered({ sb, orgSlug, linkId, season }: Props) {
         {bd && (
           <p className="mt-2 text-[12px] leading-relaxed text-muted">
             Of those who have completed the Index · n {bd.total.toLocaleString("en")} · scores 1–5 · a group smaller than{" "}
-            {bd.min_n} shows no score, and when only one group is hidden the next smallest is hidden too
+            {bd.min_n} is hidden and never named, and when only one group would be hidden the next smallest is hidden with it
             {dim === "country" ? " · a country is named only once it reaches the place gate" : ""}.
           </p>
         )}

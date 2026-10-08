@@ -21,11 +21,13 @@ begin
   select x into g from jsonb_array_elements(r->'groups') x where x->>'value' = '18_22';
   perform test.ok((g->>'n')::int = 30 and (g->>'index') is not null and not (g->>'suppressed')::boolean, '18_22 shown with n and score');
 
-  select x into g from jsonb_array_elements(r->'groups') x where x->>'value' = '13_17';
-  perform test.ok((g->>'suppressed')::boolean and g->'n' = 'null'::jsonb and g->'index' = 'null'::jsonb, 'a group of 3 shows no n and no score');
-
-  select x into g from jsonb_array_elements(r->'groups') x where x->>'value' = '23_30';
-  perform test.ok((g->>'suppressed')::boolean, 'complementary suppression hides the next smallest group (12)');
+  perform test.ok(not exists (select 1 from jsonb_array_elements(r->'groups') x where x->>'value' = '13_17'),
+                  'a group of 3 is never named');
+  perform test.ok(not exists (select 1 from jsonb_array_elements(r->'groups') x where x->>'value' = '23_30'),
+                  'complementary suppression hides the next smallest group (12), unnamed');
+  select x into g from jsonb_array_elements(r->'groups') x where x->>'value' = '_hidden';
+  perform test.ok((g->>'suppressed')::boolean and g->'n' = 'null'::jsonb and g->'index' = 'null'::jsonb,
+                  'hidden groups fold into one unnamed row with no n and no score');
 
   -- a second dimension works; unknown dimensions are refused
   r := public.org_breakdown('bd-org', 'gender');
@@ -35,8 +37,8 @@ begin
 
   -- country groups need the place gate (400) to be named
   r := public.org_breakdown('bd-org', 'country');
-  perform test.ok(not exists (select 1 from jsonb_array_elements(r->'groups') x where not (x->>'suppressed')::boolean),
-                  'no country is named below 400');
+  perform test.ok(not exists (select 1 from jsonb_array_elements(r->'groups') x where x->>'value' <> '_hidden'),
+                  'no country is named below 400 — not even as a hidden row');
 
   -- strangers are refused
   perform test.ok(test.via_api(test.make_user('stranger@test.local', 'org'), $q$select public.org_breakdown('bd-org', 'age_band')$q$)

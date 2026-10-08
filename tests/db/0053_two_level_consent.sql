@@ -94,6 +94,18 @@ begin
   perform test.ok(reg::text not like '%"age_band":%' and reg::text not like '%session%', 'no respondent data in the register');
   perform test.ok(test.via_api(v_oa, 'select public.admin_consent_register()') like '%only an administrator%', 'org admins cannot see the register');
 
+  -- internal helpers can't be called by clients (org ids are public)
+  perform test.ok(test.via_api(v_oa, format('select public._survey_consent_current(%L, null)', v_org)) like '%permission denied%',
+                  'clients cannot read consent rows by org id');
+
+  -- readiness names organisations whose own link still needs survey consent (non-blocking)
+  declare c jsonb; v_o2 uuid := test.make_org('needs-survey', true);
+  begin
+    perform test.login(v_admin);
+    select x into c from jsonb_array_elements(public.pilot_readiness()->'checks') x where x->>'check' = 'Each survey sent has its own consent';
+    perform test.ok(not (c->>'blocking')::boolean and c->>'detail' like '%needs-survey%', 'readiness lists it: ' || coalesce(c::text, 'missing'));
+  end;
+
   -- demo organisations are exempt
   declare v_demo uuid; v_dc uuid;
   begin

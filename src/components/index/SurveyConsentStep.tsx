@@ -64,7 +64,10 @@ export default function SurveyConsentStep({
   const bands = useMemo(bandOptions, []);
   const [countries, setCountries] = useState<string[]>(existing?.country_codes?.filter((c) => !c.startsWith("OTHER:")) ?? []);
   const [other, setOther] = useState(existing?.country_codes?.find((c) => c.startsWith("OTHER:"))?.slice(6) ?? "");
-  const [ages, setAges] = useState<string[]>(existing?.age_bands ?? bands.map((b) => b.value));
+  // Prefill from the last confirmation, keeping only bands the active instrument still offers.
+  const [ages, setAges] = useState<string[]>(
+    existing?.age_bands?.filter((a) => bands.some((b) => b.value === a)) ?? bands.map((b) => b.value),
+  );
   const [method, setMethod] = useState<ParentalConsentMethod | "">(existing?.parental_consent_method ?? "");
   const [ethics, setEthics] = useState("");
   const [advice, setAdvice] = useState("");
