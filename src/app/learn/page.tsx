@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Masthead } from "@/components/site/Chrome";
+import { Footer, Masthead } from "@/components/site/Chrome";
 import { BranchDiagram, Matrix, Plate } from "@/components/index/Figures";
 
 export const metadata = {
@@ -30,7 +30,7 @@ export default function LearnPage() {
           <aside className="self-end">
             <p className="margin-note border-l-2 border-emerald pl-3">
               Want the full story — why it exists, and how it got here?{" "}
-              <Link href="/history" className="text-emerald no-underline hover:underline">
+              <Link href="/our-story" className="text-emerald no-underline hover:underline">
                 Read the long version →
               </Link>
             </p>
@@ -145,7 +145,7 @@ export default function LearnPage() {
               <p className="mt-2 text-[18px] leading-snug">What you get out of it →</p>
               <p className="margin-note mt-1">A diagnosis, benchmarked, under your own brand.</p>
             </Link>
-            <Link href="/intelligence" className="border-t-2 border-ink pt-3 no-underline">
+            <Link href="/#global" className="border-t-2 border-ink pt-3 no-underline">
               <p className="figcap">See it, global</p>
               <p className="mt-2 text-[18px] leading-snug">A global picture →</p>
               <p className="margin-note mt-1">Where momentum is strong, and where it isn&apos;t yet.</p>
@@ -158,6 +158,7 @@ export default function LearnPage() {
           </div>
         </section>
       </main>
+      <Footer />
     </>
   );
 }

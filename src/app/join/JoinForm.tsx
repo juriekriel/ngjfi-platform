@@ -5,6 +5,7 @@
 // It never blocks or fails the signup UI — see route.ts's own comment.
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 
@@ -12,13 +13,17 @@ import { getSupabaseBrowser } from "@/lib/supabaseClient";
  * Two tracks, by choice.
  *
  * Express is three fields and about thirty seconds — nobody is lost to a long
- * form. "Shape it" is optional and offered immediately afterwards; completing it
- * is not a hurdle, it is the only way we can place an organisation in a country
- * cluster, and the reward for doing so is stated plainly rather than dangled.
+ * form. "Shape it" is optional and offered immediately AFTER signup (Miguel,
+ * Oct 2026: the decision and Collab questions never stand between someone and
+ * joining). The Index is available now, so the confirmation is "You're in",
+ * with next steps — not a place in a queue.
  *
  * The two highest-value fields on the whole site are the last two free-text
  * ones. They are pre-launch research, and they are read by the researchers.
  */
+
+/** A real contact for the "You're in" screen; unset → "reply to the welcome email". */
+const CONTACT = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
 
 const REACH_BANDS = ["Under 100", "100–500", "500–2,000", "2,000–10,000", "10,000+"];
 
@@ -145,16 +150,24 @@ export default function JoinForm() {
   if (stage === "done")
     return (
       <div className="rounded-xl border-2 border-ink p-6">
-        <p className="figcap">You are on the list</p>
-        <h2 className="mt-3 text-[26px] leading-tight">Thank you — that helps more than you think.</h2>
-        <p className="mt-4 text-[16px] leading-relaxed text-ink-2">
-          Once a month you will get <b>Field Notes</b>: what we decided, what broke, and what we still
-          have not figured out. When your country&apos;s round opens, you will be among the first to
-          know.
-        </p>
-        <p className="mt-4 text-[16px] leading-relaxed text-ink-2">
-          If you told us where you work, we will place you in a cluster. If you did not, we will come
-          back and ask — we genuinely cannot do it without that.
+        <p className="figcap">Welcome</p>
+        <h2 className="mt-3 text-[26px] leading-tight">You&apos;re in{org.trim() ? `, ${org.trim()}` : ""}.</h2>
+        <p className="mt-3 text-[16px] leading-relaxed text-ink-2">Here&apos;s what happens next:</p>
+        <ol className="mt-3 list-decimal space-y-2 pl-5 text-[15.5px] leading-relaxed text-ink-2">
+          <li>
+            <Link href="/access" className="font-semibold text-ink underline underline-offset-2">Sign in</Link>{" "}
+            with your ministry email to set up your page — your logo, colour and welcome.
+          </li>
+          <li>Try your survey with a test link. Answers on a test link are never kept.</li>
+          <li>
+            Read the{" "}
+            <Link href="/resources/consent" className="font-semibold text-ink underline underline-offset-2">consent resource</Link>{" "}
+            and confirm consent — for your organisation, and for each survey you send.
+          </li>
+          <li>We&apos;ll email you the day live answers start recording, when the pilots open.</li>
+        </ol>
+        <p className="mt-4 text-[15px] leading-relaxed text-ink-2">
+          Questions? {CONTACT ? <>Write to <a href={`mailto:${CONTACT}`} className="font-semibold text-ink underline underline-offset-2">{CONTACT}</a>.</> : "Reply to the welcome email — a person reads it."}
         </p>
         <p className="margin-note mt-5 border-l-2 border-emerald pl-3">
           Nothing on this list is ever joined to respondent data. Respondents are anonymous; this is a
@@ -167,11 +180,11 @@ export default function JoinForm() {
     return (
       <form onSubmit={submitShape} className="rounded-xl border-2 border-ink p-6">
         <p className="figcap">Optional · about three minutes</p>
-        <h2 className="mt-3 text-[24px] leading-tight">Want to be in the first round?</h2>
+        <p className="figcap mt-1 text-emerald">You&apos;re in — this part is optional</p>
+        <h2 className="mt-3 text-[24px] leading-tight">Help us set you up</h2>
         <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
-          Seven more questions. We are not collecting these to score you — we genuinely cannot place
-          you in a country round without knowing where you work, and we cannot tell you what the
-          dashboard should show without knowing what decision you would make with it.
+          Seven questions, all optional. Where you work tells us when your city and country comparisons
+          can open; what you&apos;d do with the results tells us what your dashboard should show.
         </p>
 
         <div className="mt-5 space-y-4">
@@ -221,11 +234,12 @@ export default function JoinForm() {
               </select>
             </div>
             <div>
-              <label className={label} htmlFor="collab">Are you part of the Collab?</label>
+              <label className={label} htmlFor="collab">Are you part of the Next Gen Global Collab?</label>
               <select id="collab" className={`${field} mt-1.5`} value={collabMember} onChange={(e) => setCollabMember(e.target.value)}>
                 <option value="">—</option><option value="yes">Yes</option>
                 <option value="no">No</option><option value="unsure">Not sure</option>
               </select>
+              <p className="margin-note mt-1">The coalition of 30+ ministries that built the Index together.</p>
             </div>
           </div>
         </div>
@@ -249,7 +263,7 @@ export default function JoinForm() {
   return (
     <form onSubmit={submitExpress} className="rounded-xl border-2 border-ink p-6">
       <p className="figcap">Three fields · about thirty seconds</p>
-      <h2 className="mt-3 text-[24px] leading-tight">Join the first round</h2>
+      <h2 className="mt-3 text-[24px] leading-tight">Join the JFINDX — free</h2>
 
       <div className="mt-5 space-y-4">
         <div>
@@ -281,11 +295,11 @@ export default function JoinForm() {
 
       <button type="submit" disabled={busy}
         className="mt-6 w-full rounded-lg border-2 border-emerald bg-emerald px-5 py-3 text-[14px] font-semibold text-plate disabled:opacity-50">
-        {busy ? "Saving…" : "Join the first round →"}
+        {busy ? "Saving…" : "Join now →"}
       </button>
       <p className="margin-note mt-3">
-        For organisations and churches. No obligation. We will ask a few optional questions next —
-        they are what let us place you in a country cluster.
+        Free for ministries, and it stays free. No obligation. A few optional questions come next —
+        they help us set you up.
       </p>
     </form>
   );

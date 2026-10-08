@@ -23,6 +23,7 @@ import MapTierToggle from "@/components/index/MapTierToggle";
 type Totals = { orgs: number; responses: number };
 type Intel = {
   published?: boolean;
+  country_gate?: number;
   countries: { country: string; n: number; tiers: Record<string, number | null> }[] | null;
 };
 
@@ -45,15 +46,10 @@ export default function LiveSnapshot() {
   }, [sb]);
 
   return (
-    <section className="border-t border-rule py-12">
-      <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <div>
-          <p className="figcap">Live on the platform</p>
-          <h2 className="mt-2 text-[28px] leading-tight">See who&apos;s part of it.</h2>
-        </div>
-        <Link href="/intelligence" className="text-[14px] font-semibold text-emerald no-underline hover:underline">
-          See the full global picture →
-        </Link>
+    <section id="global" className="scroll-mt-6 border-t border-ink py-12">
+      <div>
+        <p className="figcap">The global view · live on the platform</p>
+        <h2 className="mt-2 text-[28px] leading-tight">See who&apos;s part of it.</h2>
       </div>
 
       <div className="mt-7 grid gap-x-10 gap-y-6 sm:grid-cols-2">
@@ -81,9 +77,25 @@ export default function LiveSnapshot() {
         </div>
         <p className="margin-note mt-3 border-l-2 border-rule pl-3">
           {intel && intel.published === false
-            ? "No country has passed the critical-mass gate yet — every country reads grey until enough people there have completed the Index."
-            : "A country only appears in colour once enough people there have completed the Index. Of those who have completed it — never a whole population."}
+            ? `No country has passed the critical-mass gate yet — a country stays grey until ${(intel.country_gate ?? 2000).toLocaleString("en")} people there have completed the Index.`
+            : `A country appears in colour once ${(intel?.country_gate ?? 2000).toLocaleString("en")} people there have completed the Index. Of those who have completed it — never a whole population.`}
         </p>
+      </div>
+
+      <div className="mt-10 grid items-end gap-6 md:grid-cols-[1.4fr_1fr]">
+        <div>
+          <h3 className="text-[22px] leading-tight">Comparisons appear as your area grows.</h3>
+          <p className="mt-2 max-w-measure text-[16px] leading-relaxed text-ink-2">
+            Your own results come the same day. City and country comparisons open once enough ministries near you have
+            taken part — so who should join you?
+          </p>
+        </div>
+        <Link
+          href="/join"
+          className="rounded-lg border-2 border-emerald bg-emerald px-5 py-3 text-center text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
+        >
+          Join the JFINDX — free →
+        </Link>
       </div>
     </section>
   );

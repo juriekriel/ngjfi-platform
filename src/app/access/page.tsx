@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Masthead } from "@/components/site/Chrome";
+import { Footer, Masthead } from "@/components/site/Chrome";
 import AccessForm from "./AccessForm";
 
 export const metadata = {
@@ -72,6 +72,7 @@ export default function AccessPage() {
           </div>
         </section>
       </main>
+      <Footer />
     </>
   );
 }

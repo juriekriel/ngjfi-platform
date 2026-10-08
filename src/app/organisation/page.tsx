@@ -1,4 +1,4 @@
-import { Masthead } from "@/components/site/Chrome";
+import { Footer, Masthead } from "@/components/site/Chrome";
 import OrganisationView from "@/components/site/OrganisationView";
 
 export const metadata = {
@@ -14,6 +14,7 @@ export default function OrganisationPage() {
       <main className="mx-auto max-w-5xl px-5">
         <OrganisationView />
       </main>
+      <Footer />
     </>
   );
 }

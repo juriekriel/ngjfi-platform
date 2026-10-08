@@ -72,11 +72,17 @@ export async function POST(req: Request) {
   const confirmation = sendEmail(
     apiKey,
     email,
-    "You're on the list — The Jesus Index",
-    `<p>Thanks for joining the first round on behalf of <b>${escapeHtml(orgName)}</b>.</p>
-     <p>We'll place you in a country cluster and let you know when your round opens.
-     In the meantime you'll get <b>Field Notes</b> — a monthly note on how the Index
-     is being built. Unsubscribe any time.</p>
+    "You're in — The Jesus Index",
+    `<p>Welcome — <b>${escapeHtml(orgName)}</b> is in. The Index is free for ministries, and it stays free.</p>
+     <p>What happens next:</p>
+     <ol>
+       <li><a href="https://jfindx.org/access">Sign in</a> with your ministry email to set up your page — your logo, colour and welcome.</li>
+       <li>Try your survey with a test link. Answers on a test link are never kept.</li>
+       <li>Read the <a href="https://jfindx.org/resources/consent">consent resource</a> and confirm consent — for your organisation, and for each survey you send.</li>
+       <li>We'll email you the day live answers start recording, when the pilots open.</li>
+     </ol>
+     <p>You'll also get <b>Field Notes</b> — a monthly note on how the Index is being built — if you asked for it.
+     Unsubscribe any time. Questions? Just reply to this email.</p>
      ${referralCode ? `<p>Your referral code: <code>${escapeHtml(referralCode)}</code></p>` : ""}
      <p>— The Jesus Index team</p>`,
   );
