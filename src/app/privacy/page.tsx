@@ -1,3 +1,4 @@
+import Link from "next/link";
 import LegalPage from "@/components/site/LegalPage";
 
 export const metadata = {
@@ -9,7 +10,10 @@ export const metadata = {
  * DRAFT privacy notice. Every claim here must stay true of the code: if a
  * migration changes what is stored, change this page in the same PR.
  * Sources: 0001 (sessions: no PII), 0019 (approved metadata), 0020/0021
- * (gates), 0038 (test links), 0042 (redaction, under-13 exit, retention).
+ * (gates), 0038 (test links), 0042 (redaction, under-13 exit, retention),
+ * 0025 (gender, city), 0044 (survey version), 0050 (two-stage retention).
+ * tests/privacyCoverage.test.ts fails if the active instrument stores a
+ * session field this page doesn't name.
  */
 export default function PrivacyPage() {
   return (
@@ -38,10 +42,17 @@ export default function PrivacyPage() {
           body: (
             <>
               <p>
-                <b>We never ask for your name, email address or phone number.</b> We store your answers, your age group
-                (never your birthday), the country you say you live in, and — only if you choose to give it — your city
-                or area.
+                <b>We never ask for your name, email address, phone number or date of birth.</b> With your answers we
+                keep:
               </p>
+              <ul className="list-disc pl-5">
+                <li>your age group (for example 13–17), never your birthday</li>
+                <li>your gender, only if you choose to give it</li>
+                <li>the country you say you live in</li>
+                <li>your city or area, only if you choose to give it</li>
+                <li>the language you used, when you answered, and which version of the survey you answered</li>
+                <li>which organisation&apos;s link you used</li>
+              </ul>
               <p>
                 We do not store your internet (IP) address with your answers. Like every website, the companies that
                 host the Index (Netlify and Supabase) see it briefly to deliver the page, and keep it only in short-lived
@@ -83,22 +94,47 @@ export default function PrivacyPage() {
         {
           heading: "Consent",
           body: (
+            <>
             <p>
               Each organisation is responsible for getting the consent its context requires before sharing its link —
               including a parent&apos;s or guardian&apos;s consent for under-18s wherever that is required. Organisations
               confirm they have done this before their survey can accept answers. They keep their consent records
               themselves; the Index never holds them.
             </p>
+            <p>
+              Read how consent works, and what it involves in your country, in{" "}
+              <Link href="/resources/consent" className="font-semibold underline underline-offset-2">
+                Consent: why it matters and how it works
+              </Link>
+              .
+            </p>
+            </>
           ),
         },
         {
           heading: "How long we keep answers",
           body: (
-            <p>
-              Anonymous answers are kept so that results can be recalculated when the method improves and compared year
-              to year. A fixed retention period is being decided by the Collab&apos;s researchers; until it is, nothing is
-              deleted automatically, and this page will be updated when it is.
-            </p>
+            <>
+              <p>We keep answers in two stages.</p>
+              <ul className="list-disc pl-5">
+                <li>
+                  <b>First 60 days:</b> we keep your answers as you gave them, so we can check the survey worked
+                  properly.
+                </li>
+                <li>
+                  <b>After 60 days:</b> we remove anything that could help point to a person. The exact time becomes
+                  just the month, your city becomes a wider region, the words you typed yourself are deleted, and the
+                  link you used is folded into the organisation&apos;s overall survey.
+                </li>
+                <li>
+                  <b>Up to 5 years:</b> we keep these cleaned answers to check and improve how the Index is scored.
+                  After that they&apos;re combined into grouped totals, and the individual answers are deleted.
+                </li>
+              </ul>
+              <p className="text-[14px] text-ink-2">
+                Pending sign-off by the Collab&apos;s researchers and counsel.
+              </p>
+            </>
           ),
         },
         {
