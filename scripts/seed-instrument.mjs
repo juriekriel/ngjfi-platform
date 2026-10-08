@@ -4,6 +4,10 @@
 //
 //   node scripts/seed-instrument.mjs           seeds src/data/instrument.v5.json
 //   node scripts/seed-instrument.mjs v0        seeds a specific version file
+//   node scripts/seed-instrument.mjs v6 --status draft
+//                                              loads a version WITHOUT activating it:
+//                                              the live version is untouched, so a
+//                                              researcher can review it in /build/instrument
 //
 // WHY THIS EXISTS ALONGSIDE db:seed
 // `npm run db:seed` needs SUPABASE_SERVICE_ROLE_KEY. That key is the one secret
@@ -19,6 +23,9 @@ import { fileURLToPath } from "node:url";
 
 const REF = "whtbfhbhkhwfmeekvmxq";
 const version = process.argv[2] ?? "v5";
+const statusFlag = process.argv.indexOf("--status");
+const status = statusFlag > -1 ? process.argv[statusFlag + 1] : "active";
+if (!["active", "draft"].includes(status)) throw new Error(`--status must be "active" or "draft", not "${status}"`);
 
 function token() {
   let raw = "";
@@ -54,19 +61,21 @@ const inst = JSON.parse(json);
 // without mangling the copy a respondent reads.
 const sql = `
 insert into public.instrument_versions (version, scoring_version, status, definition)
-values ('${inst.version}', '${inst.scoringVersion}', 'active', $inst$
+values ('${inst.version}', '${inst.scoringVersion}', '${status}', $inst$
 ${json}
 $inst$::jsonb)
 on conflict (version) do update
   set definition      = excluded.definition,
       scoring_version = excluded.scoring_version,
-      status          = 'active';
-
+      status          = '${status}';
+${status === "active" ? `
 -- Exactly one version is ever active, so a campaign cannot straddle two
 -- instruments and quietly make its responses incomparable.
 update public.instrument_versions set status = 'archived'
  where version <> '${inst.version}';
-
+` : `
+-- --status draft: loaded for review only. The live version is untouched.
+`}
 -- Bring the items table in line with the JSON. Upsert by key, then remove
 -- keys the JSON no longer has — so a retired item really disappears. On a
 -- LOCKED version (migration 0045) this is a no-op when nothing frozen
@@ -99,7 +108,7 @@ delete from public.items i
 -- asks everything their current version asks with identical scoring tags
 -- (migration 0039). Without this, a campaign still on the previous version
 -- would reject every new question the survey now shows.
-select public.adopt_instrument_version('${inst.version}') as adopted;
+${status === "active" ? `select public.adopt_instrument_version('${inst.version}') as adopted;` : "-- draft: no campaign is moved onto it"}
 ${inst.lock?.locked ? `
 -- The JSON says this version is locked (instrument.${inst.version}.json "lock").
 select public.lock_instrument_version('${inst.version}', $lock$${JSON.stringify(inst.lock)}$lock$) as locked;
@@ -113,7 +122,7 @@ select jsonb_build_object(
 from public.instrument_versions iv where iv.version = '${inst.version}';
 `;
 
-process.stdout.write(`→ seeding instrument ${inst.version} (${inst.items.length} items) … `);
+process.stdout.write(`→ seeding instrument ${inst.version} as ${status} (${inst.items.length} items) … `);
 const out = await runSql(token(), sql);
 console.log("ok");
 console.log(out);
