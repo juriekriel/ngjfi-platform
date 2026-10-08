@@ -73,6 +73,7 @@
   --c-violet-deep: 124 58 237; /* #7C3AED — for button gradients only */
   --c-violet-deeper: 91 33 182; /* #5B21B6 — end stop of the masthead Sign-in button gradient */
   --c-vermillion: 200 40 59; /* #C8283B — "down" only, clear of coral's hue */
+  --c-amber: 224 153 63; /* #E0993F — "for information" (non-blocking) only */
 
   /* The tier ramp. Hue is constant; LIGHTNESS alone encodes journey depth,
    * so the heat grid reads as a progression rather than as four categories.
