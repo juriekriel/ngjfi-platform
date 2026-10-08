@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { checkState, headline } from "../src/lib/readiness.ts";
+import { checkState, confirmedLine, headline } from "../src/lib/readiness.ts";
 
 const sql = readFileSync("supabase/migrations/0049_readiness_advisory_consent.sql", "utf8");
 
@@ -36,4 +36,11 @@ test("0049 leaves the consent safeguards themselves alone", () => {
   for (const fn of ["attest_edge_consent", "org_consent_status", "refuse_sessions_without_consent", "start_session"]) {
     assert.ok(!sql.includes(`function public.${fn}(`), `${fn} is not redefined here`);
   }
+});
+
+test("a confirmed hand check says who and when", () => {
+  const h = { item: "smtp", label: "SMTP", requires_note: false, confirmed: true,
+              confirmed_at: "2026-10-08T10:00:00Z", confirmed_by: "Jurie Kriel", note: null };
+  assert.equal(confirmedLine(h), "Confirmed by Jurie Kriel · 8 Oct 2026");
+  assert.equal(confirmedLine({ ...h, confirmed: false }), null);
 });
