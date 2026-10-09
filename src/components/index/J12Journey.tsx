@@ -44,7 +44,7 @@ export default function J12Journey() {
     <section aria-labelledby="j12-journey" className="border-b border-ink py-12">
       <p className="figcap">The J12</p>
       <h2 id="j12-journey" className="mt-2 text-[28px] leading-tight sm:text-[32px]">
-        Twelve questions. One journey.
+        How we measure Jesus-Following.
       </h2>
       <p className="mt-3 max-w-measure text-[16.5px] leading-relaxed text-ink-2">
         Three questions — do they follow Jesus, join his mission, does their world look different — each asked at four

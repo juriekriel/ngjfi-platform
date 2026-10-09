@@ -7,6 +7,7 @@
   "back": "← Atrás",
   "begin": "Comenzar →",
   "chars_left": "quedan {n} caracteres",
+  "choose_country": "Elige tu país",
   "continue": "Continuar →",
   "done_pending": "Tus respuestas están guardadas en este teléfono y se sumarán a la imagen de {org} en cuanto haya señal; no tienes que hacer nada.",
   "done_private": "Solo ven resultados agrupados, nunca respuestas individuales.",

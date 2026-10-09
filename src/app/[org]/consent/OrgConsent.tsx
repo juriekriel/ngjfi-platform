@@ -43,7 +43,7 @@ export default function OrgConsent({ slug }: { slug: string }) {
         <p className="figcap">Consent · version {CONSENT_RESOURCE_VERSION} · draft for review</p>
         <h1 className="mt-2 text-[30px] leading-tight tracking-tight">Consent: why it matters and how it works</h1>
         <div className="mt-5"><PrintControls /></div>
-        <div className="mt-6"><ConsentResource orgName={brand?.name} /></div>
+        <div className="mt-6"><ConsentResource orgName={brand?.name} accent={brand?.brand_color ?? undefined} /></div>
       </main>
       <footer className="no-print border-t border-rule">
         <div className="mx-auto flex max-w-4xl items-center gap-2 px-5 py-5 text-[12.5px] text-ink-2">

@@ -43,3 +43,12 @@ test("the survey statement fills in this survey's details", () => {
   const adults = surveyConsentStatement({ countries: ["Mexico"], ageBands: ["18–22"], method: "not_applicable_adults_only" });
   assert.match(adults[1], /adults only/);
 });
+
+test("the consent resource names a real privacy contact, and prints branded", () => {
+  assert.ok(!resource.includes("[privacy contact email]"), "no placeholder contact");
+  assert.match(resource, /PRIVACY_CONTACT_EMAIL = "ulrich@nxtmove\.global"/);
+  assert.match(resource, /<PrintBrand/);
+  const css = readFileSync("src/app/globals.css", "utf8");
+  assert.match(css, /print-color-adjust: exact/);
+  assert.match(css, /--print-accent/);
+});

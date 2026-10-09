@@ -8,7 +8,8 @@ import { WELCOME_MINUTES } from "@/lib/instrument";
 /**
  * jfindx.org — the front page. One scroll, top to bottom (Oct 2026):
  *
- *   A  Hero — what it is, that it's free and available now, the benefits,
+ *   A  Hero — what it is, that it's free and available now (said in the
+ *      text, not as a benefit tile), the benefits,
  *      and two doors: start your journey, or try the survey yourself.
  *   B  The J12 journey — the model as an interactive picture.
  *   C  Try it yourself — the real survey in a phone, beside five steps.
@@ -22,11 +23,10 @@ import { WELCOME_MINUTES } from "@/lib/instrument";
  * grows — never a promise of a benchmark that doesn't exist yet.
  */
 const BENEFITS: { t: string; d: string; href?: string }[] = [
-  { t: "Free", d: "and it stays free for ministries" },
   { t: "Anonymous", d: "no one — including you — sees an individual's answers" },
   { t: "Safe for under-18s", d: "consent handled with you, before anyone starts", href: "/resources/consent" },
   { t: "Your brand", d: "your logo, your colour, your words" },
-  { t: "Your results, the same day", d: "they belong to your ministry" },
+  { t: "Your results, live", d: "they belong to your ministry" },
   { t: "Compare as your area grows", d: "city and country views open as more ministries join" },
 ];
 
@@ -34,7 +34,7 @@ const STEPS: { t: string; d: string }[] = [
   { t: "Join", d: "Free, about two minutes." },
   { t: "Make it yours", d: "Your logo and colour; your link and QR code." },
   { t: "Invite your young people", d: `They answer on any phone in about ${WELCOME_MINUTES} minutes, anonymously.` },
-  { t: "See your results", d: "Grouped results, the same day." },
+  { t: "See your results", d: "Grouped results, live." },
   { t: "Compare", d: "City and country views open as your area grows." },
 ];
 
@@ -57,11 +57,11 @@ export default function Home() {
             </p>
 
             <p className="mt-8 text-[24px] font-semibold leading-snug text-ink">
-              Free for every ministry. Available now. And it stays free.
+              Free for every ministry. Available now.
             </p>
             <p className="mt-3 max-w-measure text-[18px] leading-relaxed text-ink-2">
               A {WELCOME_MINUTES}-minute survey your young people take on any phone, under your name. You see your
-              results the same day.
+              results live.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-3">

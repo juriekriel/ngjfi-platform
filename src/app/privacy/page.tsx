@@ -1,6 +1,15 @@
 import Link from "next/link";
 import LegalPage from "@/components/site/LegalPage";
 
+/**
+ * How long our hosts keep IP addresses in their own logs. Set by them, not us:
+ * Netlify — access logs, "less than 30 days" (Netlify's GDPR/privacy page).
+ * Supabase — API & database log retention by plan: Free 1 day, Pro 7 days,
+ * Team 28 days (supabase.com/pricing). Update `supabase` if the project's
+ * plan changes — the pilot checklist proposes a paid plan for backups.
+ */
+const HOST_LOG_RETENTION = { supabase: "1 day", checked: "9 October 2026" };
+
 export const metadata = {
   title: "Privacy — The Jesus Index",
   description: "What the Index stores about the people who answer it, and what it never stores. Draft for review.",
@@ -55,8 +64,22 @@ export default function PrivacyPage() {
               </ul>
               <p>
                 We do not store your internet (IP) address with your answers. Like every website, the companies that
-                host the Index (Netlify and Supabase) see it briefly to deliver the page, and keep it only in short-lived
-                technical logs.
+                host the Index see it briefly to deliver the page, and keep it only in technical logs that delete
+                themselves:
+              </p>
+              <ul className="list-disc pl-5">
+                <li>
+                  <b>Netlify</b> (delivers the website) keeps it in its access logs for <b>less than 30 days</b>, then
+                  deletes it. We can&apos;t see these logs.
+                </li>
+                <li>
+                  <b>Supabase</b> (stores the answers) keeps it in its request logs for <b>{HOST_LOG_RETENTION.supabase}</b>,
+                  then deletes it. Those logs are never joined to your answers.
+                </li>
+              </ul>
+              <p className="text-[13.5px] text-muted">
+                These periods are set by each company, not by us, and were checked on {HOST_LOG_RETENTION.checked}. If
+                they change, or we change plans, we update this page.
               </p>
               <p>
                 If you type something in a free-text answer, email addresses, phone numbers, web addresses and

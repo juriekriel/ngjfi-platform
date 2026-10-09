@@ -49,7 +49,7 @@ export default function LiveSnapshot() {
     <section id="global" className="scroll-mt-6 border-t border-ink py-12">
       <div>
         <p className="figcap">The global view · live on the platform</p>
-        <h2 className="mt-2 text-[28px] leading-tight">See who&apos;s part of it.</h2>
+        <h2 className="mt-2 text-[28px] leading-tight">See a global picture of Jesus-Following.</h2>
       </div>
 
       <div className="mt-7 grid gap-x-10 gap-y-6 sm:grid-cols-2">
@@ -86,7 +86,7 @@ export default function LiveSnapshot() {
         <div>
           <h3 className="text-[22px] leading-tight">Comparisons appear as your area grows.</h3>
           <p className="mt-2 max-w-measure text-[16px] leading-relaxed text-ink-2">
-            Your own results come the same day. City and country comparisons open once enough ministries near you have
+            Your own results come in live. City and country comparisons open once enough ministries near you have
             taken part — so who should join you?
           </p>
         </div>

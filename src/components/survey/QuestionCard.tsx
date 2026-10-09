@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { AnswerValue, InstrumentItem, InstrumentOption } from "@/lib/instrument";
 import type { Lang } from "@/lib/i18n";
+import { COUNTRIES } from "@/data/countries";
 
 
 /**
@@ -139,7 +140,20 @@ export function Question({
         </div>
       )}
 
-      {item.type === "open_text" && (
+      {item.type === "open_text" && item.session_field === "country" && (
+        <CountrySelect
+          key={item.key}
+          lang={lang}
+          brand={brand}
+          busy={busy}
+          labelledBy={headingId}
+          describedBy={helpId}
+          initial={typeof selected === "string" ? selected : ""}
+          onSubmit={onChoose}
+        />
+      )}
+
+      {item.type === "open_text" && item.session_field !== "country" && (
         <OpenText
           key={item.key}
           lang={lang}
@@ -224,6 +238,100 @@ function OpenText({
           disabled={busy || !text.trim()}
           type="button"
           onClick={() => onSubmit(text.trim())}
+          className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-white disabled:opacity-40"
+          style={{ background: brand }}
+        >
+          {lang.ui("continue")}
+        </button>
+        <button
+          disabled={busy}
+          type="button"
+          onClick={() => onSubmit("")}
+          className="rounded-xl border-2 px-4 py-3 text-sm text-muted"
+          style={{ borderColor: "#e6e8ec" }}
+        >
+          {lang.ui("skip")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The country question, as a dropdown of every country (src/data/countries.ts)
+ * instead of free text. Same item, same session field, same stored column —
+ * only the input changes, so it applies to every instrument version without
+ * touching a locked one (it is keyed on the platform's `country` session
+ * field, like the age_band rules in Survey.tsx). What is stored is always the
+ * canonical English name, so spelling and language can't split one country
+ * into several, and nothing identifying can be typed here. City stays free text.
+ *
+ * A native <select>: the phone's own picker, accessible and fast on cheap
+ * devices. Labels are localized with Intl.DisplayNames where the browser has
+ * it, and fall back to the English name where it doesn't.
+ */
+function CountrySelect({
+  lang,
+  brand,
+  busy,
+  labelledBy,
+  describedBy,
+  initial,
+  onSubmit,
+}: {
+  lang: Lang;
+  brand: string;
+  busy: boolean;
+  labelledBy: string;
+  describedBy?: string;
+  initial: string;
+  onSubmit: (v: AnswerValue) => void;
+}) {
+  const known = COUNTRIES.some(([, n]) => n === initial);
+  const [value, setValue] = useState(known ? initial : "");
+  const options = useMemo(() => {
+    let names: Intl.DisplayNames | null = null;
+    try {
+      names = lang.code === "en" ? null : new Intl.DisplayNames([lang.code, "en"], { type: "region" });
+    } catch {
+      names = null;
+    }
+    const label = (code: string, en: string) => {
+      try {
+        const l = names?.of(code);
+        return l && l !== code ? l : en;
+      } catch {
+        return en;
+      }
+    };
+    return COUNTRIES.map(([code, en]) => ({ value: en, label: label(code, en) })).sort((a, b) =>
+      a.label.localeCompare(b.label, lang.code),
+    );
+  }, [lang.code]);
+
+  return (
+    <div>
+      <select
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        aria-labelledby={labelledBy}
+        aria-describedby={describedBy}
+        dir="auto"
+        className="w-full rounded-xl border-2 bg-white px-4 py-3 text-sm outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+        style={{ borderColor: value ? brand : "#e6e8ec" }}
+      >
+        <option value="">{lang.ui("choose_country")}</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      <div className="mt-3 flex gap-2">
+        <button
+          disabled={busy || !value}
+          type="button"
+          onClick={() => onSubmit(value)}
           className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-white disabled:opacity-40"
           style={{ background: brand }}
         >
