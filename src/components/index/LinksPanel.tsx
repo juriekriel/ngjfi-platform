@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { ITEM_SETS } from "@/lib/instrument";
+import SurveyVersionPicker from "@/components/index/SurveyVersionPicker";
 
 type Link = {
   id: string;
@@ -18,6 +18,9 @@ type Link = {
   places_total: number;
   /** A test link (migration 0038): its answers are kept apart, never counted, and deleted after a week. */
   is_test?: boolean;
+  /** This survey's own first and last screen (0054); empty = the organisation's own message. */
+  welcome_message?: string | null;
+  closing_message?: string | null;
 };
 
 const STATUS_LABEL: Record<Link["status"], string> = {
@@ -74,7 +77,7 @@ export default function LinksPanel({ sb, orgSlug }: { sb: SupabaseClient; orgSlu
           onClick={() => setEditing("new")}
           className="rounded-lg bg-emerald px-3.5 py-1.5 text-[13px] font-semibold text-plate hover:bg-emerald-deep"
         >
-          + New link
+          + Start a new survey
         </button>
       </div>
 
@@ -164,7 +167,11 @@ export function LinkForm({
   const [name, setName] = useState(link?.name ?? "");
   const [slug, setSlug] = useState(link?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(Boolean(link));
-  const [itemSet, setItemSet] = useState<string>(link?.item_set ?? "");
+  // Two choices only (J12 / Full survey). A link made before this kept "the
+  // organisation's setting" (null); it shows as Full survey until changed.
+  const [itemSet, setItemSet] = useState<string>(link?.item_set ?? "full");
+  const [welcome, setWelcome] = useState(link?.welcome_message ?? "");
+  const [closing, setClosing] = useState(link?.closing_message ?? "");
   const [from, setFrom] = useState(toLocalInput(link?.active_from ?? null));
   const [to, setTo] = useState(toLocalInput(link?.active_to ?? null));
   const [isTest, setIsTest] = useState(Boolean(link?.is_test));
@@ -190,6 +197,15 @@ export function LinkForm({
     }
     // Test links (0038): set on a new link, or changed while the link is still empty.
     const id = (data as { id?: string } | null)?.id ?? link?.id;
+    // This survey's own welcome and closing (0054) — only written when changed.
+    if (id && (welcome.trim() !== (link?.welcome_message ?? "") || closing.trim() !== (link?.closing_message ?? ""))) {
+      const { error: mErr } = await sb.rpc("set_distribution_link_messages", { p_org_slug: orgSlug, p_link_id: id, p_welcome: welcome, p_closing: closing });
+      if (mErr) {
+        setBusy(false);
+        setError(/set_distribution_link_messages|could not find the function/i.test(mErr.message) ? "Survey messages need migration 0054, which isn't applied to this database yet. Everything else was saved." : mErr.message);
+        return;
+      }
+    }
     if (id && isTest !== Boolean(link?.is_test)) {
       const { error: tErr } = await sb.rpc("set_link_test", { p_org_slug: orgSlug, p_link_id: id, p_is_test: isTest });
       if (tErr) {
@@ -205,7 +221,7 @@ export function LinkForm({
   return (
     <div className="mt-3 rounded-lg border-2 border-ink bg-card p-4">
       <p className="font-mono text-[9px] uppercase tracking-wider text-muted">
-        {link ? "Rename / reschedule link" : "New distribution link"}
+        {link ? "Edit this survey" : "Start a new survey"}
       </p>
       <div className="mt-3 space-y-3">
         <div>
@@ -251,16 +267,24 @@ export function LinkForm({
           </span>
         </label>
         <div>
-          <label htmlFor="link-item-set" className="font-mono text-[9px] uppercase tracking-wider text-muted">Survey version</label>
-          <select id="link-item-set" value={itemSet} onChange={(e) => setItemSet(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-rule px-2 py-1.5 text-sm">
-            <option value="">Same as your survey settings</option>
-            {ITEM_SETS.map((s) => (
-              <option key={s.name} value={s.name}>{s.label} · about {s.minutes} minutes</option>
-            ))}
-          </select>
+          <p id="link-item-set-label" className="font-mono text-[9px] uppercase tracking-wider text-muted">Which survey</p>
+          <div className="mt-1">
+            <SurveyVersionPicker id="link-item-set" value={itemSet} onChange={setItemSet} />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="link-welcome" className="font-mono text-[9px] uppercase tracking-wider text-muted">Welcome · before question one</label>
+          <textarea id="link-welcome" rows={3} maxLength={600} value={welcome} onChange={(e) => setWelcome(e.target.value)}
+            placeholder="Leave empty for your organisation's welcome"
+            className="mt-1 w-full rounded-lg border border-rule px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label htmlFor="link-closing" className="font-mono text-[9px] uppercase tracking-wider text-muted">Closing · after the last answer</label>
+          <textarea id="link-closing" rows={3} maxLength={600} value={closing} onChange={(e) => setClosing(e.target.value)}
+            placeholder="Leave empty for your organisation's thank-you"
+            className="mt-1 w-full rounded-lg border border-rule px-3 py-2 text-sm" />
           <p className="mt-1 text-[12px] leading-snug text-muted">
-            Every version asks the J12 questions the same way, so this link&apos;s answers count in your score either way.
+            Shown to everyone who answers through this link. Don&apos;t include names or contact details of young people.
           </p>
         </div>
       </div>
@@ -268,7 +292,7 @@ export function LinkForm({
       <div className="mt-4 flex gap-2">
         <button onClick={save} disabled={busy || !name.trim()}
           className="rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-paper disabled:opacity-50">
-          {busy ? "Saving…" : link ? "Save changes" : "Create link"}
+          {busy ? "Saving…" : link ? "Save changes" : "Start this survey"}
         </button>
         <button onClick={onClose} className="rounded-lg border border-rule px-4 py-2 text-sm text-slate">
           Cancel

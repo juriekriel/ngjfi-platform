@@ -31,6 +31,8 @@ type Org = {
   brand_color: string | null;
   country: string | null;
   welcome_message: string | null;
+  /** The organisation's own last screen (Edit your dashboard → Messages). */
+  closing_message?: string | null;
   /** The organisation's logo (Survey settings, migrations 0036/0037). */
   logo_url?: string | null;
   /** Collecting only when active, and — for real organisations — once consent is attested (0042). */
@@ -70,6 +72,8 @@ export default function Survey({
   distributionLinkSlug,
   linkItemSet = null,
   isTestLink = false,
+  linkWelcome = null,
+  linkClosing = null,
 }: {
   slug: string;
   /**
@@ -86,6 +90,9 @@ export default function Survey({
   distributionLinkSlug?: string;
   /** A test link (0038) records into test tables and may run before consent is attested. */
   isTestLink?: boolean;
+  /** This survey's own welcome and closing (0054) — ahead of the organisation's own, then the standard text. */
+  linkWelcome?: string | null;
+  linkClosing?: string | null;
 }) {
   // Language (docs/TRANSLATION.md). Respondents are offered only LIVE
   // languages. Reviewers add ?preview=1 to try draft translations — and a
@@ -212,7 +219,7 @@ export default function Survey({
         // lockstep by a trigger, but the URL is the short name, so look that up.
         const [{ data: o, error: oErr }, { data: lockRow }, consentRes] = await withTimeout(
           Promise.all([
-            sb.from("organisations").select("id,slug,name,brand_color,country,welcome_message,logo_url,status,is_demo,consent_attested_at").eq("short_name", slug).maybeSingle(),
+            sb.from("organisations").select("id,slug,name,brand_color,country,welcome_message,closing_message,logo_url,status,is_demo,consent_attested_at").eq("short_name", slug).maybeSingle(),
             // platform_settings is publicly readable (0009). Missing row = locked, as on the server.
             sb.from("platform_settings").select("value").eq("key", "collection_locked").maybeSingle(),
             // Is THIS survey consented, and for which age bands? (0053) No staff data.
@@ -489,7 +496,7 @@ export default function Survey({
               {/* The organisation's own welcome is one language (written in its
                   settings); other languages get the translated standard welcome.
                   One instrument, one length. */}
-              {(lang.code === "en" && org?.welcome_message) ||
+              {(lang.code === "en" && (linkWelcome || org?.welcome_message)) ||
                 lang.ui("welcome_body", { org: orgName, minutes: itemSetMinutes(itemSet) })}
             </p>
             <details className="mt-4 rounded-lg bg-paper-deep px-3 py-2 text-[13px] leading-relaxed text-ink-2">
@@ -547,6 +554,13 @@ export default function Survey({
               ✓
             </div>
             <h2 className="text-xl font-bold">{lang.ui("thanks")}</h2>
+            {/* This survey's own closing, else the organisation's — written in one
+                language, like the welcome; other languages get the standard text. */}
+            {lang.code === "en" && (linkClosing || org?.closing_message) && (
+              <p dir="auto" className="mx-auto mt-3 max-w-sm whitespace-pre-line text-[15px] leading-relaxed text-ink">
+                {linkClosing || org?.closing_message}
+              </p>
+            )}
             <p className="mx-auto mt-2 max-w-sm text-sm text-slate">
               {lang.ui(pending > 0 ? "done_pending" : "done_saved", { org: orgName })} {lang.ui("done_private")}
             </p>

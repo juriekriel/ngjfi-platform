@@ -15,7 +15,7 @@ test("labels come from the instrument, so new bands need no code", () => {
     i.key === "age_band" ? { ...i, options: [...(i.options ?? []), { value: "31_45", text: { en: "31–45" } }] } : i) };
   assert.equal(groupLabel("age_band", "31_45", withNewBand), "31–45");
   assert.equal(groupLabel("language", "en", inst, locales), "English");
-  assert.equal(groupLabel("survey_version", "j12", inst), "J12 only");
+  assert.equal(groupLabel("survey_version", "j12", inst), "J12");
 });
 
 const base: Completion = { started: 410, completed: 295, pending: 0, rate_base: 410, min_n: 10,

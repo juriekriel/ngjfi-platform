@@ -28,6 +28,7 @@ import MapTierToggle from "@/components/index/MapTierToggle";
 import ConsultDrawer, { ConsultButton } from "@/components/index/ConsultDrawer";
 import UnengagedMatrix, { type UnengagedData } from "@/components/index/UnengagedMatrix";
 import { TIER_LABEL, fig } from "@/lib/model";
+import { resolvePanels, type Panels } from "@/lib/dashboardPanels";
 
 type Matrix = Record<string, Record<string, number | null>>;
 
@@ -85,17 +86,25 @@ export type FrameProps = {
   unengagedScopeLine?: string;
   /** Room name when a room is selected (org tab), for the consult snapshot. */
   roomName?: string | null;
+  /** Which views and tools the organisation switched on (0054). Omit = everything. */
+  panels?: Panels;
   children?: React.ReactNode;
 };
 
 export default function SignedInFrame(p: FrameProps) {
-  const [view, setView] = useState<"matrix" | "unengaged" | "heatmap" | "insights">("matrix");
+  const show = p.panels ?? resolvePanels(null);
+  const firstView = show.matrix ? "matrix" : p.unengaged && show.unengaged ? "unengaged" : show.heatmap ? "heatmap" : "matrix";
+  const [view, setView] = useState<"matrix" | "unengaged" | "heatmap" | "insights">(firstView);
+  // A choice changed (or loaded) under us: never sit on a view that is switched off.
+  useEffect(() => {
+    if ((view === "matrix" && !show.matrix) || (view === "heatmap" && !show.heatmap) || (view === "unengaged" && !show.unengaged)) setView(firstView);
+  }, [view, show.matrix, show.heatmap, show.unengaged, firstView]);
   const [tier, setTier] = useState("formation");
   const [overlayWanted, setOverlayWanted] = useState(true);
   const [consult, setConsult] = useState(false);
 
   const overlayUsable = p.overlay.allowed && p.overlay.matrix != null;
-  const overlayOn = overlayUsable && overlayWanted && view === "matrix";
+  const overlayOn = overlayUsable && overlayWanted && view === "matrix" && (p.panels?.overlay ?? true);
   const overlayHint = !p.overlay.allowed
     ? p.overlay.reason
     : p.overlay.matrix == null
@@ -121,7 +130,7 @@ export default function SignedInFrame(p: FrameProps) {
 
         {p.body ?? (
           <>
-        <div className="grid gap-2.5 sm:grid-cols-3">
+        {show.figures && <div className="grid gap-2.5 sm:grid-cols-3">
           <Figure label="J12 index" note={p.figures.indexNote} value={fig(p.figures.index)} accent={p.active === "org"} />
           <Figure label="Completed the Index" note={p.figures.nNote} value={p.figures.n == null ? "—" : p.figures.n.toLocaleString()} />
           <Figure
@@ -129,19 +138,19 @@ export default function SignedInFrame(p: FrameProps) {
             note={`a country lights up at ${p.figures.countryGate.toLocaleString()} completions`}
             value={p.figures.activeCountries == null ? "—" : String(p.figures.activeCountries)}
           />
-        </div>
+        </div>}
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div role="group" aria-label="View" className="inline-flex gap-1 rounded-xl bg-rule/70 p-1">
-            <Seg on={view === "matrix"} onClick={() => setView("matrix")}>J12 matrix</Seg>
-            {p.unengaged && <Seg on={view === "unengaged"} onClick={() => setView("unengaged")}>Unengaged matrix</Seg>}
-            <Seg on={view === "heatmap"} onClick={() => setView("heatmap")}>Heat map</Seg>
+            {show.matrix && <Seg on={view === "matrix"} onClick={() => setView("matrix")}>J12 matrix</Seg>}
+            {p.unengaged && show.unengaged && <Seg on={view === "unengaged"} onClick={() => setView("unengaged")}>Unengaged matrix</Seg>}
+            {show.heatmap && <Seg on={view === "heatmap"} onClick={() => setView("heatmap")}>Heat map</Seg>}
             {p.insights && <Seg on={view === "insights"} onClick={() => setView("insights")}>Insights</Seg>}
           </div>
           <div className="flex flex-wrap items-center gap-2.5">
-            {overlayHint && <span className="text-[13px] text-ink-2">{overlayHint}</span>}
-            {p.consultEnabled !== false && <ConsultButton onClick={() => setConsult(true)} />}
-            <button
+            {show.overlay && overlayHint && <span className="text-[13px] text-ink-2">{overlayHint}</span>}
+            {p.consultEnabled !== false && show.consult && <ConsultButton onClick={() => setConsult(true)} />}
+            {show.overlay && <button
               type="button"
               aria-pressed={overlayOn}
               disabled={!overlayUsable || view !== "matrix"}
@@ -155,7 +164,7 @@ export default function SignedInFrame(p: FrameProps) {
               }`}
             >
               {p.overlay.button}
-            </button>
+            </button>}
           </div>
         </div>
 

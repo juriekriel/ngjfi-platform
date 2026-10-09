@@ -81,8 +81,7 @@ export async function POST(req: Request) {
        <li>Read the <a href="https://jfindx.org/resources/consent">consent resource</a> and confirm consent — for your organisation, and for each survey you send.</li>
        <li>We'll email you the day live answers start recording, when the pilots open.</li>
      </ol>
-     <p>You'll also get <b>Field Notes</b> — a monthly note on how the Index is being built — if you asked for it.
-     Unsubscribe any time. Questions? Just reply to this email.</p>
+     <p>Questions? Just reply to this email.</p>
      ${referralCode ? `<p>Your referral code: <code>${escapeHtml(referralCode)}</code></p>` : ""}
      <p>— The Jesus Index team</p>`,
   );

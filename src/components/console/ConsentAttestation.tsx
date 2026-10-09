@@ -126,7 +126,7 @@ export default function ConsentAttestation({
             type="button"
             onClick={confirm}
             disabled={!ticked || busy}
-            className="self-start rounded-lg bg-ink px-4 py-2.5 text-[14px] font-semibold text-paper disabled:opacity-40"
+            className="self-start rounded-lg bg-gradient-to-r from-emerald via-emerald-deep to-emerald-deeper px-4 py-2.5 text-[14px] font-semibold text-plate disabled:opacity-40"
           >
             {busy ? "Confirming…" : "Confirm consent"}
           </button>

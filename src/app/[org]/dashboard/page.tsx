@@ -12,7 +12,7 @@
  *
  * Everything that used to make this page a long scroll — trend, per-item
  * detail, Drivers & Journey, the Exploration Index, exports — is kept, one
- * click away under "More detail & export", so nothing an organisation relied
+ * click away under "Export your results", so nothing an organisation relied
  * on has gone.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -23,6 +23,7 @@ import { unengagedFrom } from "@/components/index/UnengagedMatrix";
 import { completionsNote, type Completions } from "@/lib/completions";
 import RoomCards, { type RoomSelection, type DashboardView } from "@/components/index/RoomCards";
 import OrgSettings from "@/components/index/OrgSettings";
+import { resolvePanels, type Panels } from "@/lib/dashboardPanels";
 import ShareJfindx from "@/components/index/ShareJfindx";
 import OrgTeam from "@/components/index/OrgTeam";
 import ShareLinksPanel from "@/components/index/ShareLinksPanel";
@@ -79,11 +80,16 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
   const [roomErr, setRoomErr] = useState<string | null>(null);
 
   const [showDetail, setShowDetail] = useState(false);
-  // Results, Survey settings, Team & access, or Share — one dashboard, four views (?view=).
+  const [showShare, setShowShare] = useState(false);
+  // What the organisation switched on (0054). Everything until it loads, or without 0054.
+  const [panels, setPanels] = useState<Panels>(() => resolvePanels(null));
+  // Results, Edit your dashboard, or Your team & access — one dashboard, three views (?view=).
   const [view, setView] = useState<DashView>("results");
   useEffect(() => {
     const v = new URLSearchParams(window.location.search).get("view");
-    if (v === "settings" || v === "share" || v === "team") setView(v);
+    if (v === "settings" || v === "team") setView(v);
+    // Share now lives at the foot of the results; an old ?view=share opens it there.
+    else if (v === "share") setShowShare(true);
     // View-only links live in Team & access; keep any bookmarked ?view=viewlinks working.
     else if (v === "viewlinks") setView("team");
   }, []);
@@ -121,6 +127,8 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
     setDash(data as Dash);
     setNeedsClaim(false);
     sb.rpc("org_reach_countries", { p_org_slug: slug }).then(({ data: r }) => r && setReached(r as string[]));
+    sb.rpc("org_dashboard_panels", { p_org_slug: slug }).then(({ data: pn, error: pnErr }) =>
+      setPanels(resolvePanels(pnErr ? null : (pn as { panels?: unknown } | null)?.panels)));
     const { data: sea, error: seaErr } = await sb.rpc("org_seasons", { p_org_slug: slug });
     if (!seaErr && sea) setSeasons(sea as Season[]);
     setSeasonIdx(0);
@@ -261,11 +269,11 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
       email={userEmail}
       title={
         view === "settings"
-          ? `${dash.org.name} · survey settings`
+          ? `${dash.org.name} · edit your dashboard`
           : view === "share"
             ? "Share about the JFINDX"
             : view === "team"
-              ? `${dash.org.name} · team & access`
+              ? `${dash.org.name} · your team & access`
             : inRoom
               ? (roomName as string)
               : `${dash.org.name} · the whole house`
@@ -348,13 +356,14 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
       countries={countries}
       reached={reached}
       roomName={roomName}
+      panels={panels}
       scopeLine={
         inRoom
           ? `Of those who completed the Index through “${roomName}” · n ${(n ?? 0).toLocaleString()}`
           : `Of those who completed the Index through any ${dash.org.name} link · n ${dash.n.toLocaleString()}`
       }
     >
-      {view === "results" && !demoPreview && (
+      {view === "results" && !demoPreview && panels.who_answered && (
         <WhoAnswered
           sb={sb}
           orgSlug={slug}
@@ -362,11 +371,11 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
           season={!inRoom && seasons && seasonIdx > 0 ? { start: seasons[seasonIdx].start, end: seasons[seasonIdx].end } : null}
         />
       )}
-      {!inRoom && view === "results" && (
+      {!inRoom && view === "results" && panels.export && (
         <section className="rounded-2xl border border-rule bg-plate px-4 py-3 sm:px-6">
           <button type="button" onClick={() => setShowDetail((v) => !v)} aria-expanded={showDetail}
             className="flex w-full items-center justify-between py-1 text-left text-[14px] font-semibold text-ink">
-            More detail &amp; export
+            Export your results
             <span aria-hidden className="text-ink-2">{showDetail ? "▲" : "▾"}</span>
           </button>
           {showDetail && (
@@ -397,6 +406,22 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
               )}
               <ResultsDetail dash={dash} />
 
+            </div>
+          )}
+        </section>
+      )}
+      {view === "results" && (panels.share || showShare) && (
+        // Share about the JFINDX — last on the page, the same shape as
+        // "Export your results" above it, a shade darker.
+        <section className="rounded-2xl border border-ink bg-ink px-4 py-3 text-paper sm:px-6">
+          <button type="button" onClick={() => setShowShare((v) => !v)} aria-expanded={showShare}
+            className="flex w-full items-center justify-between py-1 text-left text-[14px] font-semibold text-paper">
+            Share about the JFINDX
+            <span aria-hidden className="text-paper/70">{showShare ? "▲" : "▾"}</span>
+          </button>
+          {showShare && (
+            <div className="mt-3 pb-2 text-ink">
+              <ShareJfindx orgName={dash.org.name} />
             </div>
           )}
         </section>

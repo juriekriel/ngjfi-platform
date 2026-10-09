@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Footer, Masthead } from "@/components/site/Chrome";
 import JoinForm from "./JoinForm";
 import CoverageMap from "@/components/site/CoverageMap";
+import BeforeYouAsk from "./BeforeYouAsk";
 
 export const metadata = {
   title: "Join the Index — The Jesus Index",
@@ -12,7 +13,7 @@ export const metadata = {
 export default function JoinPage() {
   return (
     <>
-      <Masthead edition="§ Join · free, and available now" />
+      <Masthead edition="See Jesus-Following in your nextgen, today" />
       <main className="mx-auto max-w-5xl px-5">
         <section className="grid gap-10 border-b border-ink py-10 md:grid-cols-[1.15fr_1fr] md:gap-14">
           <div>
@@ -80,9 +81,13 @@ export default function JoinPage() {
         </section>
 
         <section className="py-10">
-          <h2 className="text-[24px] leading-tight">Before you ask</h2>
-          <dl className="mt-6 grid gap-x-10 gap-y-6 md:grid-cols-2">
-            {[
+          <h2 className="text-[28px] font-bold leading-tight tracking-tight">
+            Before you ask
+            <span aria-hidden className="mt-2 block h-1 w-24 rounded-full bg-gradient-to-r from-emerald to-violet" />
+          </h2>
+          <p className="mt-3 text-[14px] text-ink-2">Hover over a question — or tap it — to see the answer.</p>
+          <BeforeYouAsk
+            items={[
               ["Is this free?", "Running the Index is free, and it stays free. Your standard report is free. Advanced reports and consulting are paid — and free for Collab members."],
               ["Who owns our data?", "Your results belong to your ministry. Responses are anonymous: no one, including you, sees an individual young person's answers. Anonymous responses also pool into the shared picture — that is what makes comparison possible."],
               ["How do you handle under-18s?", "Consent, including parental consent, is gathered by your organisation, locally, and confirmed on the platform for your organisation and for every survey you send — no consent, no participation. We never hold identifiable data about a minor. The consent resource (jfindx.org/resources/consent) has the parent letter, the script and the rules country by country."],
@@ -91,28 +96,26 @@ export default function JoinPage() {
               ["What if we already run our own survey?", "Keep it. The Index is not a replacement for what you measure internally — it is the one part that is the same everywhere, so you can compare. Most organisations will run both."],
               ["Is the survey final?", "The version the pilots run is locked, so everyone's answers compare. Researchers keep improving it, and every change becomes a new version — results always stay tied to the version they were given under."],
               ["When can we start?", "Now: join, set up your page and try your test link today. Live answers start recording when the pilots open, and your city and country comparisons appear as enough ministries near you take part."],
-            ].map(([q, a]) => (
-              <div key={q} className="border-t border-rule pt-3">
-                <dt className="text-[17px] leading-snug">{q}</dt>
-                <dd className="mt-1.5 text-[15px] leading-relaxed text-ink-2">{a}</dd>
-              </div>
-            ))}
-          </dl>
+            ] as [string, string][]}
+          />
         </section>
 
         <section className="border-t-2 border-ink py-10">
           <p className="figcap">Not ready yet?</p>
           <div className="mt-5 grid gap-6 sm:grid-cols-3">
-            <Link href="/learn" className="border-t-2 border-rule pt-3 no-underline">
-              <p className="text-[17px] leading-snug text-ink">What is the Index →</p>
+            <Link href="/learn" className="group no-underline">
+              <span aria-hidden className="block h-1 rounded-full bg-gradient-to-r from-emerald via-emerald-deep to-violet" />
+              <p className="mt-3 text-[17px] font-bold leading-snug text-ink group-hover:underline">What is the Index →</p>
               <p className="margin-note mt-1">The short version, two minutes.</p>
             </Link>
-            <Link href="/tour" className="border-t-2 border-rule pt-3 no-underline">
-              <p className="text-[17px] leading-snug text-ink">See how it works →</p>
+            <Link href="/tour" className="group no-underline">
+              <span aria-hidden className="block h-1 rounded-full bg-gradient-to-r from-emerald via-emerald-deep to-violet" />
+              <p className="mt-3 text-[17px] font-bold leading-snug text-ink group-hover:underline">See how it works →</p>
               <p className="margin-note mt-1">A guided walk through the real product.</p>
             </Link>
-            <Link href="/#global" className="border-t-2 border-rule pt-3 no-underline">
-              <p className="text-[17px] leading-snug text-ink">A global picture →</p>
+            <Link href="/#global" className="group no-underline">
+              <span aria-hidden className="block h-1 rounded-full bg-gradient-to-r from-emerald via-emerald-deep to-violet" />
+              <p className="mt-3 text-[17px] font-bold leading-snug text-ink group-hover:underline">A global picture →</p>
               <p className="margin-note mt-1">See where the movement stands first.</p>
             </Link>
           </div>

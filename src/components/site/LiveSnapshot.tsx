@@ -94,7 +94,7 @@ export default function LiveSnapshot() {
           href="/join"
           className="rounded-lg border-2 border-emerald bg-emerald px-5 py-3 text-center text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
         >
-          Join the JFINDX — free →
+          Join the JFINDX →
         </Link>
       </div>
     </section>

@@ -1,13 +1,14 @@
 "use client";
 
 /**
- * Survey settings — the organisation's own back end, inside its dashboard
+ * Edit your dashboard (was "Survey settings") — the organisation's own back end, inside its dashboard
  * (same frame, same header, tiles all the way through). Replaces the separate
  * /build console for everything an organisation needs to run its survey.
  *
+ *   Your dashboard   which views and tools show     org_set_dashboard_panels() (0054)
  *   Name & look      name, colour, logo (upload)   org_update_settings() + Storage (0037)
  *   Messages         welcome and closing           org_update_settings()
- *   Survey version   full / J12 only (instrument item_sets)  org_set_duration() (0044)
+ *   Survey version   J12 / Full survey (instrument item_sets)  org_set_duration() (0044)
  *   Link & QR        the survey link, QR download, print cards
  *   Languages        what it runs in; request a translation (→ the Collab)
  *   Status           collecting or waiting for approval
@@ -19,9 +20,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import QRCode from "qrcode";
-import { ITEM_SETS, TOTAL_COUNT, instrument, knownItemSet } from "@/lib/instrument";
+import { TOTAL_COUNT, instrument, knownItemSet } from "@/lib/instrument";
+import SurveyVersionPicker from "@/components/index/SurveyVersionPicker";
 import { REGISTRY } from "@/lib/i18n";
 import ConsentAttestation from "@/components/console/ConsentAttestation";
+import { PANELS, VIEW_KEYS, panelsPatch, resolvePanels, type PanelKey, type Panels } from "@/lib/dashboardPanels";
+import { isMissingFunction } from "@/lib/breakdown";
 import { LOGO_BUCKET, LOGO_MAX_BYTES, fitWithin, logoPath, logoProblem, ourLogoPath } from "@/lib/logoUpload";
 
 type Settings = {
@@ -59,6 +63,7 @@ export default function OrgSettings({ sb, orgSlug, onSaved }: { sb: SupabaseClie
           You can see these settings; an organisation admin on your team can change them.
         </p>
       )}
+      <DashboardTile sb={sb} orgSlug={orgSlug} onSaved={() => onSaved?.()} />
       <div className="grid gap-3 lg:grid-cols-3">
         <LookTile sb={sb} orgSlug={orgSlug} s={s} ro={ro} onSaved={() => { load(); onSaved?.(); }} />
         <MessagesTile sb={sb} orgSlug={orgSlug} s={s} ro={ro} />
@@ -66,7 +71,7 @@ export default function OrgSettings({ sb, orgSlug, onSaved }: { sb: SupabaseClie
         <LinksTile orgSlug={orgSlug} origin={origin} name={s.name} />
         <LanguagesTile sb={sb} orgSlug={orgSlug} s={s} />
         <StatusTile s={s} />
-        <Tile kicker="Before your first real response" title="Consent">
+        <Tile kicker="Before your first real response" title="Consent" tone="consent">
           <ConsentAttestation sb={sb} orgSlug={orgSlug} onChange={() => onSaved?.()} />
         </Tile>
       </div>
@@ -74,11 +79,13 @@ export default function OrgSettings({ sb, orgSlug, onSaved }: { sb: SupabaseClie
   );
 }
 
-function Tile({ kicker, title, children }: { kicker: string; title: string; children: React.ReactNode }) {
+function Tile({ kicker, title, tone, children }: { kicker: string; title: string; tone?: "consent"; children: React.ReactNode }) {
+  // Consent is the one tile that must be noticed: a light coral wash, never an alarm.
+  const box = tone === "consent" ? "border-emerald/50 bg-emerald/10" : "border-rule bg-plate";
   return (
-    <section className="flex flex-col gap-3 rounded-2xl border border-rule bg-plate p-5 shadow-sm">
+    <section className={`flex flex-col gap-3 rounded-2xl border p-5 shadow-sm ${box}`}>
       <div>
-        <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-2">{kicker}</p>
+        <p className={`font-mono text-[11px] uppercase tracking-[0.06em] ${tone === "consent" ? "text-emerald-deeper" : "text-ink-2"}`}>{kicker}</p>
         <h2 className="mt-0.5 text-[18px] font-bold tracking-tight">{title}</h2>
       </div>
       {children}
@@ -263,7 +270,7 @@ function LinksTile({ orgSlug, origin, name }: { orgSlug: string; origin: string;
         </div>
       ))}
       <p className="text-[12.5px] leading-relaxed text-ink-2">
-        <b className="text-ink">Custom links:</b> “+ New link” makes a link with its own name and address — {origin.replace(/^https?:\/\//, "")}/{orgSlug}/l/<i>your-name</i> — and its own open and close times. Each one is a room in {name}&apos;s results.
+        <b className="text-ink">Custom links:</b> “+ Start a new survey” makes a link with its own name and address — {origin.replace(/^https?:\/\//, "")}/{orgSlug}/l/<i>your-name</i> — and its own open and close times. Each one is a room in {name}&apos;s results.
       </p>
     </Tile>
   );
@@ -297,23 +304,10 @@ function VersionTile({ sb, orgSlug, s, ro, onSaved }: { sb: SupabaseClient; orgS
     onSaved();
   }
   return (
-    <Tile kicker="What respondents are asked" title="Survey version">
-      {ITEM_SETS.map((o) => (
-        <button
-          key={o.name}
-          type="button"
-          disabled={ro}
-          aria-pressed={v === o.name}
-          onClick={() => pick(o.name)}
-          className={`flex flex-col items-start rounded-xl border px-4 py-3 text-left ${v === o.name ? "border-violet-deep bg-violet/10" : "border-rule-2 bg-plate hover:border-ink"} disabled:cursor-default`}
-        >
-          <span className="text-[15px] font-semibold">{o.label} · about {o.minutes} minutes</span>
-          <span className="text-[13px] leading-snug text-ink-2">{o.description}</span>
-        </button>
-      ))}
+    <Tile kicker="What respondents are asked" title="Which survey">
+      <SurveyVersionPicker id="org-item-set" value={v} onChange={pick} disabled={ro} />
       <p className="text-[12.5px] leading-relaxed text-ink-2">
-        Applies to your survey link and to any room set to &ldquo;Same as your survey settings&rdquo;. Both versions ask the
-        J12 questions identically, so your score and benchmarks are comparable either way.
+        This is the survey on your main link. Each survey you start can choose its own.
       </p>
       <Feedback msg={msg} err={err} />
     </Tile>
@@ -398,6 +392,93 @@ function StatusTile({ s }: { s: Settings }) {
       <div className="rounded-xl bg-paper-deep px-3 py-2.5 text-[13px] text-ink-2">
         Instrument <b className="text-ink">{instrument.version}</b> · {TOTAL_COUNT} questions · anonymous · works offline
       </div>
+    </Tile>
+  );
+}
+
+/**
+ * Your dashboard — every view and tool is available; the organisation admin
+ * chooses which are switched on (migration 0054, src/lib/dashboardPanels.ts).
+ * Display only: nothing here changes what is collected, scored or gated, and
+ * a score always keeps its n.
+ */
+function DashboardTile({ sb, orgSlug, onSaved }: { sb: SupabaseClient; orgSlug: string; onSaved: () => void }) {
+  const [panels, setPanels] = useState<Panels | null>(null);
+  const [canEdit, setCanEdit] = useState(false);
+  const [state, setState] = useState<{ busy: boolean; msg: string | null; err: string | null }>({ busy: false, msg: null, err: null });
+  const [missing, setMissing] = useState(false);
+
+  useEffect(() => {
+    sb.rpc("org_dashboard_panels", { p_org_slug: orgSlug }).then(({ data, error }) => {
+      if (error) {
+        setMissing(isMissingFunction(error));
+        setPanels(resolvePanels(null));
+        if (!isMissingFunction(error)) setState({ busy: false, msg: null, err: error.message });
+        return;
+      }
+      const d = data as { panels: unknown; can_edit: boolean };
+      setPanels(resolvePanels(d.panels));
+      setCanEdit(Boolean(d.can_edit));
+    });
+  }, [sb, orgSlug]);
+
+  if (!panels) return null;
+  const ro = !canEdit || missing;
+  const viewsOn = VIEW_KEYS.filter((k) => panels[k]).length;
+
+  function toggle(k: PanelKey) {
+    setPanels((p) => {
+      if (!p) return p;
+      // Keep at least one view: the last one on can't be switched off.
+      if (VIEW_KEYS.includes(k) && p[k] && VIEW_KEYS.filter((v) => p[v]).length === 1) return p;
+      return { ...p, [k]: !p[k] };
+    });
+    setState((s) => ({ ...s, msg: null }));
+  }
+
+  async function save() {
+    if (!panels) return;
+    setState({ busy: true, msg: null, err: null });
+    const { error } = await sb.rpc("org_set_dashboard_panels", { p_org_slug: orgSlug, p_panels: panelsPatch(panels) });
+    setState({ busy: false, msg: error ? null : "Saved — your dashboard shows these now.", err: error?.message ?? null });
+    if (!error) onSaved();
+  }
+
+  const groups = ["Views", "Tools", "Below the results"] as const;
+  return (
+    <Tile kicker="What your dashboard shows" title="Your dashboard">
+      <p className="text-[13.5px] leading-relaxed text-ink-2">
+        Everything is available — switch on what your team wants to see. Wherever a score shows, its sample size
+        shows with it. At least one view stays on.
+      </p>
+      {missing && (
+        <p className="rounded-lg bg-paper-deep px-3 py-2 text-[13px] text-ink-2">Choosing panels needs migration 0054, which isn&apos;t applied to this database yet. Everything is shown.</p>
+      )}
+      {!missing && !canEdit && (
+        <p className="rounded-lg bg-paper-deep px-3 py-2 text-[13px] text-ink-2">An organisation admin on your team can change these.</p>
+      )}
+      <div className="grid gap-4 md:grid-cols-3">
+        {groups.map((g) => (
+          <fieldset key={g} className="flex flex-col gap-2">
+            <legend className="mb-1 font-mono text-[10.5px] uppercase tracking-wider text-ink-2">{g}</legend>
+            {PANELS.filter((d) => d.group === g).map((d) => {
+              const on = panels[d.key];
+              const locked = VIEW_KEYS.includes(d.key) && on && viewsOn === 1;
+              return (
+                <label key={d.key} className={`flex items-start gap-2.5 rounded-xl border px-3 py-2.5 ${on ? "border-violet-deep bg-violet/10" : "border-rule-2 bg-plate"} ${ro ? "" : "cursor-pointer"}`}>
+                  <input type="checkbox" checked={on} disabled={ro || locked} onChange={() => toggle(d.key)} className="mt-0.5 h-4 w-4 flex-none accent-[rgb(var(--c-violet-deep))]" />
+                  <span>
+                    <span className="block text-[14px] font-semibold text-ink">{d.label}</span>
+                    <span className="block text-[12.5px] leading-snug text-ink-2">{locked ? "The last view on stays on." : d.description}</span>
+                  </span>
+                </label>
+              );
+            })}
+          </fieldset>
+        ))}
+      </div>
+      {!ro && <button disabled={state.busy} onClick={save} className={saveBtn}>{state.busy ? "Saving…" : "Save"}</button>}
+      <Feedback msg={state.msg} err={state.err} />
     </Tile>
   );
 }

@@ -28,9 +28,9 @@ import { SAMPLE_ORG } from "@/lib/sample";
  * immediately reads "this is what shows up on someone's phone" rather than
  * mistaking it for an ordinary card on the page.
  */
-export function PhoneFrame({ children }: { children: React.ReactNode }) {
+export function PhoneFrame({ children, large = false }: { children: React.ReactNode; large?: boolean }) {
   return (
-    <div className="mx-auto w-full max-w-[320px] rounded-[2.25rem] border-[10px] border-ink bg-ink shadow-xl">
+    <div className={`mx-auto w-full ${large ? "max-w-[380px]" : "max-w-[320px]"} rounded-[2.25rem] border-[10px] border-ink bg-ink shadow-xl`}>
       <div className="flex justify-center py-1.5">
         <div className="h-1.5 w-16 rounded-full bg-ink-2" />
       </div>
@@ -48,7 +48,7 @@ export function PhoneFrame({ children }: { children: React.ReactNode }) {
  * because trying the flow means the most once you have just read why it
  * stops asking certain questions.
  */
-export default function SurveyDemo({ caption = true }: { caption?: boolean } = {}) {
+export default function SurveyDemo({ caption = true, large = false }: { caption?: boolean; large?: boolean } = {}) {
   const items = useMemo(() => fieldedItems(), []);
   const steps = items.length;
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
@@ -85,8 +85,8 @@ export default function SurveyDemo({ caption = true }: { caption?: boolean } = {
   }
 
   return (
-    <div className="mx-auto max-w-[320px]">
-      <PhoneFrame>
+    <div className={`mx-auto w-full ${large ? "max-w-[380px]" : "max-w-[320px]"}`}>
+      <PhoneFrame large={large}>
         <div className="px-6 py-5 text-white" style={{ background: SAMPLE_ORG.brand }}>
           <div className="flex items-center gap-3">
             <div
@@ -105,7 +105,7 @@ export default function SurveyDemo({ caption = true }: { caption?: boolean } = {
           </div>
         </div>
 
-        <div className="max-h-[420px] overflow-y-auto bg-plate p-6">
+        <div className={`${large ? "max-h-[520px]" : "max-h-[420px]"} overflow-y-auto bg-plate p-6`}>
           {i < 0 && (
             <div>
               <h1 className="text-xl font-bold leading-tight text-ink">

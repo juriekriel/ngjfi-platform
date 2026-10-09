@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { Action, LinkRow, Row, Rows, Trouble } from "./Bands";
 import { ITEM_SETS, TOTAL_COUNT } from "@/lib/instrument";
+import SurveyVersionPicker from "@/components/index/SurveyVersionPicker";
 import { REGISTRY } from "@/lib/i18n";
 import ConsentAttestation, { useConsentStatus } from "./ConsentAttestation";
 
@@ -160,20 +161,8 @@ export default function SurveyWizard({
             comparable with everyone else&apos;s. Choose how much of it to ask — each respondent only sees
             the questions their answers lead to.
           </p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {ITEM_SETS.map((o) => (
-              <button
-                key={o.name}
-                type="button"
-                aria-pressed={itemSet === o.name}
-                onClick={() => setItemSet(o.name)}
-                className={`rounded-xl border-2 p-4 text-left ${itemSet === o.name ? "border-ink bg-paper-deep" : "border-rule-2 bg-plate hover:border-ink"}`}
-              >
-                <p className="figcap">{o.count} items · about {o.minutes} minutes for most people</p>
-                <p className="mt-1 text-[17px]">{o.label}</p>
-                <p className="mt-1.5 text-[14px] leading-relaxed text-ink-2">{o.description}</p>
-              </button>
-            ))}
+          <div className="mt-5 max-w-xl">
+            <SurveyVersionPicker id="wizard-item-set" value={itemSet} onChange={(n) => setItemSet(n as typeof itemSet)} />
           </div>
           <p className="margin-note mt-4 border-l-2 border-rule pl-3">
             Every version asks the twelve-cell grid the same way, so every result sits in the same

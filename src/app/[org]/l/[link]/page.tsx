@@ -14,6 +14,9 @@ type Resolved = {
   is_open: boolean;
   /** 0042: test links run before consent is attested (answers go to test tables). */
   is_test?: boolean;
+  /** 0054: this survey's own first and last screen. */
+  welcome_message?: string | null;
+  closing_message?: string | null;
 };
 
 /**
@@ -57,7 +60,7 @@ export default function DistributionLinkPage({ params }: { params: { org: string
       </Centered>
     );
 
-  return <Survey slug={params.org} linkItemSet={resolved.item_set ?? null} distributionLinkSlug={params.link} isTestLink={Boolean(resolved.is_test)} />;
+  return <Survey slug={params.org} linkItemSet={resolved.item_set ?? null} distributionLinkSlug={params.link} isTestLink={Boolean(resolved.is_test)} linkWelcome={resolved.welcome_message ?? null} linkClosing={resolved.closing_message ?? null} />;
 }
 
 function Centered({ children }: { children: React.ReactNode }) {
