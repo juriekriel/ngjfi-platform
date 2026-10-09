@@ -19,10 +19,15 @@ const RESEND_API_URL = "https://api.resend.com/emails";
 const FROM = process.env.WAITLIST_FROM_EMAIL || "hello@jfindx.org";
 
 type WaitlistNotifyPayload = {
+  /** "setup_call" = the person said yes / maybe to a 30-minute setup call: tell the team only. */
+  kind?: "join" | "setup_call";
   email?: string;
   orgName?: string;
   role?: string;
   referralCode?: string;
+  setupCall?: string;
+  countries?: string;
+  reach?: string;
 };
 
 function escapeHtml(s: string): string {
@@ -65,6 +70,34 @@ export async function POST(req: Request) {
   }
 
   const { email, orgName, role, referralCode } = payload;
+
+  // A setup-call request goes to the team only — never to the address given,
+  // so this branch can't be used to email anyone else. The answer itself is
+  // already saved (waitlist_qualify) and listed in the admin console.
+  if (payload.kind === "setup_call") {
+    if (!email || !orgName || !notifyTo) return NextResponse.json({ skipped: "nothing to send" }, { status: 200 });
+    const call = payload.setupCall === "maybe" ? "maybe" : "yes";
+    try {
+      await sendEmail(
+        apiKey,
+        notifyTo,
+        `Setup call ${call === "yes" ? "requested" : "maybe"}: ${orgName}`,
+        `<p><b>${escapeHtml(orgName)}</b> said <b>${call}</b> to a 30-minute setup call.</p>
+         <ul>
+           <li>Email: <a href="mailto:${escapeHtml(email)}?subject=${encodeURIComponent("Your JFINDX setup call")}">${escapeHtml(email)}</a></li>
+           <li>Role: ${escapeHtml(role || "—")}</li>
+           <li>Countries: ${escapeHtml(payload.countries || "—")}</li>
+           <li>Young people reached: ${escapeHtml(payload.reach || "—")}</li>
+         </ul>
+         <p>Reply to them to book a time, then tick it off in the console: jfindx.org/build → Applications → Setup calls.</p>`,
+      );
+      return NextResponse.json({ ok: true }, { status: 200 });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("waitlist-notify: setup call", e);
+      return NextResponse.json({ ok: false }, { status: 207 });
+    }
+  }
   if (!email || !orgName) {
     return NextResponse.json({ error: "missing required fields" }, { status: 400 });
   }

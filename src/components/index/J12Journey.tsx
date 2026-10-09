@@ -18,6 +18,7 @@
  * phrases are always in the DOM for screen readers (each cell's accessible
  * name carries its phrase); only what's painted changes. No chart library.
  */
+import { GradientRule } from "@/components/site/Chrome";
 import { useState } from "react";
 import { DOMAINS, DOMAIN_LABEL, DOMAIN_SHORT, MATRIX_PHRASE, TIERS, TIER_LABEL } from "@/lib/model";
 
@@ -41,9 +42,10 @@ export default function J12Journey() {
   const clear = () => setFocus({});
 
   return (
-    <section aria-labelledby="j12-journey" className="border-b border-ink py-12">
+    <section aria-labelledby="j12-journey" className="py-12">
+      <GradientRule className="mb-10" />
       <p className="figcap">The J12</p>
-      <h2 id="j12-journey" className="mt-2 text-[28px] leading-tight sm:text-[32px]">
+      <h2 id="j12-journey" className="mt-2 text-[28px] font-bold leading-tight tracking-tight sm:text-[32px]">
         How we measure Jesus-Following.
       </h2>
       <p className="mt-3 max-w-measure text-[16.5px] leading-relaxed text-ink-2">
@@ -149,10 +151,18 @@ function Lane({
         onFocus={() => setFocus({ lane: d })}
         onBlur={clear}
         aria-label={`${DOMAIN_SHORT[d]} — ${DOMAIN_LABEL[d]}`}
-        className="flex min-h-[4.5rem] items-center rounded-lg px-3 py-3 text-left text-[15px] font-semibold transition-colors motion-reduce:transition-none"
+        className="flex min-h-[4.5rem] flex-col justify-center rounded-lg px-3 py-2 text-left text-[15px] font-semibold transition-colors motion-reduce:transition-none"
         style={{ background: on ? LANE_GRADIENT_ON : LANE_GRADIENT, color: "rgb(var(--c-ink))", boxShadow: on ? LANE_RING : "none" }}
       >
         {DOMAIN_SHORT[d]}
+        {/* The lane's question appears with the lane, like the blocks do. */}
+        <span
+          aria-hidden="true"
+          className="mt-0.5 text-[12px] font-medium leading-snug text-ink-2 transition-opacity duration-200 motion-reduce:transition-none"
+          style={{ opacity: focus.lane === d ? 1 : 0 }}
+        >
+          {DOMAIN_LABEL[d]}
+        </span>
       </button>
       {TIERS.map((t) => {
         const show = lit(d, t);

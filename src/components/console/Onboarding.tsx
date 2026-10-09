@@ -134,6 +134,7 @@ export function ApplicationsBand({
 
       {apps && !creating && (
         <div className="space-y-6">
+          <SetupCalls />
           <section>
             <p className="figcap">Waiting for activation · set up themselves</p>
             {apps.pending_orgs.length ? (
@@ -615,5 +616,94 @@ function SelfServeForm({ email, onCancel }: { email: string; onCancel: () => voi
         <button type="button" onClick={onCancel} className="rounded-lg border border-rule-2 px-4 py-2.5 text-[14px] font-semibold text-ink hover:border-ink">Cancel</button>
       </div>
     </form>
+  );
+}
+
+/* ── admin: 30-minute setup calls (migration 0055) ───────────────────── */
+
+type SetupCall = {
+  id: string; email: string; org_name: string; role: string; country: string | null;
+  reach_band: string | null; languages: string[] | null; setup_call: "yes" | "maybe";
+  status: string; created_at: string; emailed_at: string | null; emailed_by: string | null;
+};
+
+/** The follow-up email, ready in the administrator's own mail app. */
+export function setupCallMailto(c: Pick<SetupCall, "email" | "org_name">): string {
+  const subject = "Your JFINDX setup call";
+  const body =
+    `Hi,\n\nThanks for joining the JFINDX with ${c.org_name}. You asked about a 30-minute setup call — ` +
+    `we'll set up your survey together and walk your team through reading the results.\n\n` +
+    `What times work for you in the next week or two? Let me know your time zone too.\n\n` +
+    `Thanks,\n`;
+  return `mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+/**
+ * Everyone who said yes (or maybe) to a setup call — whatever has happened to
+ * their application since, because the call is still owed after their
+ * organisation exists. "Email" opens a drafted follow-up in your mail app;
+ * "Mark emailed" ticks it off with your name and the time.
+ */
+export function SetupCalls() {
+  const sb = useMemo(() => getSupabaseBrowser(), []);
+  const [calls, setCalls] = useState<SetupCall[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const load = useCallback(async () => {
+    if (!sb) return;
+    const { data, error } = await sb.rpc("admin_setup_calls");
+    if (error) setErr(/admin_setup_calls|could not find the function/i.test(error.message) ? "Setup calls need migration 0055, which isn't applied to this database yet. Until then, look for “wants a setup call” on the applications below." : error.message);
+    else { setErr(null); setCalls(data as SetupCall[]); }
+  }, [sb]);
+  useEffect(() => { load(); }, [load]);
+
+  async function mark(id: string, emailed: boolean) {
+    if (!sb) return;
+    const { error } = await sb.rpc("admin_mark_setup_call", { p_id: id, p_emailed: emailed });
+    if (error) setErr(error.message);
+    else load();
+  }
+
+  const open = calls?.filter((c) => !c.emailed_at).length ?? 0;
+  return (
+    <section>
+      <p className="figcap">Setup calls · 30 minutes{calls ? ` · ${open} to email` : ""}</p>
+      {err && <p className="mt-1 text-[13px] text-ink-2">{err}</p>}
+      {calls && calls.length === 0 && <p className="mt-1 text-[14px] text-ink-2">Nobody has asked for a call yet.</p>}
+      {calls && calls.length > 0 && (
+        <Rows>
+          {calls.map((c) => (
+            <Row
+              key={c.id}
+              tone={c.emailed_at ? "good" : "warn"}
+              label={
+                <>
+                  <b>{c.org_name}</b> <span className="text-ink-2">· {c.role} · {c.email}</span>
+                  <span className="mt-0.5 block text-[12.5px] text-ink-2">
+                    {[c.setup_call === "yes" ? "Yes" : "Maybe", c.country, c.reach_band, c.languages?.join("/"), c.status === "onboarded" ? "organisation created" : null]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                  {c.emailed_at && (
+                    <span className="mt-0.5 block text-[12.5px] text-green">
+                      Emailed {when(c.emailed_at)}{c.emailed_by ? ` by ${c.emailed_by}` : ""}
+                    </span>
+                  )}
+                </>
+              }
+              meta={when(c.created_at)}
+            >
+              <span className="flex gap-2">
+                <a href={setupCallMailto(c)} className="rounded-md bg-emerald px-2.5 py-1 text-[12.5px] font-semibold text-plate no-underline hover:bg-emerald-deep">Email</a>
+                {c.emailed_at ? (
+                  <button onClick={() => mark(c.id, false)} className="rounded-md border border-rule-2 px-2.5 py-1 text-[12.5px] font-semibold text-ink-2 hover:border-ink hover:text-ink">Undo</button>
+                ) : (
+                  <button onClick={() => mark(c.id, true)} className="rounded-md border border-rule-2 px-2.5 py-1 text-[12.5px] font-semibold text-ink-2 hover:border-ink hover:text-ink">Mark emailed</button>
+                )}
+              </span>
+            </Row>
+          ))}
+        </Rows>
+      )}
+    </section>
   );
 }

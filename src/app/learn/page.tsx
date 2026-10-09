@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Footer, Masthead } from "@/components/site/Chrome";
+import { Footer, GradientRule, Masthead } from "@/components/site/Chrome";
 import { BranchDiagram, Matrix, Plate } from "@/components/index/Figures";
 
 export const metadata = {
@@ -18,11 +18,11 @@ export default function LearnPage() {
         <section className="grid gap-8 border-b border-ink py-10 md:grid-cols-[1.4fr_1fr] md:gap-12">
           <div>
             <p className="figcap">The short version</p>
-            <h1 className="mt-3 text-[38px] leading-[1.02] tracking-tight sm:text-[46px]">
+            <h1 className="mt-3 text-[38px] font-bold leading-[1.02] tracking-tight sm:text-[46px]">
               A shared instrument for measuring Jesus-following, given away for free.
             </h1>
             <p className="mt-6 max-w-measure text-[18px] leading-relaxed text-ink-2">
-              About seven minutes. Run under your own organisation&apos;s name, telling you where
+              About six minutes. Run under your own organisation&apos;s name, telling you where
               your people actually are on the journey — and, because hundreds of other organisations
               run the same shared instrument, how that compares to your country and the world.
             </p>
@@ -38,11 +38,12 @@ export default function LearnPage() {
         </section>
 
         {/* the model */}
-        <section className="border-t-2 border-ink py-10">
+        <section className="py-10">
+          <GradientRule className="mb-8" />
           <div className="grid gap-9 md:grid-cols-[1fr_1.7fr] md:gap-12">
             <div>
               <p className="figcap">What it measures</p>
-              <h2 className="mt-2 text-[27px] leading-tight">Three questions × four tiers.</h2>
+              <h2 className="mt-2 text-[27px] font-bold leading-tight tracking-tight">Three questions × four tiers.</h2>
               <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
                 Three questions — <b>what</b> we measure: do they follow Jesus, do they participate in
                 his mission, does their world look different. Four tiers — <b>how deep it has gone</b>:
@@ -61,11 +62,12 @@ export default function LearnPage() {
         </section>
 
         {/* how someone moves through it */}
-        <section className="border-t-2 border-ink py-10">
+        <section className="py-10">
+          <GradientRule className="mb-8" />
           <div className="grid gap-9 md:grid-cols-[1fr_1.7fr] md:gap-12">
             <div>
               <p className="figcap">How someone moves through it</p>
-              <h2 className="mt-2 text-[27px] leading-tight">
+              <h2 className="mt-2 text-[27px] font-bold leading-tight tracking-tight">
                 Nobody is asked to answer as something they are not.
               </h2>
               <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
@@ -86,9 +88,12 @@ export default function LearnPage() {
           </div>
         </section>
 
-        {/* how it runs */}
-        <section className="border-t-2 border-ink py-10">
-          <div className="grid gap-8 sm:grid-cols-3">
+        {/* three guarantees */}
+        <section className="py-10">
+          <GradientRule className="mb-8" />
+          <p className="figcap">How it runs</p>
+          <h2 className="mt-2 text-[27px] font-bold leading-tight tracking-tight">Three guarantees</h2>
+          <div className="mt-6 grid gap-8 sm:grid-cols-3">
             {[
               {
                 n: "01",
@@ -106,15 +111,18 @@ export default function LearnPage() {
                 p: "Running the Index costs nothing, and it stays that way. Your standard report is included.",
               },
             ].map((c) => (
-              <div key={c.n} className="border-t-2 border-rule pt-3">
-                <span className="tabular text-[11px] tracking-[0.16em] text-muted">{c.n}</span>
-                <h3 className="mt-2 text-[19px] leading-snug">{c.h}</h3>
+              <div key={c.n}>
+                <GradientRule />
+                <h3 className="mt-3 flex items-baseline gap-2.5 text-[19px] font-bold leading-snug text-ink">
+                  <span className="tabular text-[12px] font-semibold tracking-[0.12em] text-emerald-deep">{c.n}</span>
+                  {c.h}
+                </h3>
                 <p className="mt-1.5 text-[15px] leading-relaxed text-ink-2">{c.p}</p>
               </div>
             ))}
           </div>
           <p className="margin-note mt-7 border-l-2 border-rule pl-3">
-            Full detail on how the survey adapts, what lands on your dashboard the same day, and what
+            Full detail on how the survey adapts, what lands on your dashboard live, and what
             the whole coalition sees at once →{" "}
             <Link href="/tour" className="text-emerald no-underline hover:underline">
               How it works
@@ -123,38 +131,21 @@ export default function LearnPage() {
           </p>
         </section>
 
-        {/* the one claim it makes */}
-        <section className="border-t-2 border-ink py-10">
-          <p className="figcap">The one claim it ever makes</p>
-          <p className="mt-3 max-w-measure text-[19px] italic leading-snug">
-            &ldquo;Of those who have completed the Index — here are the results, and here is how you
-            compare.&rdquo;
-          </p>
-          <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
-            Every score carries its sample size. No benchmark appears for a country until enough people
-            there have completed the Index. No organisation ever sees another&apos;s results, and no
-            organisation ever sees an individual response — not even its own respondents&apos;.
-          </p>
-        </section>
-
-        {/* onward */}
+        {/* onward — the same look as the foot of the join page, same destinations as before */}
         <section className="py-10">
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Link href="/organisation" className="border-t-2 border-ink pt-3 no-underline">
-              <p className="figcap">For your organisation</p>
-              <p className="mt-2 text-[18px] leading-snug">What you get out of it →</p>
-              <p className="margin-note mt-1">A diagnosis, benchmarked, under your own brand.</p>
-            </Link>
-            <Link href="/#global" className="border-t-2 border-ink pt-3 no-underline">
-              <p className="figcap">See it, global</p>
-              <p className="mt-2 text-[18px] leading-snug">A global picture →</p>
-              <p className="margin-note mt-1">Where momentum is strong, and where it isn&apos;t yet.</p>
-            </Link>
-            <Link href="/join" className="border-t-2 border-emerald pt-3 no-underline">
-              <p className="figcap">When you are ready</p>
-              <p className="mt-2 text-[18px] leading-snug text-emerald">Join the Index →</p>
-              <p className="margin-note mt-1">For organisations and churches.</p>
-            </Link>
+          <p className="figcap">Where next?</p>
+          <div className="mt-5 grid gap-6 sm:grid-cols-3">
+            {[
+              { href: "/organisation", h: "What you get out of it →", p: "A diagnosis, benchmarked, under your own brand." },
+              { href: "/#global", h: "A global picture →", p: "Where momentum is strong, and where it isn't yet." },
+              { href: "/join", h: "Join the Index →", p: "For organisations and churches." },
+            ].map((c) => (
+              <Link key={c.href} href={c.href} className="group no-underline">
+                <GradientRule />
+                <p className="mt-3 text-[17px] font-bold leading-snug text-ink group-hover:underline">{c.h}</p>
+                <p className="margin-note mt-1">{c.p}</p>
+              </Link>
+            ))}
           </div>
         </section>
       </main>

@@ -59,7 +59,11 @@ export function Masthead({ edition }: { edition?: string }) {
  */
 export function Footer() {
   return (
-    <footer className="border-t border-rule">
+    <footer>
+      {/* The same coral → violet line as the join page's calls to action. */}
+      <div className="mx-auto max-w-6xl px-5 sm:px-8">
+        <GradientRule />
+      </div>
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2.5 px-5 py-6 sm:px-8">
         <RisingMark className="h-5 w-5 shrink-0" />
         <p className="text-[13px] text-ink-2">
@@ -233,4 +237,13 @@ export function Door({
       <p className="margin-note mt-2 text-muted">{note}</p>
     </Link>
   );
+}
+
+/**
+ * The coral → violet rule the site uses above a bold heading (join page,
+ * "What is the JFINDX?", calls to action). One component, so every page
+ * draws exactly the same line.
+ */
+export function GradientRule({ className = "" }: { className?: string }) {
+  return <span aria-hidden className={`block h-1 rounded-full bg-gradient-to-r from-emerald via-emerald-deep to-violet ${className}`} />;
 }

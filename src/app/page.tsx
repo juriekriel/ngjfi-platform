@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Footer, Masthead, RisingRule } from "@/components/site/Chrome";
+import { Footer, GradientRule, Masthead, RisingRule } from "@/components/site/Chrome";
 import { J12Grid } from "@/components/index/Figures";
 import J12Journey from "@/components/index/J12Journey";
 import { LazyLiveSnapshot, LazySurveyDemo } from "@/components/site/HomeLazy";
@@ -46,7 +46,7 @@ export default function Home() {
 
       <main className="mx-auto max-w-5xl px-5">
         {/* ── A · hero ─────────────────────────────────────────────── */}
-        <section className="grid gap-10 border-b border-ink py-12 md:grid-cols-[1.45fr_1fr] md:gap-14">
+        <section className="grid gap-10 py-12 md:grid-cols-[1.45fr_1fr] md:gap-14">
           <div>
             <h1 className="wordmark text-[42px] leading-[0.98] tracking-tight sm:text-[56px]">
               The <span className="italic">Jesus</span>{" "}
@@ -88,7 +88,7 @@ export default function Home() {
           <ul className="grid gap-x-6 gap-y-3 sm:grid-cols-2 md:col-span-2 md:grid-cols-3">
             {BENEFITS.map((b) => (
               <li key={b.t} className="border-l-2 border-emerald pl-3">
-                <span className="block text-[15px] font-semibold text-ink">
+                <span className="block text-[15px] font-bold text-ink">
                   {b.href ? <Link href={b.href} className="text-ink underline decoration-rule-2 underline-offset-2">{b.t}</Link> : b.t}
                 </span>
                 <span className="block text-[13.5px] leading-snug text-ink-2">{b.d}</span>
@@ -102,8 +102,9 @@ export default function Home() {
 
         {/* ── C · try it yourself ─────────────────────────────────── */}
         <section id="try" aria-labelledby="try-heading" className="scroll-mt-6 py-12">
+          <GradientRule className="mb-10" />
           <p className="figcap">Try it yourself</p>
-          <h2 id="try-heading" className="mt-2 text-[28px] leading-tight sm:text-[32px]">See it from their side.</h2>
+          <h2 id="try-heading" className="mt-2 text-[28px] font-bold leading-tight tracking-tight sm:text-[32px]">See it from their side.</h2>
           <div className="mt-8 grid items-center gap-10 md:grid-cols-[1fr_400px] md:gap-14">
             <div>
               <ol className="flex flex-col gap-5">
@@ -113,7 +114,7 @@ export default function Home() {
                       {i + 1}
                     </span>
                     <span>
-                      <span className="block text-[17px] font-semibold text-ink">{s.t}</span>
+                      <span className="block text-[17px] font-bold text-ink">{s.t}</span>
                       <span className="block text-[15px] leading-relaxed text-ink-2">{s.d}</span>
                     </span>
                   </li>

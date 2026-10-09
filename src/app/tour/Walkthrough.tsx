@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { GradientRule } from "@/components/site/Chrome";
 import SurveyDemo from "@/components/survey/SurveyDemo";
 import QrCode from "@/components/index/QrCode";
 import {
@@ -72,7 +73,7 @@ const LINK_STATUS_STYLE: Record<"active" | "scheduled", string> = {
 
 const BEATS = [
   { id: "model", kicker: "The model", title: "One grid, two lenses" },
-  { id: "phone", kicker: "The respondent", title: "Seven minutes, on any phone" },
+  { id: "phone", kicker: "The respondent", title: "About six minutes, on any phone" },
   { id: "adapt", kicker: "The instrument", title: "It stops asking what it shouldn't" },
   { id: "org", kicker: "The ministry", title: "What lands on your dashboard" },
   { id: "collab", kicker: "The coalition", title: "What the whole movement sees" },
@@ -97,7 +98,7 @@ export default function Walkthrough() {
     <>
       <section className="border-b border-ink py-8">
         <p className="figcap">A guided walk · six steps</p>
-        <h1 className="mt-3 text-[36px] leading-[1.05] tracking-tight sm:text-[44px]">
+        <h1 className="mt-3 text-[36px] font-bold leading-[1.05] tracking-tight sm:text-[44px]">
           How the Index will work.
         </h1>
         <p className="mt-5 max-w-measure text-[17px] leading-relaxed text-ink-2">
@@ -131,7 +132,7 @@ export default function Walkthrough() {
           <span className="tabular text-[11px] tracking-[0.16em] text-muted">
             {String(beat + 1).padStart(2, "0")} / {String(BEATS.length).padStart(2, "0")}
           </span>
-          <h2 className="text-[26px] leading-tight">{b.title}</h2>
+          <h2 className="text-[26px] font-bold leading-tight tracking-tight">{b.title}</h2>
         </div>
 
         <div className="mt-7">
@@ -186,7 +187,7 @@ function BeatModel() {
         </p>
         <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
           Every item in the survey carries exactly one question and one tier. That single tagging
-          decision is what lets a seven-minute survey be read two completely different ways — by what
+          decision is what lets a six-minute survey be read two completely different ways — by what
           you are asking about, or by how far it has travelled.
         </p>
         <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
@@ -336,7 +337,7 @@ function BeatAdapt() {
 
       <div>
         <p className="figcap">Try it yourself</p>
-        <h3 className="mt-2 text-[19px] leading-tight">
+        <h3 className="mt-2 text-[19px] font-bold leading-tight">
           This is not a picture of the survey — it is the survey component.
         </h3>
         <p className="mt-2 max-w-measure text-[14.5px] leading-relaxed text-ink-2">
@@ -351,7 +352,7 @@ function BeatAdapt() {
 
     <div className="mt-14 border-t-2 border-ink pt-8">
       <p className="figcap">The live branching rules</p>
-      <h3 className="mt-2 text-[21px] leading-tight">
+      <h3 className="mt-2 text-[21px] font-bold leading-tight">
         Skipped items are not stored.
       </h3>
       <p className="mt-3 max-w-measure text-[16px] leading-relaxed text-ink-2">
@@ -614,26 +615,20 @@ function BeatNext() {
         </p>
       </div>
 
-      <div className="border-t-2 border-ink pt-4">
+      <div>
         <p className="figcap">Where to next</p>
-        <div className="mt-4 flex flex-col gap-3">
-          <Link
-            href="/join"
-            className="rounded-lg border-2 border-emerald bg-emerald px-4 py-3 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
-          >
-            Join the first round →
-          </Link>
-          <Link
-            href="/learn"
-            className="rounded-lg border border-rule px-4 py-3 text-[14px] font-semibold text-ink-2 no-underline hover:border-ink hover:text-ink"
-          >
-            Read how we got here →
-          </Link>
+        <div className="mt-4 flex flex-col gap-6">
+          {[
+            { href: "/join", h: "Join the first round →", p: "For organisations and churches." },
+            { href: "/learn", h: "Read how we got here →", p: "The short version, two minutes." },
+          ].map((c) => (
+            <Link key={c.href} href={c.href} className="group no-underline">
+              <GradientRule />
+              <p className="mt-3 text-[17px] font-bold leading-snug text-ink group-hover:underline">{c.h}</p>
+              <p className="margin-note mt-1">{c.p}</p>
+            </Link>
+          ))}
         </div>
-        <p className="margin-note mt-5 border-l-2 border-rule pl-3">
-          Running the Index is free, and it stays free. Your standard report is free. Advanced reports
-          and consulting are paid — and free for Collab members.
-        </p>
       </div>
     </div>
   );

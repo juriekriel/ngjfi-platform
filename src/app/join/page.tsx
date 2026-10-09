@@ -26,8 +26,8 @@ export default function JoinPage() {
               your own name and colour, and try your survey link straight away.
             </p>
 
-            <h2 className="mt-10 text-[21px] leading-tight">What happens when you join</h2>
-            <ol className="mt-5 space-y-5">
+            <h2 className="mt-10 text-[24px] font-bold leading-tight tracking-tight">What happens when you join</h2>
+            <ol className="mt-5 space-y-7">
               {[
                 {
                   n: "01",
@@ -45,12 +45,13 @@ export default function JoinPage() {
                   p: "A thirty-minute call to set up your version and walk your team through reading the results. Comparisons with your city and country appear as enough ministries near you take part.",
                 },
               ].map((r) => (
-                <li key={r.n} className="grid grid-cols-[2.2rem_1fr] gap-3 border-t border-rule pt-3">
-                  <span className="tabular text-[11px] tracking-[0.16em] text-muted">{r.n}</span>
-                  <div>
-                    <h3 className="text-[17px] leading-snug">{r.h}</h3>
-                    <p className="mt-1.5 text-[15px] leading-relaxed text-ink-2">{r.p}</p>
-                  </div>
+                <li key={r.n}>
+                  <span aria-hidden className="block h-1 rounded-full bg-gradient-to-r from-emerald via-emerald-deep to-violet" />
+                  <h3 className="mt-3 flex items-baseline gap-2.5 text-[18px] font-bold leading-snug text-ink">
+                    <span className="tabular text-[12px] font-semibold tracking-[0.12em] text-emerald-deep">{r.n}</span>
+                    {r.h}
+                  </h3>
+                  <p className="mt-1.5 text-[15px] leading-relaxed text-ink-2">{r.p}</p>
                 </li>
               ))}
             </ol>

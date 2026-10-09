@@ -51,7 +51,7 @@ export const DOMAIN_GLOSS: Record<string, string> = {
 export const MATRIX_PHRASE: Record<string, Record<string, string>> = {
   follow: {
     exposure: "heard of Jesus",
-    response: "believes",
+    response: "believes in Jesus",
     formation: "being shaped",
     multiplication: "helps others believe",
   },

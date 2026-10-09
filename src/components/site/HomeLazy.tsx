@@ -10,7 +10,7 @@ const Placeholder = ({ h }: { h: number }) => <div aria-hidden className="w-full
 
 export const LazySurveyDemo = dynamic(() => import("@/components/survey/SurveyDemo"), {
   ssr: false,
-  loading: () => <Placeholder h={660} />,
+  loading: () => <Placeholder h={720} />,
 });
 
 export const LazyLiveSnapshot = dynamic(() => import("@/components/site/LiveSnapshot"), {
