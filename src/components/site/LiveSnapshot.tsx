@@ -14,6 +14,7 @@
  *    country hasn't passed the critical-mass gate yet — this component adds
  *    no gating logic of its own, same as WorldHeatMap and IntelligenceView.
  */
+import { GradientRule } from "@/components/site/Chrome";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
@@ -46,10 +47,11 @@ export default function LiveSnapshot() {
   }, [sb]);
 
   return (
-    <section id="global" className="scroll-mt-6 border-t border-ink py-12">
+    <section id="global" className="scroll-mt-6 py-12">
+      <GradientRule className="mb-10" />
       <div>
         <p className="figcap">The global view · live on the platform</p>
-        <h2 className="mt-2 text-[28px] leading-tight">See a global picture of Jesus-Following.</h2>
+        <h2 className="mt-2 text-[28px] font-bold leading-tight tracking-tight">See a global picture of Jesus-Following.</h2>
       </div>
 
       <div className="mt-7 grid gap-x-10 gap-y-6 sm:grid-cols-2">
@@ -84,7 +86,7 @@ export default function LiveSnapshot() {
 
       <div className="mt-10 grid items-end gap-6 md:grid-cols-[1.4fr_1fr]">
         <div>
-          <h3 className="text-[22px] leading-tight">Comparisons appear as your area grows.</h3>
+          <h3 className="text-[22px] font-bold leading-tight">Comparisons appear as your area grows.</h3>
           <p className="mt-2 max-w-measure text-[16px] leading-relaxed text-ink-2">
             Your own results come in live. City and country comparisons open once enough ministries near you have
             taken part — so who should join you?

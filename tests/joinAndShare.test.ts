@@ -16,7 +16,8 @@ test("the join page: new banner, bold Before you ask with hover answers, gradien
   assert.match(page, /edition="See Jesus-Following in your nextgen, today"/);
   assert.ok(!page.includes("§"), "no section sign in the banner");
   assert.match(page, /font-bold[^"]*">\s*Before you ask/);
-  assert.equal((page.match(/bg-gradient-to-r from-emerald via-emerald-deep to-violet/g) ?? []).length, 3, "a gradient line atop each of the three CTAs");
+  // One line atop each of the three CTAs, plus one per "What happens when you join" step.
+  assert.ok((page.match(/bg-gradient-to-r from-emerald via-emerald-deep to-violet/g) ?? []).length >= 4, "gradient lines on the CTAs and the steps");
   const faq = read("src/app/join/BeforeYouAsk.tsx");
   assert.match(faq, /group-hover:grid-rows-\[1fr\]/, "answers appear on hover");
   assert.match(faq, /aria-expanded/, "and on tap / keyboard");

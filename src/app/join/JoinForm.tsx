@@ -18,8 +18,11 @@ import { getSupabaseBrowser } from "@/lib/supabaseClient";
  * joining). The Index is available now, so the confirmation is "You're in",
  * with next steps — not a place in a queue.
  *
- * The two highest-value fields on the whole site are the last two free-text
- * ones. They are pre-launch research, and they are read by the researchers.
+ * "Shape it" is four optional questions: where, how many, which languages,
+ * and whether they'd like a 30-minute setup call (Oct 2026: the discipleship,
+ * decision and Collab questions were retired). A yes or maybe is listed for
+ * administrators in the console (Setup calls, migration 0055) and emails the
+ * team at once.
  */
 
 /** A real contact for the "You're in" screen; unset → "reply to the welcome email". */
@@ -41,10 +44,7 @@ export default function JoinForm() {
   const [countries, setCountries] = useState("");
   const [reach, setReach] = useState("");
   const [languages, setLanguages] = useState("");
-  const [measuresToday, setMeasuresToday] = useState("");
-  const [decision, setDecision] = useState("");
   const [wantsCall, setWantsCall] = useState("");
-  const [collabMember, setCollabMember] = useState("");
   // The monthly newsletter opt-in is retired (Oct 2026): nobody is signed up to updates.
   const consent = false;
 
@@ -118,10 +118,10 @@ export default function JoinForm() {
           countries: countries.split(",").map((s) => s.trim()).filter(Boolean),
           reach_band: reach || null,
           languages: languages.split(",").map((s) => s.trim()).filter(Boolean),
-          measures_today: measuresToday.trim() || null,
-          decision_it_changes: decision.trim() || null,
+          // yes / maybe / no, kept as said (0055) — "maybe" used to be lost.
+          setup_call: wantsCall || null,
+          // Older databases (before 0055) only know the boolean.
           wants_setup_call: wantsCall === "yes" ? true : wantsCall === "no" ? false : null,
-          is_collab_member: collabMember === "yes" ? true : collabMember === "no" ? false : null,
         },
       });
       // This track was silently discarded on failure before — the two most
@@ -140,6 +140,16 @@ export default function JoinForm() {
       setShapeError("We could not reach the server just now. Try again, or skip for now.");
       return;
     }
+    // A yes (or maybe) to the setup call tells the team straight away, so
+    // someone can email to book it. Best effort, like the welcome email: the
+    // answer is already saved and listed in the admin console (Setup calls).
+    if (wantsCall === "yes" || wantsCall === "maybe") {
+      fetch("/api/waitlist-notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "setup_call", email: email.trim(), orgName: org.trim(), role: role.trim(), setupCall: wantsCall, countries, reach }),
+      }).catch(() => {});
+    }
     setBusy(false);
     setStage("done");
   }
@@ -152,7 +162,9 @@ export default function JoinForm() {
     return (
       <div className="rounded-xl border-2 border-ink p-6">
         <p className="figcap">Welcome</p>
-        <h2 className="mt-3 text-[26px] leading-tight">You&apos;re in{org.trim() ? `, ${org.trim()}` : ""}.</h2>
+        <span aria-hidden className="mt-3 block h-1 rounded-full bg-gradient-to-r from-emerald via-emerald-deep to-violet" />
+        <h2 className="mt-3 text-[28px] font-bold leading-tight tracking-tight">You&apos;re in{org.trim() ? `, ${org.trim()}` : ""}.</h2>
+        <span aria-hidden className="mt-3 block h-1 rounded-full bg-gradient-to-r from-emerald via-emerald-deep to-violet" />
         <p className="mt-3 text-[16px] leading-relaxed text-ink-2">Here&apos;s what happens next:</p>
         <ol className="mt-3 list-decimal space-y-2 pl-5 text-[15.5px] leading-relaxed text-ink-2">
           <li>
@@ -166,6 +178,7 @@ export default function JoinForm() {
             and confirm consent — for your organisation, and for each survey you send.
           </li>
           <li>We&apos;ll email you the day live answers start recording, when the pilots open.</li>
+          {wantsCall === "yes" || wantsCall === "maybe" ? <li>You asked about a setup call — we&apos;ll email you to find a time.</li> : null}
         </ol>
         <p className="mt-4 text-[15px] leading-relaxed text-ink-2">
           Questions? {CONTACT ? <>Write to <a href={`mailto:${CONTACT}`} className="font-semibold text-ink underline underline-offset-2">{CONTACT}</a>.</> : "Reply to the welcome email — a person reads it."}
@@ -180,12 +193,12 @@ export default function JoinForm() {
   if (stage === "shape")
     return (
       <form onSubmit={submitShape} className="rounded-xl border-2 border-ink p-6">
-        <p className="figcap">Optional · about three minutes</p>
+        <p className="figcap">Optional · about a minute</p>
         <p className="figcap mt-1 text-emerald">You&apos;re in — this part is optional</p>
         <h2 className="mt-3 text-[24px] leading-tight">Help us set you up</h2>
         <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
-          Seven questions, all optional. Where you work tells us when your city and country comparisons
-          can open; what you&apos;d do with the results tells us what your dashboard should show.
+          Four questions, all optional. Where you work tells us when your city and country comparisons
+          can open, and a setup call gets your team reading results with a person beside them.
         </p>
 
         <div className="mt-5 space-y-4">
@@ -212,36 +225,12 @@ export default function JoinForm() {
               onChange={(e) => setLanguages(e.target.value)} placeholder="Spanish, Guaraní" />
           </div>
           <div>
-            <label className={label} htmlFor="measures">How do you measure discipleship today?</label>
-            <textarea id="measures" rows={3} className={`${field} mt-1.5`} value={measuresToday}
-              onChange={(e) => setMeasuresToday(e.target.value)} />
-          </div>
-          <div>
-            <label className={label} htmlFor="decision">
-              If you had this score tomorrow, what decision would it change?
-            </label>
-            <textarea id="decision" rows={3} className={`${field} mt-1.5`} value={decision}
-              onChange={(e) => setDecision(e.target.value)} />
-            <p className="margin-note mt-1">
-              The most useful field on this site. It is read by the researchers, not the growth side.
-            </p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={label} htmlFor="call">Would you join a 30-minute setup call?</label>
-              <select id="call" className={`${field} mt-1.5`} value={wantsCall} onChange={(e) => setWantsCall(e.target.value)}>
-                <option value="">—</option><option value="yes">Yes</option>
-                <option value="maybe">Maybe</option><option value="no">No</option>
-              </select>
-            </div>
-            <div>
-              <label className={label} htmlFor="collab">Are you part of the Next Gen Global Collab?</label>
-              <select id="collab" className={`${field} mt-1.5`} value={collabMember} onChange={(e) => setCollabMember(e.target.value)}>
-                <option value="">—</option><option value="yes">Yes</option>
-                <option value="no">No</option><option value="unsure">Not sure</option>
-              </select>
-              <p className="margin-note mt-1">The coalition of 30+ ministries that built the Index together.</p>
-            </div>
+            <label className={label} htmlFor="call">Would you like a 30-minute setup call?</label>
+            <select id="call" className={`${field} mt-1.5`} value={wantsCall} onChange={(e) => setWantsCall(e.target.value)}>
+              <option value="">—</option><option value="yes">Yes</option>
+              <option value="maybe">Maybe</option><option value="no">No</option>
+            </select>
+            <p className="margin-note mt-1">Say yes and a person will email you to find a time.</p>
           </div>
         </div>
 

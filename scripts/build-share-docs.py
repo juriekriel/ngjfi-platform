@@ -65,7 +65,7 @@ def j12(c, x, y_top, w, cell_h=34, phrases=True, font=7.5):
     """The J12 model — rounded tiles, orange deepening left to right."""
     rows = [("Follow", "personal faith"), ("Mission", "outward"), ("World", "lived impact")]
     cols = ["Exposure", "Response", "Formation", "Multiplication"]
-    words = [["heard of Jesus", "believes", "being shaped", "helps others believe"],
+    words = [["heard of Jesus", "believes in Jesus", "being shaped", "helps others believe"],
              ["aware of the call", "convinced it's theirs", "practising witness", "mobilising others"],
              ["sees faith should matter", "believes it does", "choices reshaped", "changing their spheres"]]
     label_w = w * 0.2; gap = 4; cw = (w - label_w - gap * 3) / 4

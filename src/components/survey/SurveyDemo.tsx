@@ -29,8 +29,28 @@ import { SAMPLE_ORG } from "@/lib/sample";
  * mistaking it for an ordinary card on the page.
  */
 export function PhoneFrame({ children, large = false }: { children: React.ReactNode; large?: boolean }) {
+  if (large)
+    // A modern phone's proportions (about 9 : 19.5): tall, rounded corners, a
+    // camera island, side buttons and a home bar — the screen scrolls inside.
+    return (
+      <div className="relative mx-auto aspect-[9/19.5] w-full max-w-[340px]">
+        <span aria-hidden className="absolute -left-[3px] top-[18%] h-10 w-[3px] rounded-l bg-ink" />
+        <span aria-hidden className="absolute -left-[3px] top-[27%] h-14 w-[3px] rounded-l bg-ink" />
+        <span aria-hidden className="absolute -right-[3px] top-[24%] h-20 w-[3px] rounded-r bg-ink" />
+        <div className="flex h-full flex-col rounded-[3rem] border-[11px] border-ink bg-ink shadow-2xl">
+          <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[2.2rem] bg-plate">
+            <div aria-hidden className="absolute left-1/2 top-2 z-10 h-[22px] w-[30%] -translate-x-1/2 rounded-full bg-ink" />
+            <div className="h-9 shrink-0 bg-[var(--phone-top,transparent)]" />
+            {children}
+            <div aria-hidden className="flex shrink-0 justify-center bg-plate pb-2 pt-1">
+              <div className="h-1 w-[34%] rounded-full bg-ink/80" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   return (
-    <div className={`mx-auto w-full ${large ? "max-w-[380px]" : "max-w-[320px]"} rounded-[2.25rem] border-[10px] border-ink bg-ink shadow-xl`}>
+    <div className="mx-auto w-full max-w-[320px] rounded-[2.25rem] border-[10px] border-ink bg-ink shadow-xl">
       <div className="flex justify-center py-1.5">
         <div className="h-1.5 w-16 rounded-full bg-ink-2" />
       </div>
@@ -85,9 +105,9 @@ export default function SurveyDemo({ caption = true, large = false }: { caption?
   }
 
   return (
-    <div className={`mx-auto w-full ${large ? "max-w-[380px]" : "max-w-[320px]"}`}>
+    <div className={`mx-auto w-full ${large ? "max-w-[340px]" : "max-w-[320px]"}`} style={large ? ({ "--phone-top": SAMPLE_ORG.brand } as React.CSSProperties) : undefined}>
       <PhoneFrame large={large}>
-        <div className="px-6 py-5 text-white" style={{ background: SAMPLE_ORG.brand }}>
+        <div className={`${large ? "shrink-0 pt-1" : ""} px-6 py-5 text-white`} style={{ background: SAMPLE_ORG.brand }}>
           <div className="flex items-center gap-3">
             <div
               className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-black"
@@ -105,7 +125,7 @@ export default function SurveyDemo({ caption = true, large = false }: { caption?
           </div>
         </div>
 
-        <div className={`${large ? "max-h-[520px]" : "max-h-[420px]"} overflow-y-auto bg-plate p-6`}>
+        <div className={`${large ? "min-h-0 flex-1" : "max-h-[420px]"} overflow-y-auto bg-plate p-6`}>
           {i < 0 && (
             <div>
               <h1 className="text-xl font-bold leading-tight text-ink">
@@ -177,7 +197,7 @@ export default function SurveyDemo({ caption = true, large = false }: { caption?
             </div>
           )}
         </div>
-        <p className="border-t border-rule px-5 py-3 text-center font-mono text-[9px] uppercase tracking-widest text-muted">
+        <p className="shrink-0 border-t border-rule px-5 py-3 text-center font-mono text-[9px] uppercase tracking-widest text-muted">
           Powered by the Next Gen Jesus-Following Index
         </p>
       </PhoneFrame>
