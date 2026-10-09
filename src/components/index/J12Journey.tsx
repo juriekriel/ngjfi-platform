@@ -26,7 +26,9 @@ const tierTint = (t: string, a: number) => `rgb(var(--c-map-${t}) / ${a})`;
 
 // The hero J12 mark's coral: light on the left, full on the right.
 const LANE_GRADIENT = "linear-gradient(to right, rgb(var(--c-emerald) / 0.22), rgb(var(--c-emerald)))";
-const LANE_GRADIENT_ON = "linear-gradient(to right, rgb(var(--c-emerald) / 0.55), rgb(var(--c-emerald-deep)))";
+const LANE_GRADIENT_ON = "linear-gradient(to right, rgb(var(--c-emerald) / 0.45), rgb(var(--c-emerald-deep)))";
+// Text stays ink on both: white on the light left end of the gradient is unreadable.
+const LANE_RING = "inset 0 0 0 2px rgb(var(--c-ink))";
 
 type Focus = { tier?: string; lane?: string };
 
@@ -87,7 +89,7 @@ export default function J12Journey() {
               aria-selected={lane === d}
               onClick={() => { setLane(d); setShown(new Set()); }}
               className="flex-1 rounded-lg px-2 py-2.5 text-[14px] font-semibold"
-              style={{ background: lane === d ? LANE_GRADIENT_ON : LANE_GRADIENT, color: lane === d ? "white" : "rgb(var(--c-ink))" }}
+              style={{ background: lane === d ? LANE_GRADIENT_ON : LANE_GRADIENT, color: "rgb(var(--c-ink))", boxShadow: lane === d ? LANE_RING : "none" }}
             >
               {DOMAIN_SHORT[d]}
             </button>
@@ -148,7 +150,7 @@ function Lane({
         onBlur={clear}
         aria-label={`${DOMAIN_SHORT[d]} — ${DOMAIN_LABEL[d]}`}
         className="flex min-h-[4.5rem] items-center rounded-lg px-3 py-3 text-left text-[15px] font-semibold transition-colors motion-reduce:transition-none"
-        style={{ background: on ? LANE_GRADIENT_ON : LANE_GRADIENT, color: on ? "white" : "rgb(var(--c-ink))" }}
+        style={{ background: on ? LANE_GRADIENT_ON : LANE_GRADIENT, color: "rgb(var(--c-ink))", boxShadow: on ? LANE_RING : "none" }}
       >
         {DOMAIN_SHORT[d]}
       </button>
