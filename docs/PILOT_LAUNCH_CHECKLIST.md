@@ -16,14 +16,15 @@ leadership / counsel · **O** = each pilot organisation.
 | 2 | Field the draft **Belong–Trust** module in pilots, or not? Default is **not** (`field_draft_items: false`). Flip to `true` only once the wording is agreed | R | same file |
 | 3 | Record the prayer / scripture decision (unscored frequencies, reported beside the Index) as the formal answer to non-negotiable #5 | R | instrument note + `CLAUDE.md` §3 |
 | 4 | Confirm the gates: `critical_mass_gate` 400, `country_critical_mass_gate` 2000, `min_group_n` 10 — or change them | R | `platform_settings` via a migration |
-| 5 | Decide the **retention period** for raw answers. Until set, nothing is ever purged | R + C | `platform_settings.respondent_retention_months` via a migration |
-| 6 | Approve the **consent statement** orgs confirm (`src/lib/consent.ts`, version `2026-10-v1`) | C | bump the version in the file *and* the setting together |
+| 5 | ~~Decide the **retention period**~~ **Decided (Matthew, 7 Oct 2026):** pseudo-markers kept 60 days, de-identified answers up to 5 years (0050). Still open: free text *delete* vs *code then delete* (`deidentify_free_text`), month vs quarter (`deidentify_time_grain`), and counsel's view that de-identified answers are anonymous | R + C | `platform_settings` via a migration |
+| 6 | Approve the **consent statements** — organisation *and* per survey — and the **"Why consent?"** text and **country reference** (`src/lib/consent.ts`, `src/content/consent/why-consent.ts`, `src/data/consent-countries.json`, all `2026-10-v1`) | C | bump each version in the file *and* its setting together |
 | 7 | Counsel review of `/privacy`, `/terms` and who is controller of the pooled data (US, Argentina first; then South Africa/POPIA, Brazil/LGPD) | C | remove the draft banner in `src/components/site/LegalPage.tsx` |
 | 8 | Spanish sign-off, then `es` → `live` in `src/data/locales.json` (Buenos Aires can't record Spanish until then) | R | `docs/TRANSLATION.md` |
 
 ## 2. Platform settings (outside the repo)
 
-- [ ] **Custom SMTP** connected in Supabase Auth (Resend already sends the waitlist mail), and the email rate limit raised — see `docs/AUTH_EMAILS.md`. The built-in sender allows only a few emails an hour for the whole project.
+- [ ] **Custom SMTP** connected in Supabase Auth (Resend already sends the waitlist mail), and the email rate limit raised — exact settings in `docs/AUTH_EMAILS.md` §3. The built-in sender allows only a few emails an hour for the whole project.
+- [ ] **pg_cron** enabled (Database → Extensions) so `deidentify_stale_sessions()` runs daily; 0050 schedules it when the extension exists. Otherwise schedule it another way — readiness turns red if anything is overdue.
 - [ ] **Supabase plan with restorable backups.** The free tier pauses idle projects and has no restorable backups. *(Spend decision.)*
 - [ ] **`main` branch-protected**: PR + passing CI required, no bypass (`claude_JFINDX_Access_Setup_Session.md`, step 1).
 - [ ] **A second key-holder** for the Supabase service-role key, and a documented fallback if the Mac Studio publisher is asleep during a pilot week.
@@ -34,8 +35,9 @@ leadership / counsel · **O** = each pilot organisation.
 - [ ] Migration **0042** applied (`GET /api/migrations` on the publisher shows nothing waiting).
 - [ ] `npm run db:seed` run after the instrument change, and exactly one instrument version is active.
 - [ ] `publish_global_view` is still `false`.
-- [ ] Every active pilot organisation has **confirmed consent** (Survey settings → Consent).
-- [ ] A retention period is set (decision 5).
+- [ ] Consent is **per organisation, not a launch gate** (0049): the band lists who is collecting and who is waiting; each organisation's own links stay closed until it confirms.
+- [ ] Retention is set (0050: 60 days, then de-identified; 60 months) and nothing is past the de-identification window.
+- [ ] The five hand checks are confirmed in the band, with a note where required (0051).
 - [ ] `select public.data_space_report();` — the live space holds only real pilot organisations.
 
 ## 4. Rehearsal (on a Deploy Preview, then on production with a test link)
@@ -44,6 +46,8 @@ leadership / counsel · **O** = each pilot organisation.
 - [ ] Go offline after opening the survey; answer everything; reconnect — the response arrives once.
 - [ ] Type an email address and phone number into the free-text question — they arrive as `[removed]`.
 - [ ] A real link for an organisation that hasn't confirmed consent says it isn't collecting yet; its **test** link still works.
+- [ ] With organisation consent but **no survey consent**, the link and QR are hidden on the dashboard, the printable cards refuse, and the real link says it isn't open yet (0053).
+- [ ] Consent a survey for **18+ only**; answer "13–17": the survey ends politely and nothing is kept.
 - [ ] While collection is locked (0048): a real link runs end to end, shows the *Preview — not collecting yet* notice, and leaves no session or response behind. Its **test** link still records to test tables.
 - [ ] Confirm consent; with collection unlocked on a Deploy Preview database, the real link now records.
 - [ ] Keyboard only, and a phone screen reader (VoiceOver / TalkBack): every question and choice is announced and reachable.
@@ -54,7 +58,8 @@ leadership / counsel · **O** = each pilot organisation.
 
 - [ ] Organisation created and **activated**; its admin has signed in.
 - [ ] Logo, colour and welcome message set.
-- [ ] Their consent process walked through; **Consent** confirmed in Survey settings by their admin.
+- [ ] Their consent process walked through with the **consent resource** (`/resources/consent`, or `/<org>/consent` in their branding); **organisation consent** confirmed in Survey settings by their admin.
+- [ ] **Each survey they'll send** consented on its card — countries, age groups, parental-consent method; local advice recorded for China, Saudi Arabia or Pakistan.
 - [ ] A test link tried by their team; test answers purged (Admin → Manage → purge test data).
 - [ ] Real links / QR codes created per room (camp, youth night, …).
 - [ ] A completion target agreed (e.g. "120 at camp in March").

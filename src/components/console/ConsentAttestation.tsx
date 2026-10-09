@@ -15,7 +15,10 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import Link from "next/link";
 import { CONSENT_STATEMENT, CONSENT_STATEMENT_VERSION } from "@/lib/consent";
+import { WhyConsentBlock } from "@/content/consent/ConsentResource";
+import { WHY_CONSENT_VERSION } from "@/content/consent/why-consent";
 
 export type ConsentStatus = {
   attested: boolean;
@@ -86,17 +89,22 @@ export default function ConsentAttestation({
         <span aria-hidden className="mt-1.5 h-2.5 w-2.5 flex-none rounded-full" style={{ background: "rgb(var(--c-green))" }} />
         <span>
           Confirmed on {new Date(status.attested_at as string).toLocaleDateString()}. Keep your consent records with you — the
-          Index never asks for them.
+          Index never asks for them. Each survey you send is confirmed on its own card, before its link and QR code appear.
         </span>
       </p>
     );
 
   return (
     <div className="flex flex-col gap-3">
+      <WhyConsentBlock compact />
+      <p className="text-[13px] text-ink-2">
+        <Link href="/resources/consent" className="font-semibold text-ink underline underline-offset-2">Read the full consent resource</Link>{" "}
+        — the parent letter, a script to read, and the rules country by country.
+      </p>
       <p className="text-[13.5px] leading-relaxed text-ink-2">
         {status.attested
           ? "The consent statement has been updated since your organisation last confirmed it. Your links keep working; please read and confirm the current version."
-          : "Your links will accept answers once an organisation admin confirms the following. Test links work in the meantime."}
+          : "Your links will accept answers once an organisation admin confirms the following — and then confirms each survey you send. Test links work in the meantime."}
       </p>
       <ul className="flex list-disc flex-col gap-1.5 pl-5 text-[13.5px] leading-relaxed text-ink">
         {CONSENT_STATEMENT.map((line) => (
@@ -112,7 +120,7 @@ export default function ConsentAttestation({
               onChange={(e) => setTicked(e.target.checked)}
               className="mt-0.5 h-4 w-4 flex-none accent-[rgb(var(--c-emerald))]"
             />
-            On behalf of my organisation, I confirm all of the above.
+            I&apos;ve read “Why consent?”, and on behalf of my organisation I confirm all of the above.
           </label>
           <button
             type="button"
@@ -123,7 +131,9 @@ export default function ConsentAttestation({
             {busy ? "Confirming…" : "Confirm consent"}
           </button>
           {err && <p className="text-[13px] text-vermillion">{err}</p>}
-          <p className="text-[12px] text-muted">Statement version {CONSENT_STATEMENT_VERSION}. Your name and the time are recorded.</p>
+          <p className="text-[12px] text-muted">
+            Statement version {CONSENT_STATEMENT_VERSION} · Why consent? {WHY_CONSENT_VERSION}. Your name and the time are recorded.
+          </p>
         </>
       ) : (
         <p className="rounded-lg bg-paper-deep px-3 py-2 text-[13.5px] text-ink-2">

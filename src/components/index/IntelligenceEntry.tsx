@@ -47,7 +47,14 @@ export default function IntelligenceEntry() {
     sb.rpc("my_context").then(({ data }) => setCtx((data as Ctx) ?? { signed_in: false }));
   }, [sb]);
 
-  if (!ctx) return <div className="min-h-screen bg-paper" aria-busy="true" />;
+  // Oct 2026: the public "Global picture" page is retired — the global view
+  // now lives at the bottom of the front page. Signed-out visitors go there;
+  // signed-in members and the Collab keep this page (their second tab).
+  useEffect(() => {
+    if (ctx && !ctx.signed_in) window.location.replace("/#global");
+  }, [ctx]);
+
+  if (!ctx || !ctx.signed_in) return <div className="min-h-screen bg-paper" aria-busy="true" />;
   const org = ctx.orgs?.find((o) => !o.is_demo) ?? null;
   if (!sb || !ctx.signed_in || !org) return <IntelligenceView space="live" />;
   return <CollabTab sb={sb} org={org} email={ctx.email ?? null} />;

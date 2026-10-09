@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
+import { isMissingFunction } from "@/lib/breakdown";
 import {
   endsSurvey,
   itemSetItems,
@@ -98,6 +99,9 @@ export default function Survey({
   // own; the phone mirrors it so it doesn't queue answers that will be dropped,
   // and so the respondent is told honestly. Test links are unaffected.
   const [locked, setLocked] = useState(false);
+  // Two-level consent (0053): this survey's own consent decides whether it is
+  // open and to which age bands. Null = not known (older database): no limit.
+  const [allowedBands, setAllowedBands] = useState<string[] | null>(null);
   const saving = recording && (isTestLink || !locked);
   const pickLang = useCallback(async (code: string) => {
     const l = await loadLang(code);
@@ -175,13 +179,14 @@ export default function Survey({
       // public, non-personal fields: the organisation's name and branding and
       // which campaign to write to.
       const cacheKey = `survey:${slug}:${distributionLinkSlug ?? ""}`;
-      type Cached = { org: Org; campaignId: string | null; itemSet?: string; locked?: boolean };
+      type Cached = { org: Org; campaignId: string | null; itemSet?: string; locked?: boolean; surveyOpen?: boolean; bands?: string[] | null };
       const useCache = async () => {
         const c = await cacheGet<Cached>(cacheKey);
         if (!c) return false;
         setOrg(c.org);
         setLocked(c.locked ?? false);
-        if (!c.campaignId || (!isTestLink && !collecting(c.org))) {
+        setAllowedBands(c.bands ?? null);
+        if (!c.campaignId || (!isTestLink && (!collecting(c.org) || c.surveyOpen === false))) {
           setStatus("not_fielding");
           return true;
         }
@@ -205,13 +210,23 @@ export default function Survey({
       try {
         // short_name is the public identifier (migration 0011). slug is kept in
         // lockstep by a trigger, but the URL is the short name, so look that up.
-        const [{ data: o, error: oErr }, { data: lockRow }] = await withTimeout(
+        const [{ data: o, error: oErr }, { data: lockRow }, consentRes] = await withTimeout(
           Promise.all([
             sb.from("organisations").select("id,slug,name,brand_color,country,welcome_message,logo_url,status,is_demo,consent_attested_at").eq("short_name", slug).maybeSingle(),
             // platform_settings is publicly readable (0009). Missing row = locked, as on the server.
             sb.from("platform_settings").select("value").eq("key", "collection_locked").maybeSingle(),
+            // Is THIS survey consented, and for which age bands? (0053) No staff data.
+            sb.rpc("survey_consent_public", { p_org_slug: slug, p_link_slug: distributionLinkSlug ?? null }),
           ]),
         );
+        // Only a database without 0053 means "behave as before". Any other
+        // failure keeps the survey closed — and isn't cached — so a young person
+        // never answers questions the server will refuse.
+        const missing = consentRes.error ? isMissingFunction(consentRes.error) : false;
+        const sc = consentRes.error ? null : (consentRes.data as { open: boolean; age_bands: string[] | null } | null);
+        const surveyOpen = sc ? sc.open : missing;
+        const bands = sc?.age_bands ?? null;
+        setAllowedBands(bands);
         if (oErr) throw oErr;
         const isLocked = lockRow ? lockRow.value !== false : true;
         setLocked(isLocked);
@@ -227,12 +242,13 @@ export default function Survey({
         if (cErr) throw cErr;
 
         const set = knownItemSet(linkItemSet ?? (c?.item_set as string | null | undefined));
-        void cacheSet(cacheKey, { org: o, campaignId: c ? (c.id as string) : null, itemSet: set, locked: isLocked });
+        if (!consentRes.error || missing)
+          void cacheSet(cacheKey, { org: o, campaignId: c ? (c.id as string) : null, itemSet: set, locked: isLocked, surveyOpen, bands });
         setItemSet(set);
         // Not collecting (still being set up, paused, or consent not yet
         // confirmed): say so now, rather than letting a young person answer
         // forty questions the server will refuse.
-        if (!c || (!isTestLink && !collecting(o as Org))) {
+        if (!c || (!isTestLink && (!collecting(o as Org) || !surveyOpen))) {
           setStatus("not_fielding");
           return;
         }
@@ -266,7 +282,12 @@ export default function Survey({
   function choose(value: AnswerValue) {
     const item = items[i];
 
-    if (endsSurvey(item, value)) {
+    // An age group this survey wasn't consented for ends it exactly like an
+    // under-13 answer: a polite close, and nothing about this person is kept.
+    const outsideConsent =
+      !isTestLink && allowedBands !== null && item.session_field === "age_band" &&
+      value !== null && value !== undefined && !allowedBands.includes(String(value));
+    if (endsSurvey(item, value) || outsideConsent) {
       // The answer itself is never saved. The session (if the server has it
       // yet) is deleted; if it hasn't, the phone drops it without sending.
       if (sb && sessionId && saving) void enqueue(sessionId, "discard", { p_session_id: sessionId });

@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { Masthead } from "@/components/site/Chrome";
+import { Footer, Masthead } from "@/components/site/Chrome";
 import { Matrix, Plate } from "@/components/index/Figures";
 import LearnExplorer from "@/app/learn/LearnExplorer";
 import { OPEN_QUESTIONS } from "@/data/history";
 import { NAVY, VERMILLION } from "@/lib/model";
 
 export const metadata = {
-  title: "How did we get here — The Jesus Index",
+  title: "Our story — The Jesus Index",
   description:
     "The long version: the question the Collab could not answer, the fifty-country study that collapsed, and the pivot to a shared standard.",
 };
@@ -44,7 +44,7 @@ export default function HistoryPage() {
         {/* standfirst */}
         <section className="grid gap-8 border-b border-ink py-10 md:grid-cols-[1.5fr_1fr] md:gap-12">
           <div>
-            <p className="figcap">The long version</p>
+            <p className="figcap">Our story · How did we get here?</p>
             <h1 className="mt-3 text-[38px] leading-[1.02] tracking-tight sm:text-[46px]">
               A coalition tried to buy a picture of youth faith.
               <br />
@@ -224,6 +224,7 @@ export default function HistoryPage() {
           </div>
         </section>
       </main>
+      <Footer />
     </>
   );
 }

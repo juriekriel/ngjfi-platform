@@ -73,6 +73,7 @@
   --c-violet-deep: 124 58 237; /* #7C3AED — for button gradients only */
   --c-violet-deeper: 91 33 182; /* #5B21B6 — end stop of the masthead Sign-in button gradient */
   --c-vermillion: 200 40 59; /* #C8283B — "down" only, clear of coral's hue */
+  --c-amber: 224 153 63; /* #E0993F — "for information" (non-blocking) only */
 
   /* The tier ramp. Hue is constant; LIGHTNESS alone encodes journey depth,
    * so the heat grid reads as a progression rather than as four categories.
@@ -173,4 +174,21 @@ label {
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* ── Printing (consent resource and anything else marked up for it) ──────
+   .no-print hides site chrome. html[data-print-only="x"] prints only the
+   section whose data-print is x — "print the parent form only". */
+@media print {
+  .no-print { display: none !important; }
+  html[data-print-only] main > *:not(:has([data-print])) { display: none !important; }
+  html[data-print-only] .consent-section { display: none !important; }
+  html[data-print-only="parents"] [data-print="parents"],
+  html[data-print-only="young-people"] [data-print="young-people"],
+  html[data-print-only="script"] [data-print="script"] { display: block !important; border: 0; margin: 0; }
+  .consent-section { break-inside: auto; }
+  #countries, #young-people, #parents, #script { break-before: page; }
+  html[data-print-only] #young-people, html[data-print-only] #parents, html[data-print-only] #script { break-before: auto; }
+  a { color: inherit; text-decoration: none; }
+  body { background: #fff; }
 }

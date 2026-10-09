@@ -21,20 +21,18 @@ export function Masthead({ edition }: { edition?: string }) {
         </Link>
         <nav className="flex flex-wrap items-center gap-x-6 gap-y-1.5">
           <NavLink href="/learn">What is the JFINDX?</NavLink>
-          <NavLink href="/tour">How does it work?</NavLink>
-          <NavLink href="/history">How did we get here?</NavLink>
-          <NavLink href="/intelligence">A Global Picture</NavLink>
+          <NavLink href="/#try">Try the survey</NavLink>
           <Link
             href="/access"
             className="rounded-lg bg-gradient-to-r from-violet via-violet-deep to-violet-deeper px-4 py-2 text-[14px] font-semibold text-plate no-underline hover:opacity-90"
           >
-            Sign in to Your Organisation
+            Sign in
           </Link>
           <Link
             href="/join"
             className="rounded-lg bg-gradient-to-r from-emerald via-emerald-deep to-emerald-deeper px-4 py-2 text-[14px] font-semibold text-plate no-underline hover:opacity-90"
           >
-            Join the JFINDX
+            Join the JFINDX — free
           </Link>
         </nav>
       </div>
@@ -50,7 +48,11 @@ export function Masthead({ edition }: { edition?: string }) {
 }
 
 /**
- * The colophon — CLAUDE.md's design system lists one among the things
+ * The colophon — on every public page (not the white-labelled survey,
+ * which carries the organisation's brand). Built by the Collab, plus
+ * Our story · Privacy · Terms · Consent (Oct 2026).
+ *
+ * Originally: CLAUDE.md's design system lists one among the things
  * Brand Proof № 3 "still keeps" from the almanac, but nothing had actually
  * built it yet. Deliberately spare: a hairline rule, the mark, and one line
  * — not a sitemap. Exported so any page can carry it, not just the homepage.
@@ -72,9 +74,17 @@ export function Footer() {
           </a>
           , to see everyone in the next generation having an opportunity to follow Jesus by 2033.
         </p>
-        <nav aria-label="Legal" className="ml-auto flex gap-4 text-[13px]">
-          <Link href="/privacy" className="text-ink-2 underline decoration-rule-2 underline-offset-2 hover:text-ink">Privacy</Link>
-          <Link href="/terms" className="text-ink-2 underline decoration-rule-2 underline-offset-2 hover:text-ink">Terms</Link>
+        <nav aria-label="About the Index" className="flex flex-wrap gap-4 text-[13px] sm:ml-auto">
+          {[
+            ["/our-story", "Our story"],
+            ["/privacy", "Privacy"],
+            ["/terms", "Terms"],
+            ["/resources/consent", "Consent"],
+          ].map(([href, label]) => (
+            <Link key={href} href={href} className="text-ink-2 underline decoration-rule-2 underline-offset-2 hover:text-ink">
+              {label}
+            </Link>
+          ))}
         </nav>
       </div>
     </footer>

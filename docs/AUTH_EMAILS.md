@@ -42,6 +42,29 @@ Replace the link in each template below. Keep the rest of the wording as you lik
 ## 3. Email volume (Authentication → Emails → SMTP, and → Rate Limits)
 
 Supabase's built-in email service allows only a few emails per hour for the
-whole project — it is for testing. Before pilots, connect a provider
-(Resend, Postmark, SendGrid, Amazon SES) under SMTP Settings, then raise the
-email rate limit.
+whole project — it is for testing. Before pilots, connect **Resend** (it
+already sends the waitlist mail) under SMTP Settings, then raise the email
+rate limit.
+
+1. **Verify the domain first.** In Resend, add `jfindx.org` and publish the
+   SPF and DKIM records it gives you. Sign-in mail from an unverified domain
+   lands in spam.
+2. **A dedicated key.** Create a Resend API key with **sending access only**,
+   just for Supabase Auth — not the waitlist key (`RESEND_API_KEY`).
+3. **Supabase → Authentication → Emails → SMTP Settings:**
+
+   | Setting | Value |
+   |---|---|
+   | Host | `smtp.resend.com` |
+   | Port | `465` (SSL) — or `587` (STARTTLS) |
+   | Username | `resend` |
+   | Password | the dedicated API key |
+   | Sender email | `no-reply@jfindx.org` |
+   | Sender name | `The Jesus Index` |
+
+4. **Authentication → Rate Limits:** raise the email limit (e.g. 100/hour).
+5. **Test:** request magic links for three different addresses within a
+   minute. All three should arrive in under a minute, outside spam.
+
+The Resend plan that covers the expected volume is a spend decision —
+confirm it before switching.

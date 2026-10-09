@@ -39,11 +39,16 @@ function Cards({ org: slug }: { org: string }) {
   const [perSheet, setPerSheet] = useState<1 | 4 | 8>(4);
   const [origin, setOrigin] = useState("https://jfindx.org");
   const [line, setLine] = useState("Share where you’re at.");
+  // Two-level consent (0053): no printable QR for a survey that isn't consented.
+  const [open, setOpen] = useState<boolean | null>(null);
 
   useEffect(() => setOrigin(window.location.origin), []);
   useEffect(() => {
     if (!sb) return;
     sb.from("organisations").select("name,brand_color,logo_url").eq("short_name", slug).maybeSingle().then(({ data }) => data && setOrg(data as Org));
+    sb.rpc("survey_consent_public", { p_org_slug: slug, p_link_slug: linkSlug }).then(({ data, error }) =>
+      // a database without 0053 has no survey consents: print as before
+      setOpen(error ? true : Boolean((data as { open?: boolean } | null)?.open)));
     if (linkSlug)
       sb.rpc("org_distribution_links", { p_org_slug: slug }).then(({ data }) => {
         const l = (data as { slug: string; name: string }[] | null)?.find((x) => x.slug === linkSlug);
@@ -56,6 +61,21 @@ function Cards({ org: slug }: { org: string }) {
   const brand = org?.brand_color && /^#[0-9a-fA-F]{6}$/.test(org.brand_color) ? org.brand_color : "#FF7A47";
   const name = org?.name ?? slug;
   const qr = perSheet === 1 ? 300 : perSheet === 4 ? 190 : 120;
+
+  if (open === false)
+    return (
+      <main className="mx-auto max-w-xl px-6 py-16">
+        <p className="font-mono text-[11px] uppercase tracking-wider text-ink-2">{name} · printable cards</p>
+        <h1 className="mt-2 text-[24px] font-bold tracking-tight">This survey needs consent first</h1>
+        <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
+          Its QR cards appear once an organisation admin has confirmed consent for your organisation and for this survey —
+          on the survey&apos;s card in your dashboard. No consent, no participation.
+        </p>
+        <a href={`/${slug}/dashboard`} className="mt-5 inline-block rounded-lg bg-ink px-4 py-2.5 text-[14px] font-semibold text-paper no-underline">
+          Back to the dashboard
+        </a>
+      </main>
+    );
 
   return (
     <main className="min-h-screen bg-paper-deep print:bg-white">

@@ -7,6 +7,8 @@ const nextConfig = {
   async redirects() {
     return [
       { source: "/organization", destination: "/organisation", permanent: true },
+      // "How did we get here" became "Our story" (Oct 2026), linked from the footer.
+      { source: "/history", destination: "/our-story", permanent: true },
     ];
   },
 };

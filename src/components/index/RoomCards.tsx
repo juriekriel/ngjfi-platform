@@ -14,6 +14,8 @@ import { useCallback, useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { LinkForm, type DistributionLink } from "@/components/index/LinksPanel";
 import QrCode from "@/components/index/QrCode";
+import SurveyConsentStep, { consentOpen, type SurveyConsentStatus } from "@/components/index/SurveyConsentStep";
+import { isMissingFunction } from "@/lib/breakdown";
 import { ITEM_SETS } from "@/lib/instrument";
 
 export type RoomSelection = { kind: "house" } | { kind: "room"; link: DistributionLink };
@@ -67,14 +69,27 @@ export default function RoomCards({
   const [qr, setQr] = useState<{ name: string; url: string; cards: string } | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [origin, setOrigin] = useState("https://jfindx.org");
+  // Two-level consent (0053): a survey's link and QR appear only once it is consented.
+  const [consents, setConsents] = useState<Record<string, SurveyConsentStatus> | null>(null);
+  const [consenting, setConsenting] = useState<{ linkId: string | null; name: string } | null>(null);
+  const [canConfirm, setCanConfirm] = useState(false);
 
   useEffect(() => setOrigin(window.location.origin), []);
 
   const load = useCallback(async () => {
-    const [{ data, error }, t] = await Promise.all([
+    const [{ data, error }, t, c] = await Promise.all([
       sb.rpc("org_distribution_links", { p_org_slug: orgSlug }),
       sb.rpc("org_test_links", { p_org_slug: orgSlug }),
+      sb.rpc("org_survey_consents", { p_org_slug: orgSlug }),
     ]);
+    // Only a database without 0053 shows links as before. Any other failure
+    // keeps them hidden — never hand out a link we couldn't check.
+    if (c.error) setConsents(isMissingFunction(c.error) ? null : {});
+    else {
+      const d = c.data as { surveys: SurveyConsentStatus[] | null; can_confirm?: boolean };
+      setConsents(Object.fromEntries((d?.surveys ?? []).map((x) => [x.link_id ?? "house", x])));
+      setCanConfirm(Boolean(d?.can_confirm));
+    }
     const testMap = (t.error ? {} : (t.data as Record<string, { started: number; completed: number; retention_days: number }>) ?? {});
     setTests(testMap);
     if (error) setErr(error.message);
@@ -118,6 +133,7 @@ export default function RoomCards({
   }
 
   const houseUrl = `${origin}/${orgSlug}`;
+  const houseOpen = consents === null || consentOpen(consents.house);
   const houseOn = selected.kind === "house";
 
   return (
@@ -174,15 +190,26 @@ export default function RoomCards({
           <button type="button" onClick={() => onSelect({ kind: "house" })} className="py-1 text-left text-[16px] font-bold">
             All {orgName} surveys
           </button>
-          <Mono on={houseOn}>{houseUrl.replace(/^https?:\/\//, "")}</Mono>
+          {houseOpen ? (
+            <Mono on={houseOn}>{houseUrl.replace(/^https?:\/\//, "")}</Mono>
+          ) : (
+            <NeedsConsent on={houseOn} />
+          )}
+          <ConsentLine on={houseOn} s={consents?.house} />
           <p className={`text-[12.5px] leading-snug ${houseOn ? "text-paper/75" : "text-ink-2"}`}>
             Every room rolls up here. Only the house compares to the Collab.
           </p>
           <div className="mt-auto flex items-center justify-between gap-2 pt-1.5">
             <span className="whitespace-nowrap text-[13px] font-semibold">n {houseN == null ? "—" : houseN.toLocaleString()}</span>
             <span className="flex gap-1.5">
-              <Mini on={houseOn} onClick={() => copy(houseUrl, "house")}>{copied === "house" ? "Copied" : "Copy"}</Mini>
-              <Mini on={houseOn} onClick={() => setQr({ name: "Your survey", url: houseUrl, cards: `/${orgSlug}/dashboard/cards` })}>QR</Mini>
+              {houseOpen ? (
+                <>
+                  <Mini on={houseOn} onClick={() => copy(houseUrl, "house")}>{copied === "house" ? "Copied" : "Copy"}</Mini>
+                  <Mini on={houseOn} onClick={() => setQr({ name: "Your survey", url: houseUrl, cards: `/${orgSlug}/dashboard/cards` })}>QR</Mini>
+                </>
+              ) : (
+                canConfirm && <Mini on={houseOn} onClick={() => setConsenting({ linkId: null, name: "Your survey" })}>Confirm consent</Mini>
+              )}
             </span>
           </div>
         </Card>
@@ -195,6 +222,7 @@ export default function RoomCards({
           const [opens, closes] = windowLines(l);
           const st = STATUS[l.status];
           const test = l.is_test ? tests[l.id] : undefined;
+          const open = l.is_test || consents === null || consentOpen(consents[l.id]);
           return (
             <Card key={l.id} on={on}>
               <button type="button" aria-pressed={on} onClick={() => onSelect({ kind: "room", link: l })} className="flex w-full items-center justify-between text-left">
@@ -221,7 +249,8 @@ export default function RoomCards({
                   }`}
                 />
               </label>
-              <Mono on={on}>{url.replace(/^https?:\/\//, "")}</Mono>
+              {open ? <Mono on={on}>{url.replace(/^https?:\/\//, "")}</Mono> : <NeedsConsent on={on} />}
+              {!l.is_test && <ConsentLine on={on} s={consents?.[l.id]} />}
               <p className={`text-[12.5px] leading-snug ${on ? "text-paper/75" : "text-ink-2"}`}>
                 {test ? (
                   <>Never counted · deleted after {test.retention_days} days</>
@@ -238,8 +267,14 @@ export default function RoomCards({
                   {test ? `${test.completed} test` : `n ${l.n.toLocaleString()}`}
                 </span>
                 <span className="flex gap-1.5">
-                  <Mini on={on} onClick={() => copy(url, l.id)}>{copied === l.id ? "Copied" : "Copy"}</Mini>
-                  <Mini on={on} onClick={() => setQr({ name: l.name, url, cards: `/${orgSlug}/dashboard/cards?link=${encodeURIComponent(l.slug)}` })}>QR</Mini>
+                  {open ? (
+                    <>
+                      <Mini on={on} onClick={() => copy(url, l.id)}>{copied === l.id ? "Copied" : "Copy"}</Mini>
+                      <Mini on={on} onClick={() => setQr({ name: l.name, url, cards: `/${orgSlug}/dashboard/cards?link=${encodeURIComponent(l.slug)}` })}>QR</Mini>
+                    </>
+                  ) : (
+                    canConfirm && <Mini on={on} onClick={() => setConsenting({ linkId: l.id, name: l.name })}>Confirm consent</Mini>
+                  )}
                   <Mini on={on} onClick={() => setEditing(l)}>Dates</Mini>
                 </span>
               </div>
@@ -247,6 +282,23 @@ export default function RoomCards({
           );
         })}
       </div>
+
+      {consenting && (
+        <Modal wide label={`Consent for ${consenting.name}`} onClose={() => setConsenting(null)}>
+          <SurveyConsentStep
+            sb={sb}
+            orgSlug={orgSlug}
+            linkId={consenting.linkId}
+            surveyName={consenting.name}
+            existing={consents?.[consenting.linkId ?? "house"]}
+            onCancel={() => setConsenting(null)}
+            onDone={() => {
+              setConsenting(null);
+              load();
+            }}
+          />
+        </Modal>
+      )}
 
       {editing && (
         <Modal label={editing === "new" ? "New link" : `Edit ${editing.name}`} onClose={() => setEditing(null)}>
@@ -322,7 +374,7 @@ function Mini({ on, onClick, children }: { on: boolean; onClick: () => void; chi
   );
 }
 
-function Modal({ label, onClose, children }: { label: string; onClose: () => void; children: React.ReactNode }) {
+function Modal({ label, onClose, children, wide = false }: { label: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -330,9 +382,30 @@ function Modal({ label, onClose, children }: { label: string; onClose: () => voi
   }, [onClose]);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4" onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label={label} onClick={(e) => e.stopPropagation()} className="w-full max-w-md rounded-2xl bg-plate p-4 shadow-xl">
+      <div role="dialog" aria-modal="true" aria-label={label} onClick={(e) => e.stopPropagation()} className={`w-full ${wide ? "max-w-2xl" : "max-w-md"} rounded-2xl bg-plate p-4 shadow-xl`}>
         {children}
       </div>
     </div>
+  );
+}
+
+/** Where the link would be, until the survey is consented (0053). */
+function NeedsConsent({ on }: { on: boolean }) {
+  return (
+    <p className={`rounded-md border border-dashed px-2 py-1 text-[12.5px] leading-snug ${on ? "border-paper/40 text-paper/85" : "border-rule-2 text-ink-2"}`}>
+      Needs consent — the link and QR appear once your Org Administrator confirms it.
+    </p>
+  );
+}
+
+/** "Consent ✓ Ana Lead · 8 Oct" — who confirmed this survey, and when. */
+function ConsentLine({ on, s }: { on: boolean; s?: SurveyConsentStatus | null }) {
+  if (!s || !s.confirmed_at || !(s.state === "current" || s.state === "outdated")) return null;
+  const when = new Date(s.confirmed_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  return (
+    <p className={`text-[11.5px] ${on ? "text-paper/75" : "text-ink-2"}`}>
+      Consent ✓ {s.confirmed_by ?? "confirmed"} · {when}
+      {s.state === "outdated" ? " · please reconfirm" : ""}
+    </p>
   );
 }

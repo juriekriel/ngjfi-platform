@@ -58,10 +58,13 @@ test("the sample generator covers every scored cell of the model", () => {
 
 test("the guided tour mounts the live survey component, not a copy", () => {
   const tour = src("../src/app/tour/Walkthrough.tsx");
+  // The click-through lives in SurveyDemo (shared with the front page since
+  // Oct 2026); the tour mounts it, and it mounts the real Question component.
+  assert.match(tour, /from "@\/components\/survey\/SurveyDemo"/, "the tour must mount the shared survey demo");
   assert.match(
-    tour,
+    src("../src/components/survey/SurveyDemo.tsx"),
     /from "@\/components\/survey\/QuestionCard"/,
-    "the tour must render the real Question component",
+    "the survey demo must render the real Question component",
   );
   assert.match(
     tour,

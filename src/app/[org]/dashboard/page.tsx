@@ -28,6 +28,7 @@ import OrgTeam from "@/components/index/OrgTeam";
 import ShareLinksPanel from "@/components/index/ShareLinksPanel";
 import type { MapCountry } from "@/components/index/WorldHeatMap";
 import { exportItemsCsv } from "@/lib/exportCsv";
+import WhoAnswered from "@/components/index/WhoAnswered";
 
 type Matrix = Record<string, Record<string, number | null>>;
 /** The house's full payload — ResultsDetail's shape plus what the frame and exports read. */
@@ -353,6 +354,14 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
           : `Of those who completed the Index through any ${dash.org.name} link · n ${dash.n.toLocaleString()}`
       }
     >
+      {view === "results" && !demoPreview && (
+        <WhoAnswered
+          sb={sb}
+          orgSlug={slug}
+          linkId={inRoom && room.kind === "room" ? room.link.id : null}
+          season={!inRoom && seasons && seasonIdx > 0 ? { start: seasons[seasonIdx].start, end: seasons[seasonIdx].end } : null}
+        />
+      )}
       {!inRoom && view === "results" && (
         <section className="rounded-2xl border border-rule bg-plate px-4 py-3 sm:px-6">
           <button type="button" onClick={() => setShowDetail((v) => !v)} aria-expanded={showDetail}
