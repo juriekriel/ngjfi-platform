@@ -13,7 +13,9 @@ test("the front page reads hero → journey → try it → global view, in one s
   const order = ["Start your journey", "<J12Journey", 'id="try"', "<LazySurveyDemo", "<LazyLiveSnapshot", "<Footer"].map((m) => home.indexOf(m));
   order.forEach((i, k) => assert.ok(i > 0, `marker ${k} present`));
   assert.deepEqual([...order].sort((a, b) => a - b), order, "sections are in order");
-  assert.match(home, /Free for every ministry\. Available now\. And it stays free\./);
+  assert.match(home, /Free for every ministry\. Available now\./);
+  assert.ok(!home.includes("And it stays free"), "no 'and it stays free' in the hero (Oct 2026 edit)");
+  assert.ok(!/\{ t: "Free"/.test(home), "free is said in the text, not as a benefit tile");
   assert.ok(!home.includes("seven-minute"), "minutes come from the instrument");
 });
 

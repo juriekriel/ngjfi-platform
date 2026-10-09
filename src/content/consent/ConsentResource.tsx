@@ -21,6 +21,9 @@ import { CONSENT_DISCLAIMER, WHY_CONSENT, WHY_CONSENT_VERSION } from "@/content/
 
 export const CONSENT_RESOURCE_VERSION = "2026-10-v1";
 
+/** Who answers questions about consent, the Index or a respondent's data. */
+export const PRIVACY_CONTACT_EMAIL = "ulrich@nxtmove.global";
+
 const ADVICE = [
   ["China", "Surveys connected to an overseas organisation need a licensed local institution and project approval. Online religious content needs a permit.", "Survey consent is blocked until a local-advice reference is recorded"],
   ["Saudi Arabia", "Non-Muslims are banned from proselytising, and conversion from Islam is prohibited", "Blocked until a local-advice reference is recorded. Expatriate congregations only, if at all"],
@@ -61,9 +64,37 @@ const SOURCES: [string, string][] = [
   ["Bowmans, parental consent in East Africa", "https://bowmanslaw.com/insights/kenya-and-tanzania-comparative-analysis-on-parental-consent-under-east-african-privacy-laws/"],
 ];
 
-function Sec({ id, title, print, children }: { id: string; title: string; print?: string; children: React.ReactNode }) {
+/**
+ * Print-only letterhead: the accent bar, the name, and the Index line. On
+ * screen it is hidden (globals.css, .print-brand). The accent comes from
+ * --print-accent on the resource wrapper — coral on /resources/consent, the
+ * organisation's own colour on /<org>/consent (white-label, non-negotiable #4).
+ */
+function PrintBrand({ org }: { org?: string }) {
+  return (
+    <div className="print-brand" aria-hidden>
+      <div className="print-brand-bar" />
+      <div className="print-brand-row">
+        {org ? (
+          <span className="print-brand-name">{org}</span>
+        ) : (
+          <span className="print-brand-name">
+            The <i>Jesus</i> <span className="print-brand-index">Index</span>
+          </span>
+        )}
+        <span className="print-brand-meta">
+          {org ? "Jesus-Following Index · jfindx.org" : "A global measure of Jesus-following · jfindx.org"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function Sec({ id, title, print, org, children }: { id: string; title: string; print?: string; org?: string; children: React.ReactNode }) {
   return (
     <section id={id} data-print={print} className="consent-section mt-8 border-t border-rule pt-6">
+      {/* Handouts carry their own branded header so a single printed page stands on its own. */}
+      {print && <PrintBrand org={org} />}
       <h2 className="text-[20px] font-bold tracking-tight">{title}</h2>
       <div className="mt-3 flex flex-col gap-3 text-[15.5px] leading-relaxed text-ink-2">{children}</div>
     </section>
@@ -90,17 +121,18 @@ function T({ head, rows }: { head: string[]; rows: React.ReactNode[][] }) {
 }
 
 /** The org's name where one is given (white-label), else a blank to fill in. */
-export default function ConsentResource({ orgName }: { orgName?: string }) {
+export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgName?: string; accent?: string }) {
   const org = orgName ?? "[Organisation name]";
   return (
-    <div>
+    <div className="consent-resource" style={{ ["--print-accent" as string]: accent } as React.CSSProperties}>
+      <PrintBrand org={orgName} />
       <p className="text-[16px] leading-relaxed text-ink-2">
         <b className="text-ink">For organisations running the Jesus-Following Index with young people aged 13–30.</b>{" "}
         No young person answers the Index unless someone responsible has said yes first. This resource explains why, how
         consent works on the platform, what the rules look like in {CONSENT_COUNTRIES.length} countries, and gives you
         the materials to do it well.
       </p>
-      <p role="note" className="mt-4 rounded-xl border border-rule-2 bg-paper-deep px-4 py-3 text-[13.5px] leading-relaxed text-ink-2">
+      <p role="note" className="consent-callout mt-4 rounded-xl border border-emerald/50 bg-emerald/10 px-4 py-3 text-[13.5px] leading-relaxed text-ink">
         <b className="text-ink">This is a reference, not legal advice.</b> See the disclaimer at the end.
       </p>
 
@@ -184,7 +216,7 @@ export default function ConsentResource({ orgName }: { orgName?: string }) {
         <T head={["Country", "Main concern", "On the platform"]} rows={ADVICE.map(([a, b, c]) => [<b key={a}>{a}</b>, b, c])} />
       </Sec>
 
-      <Sec id="young-people" title="7 · Information for young people" print="young-people">
+      <Sec id="young-people" org={orgName} title="7 · Information for young people" print="young-people">
         <p className="text-[13.5px] italic">You can hand this out, project it, or read it aloud.</p>
         <p><b className="text-ink">What is this?</b><br />It&apos;s a short survey about faith: what you believe, how you live it out, and what helps or gets in the way. {org} is one of many churches and ministries around the world using it to understand how they can serve young people better.</p>
         <p><b className="text-ink">Do I have to do it?</b><br />No. It&apos;s your choice. You can skip any question, choose “Prefer not to say”, or stop at any time. Nothing happens if you don&apos;t take part.</p>
@@ -194,7 +226,7 @@ export default function ConsentResource({ orgName }: { orgName?: string }) {
         <p><b className="text-ink">Questions?</b><br />Ask [named leader], or read the full privacy notice at jfindx.org/privacy.</p>
       </Sec>
 
-      <Sec id="parents" title="8 · Information and consent form for parents and guardians" print="parents">
+      <Sec id="parents" org={orgName} title="8 · Information and consent form for parents and guardians" print="parents">
         <p className="text-[13.5px] italic">For 13–17-year-olds wherever your law, denomination or safeguarding policy requires a parent&apos;s or guardian&apos;s consent. Print it on your own letterhead. Keep signed forms yourself. Do not send them to the Index.</p>
         <p><b className="text-ink">Dear parent or guardian,</b></p>
         <p>On <b>[date]</b> at <b>[event / group]</b>, {org} will invite young people to take part in the <b>Jesus-Following Index</b>. It&apos;s a short anonymous survey, about 6 minutes, used by churches and ministries around the world to understand young people&apos;s faith and what helps it grow.</p>
@@ -212,7 +244,7 @@ export default function ConsentResource({ orgName }: { orgName?: string }) {
         </div>
       </Sec>
 
-      <Sec id="script" title="9 · Script to read before the survey" print="script">
+      <Sec id="script" org={orgName} title="9 · Script to read before the survey" print="script">
         <p className="text-[13.5px] italic">About 60 seconds. Read it, or say it in your own words, before sharing the link or QR code.</p>
         <blockquote className="border-l-2 border-emerald pl-4 text-ink">
           <p>“We&apos;re going to give you the chance to take a short survey. It takes about six minutes, and it&apos;s about faith: what you believe and how you live it out. It&apos;s anonymous. There are no names, and none of us will ever see your answers. We only see results grouped across lots of people.</p>
@@ -237,8 +269,8 @@ export default function ConsentResource({ orgName }: { orgName?: string }) {
       </Sec>
 
       <Sec id="disclaimer" title="11 · Disclaimer and contact">
-        <p className="rounded-lg border border-rule-2 bg-paper-deep px-4 py-3 text-[14px]"><b className="text-ink">{CONSENT_DISCLAIMER.split(".")[0]}.</b>{CONSENT_DISCLAIMER.slice(CONSENT_DISCLAIMER.indexOf(".") + 1)}</p>
-        <p>Questions about consent, the Index or your data: <b>[privacy contact email]</b>. Full privacy notice: jfindx.org/privacy · Terms for organisations: jfindx.org/terms</p>
+        <p className="consent-callout rounded-xl border border-emerald/50 bg-emerald/10 px-4 py-3 text-[14px] text-ink"><b className="text-ink">{CONSENT_DISCLAIMER.split(".")[0]}.</b>{CONSENT_DISCLAIMER.slice(CONSENT_DISCLAIMER.indexOf(".") + 1)}</p>
+        <p>Questions about consent, the Index or your data: <a href={`mailto:${PRIVACY_CONTACT_EMAIL}`} className="font-semibold text-ink underline decoration-emerald underline-offset-2">{PRIVACY_CONTACT_EMAIL}</a>. Full privacy notice: jfindx.org/privacy · Terms for organisations: jfindx.org/terms</p>
       </Sec>
 
       <Sec id="sources" title="Sources">

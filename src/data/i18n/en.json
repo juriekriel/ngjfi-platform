@@ -7,6 +7,7 @@
   "back": "← Back",
   "begin": "Begin →",
   "chars_left": "{n} characters left",
+  "choose_country": "Choose your country",
   "continue": "Continue →",
   "done_pending": "Your answers are saved on this phone and will be added to {org}'s picture as soon as it has a signal — you don't need to do anything.",
   "done_private": "They only ever see grouped results, never individual answers.",

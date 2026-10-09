@@ -191,4 +191,27 @@ label {
   html[data-print-only] #young-people, html[data-print-only] #parents, html[data-print-only] #script { break-before: auto; }
   a { color: inherit; text-decoration: none; }
   body { background: #fff; }
+
+  /* Branded print (consent resource): keep the site's colours on paper.
+     --print-accent is coral on /resources/consent and the organisation's own
+     colour on /<org>/consent (set on .consent-resource). */
+  @page { margin: 16mm 14mm; }
+  .consent-resource, .consent-resource * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-brand { display: block !important; margin: 0 0 14px; break-after: avoid; }
+  html[data-print-only] .consent-resource > .print-brand { display: none !important; }
+  .print-brand-bar { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--print-accent, #ff7a47), rgb(var(--c-violet))); }
+  .print-brand-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 0 6px; border-bottom: 1px solid rgb(var(--c-rule-2)); }
+  .print-brand-name { font-size: 18px; font-weight: 700; color: rgb(var(--c-ink)); letter-spacing: -0.01em; }
+  .print-brand-name i { color: var(--print-accent, #ff7a47); }
+  .print-brand-index { font-family: var(--font-mono), ui-monospace, monospace; font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .print-brand-meta { font-family: var(--font-mono), ui-monospace, monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: rgb(var(--c-ink-2)); }
+  .consent-resource .consent-section { border-top: 3px solid var(--print-accent, #ff7a47); }
+  .consent-resource .consent-section > h2 { color: rgb(var(--c-ink)); }
+  .consent-resource th { background: color-mix(in srgb, var(--print-accent, #ff7a47) 14%, white); border-bottom: 2px solid var(--print-accent, #ff7a47); }
+  .consent-resource blockquote { border-left-color: var(--print-accent, #ff7a47) !important; }
+  .consent-resource .consent-callout { border-color: color-mix(in srgb, var(--print-accent, #ff7a47) 50%, white) !important; background: color-mix(in srgb, var(--print-accent, #ff7a47) 10%, white) !important; }
+  .consent-resource [data-print="parents"] .border-dashed { border-color: var(--print-accent, #ff7a47) !important; }
 }
+
+/* The print letterhead never shows on screen. */
+.print-brand { display: none; }
