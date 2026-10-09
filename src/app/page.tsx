@@ -46,7 +46,7 @@ export default function Home() {
 
       <main className="mx-auto max-w-5xl px-5">
         {/* ── A · hero ─────────────────────────────────────────────── */}
-        <section className="grid gap-10 py-12 md:grid-cols-[1.45fr_1fr] md:gap-14">
+        <section className="grid gap-10 pt-12 md:grid-cols-[1.45fr_1fr] md:gap-14">
           <div>
             <h1 className="wordmark text-[42px] leading-[0.98] tracking-tight sm:text-[56px]">
               The <span className="italic">Jesus</span>{" "}

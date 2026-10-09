@@ -4,7 +4,7 @@ import { EMERALD, INK, MUTED } from "@/lib/model";
 
 /**
  * The masthead. Brand Proof № 3: the header carries the short mark (gradient
- * chip + "JFINDX") the same way on every page, signed-out or signed-in — this
+ * chip + "J.FIND.x") the same way on every page, signed-out or signed-in — this
  * is a control surface, not the hero. The full serif "The Jesus Index"
  * lockup is reserved for page heroes (see the homepage), never repeated here.
  * Nav is plain Inter Tight, same voice as buttons and body copy — the old
@@ -17,7 +17,7 @@ export function Masthead({ edition }: { edition?: string }) {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-3.5 sm:px-8">
         <Link href="/" className="flex items-center gap-2.5 no-underline">
           <RisingMark className="h-7 w-7 shrink-0" />
-          <span className="text-[18px] font-bold tracking-tight text-ink">JFINDX</span>
+          <span className="text-[18px] font-bold tracking-tight text-ink">J.FIND.x</span>
         </Link>
         <nav className="flex flex-wrap items-center gap-x-6 gap-y-1.5">
           <NavLink href="/learn">What is the JFINDX?</NavLink>
@@ -59,11 +59,7 @@ export function Masthead({ edition }: { edition?: string }) {
  */
 export function Footer() {
   return (
-    <footer>
-      {/* The same coral → violet line as the join page's calls to action. */}
-      <div className="mx-auto max-w-6xl px-5 sm:px-8">
-        <GradientRule />
-      </div>
+    <footer className="border-t border-rule">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2.5 px-5 py-6 sm:px-8">
         <RisingMark className="h-5 w-5 shrink-0" />
         <p className="text-[13px] text-ink-2">

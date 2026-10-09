@@ -67,7 +67,7 @@ def j12(c, x, y_top, w, cell_h=34, phrases=True, font=7.5):
     cols = ["Exposure", "Response", "Formation", "Multiplication"]
     words = [["heard of Jesus", "believes in Jesus", "being shaped", "helps others believe"],
              ["aware of the call", "convinced it's theirs", "practising witness", "mobilising others"],
-             ["sees faith should matter", "believes it does", "choices reshaped", "changing their spheres"]]
+             ["sees faith should matter", "believes faith matters", "choices reshaped", "changing their spheres"]]
     label_w = w * 0.2; gap = 4; cw = (w - label_w - gap * 3) / 4
     c.setFont("Helvetica", 6.8); c.setFillColor(INK2)
     for j, col in enumerate(cols):
@@ -100,7 +100,7 @@ def two_pager(path):
     M = 46; TW = W - 2 * M
 
     # page 1
-    mark(c, M + 11, H - 52); c.setFont("Helvetica-Bold", 15); c.setFillColor(INK); c.drawString(M + 30, H - 57, "JFINDX")
+    mark(c, M + 11, H - 52); c.setFont("Helvetica-Bold", 15); c.setFillColor(INK); c.drawString(M + 30, H - 57, "J.FIND.x")
     c.setFont("Helvetica", 8.5); c.setFillColor(INK2); c.drawRightString(W - M, H - 56, "jfindx.org")
     kicker(c, M, H - 100, "A shared measure for the Next Gen Global Collab")
     y = para(c, "How are young people following Jesus — and where do they stop moving?", M, H - 108, TW * 0.9, style(25, INK, 30, True))
@@ -177,7 +177,7 @@ def pitch(path):
         c.setFillColor(CORAL); c.rect(0, H - 6, W * 0.34, 6, stroke=0, fill=1)
         c.setFillColor(VIOLET); c.rect(W * 0.34, H - 6, W * 0.66, 6, stroke=0, fill=1)
         mark(c, M + 9, H - 40, 9)
-        c.setFont("Helvetica-Bold", 10.5); c.setFillColor(white if dark else INK); c.drawString(M + 24, H - 44, "JFINDX")
+        c.setFont("Helvetica-Bold", 10.5); c.setFillColor(white if dark else INK); c.drawString(M + 24, H - 44, "J.FIND.x")
         kicker(c, M, H - 84, kick, HexColor("#b8bdc7") if dark else INK2)
         y = para(c, title, M, H - 92, TW * 0.85, style(26, white if dark else INK, 31, True))
         c.setStrokeColor(HexColor("#3a3e46") if dark else RULE); c.line(M, 30, W - M, 30)
