@@ -3,7 +3,11 @@ Builds the two shareable JFINDX documents:
   public/share/JFINDX-two-pager.pdf       (A4 portrait, 2 pages)
   public/share/JFINDX-pitch-and-demo.pdf  (A4 landscape, 8 pages)
 Content is drawn only from what the platform actually does (CLAUDE.md,
-the live instrument v4, the dashboards as built) — no invented statistics.
+the live instrument v5, the dashboards as built, the privacy notice and the
+consent resource) — no invented statistics. Re-run after any change to them:
+  python3 scripts/build-share-docs.py
+The mark is drawn from public/icon-mark.svg's own geometry, so the PDFs
+carry the real logo, not an approximation.
 """
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.pdfgen import canvas
@@ -17,7 +21,9 @@ CORAL = HexColor("#FF7A47"); CORAL_D = HexColor("#E8551F"); CORAL_DD = HexColor(
 VIOLET = HexColor("#8B5CF6"); VIOLET_D = HexColor("#5B21B6")
 TIER = [HexColor("#FDE3D6"), HexColor("#FFB08A"), HexColor("#FF7A47"), HexColor("#C2410C")]
 TIER_FG = [INK, INK, white, white]
-QR = "/tmp/qr-small.png"
+# The 1200 px QR is for print downloads; the PDFs only need ~300 px of it.
+from PIL import Image as _Image
+QR = ImageReader(_Image.open("public/share/jfindx-qr.png").convert("L").resize((300, 300), _Image.NEAREST))
 
 def style(size, color=INK, lead=None, bold=False, align=0):
     return ParagraphStyle("s", fontName="Helvetica-Bold" if bold else "Helvetica", fontSize=size,
@@ -31,9 +37,26 @@ def para(c, text, x, y_top, w, st, h=400):
     return y_top - ph
 
 def mark(c, x, y, r=11):
-    c.setFillColor(CORAL); c.circle(x, y, r, stroke=0, fill=1)
-    c.setFillColor(VIOLET); c.circle(x + r * 0.35, y - r * 0.35, r * 0.62, stroke=0, fill=1)
-    c.setFillColor(white); c.setFont("Helvetica-Bold", r * 0.9); c.drawCentredString(x + r * 0.05, y - r * 0.32, "+")
+    """The JFINDX mark (public/icon-mark.svg): a coral→violet disc, a dashed
+    white line that runs flat then rises, and the white cross at its peak.
+    SVG geometry is 120×120, y down; (x, y) here is the disc's centre."""
+    k = 2 * r / 120.0
+    X = lambda sx: x - r + sx * k
+    Y = lambda sy: y + r - sy * k
+    c.saveState()
+    p = c.beginPath(); p.circle(x, y, r * 58 / 60)
+    c.clipPath(p, stroke=0, fill=0)
+    c.linearGradient(X(0), Y(0), X(120), Y(120), (CORAL, VIOLET), extend=True)
+    c.restoreState()
+    c.saveState()
+    c.setStrokeColor(white); c.setLineWidth(5 * k); c.setLineCap(1); c.setDash([12 * k, 10 * k])
+    line = c.beginPath(); line.moveTo(X(15), Y(89)); line.lineTo(X(65), Y(89)); line.lineTo(X(92), Y(55))
+    c.drawPath(line, stroke=1, fill=0)
+    c.setDash([])
+    c.setFillColor(white)
+    c.roundRect(X(89.25), Y(31 + 28), 4.5 * k, 28 * k, 2.25 * k, stroke=0, fill=1)
+    c.roundRect(X(77), Y(43.25 + 4.5), 28 * k, 4.5 * k, 2.25 * k, stroke=0, fill=1)
+    c.restoreState()
 
 def kicker(c, x, y, text, color=INK2):
     c.setFont("Helvetica", 8); c.setFillColor(color); c.drawString(x, y, text.upper())
@@ -82,7 +105,7 @@ def two_pager(path):
     kicker(c, M, H - 100, "A shared measure for the Next Gen Global Collab")
     y = para(c, "How are young people following Jesus — and where do they stop moving?", M, H - 108, TW * 0.9, style(25, INK, 30, True))
     y = para(c, "The JFINDX (the Next Gen Jesus-Following Index) is one short, anonymous survey that any ministry can run with the young people it reaches, aged 13 to 30. "
-             "Every ministry sees its own results the moment people answer. Together, the Collab sees a picture no single ministry could see alone.",
+             "It's free for every ministry. Each one sees its own results live, as people answer. Together, the Collab sees a picture no single ministry could see alone.",
              M, y - 12, TW * 0.92, style(11, INK2, 16))
 
     kicker(c, M, y - 30, "The model · three questions, four tiers")
@@ -92,8 +115,8 @@ def two_pager(path):
     y = j12(c, M, y - 12, TW, cell_h=40, font=8)
 
     kicker(c, M, y - 26, "What it takes")
-    cols = [("About 7 minutes", "One question per screen on any phone. A 3-minute short version is available for camps and busy moments."),
-            ("Anonymous by design", "No names, emails, precise location or IP addresses. Age is a band, never a birthday."),
+    cols = [("About 6 minutes", "One question per screen on any phone. Choose the J12 (about 5 minutes) or the Full survey (about 6, plus optional extras)."),
+            ("Anonymous by design", "No names, emails, phone numbers or birthdays; IP addresses are never stored with answers. Age is a band."),
             ("Works with no signal", "Once the survey has opened on a phone, it runs offline and sends answers when signal returns.")]
     cw = (TW - 24) / 3; yy = y - 34
     for i, (h, b) in enumerate(cols):
@@ -106,11 +129,12 @@ def two_pager(path):
 
     # page 2
     kicker(c, M, H - 60, "How it works")
-    steps = [("1", "A ministry joins", "Sign in at jfindx.org with your ministry email — no password. Your organisation gets its own branded survey and dashboard."),
-             ("2", "Make a link for each group", "Each link is its own “room” — a camp, a youth night, a partner church — with its own open and close times. Every room rolls up into your whole organisation."),
-             ("3", "Young people answer", "They scan a QR code or tap a link, answer in about seven minutes, and are told plainly that only grouped results are ever seen."),
-             ("4", "You read the J12", "Your dashboard shows the J12 matrix and a world heat map, and lets you overlay your whole organisation on the Collab's pooled picture."),
-             ("5", "Ask what it means", "“What does this mean?” sends your question — and the view you are looking at — to a Collab facilitator, who helps turn a score into a changed strategy.")]
+    steps = [("1", "A ministry joins", "Join at jfindx.org, then sign in with your ministry email — no password. Your organisation gets its own branded survey and dashboard."),
+             ("2", "Consent comes first", "Confirm consent for your organisation, then for each survey you send — including how parental consent was gathered for 13–17s. No consent, no participation."),
+             ("3", "Start a survey for each group", "Choose the J12 or the Full survey, add your own welcome and closing, and set when it opens and closes. Each one is its own “room”, rolling up into your whole organisation."),
+             ("4", "Young people answer", "They scan a QR code or tap a link, answer in about six minutes, and are told plainly that only grouped results are ever seen. Those not yet following Jesus answer their own path."),
+             ("5", "You read the J12 — live", "Your dashboard shows the J12 matrix, the Unengaged matrix and a world heat map. Choose which views your team sees, export your results, and overlay the Collab's pooled picture."),
+             ("6", "Ask what it means", "“What does this mean?” sends your question — and the view you are looking at — to a Collab facilitator, who helps turn a score into a changed strategy.")]
     y = H - 72
     for n, h, b in steps:
         c.setFillColor(CORAL); c.circle(M + 10, y - 12, 10, stroke=0, fill=1)
@@ -120,11 +144,12 @@ def two_pager(path):
         y = yb - 14
 
     kicker(c, M, y - 6, "The promises the platform keeps")
-    promises = ["<b>Only “those who have completed the Index.”</b> Results never claim to describe a whole population.",
-                "<b>Nothing small enough to point at a person.</b> A score appears only once at least 10 people have answered; a country appears on the map only at 2,000.",
+    promises = ["<b>Only “those who have completed the Index.”</b> Results never claim to describe a whole population, and every score shows how many people it rests on.",
+                "<b>Nothing small enough to point at a person.</b> A score appears at 10 people; a city or area at 400; a country on the map at 2,000.",
                 "<b>Aggregates only.</b> No organisation ever sees an individual's answers — including its own young people's.",
-                "<b>Your brand, not ours.</b> Respondents see your name, colour and logo; the JFINDX sits quietly in the footer.",
-                "<b>Never locked.</b> The questions belong to the researchers and are versioned; every answer stays tied to the version it was given under."]
+                "<b>Kept only as long as needed.</b> After 60 days the exact time, city, typed answers and room are removed; cleaned answers are kept up to 5 years, then only grouped totals. Under-13s are stopped at the first question and nothing is kept.",
+                "<b>Minors protected at the edge.</b> Consent, including parental consent, is gathered and held by each ministry — never by the Index.",
+                "<b>Your brand, not ours.</b> Respondents see your name, colour and logo; the JFINDX sits quietly in the footer."]
     y -= 16
     for pr in promises:
         c.setFillColor(VIOLET); c.circle(M + 4, y - 6, 2.4, stroke=0, fill=1)
@@ -132,9 +157,9 @@ def two_pager(path):
 
     box_h = 108; by = 50
     c.setFillColor(INK); c.roundRect(M, by, TW, box_h, 10, stroke=0, fill=1)
-    c.drawImage(ImageReader(QR), W - M - box_h + 12, by + 12, box_h - 24, box_h - 24)
+    c.drawImage(QR, W - M - box_h + 12, by + 12, box_h - 24, box_h - 24)
     para(c, "Start at jfindx.org", M + 18, by + box_h - 18, TW - box_h - 30, style(17, white, 21, True))
-    para(c, "Sign in with your ministry email to set up your organisation, or take the guided tour at jfindx.org/tour to see every screen with invented figures first.",
+    para(c, "Join free, then sign in with your ministry email. Privacy notice: jfindx.org/privacy · Consent resource, parent letter and script: jfindx.org/resources/consent · Guided tour: jfindx.org/tour",
          M + 18, by + box_h - 46, TW - box_h - 40, style(9.5, HexColor("#d7dbe2"), 13.5))
     footer(c, W, "The JFINDX · built by and for the Next Gen Global Collab · jfindx.org", 2)
     c.showPage(); c.save()
@@ -162,9 +187,9 @@ def pitch(path):
 
     # 1 · cover
     y = slide("A shared measure of how young people follow Jesus.", "Pitch and demo guide · for leaders, boards and partners", dark=True)
-    para(c, "One short, anonymous survey any ministry can run. Its own results the moment people answer. A Collab-wide picture no single ministry could see alone.",
+    para(c, "One short, anonymous survey any ministry can run, free. Its own results live, as people answer. A Collab-wide picture no single ministry could see alone.",
          M, y - 18, TW * 0.6, style(13.5, HexColor("#d7dbe2"), 19))
-    c.drawImage(ImageReader(QR), W - M - 150, 60, 150, 150)
+    c.drawImage(QR, W - M - 150, 60, 150, 150)
     c.setFont("Helvetica", 9); c.setFillColor(HexColor("#b8bdc7")); c.drawRightString(W - M, 48, "jfindx.org")
 
     # 2 · why
@@ -186,10 +211,10 @@ def pitch(path):
     j12(c, M + TW * 0.4, y - 10, TW * 0.6, cell_h=58, font=9.5)
 
     # 4 · what a young person does
-    y = slide("Seven minutes, on any phone — with no signal if need be.", "The respondent")
-    items = [("Scan or tap", "A QR code on a poster, or a link in a group chat."), ("Choose a language", "Every word is translatable; the survey runs in the respondent's language."),
-             ("One question per screen", "About 7 minutes; a 3-minute short version exists for camps."), ("Anonymous, and told so", "No names or emails; age is a band. They're told only grouped results are ever seen."),
-             ("Offline-proof", "Answers are kept on the phone and sent automatically when signal returns."), ("Next person", "At a camp, one phone can be passed along — each person's answers clear from the screen.")]
+    y = slide("About six minutes, on any phone — with no signal if need be.", "The respondent")
+    items = [("Scan or tap", "A QR code on a poster, or a link in a group chat. Your welcome first, your thank-you last."), ("Choose a language", "English today, Spanish in review and more on the way — every word is translatable."),
+             ("One question per screen", "The J12 in about 5 minutes, the Full survey in about 6. Country from a list; city optional."), ("Anonymous, and told so", "No names, emails or birthdays; age is a band. They're told only grouped results are ever seen."),
+             ("Offline-proof", "Answers are kept on the phone and sent automatically when signal returns."), ("Every path counts", "Those not yet following Jesus answer their own questions — counted, and scored apart.")]
     cw = (TW - 36) / 3; ch = (y - 110) / 2
     for i, (h, b) in enumerate(items):
         x = M + (i % 3) * (cw + 18); yy = y - 24 - (i // 3) * (ch + 16)
@@ -199,10 +224,10 @@ def pitch(path):
 
     # 5 · what a ministry sees
     y = slide("Your own dashboard — and the Collab's, side by side.", "The ministry")
-    rows = [("Two tabs, identical in shape", "Your organisation's dashboard and Collab Intelligence: the same three figures, the same J12 matrix and heat map, in the same places."),
-            ("Rooms", "Every link is its own room — a camp, a partner, a youth night — with its own results, rolling up into your whole organisation."),
-            ("Overlay the Collab", "Put the Collab's pooled figure in the corner of every cell and see where you sit. Whole-organisation only, never a single room."),
-            ("A heat map that doesn't overclaim", "Countries light up only once 2,000 people there have answered. Until then they stay grey — honestly."),
+    rows = [("Two tabs, identical in shape", "Your organisation's dashboard and Collab Intelligence: the same figures, the same J12 matrix and heat map, in the same places."),
+            ("Rooms", "Every survey you start is its own room — a camp, a partner, a youth night — with its own results, rolling up into your whole organisation."),
+            ("Yours to arrange", "“Edit your dashboard” lets your admin choose which views and tools your team sees. A score never loses its sample size."),
+            ("A map that doesn't overclaim", "Countries light up only once 2,000 people there have answered; cities and areas at 400. Until then they stay grey — honestly."),
             ("“What does this mean?”", "Ask a Collab facilitator about exactly the view you're looking at. That's the consulting layer: from a score to a strategy.")]
     yy = y - 20
     for h, b in rows:
@@ -213,9 +238,9 @@ def pitch(path):
 
     # 6 · promises
     y = slide("The promises the platform keeps.", "Privacy and honesty")
-    pr = [("Of those who completed it", "Results describe the people who answered — never a whole population."), ("Nothing that points at a person", "No score under 10 people. No country on the map under 2,000."),
-          ("Aggregates only", "No organisation sees an individual answer — not even its own young people's."), ("Minors protected at the edge", "Consent — including parental consent — is handled by each ministry. Nothing identifiable about under-18s is ever held centrally."),
-          ("Your brand, not ours", "Respondents see your name, colour and logo."), ("Never locked", "Questions are researcher-owned and versioned; every answer stays tied to its version.")]
+    pr = [("Of those who completed it", "Results describe the people who answered — never a whole population. Every score shows its n."), ("Nothing that points at a person", "No score under 10 people. No city under 400, no country under 2,000."),
+          ("Aggregates only", "No organisation sees an individual answer — not even its own young people's."), ("Minors protected at the edge", "Consent is confirmed twice — for the organisation and for each survey — and parental consent is held by each ministry, never by the Index."),
+          ("Kept only as long as needed", "Identifying details removed after 60 days; cleaned answers kept up to 5 years. IPs never stored with answers."), ("Never locked", "Questions are researcher-owned and versioned; every answer stays tied to its version.")]
     cw = (TW - 20) / 2
     for i, (h, b) in enumerate(pr):
         x = M + (i % 2) * (cw + 20); yy = y - 20 - (i // 2) * 72
@@ -225,10 +250,10 @@ def pitch(path):
     # 7 · demo, part 1
     y = slide("Run the demo — part one: set up.", "Demo instructions · about 10 minutes")
     steps = [("Before you start", "Have a laptop to present from and a phone to answer on. For a no-risk walkthrough with invented figures, open jfindx.org/tour."),
-             ("1 · Sign in", "On the laptop go to jfindx.org → “Sign in to Your Organisation”. Enter your ministry email. Open the link from the newest email — it works on any device."),
-             ("2 · Your dashboard", "You land on your organisation's dashboard. Point out the three figures and the J12 matrix. Say: the dashes mean there aren't enough answers yet — that's the privacy floor at work."),
-             ("3 · Make a room", "Click “+ New link”. Name it (“Demo room”), choose a survey version, set it to open now and close tomorrow, and save."),
-             ("4 · Show the QR", "On the new card click “QR” and hold it up. Invite people to scan it with their phones.")]
+             ("1 · Sign in", "On the laptop go to jfindx.org → “Sign in”. Enter your ministry email and open the link from the newest email — it works on any device."),
+             ("2 · Your dashboard", "Point out the figures and the J12 matrix. Say: the dashes mean there aren't enough answers yet — that's the privacy floor at work."),
+             ("3 · Start a test survey", "Click “+ Start a new survey”. Name it (“Demo”), tick Test link, choose J12 or Full survey (open “What each survey measures”), add a welcome, and save."),
+             ("4 · Show the QR", "On the new card click “QR” and hold it up. A test link works before consent and its answers are kept apart and deleted after 7 days.")]
     yy = y - 18
     for h, b in steps:
         para(c, h, M, yy, TW * 0.24, style(12, INK, 16, True))
@@ -237,11 +262,11 @@ def pitch(path):
 
     # 8 · demo, part 2
     y = slide("Run the demo — part two: answer, read, ask.", "Demo instructions · continued")
-    steps = [("5 · Answer on a phone", "Scan the QR. Point out the organisation's own colour and name, the one-question-per-screen flow, and the anonymity promise. For effect, switch the phone to airplane mode halfway — it keeps working."),
-             ("6 · Watch it arrive", "Back on the laptop, reload the dashboard. The room's count goes up. Explain that a score appears once 10 people have answered, so a real room fills in live."),
-             ("7 · Switch views", "Toggle between the J12 matrix and the heat map; open the Collab Intelligence tab to show the pooled picture has exactly the same shape."),
+    steps = [("5 · Answer on a phone", "Scan the QR. Point out your own colour, name and welcome, one question per screen, and the anonymity promise. For effect, switch to airplane mode halfway — it keeps working."),
+             ("6 · Watch it arrive", "Back on the laptop, reload. The test card's count goes up — test answers never reach a score. On a real survey a score appears once 10 people have answered."),
+             ("7 · Switch views", "Toggle the J12 matrix, Unengaged matrix and heat map; open “Edit your dashboard” to show how a team chooses what it sees; open Collab Intelligence for the pooled picture."),
              ("8 · Ask what it means", "Click “What does this mean?” and pick a suggested question. It goes to a Collab facilitator with the view attached — that's where a score becomes a strategy."),
-             ("9 · Hand over", "In “Share about the JFINDX” download this guide, the two-pager and the QR code for anyone who wants to take it further.")]
+             ("9 · Hand over", "At the bottom of the dashboard, “Share about the JFINDX” has this guide, the two-pager and the QR code. Consent materials: jfindx.org/resources/consent.")]
     yy = y - 18
     for h, b in steps:
         para(c, h, M, yy, TW * 0.24, style(12, INK, 16, True))

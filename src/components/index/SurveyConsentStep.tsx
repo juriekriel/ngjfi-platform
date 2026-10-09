@@ -220,7 +220,7 @@ export default function SurveyConsentStep({
       {err && <p className="text-[13px] text-vermillion">{err}</p>}
       <div className="flex gap-2">
         <button type="button" onClick={submit} disabled={!ready || busy}
-          className="rounded-lg bg-ink px-4 py-2.5 text-[14px] font-semibold text-paper disabled:opacity-40">
+          className="rounded-lg bg-gradient-to-r from-emerald via-emerald-deep to-emerald-deeper px-4 py-2.5 text-[14px] font-semibold text-plate disabled:opacity-40">
           {busy ? "Confirming…" : "Confirm consent for this survey"}
         </button>
         <button type="button" onClick={onCancel} className="rounded-lg border border-rule-2 px-4 py-2.5 text-[14px] font-semibold text-ink-2">

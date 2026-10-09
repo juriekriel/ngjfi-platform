@@ -28,10 +28,11 @@ const BENEFITS: { t: string; d: string; href?: string }[] = [
   { t: "Your brand", d: "your logo, your colour, your words" },
   { t: "Your results, live", d: "they belong to your ministry" },
   { t: "Compare as your area grows", d: "city and country views open as more ministries join" },
+  { t: "See Jesus-following in the next generation", d: "locally and globally" },
 ];
 
 const STEPS: { t: string; d: string }[] = [
-  { t: "Join", d: "Free, about two minutes." },
+  { t: "Join", d: "About two minutes." },
   { t: "Make it yours", d: "Your logo and colour; your link and QR code." },
   { t: "Invite your young people", d: `They answer on any phone in about ${WELCOME_MINUTES} minutes, anonymously.` },
   { t: "See your results", d: "Grouped results, live." },
@@ -103,7 +104,7 @@ export default function Home() {
         <section id="try" aria-labelledby="try-heading" className="scroll-mt-6 py-12">
           <p className="figcap">Try it yourself</p>
           <h2 id="try-heading" className="mt-2 text-[28px] leading-tight sm:text-[32px]">See it from their side.</h2>
-          <div className="mt-8 grid gap-10 md:grid-cols-[1fr_340px] md:gap-14">
+          <div className="mt-8 grid items-center gap-10 md:grid-cols-[1fr_400px] md:gap-14">
             <div>
               <ol className="flex flex-col gap-5">
                 {STEPS.map((s, i) => (
@@ -123,15 +124,15 @@ export default function Home() {
                   href="/join"
                   className="rounded-lg border-2 border-emerald bg-emerald px-5 py-3 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
                 >
-                  Join the JFINDX — free →
+                  Join the JFINDX →
                 </Link>
                 <Link href="/tour" className="rounded-lg border border-ink px-5 py-3 text-[14px] font-semibold text-ink no-underline hover:bg-ink hover:text-paper">
-                  Take the full tour →
+                  How does it work? →
                 </Link>
               </div>
             </div>
-            <div className="md:sticky md:top-6 md:self-start">
-              <LazySurveyDemo />
+            <div className="flex justify-center">
+              <LazySurveyDemo large />
             </div>
           </div>
         </section>

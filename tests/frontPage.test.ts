@@ -16,6 +16,11 @@ test("the front page reads hero → journey → try it → global view, in one s
   assert.match(home, /Free for every ministry\. Available now\./);
   assert.ok(!home.includes("And it stays free"), "no 'and it stays free' in the hero (Oct 2026 edit)");
   assert.ok(!/\{ t: "Free"/.test(home), "free is said in the text, not as a benefit tile");
+  // Free is said once, in the hero — no tile, tab or button on the front page repeats it.
+  const page = home + read("src/components/site/LiveSnapshot.tsx") + read("src/components/site/Chrome.tsx");
+  const visible = page.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+  assert.equal((visible.match(/\bfree\b/gi) ?? []).length, 1, "free appears once, in the hero");
+  assert.match(home, /How does it work\? →/);
   assert.ok(!home.includes("seven-minute"), "minutes come from the instrument");
 });
 
@@ -28,10 +33,10 @@ test("no public page links to the retired global-picture page; /history redirect
   assert.match(read("next.config.mjs"), /source: "\/history", destination: "\/our-story", permanent: true/);
 });
 
-test("the nav says Sign in and Join — free; the footer carries Our story, Privacy, Terms, Consent", () => {
+test("the nav says Sign in and Join; the footer carries Our story, Privacy, Terms, Consent", () => {
   const chrome = read("src/components/site/Chrome.tsx");
   assert.match(chrome, />\s*Sign in\s*</);
-  assert.match(chrome, /Join the JFINDX — free/);
+  assert.match(chrome, /Join the JFINDX\s*</);
   for (const l of ["Our story", "Privacy", "Terms", "Consent"]) assert.ok(chrome.includes(`"${l}"`), l);
   for (const p of ["learn", "tour", "join", "access", "organisation", "our-story"]) {
     assert.match(read(`src/app/${p}/page.tsx`), /<Footer \/>/, `/${p} has the footer`);

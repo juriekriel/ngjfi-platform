@@ -45,7 +45,8 @@ export default function JoinForm() {
   const [decision, setDecision] = useState("");
   const [wantsCall, setWantsCall] = useState("");
   const [collabMember, setCollabMember] = useState("");
-  const [consent, setConsent] = useState(true);
+  // The monthly newsletter opt-in is retired (Oct 2026): nobody is signed up to updates.
+  const consent = false;
 
   async function submitExpress(e: React.FormEvent) {
     e.preventDefault();
@@ -284,11 +285,6 @@ export default function JoinForm() {
           <label className={label} htmlFor="role">Your role</label>
           <input id="role" required className={`${field} mt-1.5`} value={role} onChange={(e) => setRole(e.target.value)} />
         </div>
-        <label className="flex items-start gap-2.5 text-[14px] leading-snug text-ink-2">
-          <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}
-            className="mt-1 h-3.5 w-3.5 shrink-0 accent-emerald" />
-          <span>Send me <b>Field Notes</b> — a monthly note on how the Index is being built. Unsubscribe any time.</span>
-        </label>
       </div>
 
       {error && <p className="mt-4 text-[14px] leading-snug text-vermillion">{error}</p>}

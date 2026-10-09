@@ -19,7 +19,7 @@ import { isMissingFunction } from "@/lib/breakdown";
 import { ITEM_SETS } from "@/lib/instrument";
 
 export type RoomSelection = { kind: "house" } | { kind: "room"; link: DistributionLink };
-/** The dashboard's views (?view=) — switched by the tiles beside "+ New link". */
+/** The dashboard's views (?view=) — switched by the tiles beside "+ Start a new survey". */
 export type DashboardView = "results" | "settings" | "share" | "team";
 
 const STATUS: Record<DistributionLink["status"], { label: string; dot: string }> = {
@@ -57,7 +57,7 @@ export default function RoomCards({
   onSelect: (s: RoomSelection) => void;
   /** The organisation's registered name — the house card reads "All <name> surveys". */
   orgName: string;
-  /** Which dashboard view is showing; the two tiles beside "+ New link" switch it. */
+  /** Which dashboard view is showing; the tiles beside "+ Start a new survey" switch it. */
   view?: DashboardView;
   onView?: (v: DashboardView) => void;
 }) {
@@ -145,19 +145,11 @@ export default function RoomCards({
             <>
               <button
                 type="button"
-                aria-pressed={view === "share"}
-                onClick={() => onView(view === "share" ? "results" : "share")}
-                className={`whitespace-nowrap rounded-lg border px-4 py-2.5 text-[14px] font-semibold ${view === "share" ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"}`}
-              >
-                Share about the JFINDX
-              </button>
-              <button
-                type="button"
                 aria-pressed={view === "team"}
                 onClick={() => onView(view === "team" ? "results" : "team")}
                 className={`whitespace-nowrap rounded-lg border px-4 py-2.5 text-[14px] font-semibold ${view === "team" ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"}`}
               >
-                Team &amp; access
+                Your team &amp; access
               </button>
               <button
                 type="button"
@@ -165,7 +157,7 @@ export default function RoomCards({
                 onClick={() => onView(view === "settings" ? "results" : "settings")}
                 className={`whitespace-nowrap rounded-lg bg-gradient-to-r from-violet via-violet-deep to-violet-deeper px-4 py-2.5 text-[14px] font-semibold text-plate hover:opacity-90 ${view === "settings" ? "ring-2 ring-violet-deeper ring-offset-2" : ""}`}
               >
-                {view === "settings" ? "← Back to results" : "Survey settings"}
+                {view === "settings" ? "← Back to results" : "Edit your dashboard"}
               </button>
             </>
           )}
@@ -174,7 +166,7 @@ export default function RoomCards({
             onClick={() => setEditing("new")}
             className="whitespace-nowrap rounded-lg bg-gradient-to-r from-emerald via-emerald-deep to-emerald-deeper px-4 py-2.5 text-[14px] font-semibold text-plate"
           >
-            + New link
+            + Start a new survey
           </button>
         </div>
       </div>
@@ -208,7 +200,7 @@ export default function RoomCards({
                   <Mini on={houseOn} onClick={() => setQr({ name: "Your survey", url: houseUrl, cards: `/${orgSlug}/dashboard/cards` })}>QR</Mini>
                 </>
               ) : (
-                canConfirm && <Mini on={houseOn} onClick={() => setConsenting({ linkId: null, name: "Your survey" })}>Confirm consent</Mini>
+                canConfirm && <Mini on={houseOn} accent onClick={() => setConsenting({ linkId: null, name: "Your survey" })}>Confirm consent</Mini>
               )}
             </span>
           </div>
@@ -273,9 +265,9 @@ export default function RoomCards({
                       <Mini on={on} onClick={() => setQr({ name: l.name, url, cards: `/${orgSlug}/dashboard/cards?link=${encodeURIComponent(l.slug)}` })}>QR</Mini>
                     </>
                   ) : (
-                    canConfirm && <Mini on={on} onClick={() => setConsenting({ linkId: l.id, name: l.name })}>Confirm consent</Mini>
+                    canConfirm && <Mini on={on} accent onClick={() => setConsenting({ linkId: l.id, name: l.name })}>Confirm consent</Mini>
                   )}
-                  <Mini on={on} onClick={() => setEditing(l)}>Dates</Mini>
+                  <Mini on={on} onClick={() => setEditing(l)}>Edit</Mini>
                 </span>
               </div>
             </Card>
@@ -301,7 +293,7 @@ export default function RoomCards({
       )}
 
       {editing && (
-        <Modal label={editing === "new" ? "New link" : `Edit ${editing.name}`} onClose={() => setEditing(null)}>
+        <Modal label={editing === "new" ? "Start a new survey" : `Edit ${editing.name}`} onClose={() => setEditing(null)}>
           <LinkForm
             sb={sb}
             orgSlug={orgSlug}
@@ -360,13 +352,15 @@ function Status({ on, dot, label }: { on: boolean; dot: string; label: string })
   );
 }
 
-function Mini({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
+function Mini({ on, onClick, accent = false, children }: { on: boolean; onClick: () => void; accent?: boolean; children: React.ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={`min-h-[32px] rounded-md px-2 text-[12px] font-semibold ${
-        on ? "border border-paper/40 text-paper" : "border border-rule-2 bg-plate text-ink hover:border-ink"
+        accent
+          ? "bg-gradient-to-r from-emerald via-emerald-deep to-emerald-deeper text-plate hover:opacity-90"
+          : on ? "border border-paper/40 text-paper" : "border border-rule-2 bg-plate text-ink hover:border-ink"
       }`}
     >
       {children}
