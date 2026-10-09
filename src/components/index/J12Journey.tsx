@@ -42,7 +42,7 @@ export default function J12Journey() {
   const clear = () => setFocus({});
 
   return (
-    <section aria-labelledby="j12-journey" className="py-12">
+    <section aria-labelledby="j12-journey" className="pb-12 pt-10">
       <GradientRule className="mb-10" />
       <p className="figcap">The J12</p>
       <h2 id="j12-journey" className="mt-2 text-[28px] font-bold leading-tight tracking-tight sm:text-[32px]">

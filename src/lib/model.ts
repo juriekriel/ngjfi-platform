@@ -63,7 +63,7 @@ export const MATRIX_PHRASE: Record<string, Record<string, string>> = {
   },
   world: {
     exposure: "sees faith should matter",
-    response: "believes it does",
+    response: "believes faith matters",
     formation: "choices reshaped",
     multiplication: "changing their spheres",
   },

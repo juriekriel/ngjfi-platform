@@ -34,7 +34,8 @@ test("join steps, learn page and footer share the gradient-and-bold style", () =
   assert.ok(!/one claim/i.test(learn), "The one claim section is gone");
   assert.match(learn, />Three guarantees</);
   for (const href of ["/organisation", "/#global", "/join"]) assert.ok(learn.includes(`href: "${href}"`), `still links to ${href}`);
-  assert.match(read("src/components/site/Chrome.tsx"), /<footer>\s*\{\/\*[^*]*\*\/\}\s*<div[^>]*>\s*<GradientRule \/>/);
+  // Footer: back to a thin rule (Oct 2026: the gradient there was too much).
+  assert.match(read("src/components/site/Chrome.tsx"), /<footer className="border-t border-rule">/);
 });
 
 test("lane questions appear on hover, and the landing phone has real proportions", () => {
@@ -42,4 +43,13 @@ test("lane questions appear on hover, and the landing phone has real proportions
   assert.match(j, /opacity: focus\.lane === d \? 1 : 0/);
   assert.match(j, /\{DOMAIN_LABEL\[d\]\}/);
   assert.match(read("src/components/survey/SurveyDemo.tsx"), /aspect-\[9\/19\.5\]/);
+});
+
+test("round 4: logo, World × Response, guarantees on hover, no black line on learn", () => {
+  assert.match(read("src/components/site/Chrome.tsx"), />J\.FIND\.x</);
+  assert.equal(MATRIX_PHRASE.world.response, "believes faith matters");
+  const learn = read("src/app/learn/page.tsx");
+  assert.ok(!learn.includes("border-b border-ink"), "no black line above the first gradient");
+  assert.match(learn, /<Guarantees/);
+  assert.match(read("src/app/learn/Guarantees.tsx"), /group-hover:grid-rows-\[1fr\]/);
 });

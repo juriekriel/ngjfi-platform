@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Footer, GradientRule, Masthead } from "@/components/site/Chrome";
+import Guarantees from "./Guarantees";
 import { BranchDiagram, Matrix, Plate } from "@/components/index/Figures";
 
 export const metadata = {
@@ -15,7 +16,7 @@ export default function LearnPage() {
 
       <main className="mx-auto max-w-5xl px-5">
         {/* standfirst */}
-        <section className="grid gap-8 border-b border-ink py-10 md:grid-cols-[1.4fr_1fr] md:gap-12">
+        <section className="grid gap-8 py-10 md:grid-cols-[1.4fr_1fr] md:gap-12">
           <div>
             <p className="figcap">The short version</p>
             <h1 className="mt-3 text-[38px] font-bold leading-[1.02] tracking-tight sm:text-[46px]">
@@ -93,34 +94,43 @@ export default function LearnPage() {
           <GradientRule className="mb-8" />
           <p className="figcap">How it runs</p>
           <h2 className="mt-2 text-[27px] font-bold leading-tight tracking-tight">Three guarantees</h2>
-          <div className="mt-6 grid gap-8 sm:grid-cols-3">
-            {[
+          <p className="mt-2 text-[14px] text-ink-2">Hover over one — or tap it — for the detail.</p>
+          <Guarantees
+            items={[
               {
                 n: "01",
                 h: "Yours, under your name",
                 p: "Your logo, your colour, your consent process. To a young person it is their youth group asking — because it is.",
+                more: [
+                  "Your name, colour and logo on every screen young people see.",
+                  "Your own welcome and closing message, for each survey you send.",
+                  "The Index sits quietly in the footer, never in front of you.",
+                  "Your results belong to your ministry.",
+                ],
               },
               {
                 n: "02",
                 h: "Anonymous, always",
                 p: "No name, no email, no precise location, no birthdate. Consent — including parental consent — is handled by you, locally.",
+                more: [
+                  "Age is a band, never a birthday; place is a country and, optionally, a city.",
+                  "IP addresses are never stored with answers.",
+                  "No score shows for fewer than 10 people, and no organisation ever sees one person's answers.",
+                  "Identifying details are removed after 60 days.",
+                ],
               },
               {
                 n: "03",
                 h: "Free, permanently",
                 p: "Running the Index costs nothing, and it stays that way. Your standard report is included.",
+                more: [
+                  "No fee to join, to run as many surveys as you like, or to see your dashboard.",
+                  "Your live dashboard and exports are included.",
+                  "Advanced reports and consulting are paid — and free for Collab members.",
+                ],
               },
-            ].map((c) => (
-              <div key={c.n}>
-                <GradientRule />
-                <h3 className="mt-3 flex items-baseline gap-2.5 text-[19px] font-bold leading-snug text-ink">
-                  <span className="tabular text-[12px] font-semibold tracking-[0.12em] text-emerald-deep">{c.n}</span>
-                  {c.h}
-                </h3>
-                <p className="mt-1.5 text-[15px] leading-relaxed text-ink-2">{c.p}</p>
-              </div>
-            ))}
-          </div>
+            ]}
+          />
           <p className="margin-note mt-7 border-l-2 border-rule pl-3">
             Full detail on how the survey adapts, what lands on your dashboard live, and what
             the whole coalition sees at once →{" "}
