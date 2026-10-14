@@ -102,6 +102,17 @@ export default function SignedInFrame(p: FrameProps) {
   const [tier, setTier] = useState("formation");
   const [overlayWanted, setOverlayWanted] = useState(true);
   const [consult, setConsult] = useState(false);
+  // A ?consult=1 link (the Collab's "Understanding my results" email) opens
+  // "What does this mean?" straight away — on the org tab, for a member.
+  useEffect(() => {
+    if (p.active !== "org" || p.consultEnabled === false) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("consult") !== "1") return;
+    params.delete("consult");
+    const q = params.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${q ? `?${q}` : ""}${window.location.hash}`);
+    setConsult(true);
+  }, [p.active, p.consultEnabled]);
 
   const overlayUsable = p.overlay.allowed && p.overlay.matrix != null;
   const overlayOn = overlayUsable && overlayWanted && view === "matrix" && (p.panels?.overlay ?? true);
@@ -130,7 +141,7 @@ export default function SignedInFrame(p: FrameProps) {
 
         {p.body ?? (
           <>
-        {show.figures && <div className="grid gap-2.5 sm:grid-cols-3">
+        {show.figures && <div className="grid gap-2.5 sm:grid-cols-3" data-tour="figures">
           <Figure label="J12 index" note={p.figures.indexNote} value={fig(p.figures.index)} accent={p.active === "org"} />
           <Figure label="Completed the Index" note={p.figures.nNote} value={p.figures.n == null ? "—" : p.figures.n.toLocaleString()} />
           <Figure
@@ -141,7 +152,7 @@ export default function SignedInFrame(p: FrameProps) {
         </div>}
 
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div role="group" aria-label="View" className="inline-flex gap-1 rounded-xl bg-rule/70 p-1">
+          <div role="group" aria-label="View" data-tour="views" className="inline-flex gap-1 rounded-xl bg-rule/70 p-1">
             {show.matrix && <Seg on={view === "matrix"} onClick={() => setView("matrix")}>J12 matrix</Seg>}
             {p.unengaged && show.unengaged && <Seg on={view === "unengaged"} onClick={() => setView("unengaged")}>Unengaged matrix</Seg>}
             {show.heatmap && <Seg on={view === "heatmap"} onClick={() => setView("heatmap")}>Heat map</Seg>}
@@ -153,6 +164,7 @@ export default function SignedInFrame(p: FrameProps) {
             {show.overlay && <button
               type="button"
               aria-pressed={overlayOn}
+              data-tour="overlay"
               disabled={!overlayUsable || view !== "matrix"}
               onClick={() => setOverlayWanted((v) => !v)}
               className={`rounded-lg px-4 py-2.5 text-[14px] font-semibold ${
@@ -168,7 +180,7 @@ export default function SignedInFrame(p: FrameProps) {
           </div>
         </div>
 
-        <div className="flex min-h-[420px] flex-col rounded-2xl border border-rule bg-plate px-4 py-5 shadow-sm sm:px-7 sm:py-6">
+        <div data-tour="matrix" className="flex min-h-[420px] flex-col rounded-2xl border border-rule bg-plate px-4 py-5 shadow-sm sm:px-7 sm:py-6">
           {view === "insights" && p.insights ? (
             p.insights
           ) : view === "unengaged" && p.unengaged ? (

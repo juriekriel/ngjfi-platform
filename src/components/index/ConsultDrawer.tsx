@@ -20,6 +20,7 @@ export function ConsultButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
+      data-tour="consult"
       className="rounded-lg border border-emerald/45 bg-emerald/10 px-4 py-2.5 text-[14px] font-semibold text-emerald-deeper hover:bg-emerald/15"
     >
       What does this mean?

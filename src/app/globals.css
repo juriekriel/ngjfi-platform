@@ -215,3 +215,16 @@ label {
 
 /* The print letterhead never shows on screen. */
 .print-brand { display: none; }
+
+/* First-visit dashboard walkthrough (DashboardTour, migration 0056).
+   The highlighted element lifts above the page and its own shadow dims
+   everything around it — no cut-out overlay to keep in sync on scroll. */
+[data-tour-active] {
+  position: relative;
+  z-index: 61;
+  border-radius: 14px;
+  box-shadow: 0 0 0 4px rgb(var(--c-emerald)), 0 0 0 9999px rgb(var(--c-ink) / 0.45);
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-tour-active] { transition: box-shadow 160ms ease-out; }
+}
