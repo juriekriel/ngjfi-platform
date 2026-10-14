@@ -121,7 +121,7 @@ export default function DashboardTour({
         body: (
           <>
             <p>
-              Two minutes, eight stops, and you&apos;ll know your way around. Skip any time — the <b>Walkthrough</b> button brings it back.
+              Two minutes, a few stops, and you&apos;ll know your way around. Skip any time — the <b>Walkthrough</b> button brings it back.
             </p>
             <p>
               One promise first: you&apos;ll only ever see results added together. Nobody — not you, not us — can see one young person&apos;s answers.
@@ -334,6 +334,15 @@ export default function DashboardTour({
       {/* With a highlighted element, its own box-shadow dims the page around it
           (globals.css, [data-tour-active]). Without one, this scrim does. */}
       {!hasTarget && <div aria-hidden className="fixed inset-0 z-[60] bg-ink/45" onClick={skip} />}
+      {/* A full-screen, click-through frame places the card: centred when
+          nothing is highlighted, bottom-right beside a highlight on wider
+          screens, bottom sheet on phones. The card can never be wider or
+          taller than the screen — it scrolls inside itself instead. */}
+      <div
+        className={`pointer-events-none fixed inset-0 z-[62] flex items-end justify-center p-3 sm:p-6 ${
+          hasTarget ? "sm:justify-end" : "sm:items-center"
+        }`}
+      >
       <div
         ref={card}
         role="dialog"
@@ -341,9 +350,7 @@ export default function DashboardTour({
         aria-labelledby="tour-title"
         aria-describedby="tour-body"
         tabIndex={-1}
-        className={`fixed inset-x-3 bottom-3 z-[62] mx-auto max-w-md rounded-2xl border border-rule bg-plate p-5 text-ink shadow-xl outline-none sm:inset-x-auto sm:right-6 sm:bottom-6 ${
-          hasTarget ? "" : "sm:right-1/2 sm:bottom-1/2 sm:translate-x-1/2 sm:translate-y-1/2"
-        }`}
+        className="pointer-events-auto max-h-full w-full max-w-md overflow-y-auto rounded-2xl border border-rule bg-plate p-5 text-ink shadow-xl outline-none focus-visible:outline-none"
       >
         <div className="flex items-center justify-between gap-3">
           <p className="figcap">
@@ -387,6 +394,7 @@ export default function DashboardTour({
             )}
           </div>
         </div>
+      </div>
       </div>
     </>
   );
