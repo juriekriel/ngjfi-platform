@@ -30,6 +30,7 @@ import ShareLinksPanel from "@/components/index/ShareLinksPanel";
 import type { MapCountry } from "@/components/index/WorldHeatMap";
 import { exportItemsCsv } from "@/lib/exportCsv";
 import WhoAnswered from "@/components/index/WhoAnswered";
+import DashboardTour, { useDashboardTour } from "@/components/index/DashboardTour";
 
 type Matrix = Record<string, Record<string, number | null>>;
 /** The house's full payload — ResultsDetail's shape plus what the frame and exports read. */
@@ -103,6 +104,8 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
   const [seasons, setSeasons] = useState<Season[] | null>(null);
   const [seasonIdx, setSeasonIdx] = useState(0);
   const [exporting, setExporting] = useState(false);
+  // The first-visit walkthrough (0056): members only, once each, replayable.
+  const tour = useDashboardTour(sb, slug, Boolean(dash) && !demoPreview && !needsClaim && authed === true);
 
   const load = useCallback(async () => {
     if (!sb) return;
@@ -292,14 +295,24 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
         ) : undefined
       }
       titleRight={
-        !demoPreview && seasons && seasons.length > 1 && !inRoom ? (
-          <label className="flex items-center gap-2 text-[13px] text-ink-2">
-            <span className="font-mono text-[11px] uppercase tracking-wider">Season</span>
-            <select value={seasonIdx} onChange={(e) => changeSeason(Number(e.target.value))}
-              className="rounded-lg border border-rule-2 bg-plate px-2.5 py-1.5 text-[13px] font-semibold text-ink">
-              {seasons.map((se, i) => <option key={se.label} value={i}>{se.label} ({se.n.toLocaleString()})</option>)}
-            </select>
-          </label>
+        !demoPreview ? (
+          <span className="flex flex-wrap items-center gap-2">
+            {seasons && seasons.length > 1 && !inRoom && (
+              <label className="flex items-center gap-2 text-[13px] text-ink-2">
+                <span className="font-mono text-[11px] uppercase tracking-wider">Season</span>
+                <select value={seasonIdx} onChange={(e) => changeSeason(Number(e.target.value))}
+                  className="rounded-lg border border-rule-2 bg-plate px-2.5 py-1.5 text-[13px] font-semibold text-ink">
+                  {seasons.map((se, i) => <option key={se.label} value={i}>{se.label} ({se.n.toLocaleString()})</option>)}
+                </select>
+              </label>
+            )}
+            {view === "results" && (
+              <button type="button" onClick={tour.start}
+                className="rounded-lg border border-rule-2 bg-plate px-3 py-1.5 text-[13px] font-semibold text-ink-2 hover:border-ink hover:text-ink">
+                Walkthrough
+              </button>
+            )}
+          </span>
         ) : undefined
       }
       scope={
@@ -363,6 +376,19 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
           : `Of those who completed the Index through any ${dash.org.name} link · n ${dash.n.toLocaleString()}`
       }
     >
+      {tour.open && !demoPreview && (
+        <DashboardTour
+          orgName={dash.org.name}
+          role={tour.role}
+          floor={floor}
+          countryGate={gate}
+          onClose={tour.close}
+          onBeforeStart={() => {
+            setRoom({ kind: "house" });
+            if (view !== "results") changeView("results");
+          }}
+        />
+      )}
       {view === "results" && !demoPreview && panels.who_answered && (
         <WhoAnswered
           sb={sb}

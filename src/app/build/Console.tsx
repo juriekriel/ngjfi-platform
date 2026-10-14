@@ -28,6 +28,7 @@ import SurveyWizard from "@/components/console/SurveyWizard";
 import { ConsultingRequestsBand, useConsultingRequests } from "@/components/console/ConsultingRequests";
 import { linkError } from "@/lib/authLinks";
 import { ApplicationsBand, NoHouse, OrgManagePanel, useApplications } from "@/components/console/Onboarding";
+import CommsBoard, { useCommsCount } from "@/components/console/CommsBoard";
 
 /**
  * The Index — the authenticated engine, at every tier.
@@ -770,8 +771,9 @@ function AdminConsole() {
   const [wizard, setWizard] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
-  const [section, setSection] = useState<"applications" | "surveys" | "console">("surveys");
+  const [section, setSection] = useState<"applications" | "surveys" | "console" | "comms">("surveys");
   const applications = useApplications();
+  const commsCount = useCommsCount(sb);
 
   const load = useCallback(async () => {
     if (!sb) return;
@@ -822,12 +824,12 @@ function AdminConsole() {
     <div className="space-y-10">
       {err && <Trouble message={err} />}
 
-      {/* Four tiles, one entry point each. Tile A is the worklist itself —
+      {/* Five tiles, one entry point each (E · Comms, 0056). Tile A is the worklist itself —
           "Waiting on you" merged into it, so the queue is visible without a
           click — and it is a plain container rather than a switch, because
           its Approve / Decline buttons cannot live inside a <button>. B and D
           swap which band renders below; C links to the public view. */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Tile
           letter="A"
           figure={applications.count == null ? "…" : `${applications.count} waiting`}
@@ -875,7 +877,27 @@ function AdminConsole() {
         >
           <HouseFigures house={house} selected={section === "console"} />
         </Tile>
+
+        <Tile
+          letter="E"
+          figure={commsCount == null ? "…" : `${commsCount} org admin${commsCount === 1 ? "" : "s"}`}
+          title="Comms"
+          gloss="Email every Org Administrator, or nudge one to their next step."
+          selected={section === "comms"}
+          onClick={() => setSection("comms")}
+        />
       </div>
+
+      {section === "comms" && (
+        <Band
+          letter="E"
+          title="Comms"
+          gloss="Updates to every Org Administrator, and the six-step onboarding sequence — each email filled with that person's name, organisation and links. The audience is read at the moment you press Send, so everyone added since is included."
+          figure="org administrators"
+        >
+          <CommsBoard sb={sb} />
+        </Band>
+      )}
 
       {section === "applications" && <ApplicationsBand {...applications} onChanged={load} />}
 

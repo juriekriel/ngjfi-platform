@@ -137,7 +137,7 @@ export default function RoomCards({
   const houseOn = selected.kind === "house";
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className="flex flex-col gap-2.5" data-tour="rooms">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-2">The house and its rooms<span className="hidden sm:inline"> · each link is its own room</span></p>
         <div className="flex shrink-0 flex-wrap justify-end gap-2">
@@ -146,6 +146,7 @@ export default function RoomCards({
               <button
                 type="button"
                 aria-pressed={view === "team"}
+                data-tour="team"
                 onClick={() => onView(view === "team" ? "results" : "team")}
                 className={`whitespace-nowrap rounded-lg border px-4 py-2.5 text-[14px] font-semibold ${view === "team" ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"}`}
               >
@@ -154,6 +155,7 @@ export default function RoomCards({
               <button
                 type="button"
                 aria-pressed={view === "settings"}
+                data-tour="settings"
                 onClick={() => onView(view === "settings" ? "results" : "settings")}
                 className={`whitespace-nowrap rounded-lg bg-gradient-to-r from-violet via-violet-deep to-violet-deeper px-4 py-2.5 text-[14px] font-semibold text-plate hover:opacity-90 ${view === "settings" ? "ring-2 ring-violet-deeper ring-offset-2" : ""}`}
               >
@@ -164,6 +166,7 @@ export default function RoomCards({
           <button
             type="button"
             onClick={() => setEditing("new")}
+            data-tour="new-survey"
             className="whitespace-nowrap rounded-lg bg-gradient-to-r from-emerald via-emerald-deep to-emerald-deeper px-4 py-2.5 text-[14px] font-semibold text-plate"
           >
             + Start a new survey
