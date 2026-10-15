@@ -20,7 +20,10 @@ begin
   insert into distribution_links (org_id, name, slug) values (v_org, 'Camp night', 'camp') returning id into v_room;
 
   perform test.ok(public._invitable_age_bands() = '{13_17,18_22,23_30}', 'age bands come from the active instrument (under-13 excluded)');
-  perform test.ok((select count(*) = 21 from consent_country_rules), '21 countries seeded');
+  -- 0053 seeded the original 21 (2026-10-v1); 0058 added every other country (2026-10-v2, first pass).
+  perform test.ok((select count(*) = 21 from consent_country_rules where reference_version = '2026-10-v1'), '21 checked countries seeded (0053)');
+  perform test.ok((select count(*) = 200 from consent_country_rules), '200 countries and territories seeded (0053 + 0058)');
+  perform test.ok((select count(*) = 19 from consent_country_rules where care_level = 'block_until_advice'), '19 countries blocked until local advice (0058)');
 
   -- no organisation consent yet → survey consent refused
   perform test.login(v_oa);
