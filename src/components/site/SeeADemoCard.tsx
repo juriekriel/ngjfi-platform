@@ -15,8 +15,13 @@ const DOORS = [
 
 export default function SeeADemoCard({ className = "" }: { className?: string }) {
   return (
-    <div className={`rounded-2xl border border-rule bg-plate p-5 shadow-sm ${className}`}>
-      <J12Grid className="mx-auto max-w-[150px]" />
+    // h-full + flex column: the card stretches to the hero's row height, and
+    // the mark takes up any spare room, centred — so the card's bottom lines
+    // up with the benefits beside it (round 7).
+    <div className={`flex h-full flex-col rounded-2xl border border-rule bg-plate p-5 shadow-sm ${className}`}>
+      <div className="flex flex-1 items-center justify-center py-4">
+        <J12Grid className="w-full max-w-[220px]" />
+      </div>
       <p className="mt-5 text-[19px] font-bold leading-snug text-ink">See a Demo</p>
       <p className="mt-1 text-[14px] leading-relaxed text-ink-2">
         Follow a fictional one through a whole season — survey, dashboard, and what they change.
@@ -27,7 +32,7 @@ export default function SeeADemoCard({ className = "" }: { className?: string })
           <Link
             key={d.view}
             href={`/see-a-demo?view=${d.view}`}
-            className="flex items-center justify-between rounded-lg border border-rule px-3.5 py-2.5 text-[14.5px] font-semibold text-ink no-underline hover:border-ink hover:bg-paper-deep"
+            className="flex items-center justify-between rounded-lg border border-rule px-3.5 py-3 text-[14.5px] font-semibold text-ink no-underline hover:border-ink hover:bg-paper-deep"
           >
             {d.label}
             <span aria-hidden className="text-emerald-deeper">→</span>
