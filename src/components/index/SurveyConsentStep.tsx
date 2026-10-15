@@ -8,6 +8,11 @@
  * shows that country's row from the reference, with a warning for high-care
  * countries and a required local-advice reference for blocked ones (the
  * database enforces the same rules). Age groups come from the instrument.
+ *
+ * Countries (Oct 2026: every country): a search box over the whole reference,
+ * the chosen ones as removable chips — 200 checkboxes would be unusable.
+ * A first-pass row says so; a country where a parent's consent may be needed
+ * past 17 warns when adult age groups are invited.
  */
 import { useMemo, useState } from "react";
 import Link from "next/link";
@@ -20,7 +25,7 @@ import {
   surveyConsentStatement,
   type ParentalConsentMethod,
 } from "@/lib/consent";
-import { CARE_LABEL, CONSENT_COUNTRIES } from "@/lib/consentCountries";
+import { CARE_LABEL, CONSENT_COUNTRIES, CONSENT_COUNTRIES_SORTED, isFirstPass } from "@/lib/consentCountries";
 import { WhyConsentBlock } from "@/content/consent/ConsentResource";
 import { CONSENT_DISCLAIMER, WHY_CONSENT_VERSION } from "@/content/consent/why-consent";
 
@@ -63,6 +68,7 @@ export default function SurveyConsentStep({
 }) {
   const bands = useMemo(bandOptions, []);
   const [countries, setCountries] = useState<string[]>(existing?.country_codes?.filter((c) => !c.startsWith("OTHER:")) ?? []);
+  const [query, setQuery] = useState("");
   const [other, setOther] = useState(existing?.country_codes?.find((c) => c.startsWith("OTHER:"))?.slice(6) ?? "");
   // Prefill from the last confirmation, keeping only bands the active instrument still offers.
   const [ages, setAges] = useState<string[]>(
@@ -130,14 +136,57 @@ export default function SurveyConsentStep({
 
       <fieldset>
         <legend className={lbl}>Where will this survey run?</legend>
-        <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
-          {CONSENT_COUNTRIES.map((c) => (
-            <label key={c.country_code} className="flex items-center gap-2 text-[13.5px]">
-              <input type="checkbox" checked={countries.includes(c.country_code)} onChange={() => setCountries(toggle(countries, c.country_code))} />
-              {c.country}
-            </label>
-          ))}
-        </div>
+        {countries.length > 0 && (
+          <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="Chosen countries">
+            {countries.map((code) => (
+              <li key={code}>
+                <button
+                  type="button"
+                  onClick={() => setCountries(countries.filter((c) => c !== code))}
+                  className="flex items-center gap-1.5 rounded-full border border-ink bg-paper-deep px-3 py-1 text-[13px] font-semibold text-ink"
+                  aria-label={`Remove ${CONSENT_COUNTRIES.find((c) => c.country_code === code)?.country ?? code}`}
+                >
+                  {CONSENT_COUNTRIES.find((c) => c.country_code === code)?.country ?? code}
+                  <span aria-hidden>×</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search for a country…"
+          aria-label="Search for a country"
+          className="mt-2 w-full rounded-md border border-rule-2 px-2.5 py-1.5 text-[14px]"
+        />
+        {query.trim() && (
+          <ul className="mt-1 max-h-48 overflow-y-auto rounded-md border border-rule bg-plate" role="listbox" aria-label="Matching countries">
+            {CONSENT_COUNTRIES_SORTED.filter((c) => c.country.toLowerCase().includes(query.trim().toLowerCase()) || c.country_code === query.trim().toUpperCase())
+              .slice(0, 30)
+              .map((c) => {
+                const on = countries.includes(c.country_code);
+                return (
+                  <li key={c.country_code}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={on}
+                      onClick={() => { setCountries(toggle(countries, c.country_code)); setQuery(""); }}
+                      className="flex w-full items-center justify-between px-2.5 py-1.5 text-left text-[13.5px] hover:bg-paper-deep"
+                    >
+                      <span>{on ? "✓ " : ""}{c.country}</span>
+                      <span className="text-[11.5px] text-muted">{CARE_LABEL[c.care_level].split(" — ")[0]}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            {!CONSENT_COUNTRIES_SORTED.some((c) => c.country.toLowerCase().includes(query.trim().toLowerCase())) && (
+              <li className="px-2.5 py-1.5 text-[13px] text-muted">No match — use “Another country” below.</li>
+            )}
+          </ul>
+        )}
         <label className="mt-2 flex items-center gap-2 text-[13.5px]">
           Another country:
           <input value={other} onChange={(e) => setOther(e.target.value)} className="rounded-md border border-rule-2 px-2 py-1 text-[13.5px]" aria-label="Another country" />
@@ -153,6 +202,12 @@ export default function SurveyConsentStep({
                 <b className="text-ink">{c.country}</b> · {CARE_LABEL[c.care_level]}
                 <br />
                 Parent/guardian consent needed under {c.parental_consent_note}. Faith answers: {c.faith_data}. {c.summary}
+                {isFirstPass(c) && <span className="mt-1 block text-[11.5px] text-muted">First-pass reference, not yet checked by counsel — confirm locally.</span>}
+                {c.parental_consent_under > 18 && ages.some((a) => !bandIncludesMinors(a)) && (
+                  <span className="mt-1 block font-semibold text-ink">
+                    Here a parent&apos;s consent may be needed under {c.parental_consent_under} — older than the 13–17 group. Check before inviting 18–{c.parental_consent_under - 1}-year-olds.
+                  </span>
+                )}
               </li>
             ))}
             <li className="text-[11.5px] text-muted">{CONSENT_DISCLAIMER.split(".")[0]}. Individual country laws may differ.</li>
