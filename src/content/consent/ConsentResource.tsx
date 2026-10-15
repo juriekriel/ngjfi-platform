@@ -16,7 +16,8 @@
  * DRAFT — for review by counsel and the Collab before pilots.
  */
 import { CONSENT_STATEMENT, CONSENT_STATEMENT_VERSION, SURVEY_CONSENT_STATEMENT_VERSION, surveyConsentStatement } from "@/lib/consent";
-import { CONSENT_COUNTRIES, CARE_LABEL } from "@/lib/consentCountries";
+import { CONSENT_COUNTRIES, CONSENT_PAST_17, CONSENT_REFERENCE_VERSION, FIRST_PASS_NOTE, isFirstPass } from "@/lib/consentCountries";
+import CountryReference from "@/content/consent/CountryReference";
 import { CONSENT_DISCLAIMER, WHY_CONSENT, WHY_CONSENT_VERSION } from "@/content/consent/why-consent";
 
 export const CONSENT_RESOURCE_VERSION = "2026-10-v1";
@@ -33,6 +34,20 @@ const ADVICE = [
   ["Ethiopia", "Personal data must be stored in Ethiopia", "Warning on the consent step; allowed only because answers are anonymous"],
   ["Bangladesh", "Some data must stay in-country; the new law's status is still settling", "Warning on the consent step"],
 ] as const;
+
+/**
+ * Every other blocked or high-risk country, generated from the reference
+ * (the hand-written rows above stay for the pilot countries, with detail).
+ * Blocked first, then high, alphabetical within each.
+ */
+const ADVICE_MORE: [string, string, string][] = CONSENT_COUNTRIES
+  .filter((c) => (c.care_level === "block_until_advice" || c.care_level === "high") && !ADVICE.some(([n]) => n === c.country))
+  .sort((a, b) => (a.care_level === b.care_level ? a.country.localeCompare(b.country, "en") : a.care_level === "block_until_advice" ? -1 : 1))
+  .map((c) => [
+    c.country,
+    c.summary.replace(/^(Very high|High): /, "").replace(/^./, (x) => x.toUpperCase()),
+    c.care_level === "block_until_advice" ? "Blocked until a local-advice reference is recorded" : "Warning on the consent step",
+  ]);
 
 const SOURCES: [string, string][] = [
   ["DLA Piper, Data Protection Laws of the World (most countries)", "https://www.dlapiperdataprotection.com/"],
@@ -205,15 +220,14 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
       </Sec>
 
       <Sec id="countries" title="6 · Country reference">
-        <p>The table covers {CONSENT_COUNTRIES.length} countries, including the countries where pilots run first. Requiring a parent&apos;s or guardian&apos;s consent for <b>every 13–17-year-old</b> meets or exceeds every country&apos;s minimum age in the table.</p>
+        <p>The table covers {CONSENT_COUNTRIES.length} countries and territories — every UN member state, plus a few places ministries commonly work. Requiring a parent&apos;s or guardian&apos;s consent for <b>every 13–17-year-old</b> meets or exceeds the minimum age in every country in the table{CONSENT_PAST_17.length > 0 && <> except {CONSENT_PAST_17.map((c) => `${c.country} (under ${c.parental_consent_under})`).join(", ")}, where a parent&apos;s consent may also be needed for some young adults</>}.</p>
+        <p className="rounded-lg border border-rule bg-paper-deep px-3 py-2 text-[13.5px]"><b className="text-ink">{CONSENT_COUNTRIES.filter(isFirstPass).length} rows are a first pass.</b> {FIRST_PASS_NOTE}</p>
         <p>Truly anonymous data falls outside nearly every law below. The rules apply in full if answers can identify someone, for example through a small town combined with age band and gender. That&apos;s why the Index removes those details after 60 days.</p>
-        <T head={["Country", "Main law (regulator)", "Parent/guardian consent needed under", "Faith answers sensitive?", "Ethics review for a church-run survey", "Storing data abroad (US/EU)", "Level of care"]}
-           rows={CONSENT_COUNTRIES.map((c) => [<b key={c.country_code}>{c.country}</b>, c.main_law, c.parental_consent_note, c.faith_data, c.ethics_review, c.data_abroad,
-             <span key="s"><span className="block font-semibold text-ink">{CARE_LABEL[c.care_level]}</span>{c.summary}</span>])} />
+        <CountryReference />
         <p className="text-[13.5px]">“Best practice” means we found no legal requirement for a non-academic, church-run survey. It becomes required if a university, public research funding or academic publication is involved.</p>
         <h3 className="text-[16px] font-semibold text-ink">6.1 Countries that need local advice before launch</h3>
-        <p>In these seven countries the risk is to the young people themselves, not only a compliance question. Don&apos;t open a survey there without local legal advice and a named local partner.</p>
-        <T head={["Country", "Main concern", "On the platform"]} rows={ADVICE.map(([a, b, c]) => [<b key={a}>{a}</b>, b, c])} />
+        <p>In these {ADVICE.length + ADVICE_MORE.length} countries the risk is to the young people themselves, not only a compliance question. Don&apos;t open a survey there without local legal advice and a named local partner. In the {CONSENT_COUNTRIES.filter((c) => c.care_level === "block_until_advice").length} marked “blocked”, the platform won&apos;t accept a survey consent until a local-advice reference is recorded.</p>
+        <T head={["Country", "Main concern", "On the platform"]} rows={[...ADVICE, ...ADVICE_MORE].map(([a, b, c]) => [<b key={a}>{a}</b>, b, c])} />
       </Sec>
 
       <Sec id="young-people" org={orgName} title="7 · Information for young people" print="young-people">
@@ -280,7 +294,7 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
             <li key={href}><a href={href} target="_blank" rel="noopener noreferrer" className="underline decoration-rule-2 underline-offset-2">{label}</a></li>
           ))}
         </ul>
-        <p className="text-[12px] text-muted">Resource version {CONSENT_RESOURCE_VERSION} · country reference {CONSENT_COUNTRIES[0]?.reference_version}</p>
+        <p className="text-[12px] text-muted">Resource version {CONSENT_RESOURCE_VERSION} · country reference {CONSENT_REFERENCE_VERSION}</p>
       </Sec>
     </div>
   );

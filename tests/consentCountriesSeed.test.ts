@@ -5,14 +5,17 @@ import { bandIncludesMinors } from "../src/lib/consent.ts";
 
 const json = JSON.parse(readFileSync("src/data/consent-countries.json", "utf8"));
 const sql = readFileSync("supabase/migrations/0053_two_level_consent.sql", "utf8");
+// The reference is seeded across two migrations: the original 21 (0053) and
+// every other country (0058, Oct 2026). Each JSON row must appear in one.
+const seed = sql + readFileSync("supabase/migrations/0058_consent_reference_all_countries.sql", "utf8");
 const q = (s: string | number) => `'${String(s).replace(/'/g, "''")}'`;
 
-test("0053 seeds consent_country_rules from consent-countries.json, row for row", () => {
+test("0053 + 0058 seed consent_country_rules from consent-countries.json, row for row", () => {
   for (const c of json.countries) {
     const row = `(${[c.country_code, c.country, c.care_level].map(q).join(", ")}, ${c.parental_consent_under}, ${[
       c.main_law, c.parental_consent_note, c.faith_data, c.ethics_review, c.data_abroad, c.summary, c.reference_version,
     ].map(q).join(", ")})`;
-    assert.ok(sql.includes(row), `${c.country_code} in the seed matches the JSON`);
+    assert.ok(seed.includes(row), `${c.country_code} in the seed matches the JSON`);
   }
 });
 
