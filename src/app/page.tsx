@@ -56,7 +56,9 @@ export default function Home() {
       <main className="mx-auto max-w-5xl px-5">
         {/* ── A · hero ─────────────────────────────────────────────── */}
         <section className="grid gap-10 pt-12 md:grid-cols-[1.45fr_1fr] md:gap-14">
-          <div>
+          {/* Round 7: the left column is a flex column, and the benefits fill
+              what's left of it, so it ends level with the See a Demo card. */}
+          <div className="flex flex-col">
             <h1 className="wordmark text-[42px] leading-[0.98] tracking-tight sm:text-[56px]">
               The <span className="italic">Jesus</span>{" "}
               <span className="tabular text-[36px] uppercase tracking-[0.14em] sm:text-[48px]">Index</span>
@@ -88,14 +90,13 @@ export default function Home() {
                 Try the survey yourself ↓
               </a>
             </div>
+
+            <HeroBenefits items={BENEFITS} className="mt-10 flex-1" />
           </div>
 
-          <aside className="md:pt-2">
-            <SeeADemoCard className="mx-auto max-w-[340px]" />
+          <aside className="flex">
+            <SeeADemoCard className="mx-auto w-full max-w-[340px]" />
           </aside>
-
-          {/* Round 6: one horizontal row of five, across the full width. */}
-          <HeroBenefits items={BENEFITS} className="md:col-span-2" />
 
         </section>
 

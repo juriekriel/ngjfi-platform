@@ -1,12 +1,15 @@
 "use client";
 
 /**
- * The front page's benefits (Oct 2026, rounds 5–6): headings only, in one
- * horizontal row of five across the page (a swipeable strip on a phone),
- * each edged in the coral → violet gradient while hovered, focused or tapped. Hover (or focus, or tap on a phone) a heading and
- * its line of context appears in one reserved slot beneath the row, so the
- * page never jumps. Every description is also inside its button for screen
- * readers, so nothing depends on hovering.
+ * The front page's benefits (Oct 2026, rounds 5–7): headings only, stacked
+ * vertically under the hero's two buttons, so the left column ends level with
+ * the See a Demo card beside it.
+ *
+ * Hover, focus or tap a row: it takes the coral → violet gradient edge and its
+ * line of context fades in on the right of the SAME row — rows never change
+ * height, so the column stays aligned with the card. On a phone (one column,
+ * nothing to align with) a tapped row opens its line underneath instead.
+ * Every description is also inside its button for screen readers.
  */
 import { useState } from "react";
 
@@ -28,20 +31,17 @@ export default function HeroBenefits({ items, className = "" }: { items: { t: st
   const active = hover ?? pinned;
 
   return (
-    <section aria-labelledby="benefits-heading" className={className}>
+    <section aria-labelledby="benefits-heading" className={`flex flex-col ${className}`}>
       <h2 id="benefits-heading" className="text-[20px] font-bold leading-tight tracking-tight text-ink">
         Why use the Jesus Index?
       </h2>
       <p className="mt-1 text-[15px] text-ink-2">{WORD[items.length] ?? items.length} ways this helps you:</p>
 
-      <ul
-        className="-mx-1 mt-3 flex snap-x gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:grid md:grid-cols-5 md:overflow-visible md:px-0 md:pb-0"
-        onMouseLeave={() => setHover(null)}
-      >
+      <ul className="mt-3 grid flex-1 auto-rows-fr gap-2" onMouseLeave={() => setHover(null)}>
         {items.map((b, i) => {
           const on = active === i;
           return (
-            <li key={b.t} className="shrink-0 snap-start md:shrink">
+            <li key={b.t} className="flex">
               <button
                 type="button"
                 aria-pressed={pinned === i}
@@ -49,29 +49,24 @@ export default function HeroBenefits({ items, className = "" }: { items: { t: st
                 onFocus={() => setHover(i)}
                 onBlur={() => setHover(null)}
                 onClick={() => setPinned((p) => (p === i ? null : i))}
-                className="flex h-full min-h-[3.25rem] w-full items-center justify-center whitespace-nowrap rounded-2xl px-4 py-2 text-center text-[14px] font-semibold leading-snug text-ink transition-shadow motion-reduce:transition-none md:whitespace-normal"
+                className="flex min-h-[3rem] w-full flex-col justify-center rounded-xl px-4 py-2 text-left transition-shadow motion-reduce:transition-none md:flex-row md:items-center md:justify-start md:gap-4"
                 style={on ? GRADIENT_EDGE : PLAIN_EDGE}
               >
-                {b.t}
+                <span className="text-[14.5px] font-semibold leading-snug text-ink md:w-[13.5rem] md:shrink-0">{b.t}</span>
+                <span
+                  aria-hidden
+                  className={`text-[13.5px] leading-snug text-ink-2 transition-opacity duration-150 motion-reduce:transition-none md:block ${
+                    on ? "mt-1 block opacity-100 md:mt-0" : "hidden opacity-0"
+                  }`}
+                >
+                  {b.d}
+                </span>
                 <span className="sr-only"> — {b.d}</span>
               </button>
             </li>
           );
         })}
       </ul>
-
-      <p aria-hidden className="mt-3 min-h-[2.75rem] border-l-2 border-emerald pl-3 text-[15px] leading-snug text-ink-2">
-        {active !== null ? (
-          <>
-            <b className="text-ink">{items[active].t}:</b> {items[active].d}.
-          </>
-        ) : (
-          <span className="text-muted">
-            <span className="hidden sm:inline">Hover</span>
-            <span className="sm:hidden">Tap</span> a heading to see what it means.
-          </span>
-        )}
-      </p>
     </section>
   );
 }
