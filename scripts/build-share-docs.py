@@ -1,7 +1,9 @@
 """
-Builds the two shareable JFINDX documents:
-  public/share/JFINDX-two-pager.pdf       (A4 portrait, 2 pages)
-  public/share/JFINDX-pitch-and-demo.pdf  (A4 landscape, 8 pages)
+Builds the three shareable Jesus Index documents (front page "Pitch
+documents" and the dashboard's "Share about the Jesus Index"):
+  public/share/JesusIndex-leadership-pitch.pdf  (A4 landscape, 9 pages)
+  public/share/JesusIndex-two-pager.pdf         (A4 portrait, 2 pages)
+  public/share/JesusIndex-pitch-and-demo.pdf    (A4 landscape, 8 pages)
 Content is drawn only from what the platform actually does (CLAUDE.md,
 the live instrument v5, the dashboards as built, the privacy notice and the
 consent resource) — no invented statistics. Re-run after any change to them:
@@ -37,7 +39,7 @@ def para(c, text, x, y_top, w, st, h=400):
     return y_top - ph
 
 def mark(c, x, y, r=11):
-    """The JFINDX mark (public/icon-mark.svg): a coral→violet disc, a dashed
+    """The Jesus Index mark (public/icon-mark.svg): a coral→violet disc, a dashed
     white line that runs flat then rises, and the white cross at its peak.
     SVG geometry is 120×120, y down; (x, y) here is the disc's centre."""
     k = 2 * r / 120.0
@@ -57,6 +59,15 @@ def mark(c, x, y, r=11):
     c.roundRect(X(89.25), Y(31 + 28), 4.5 * k, 28 * k, 2.25 * k, stroke=0, fill=1)
     c.roundRect(X(77), Y(43.25 + 4.5), 28 * k, 4.5 * k, 2.25 * k, stroke=0, fill=1)
     c.restoreState()
+
+def wordmark(c, x, y, size=15, color=INK):
+    """The name, set as the lockup: The *Jesus* Index (serif, italic Jesus)."""
+    c.setFillColor(color)
+    c.setFont("Times-Roman", size); c.drawString(x, y, "The ")
+    x += c.stringWidth("The ", "Times-Roman", size)
+    c.setFont("Times-Italic", size); c.drawString(x, y, "Jesus")
+    x += c.stringWidth("Jesus ", "Times-Italic", size)
+    c.setFont("Times-Roman", size); c.drawString(x, y, "Index")
 
 def kicker(c, x, y, text, color=INK2):
     c.setFont("Helvetica", 8); c.setFillColor(color); c.drawString(x, y, text.upper())
@@ -96,15 +107,15 @@ def footer(c, W, text, page=None):
 # ─────────────────────────────── two-pager ───────────────────────────────
 def two_pager(path):
     W, H = A4; c = canvas.Canvas(path, pagesize=A4)
-    c.setTitle("The JFINDX — what it is and how it works"); c.setAuthor("Next Gen Global Collab")
+    c.setTitle("The Jesus Index — what it is and how it works"); c.setAuthor("Next Gen Global Collab")
     M = 46; TW = W - 2 * M
 
     # page 1
-    mark(c, M + 11, H - 52); c.setFont("Helvetica-Bold", 15); c.setFillColor(INK); c.drawString(M + 30, H - 57, "J.FIND.x")
+    mark(c, M + 11, H - 52); wordmark(c, M + 30, H - 57, 17)
     c.setFont("Helvetica", 8.5); c.setFillColor(INK2); c.drawRightString(W - M, H - 56, "jfindx.org")
     kicker(c, M, H - 100, "A shared measure for the Next Gen Global Collab")
     y = para(c, "How are young people following Jesus — and where do they stop moving?", M, H - 108, TW * 0.9, style(25, INK, 30, True))
-    y = para(c, "The JFINDX (the Next Gen Jesus-Following Index) is one short, anonymous survey that any ministry can run with the young people it reaches, aged 13 to 30. "
+    y = para(c, "The Jesus Index (the Next Gen Jesus-Following Index) is one short, anonymous survey that any ministry can run with the young people it reaches, aged 13 to 30. "
              "It's free for every ministry. Each one sees its own results live, as people answer. Together, the Collab sees a picture no single ministry could see alone.",
              M, y - 12, TW * 0.92, style(11, INK2, 16))
 
@@ -124,7 +135,7 @@ def two_pager(path):
         c.setFillColor(PAGE); c.roundRect(x, yy - 86, cw, 86, 8, stroke=0, fill=1)
         para(c, f"<b>{h}</b>", x + 10, yy - 10, cw - 20, style(10.5, INK))
         para(c, b, x + 10, yy - 28, cw - 20, style(8.8, INK2, 12.2))
-    footer(c, W, "The JFINDX · built by and for the Next Gen Global Collab · jfindx.org", 1)
+    footer(c, W, "The Jesus Index · built by and for the Next Gen Global Collab · jfindx.org", 1)
     c.showPage()
 
     # page 2
@@ -149,7 +160,7 @@ def two_pager(path):
                 "<b>Aggregates only.</b> No organisation ever sees an individual's answers — including its own young people's.",
                 "<b>Kept only as long as needed.</b> After 60 days the exact time, city, typed answers and room are removed; cleaned answers are kept up to 5 years, then only grouped totals. Under-13s are stopped at the first question and nothing is kept.",
                 "<b>Minors protected at the edge.</b> Consent, including parental consent, is gathered and held by each ministry — never by the Index.",
-                "<b>Your brand, not ours.</b> Respondents see your name, colour and logo; the JFINDX sits quietly in the footer."]
+                "<b>Your brand, not ours.</b> Respondents see your name, colour and logo; the Jesus Index sits quietly in the footer."]
     y -= 16
     for pr in promises:
         c.setFillColor(VIOLET); c.circle(M + 4, y - 6, 2.4, stroke=0, fill=1)
@@ -161,13 +172,13 @@ def two_pager(path):
     para(c, "Start at jfindx.org", M + 18, by + box_h - 18, TW - box_h - 30, style(17, white, 21, True))
     para(c, "Join free, then sign in with your ministry email. Privacy notice: jfindx.org/privacy · Consent resource, parent letter and script: jfindx.org/resources/consent · Guided tour: jfindx.org/tour",
          M + 18, by + box_h - 46, TW - box_h - 40, style(9.5, HexColor("#d7dbe2"), 13.5))
-    footer(c, W, "The JFINDX · built by and for the Next Gen Global Collab · jfindx.org", 2)
+    footer(c, W, "The Jesus Index · built by and for the Next Gen Global Collab · jfindx.org", 2)
     c.showPage(); c.save()
 
 # ───────────────────────────── pitch & demo ──────────────────────────────
 def pitch(path):
     W, H = landscape(A4); c = canvas.Canvas(path, pagesize=(W, H))
-    c.setTitle("The JFINDX — pitch and demo guide"); c.setAuthor("Next Gen Global Collab")
+    c.setTitle("The Jesus Index — pitch and demo guide"); c.setAuthor("Next Gen Global Collab")
     M = 54; TW = W - 2 * M; n = [0]
 
     def slide(title, kick, dark=False):
@@ -177,12 +188,12 @@ def pitch(path):
         c.setFillColor(CORAL); c.rect(0, H - 6, W * 0.34, 6, stroke=0, fill=1)
         c.setFillColor(VIOLET); c.rect(W * 0.34, H - 6, W * 0.66, 6, stroke=0, fill=1)
         mark(c, M + 9, H - 40, 9)
-        c.setFont("Helvetica-Bold", 10.5); c.setFillColor(white if dark else INK); c.drawString(M + 24, H - 44, "J.FIND.x")
+        wordmark(c, M + 24, H - 44, 12.5, white if dark else INK)
         kicker(c, M, H - 84, kick, HexColor("#b8bdc7") if dark else INK2)
         y = para(c, title, M, H - 92, TW * 0.85, style(26, white if dark else INK, 31, True))
         c.setStrokeColor(HexColor("#3a3e46") if dark else RULE); c.line(M, 30, W - M, 30)
         c.setFont("Helvetica", 7.5); c.setFillColor(HexColor("#b8bdc7") if dark else INK2)
-        c.drawString(M, 18, "The JFINDX · pitch and demo guide · jfindx.org"); c.drawRightString(W - M, 18, str(n[0]))
+        c.drawString(M, 18, "The Jesus Index · pitch and demo guide · jfindx.org"); c.drawRightString(W - M, 18, str(n[0]))
         return y
 
     # 1 · cover
@@ -249,7 +260,7 @@ def pitch(path):
 
     # 7 · demo, part 1
     y = slide("Run the demo — part one: set up.", "Demo instructions · about 10 minutes")
-    steps = [("Before you start", "Have a laptop to present from and a phone to answer on. For a no-risk walkthrough with invented figures, open jfindx.org/tour."),
+    steps = [("Before you start", "Have a laptop to present from and a phone to answer on. For a no-risk walkthrough with invented figures, open jfindx.org/see-a-demo."),
              ("1 · Sign in", "On the laptop go to jfindx.org → “Sign in”. Enter your ministry email and open the link from the newest email — it works on any device."),
              ("2 · Your dashboard", "Point out the figures and the J12 matrix. Say: the dashes mean there aren't enough answers yet — that's the privacy floor at work."),
              ("3 · Start a test survey", "Click “+ Start a new survey”. Name it (“Demo”), tick Test link, choose J12 or Full survey (open “What each survey measures”), add a welcome, and save."),
@@ -266,7 +277,7 @@ def pitch(path):
              ("6 · Watch it arrive", "Back on the laptop, reload. The test card's count goes up — test answers never reach a score. On a real survey a score appears once 10 people have answered."),
              ("7 · Switch views", "Toggle the J12 matrix, Unengaged matrix and heat map; open “Edit your dashboard” to show how a team chooses what it sees; open Collab Intelligence for the pooled picture."),
              ("8 · Ask what it means", "Click “What does this mean?” and pick a suggested question. It goes to a Collab facilitator with the view attached — that's where a score becomes a strategy."),
-             ("9 · Hand over", "At the bottom of the dashboard, “Share about the JFINDX” has this guide, the two-pager and the QR code. Consent materials: jfindx.org/resources/consent.")]
+             ("9 · Hand over", "At the bottom of the dashboard, “Share about the Jesus Index” has this guide, the two-pager and the QR code. Consent materials: jfindx.org/resources/consent.")]
     yy = y - 18
     for h, b in steps:
         para(c, h, M, yy, TW * 0.24, style(12, INK, 16, True))
@@ -275,6 +286,166 @@ def pitch(path):
 
     c.showPage(); c.save()
 
-two_pager("public/share/JFINDX-two-pager.pdf")
-pitch("public/share/JFINDX-pitch-and-demo.pdf")
+# ──────────────────────────── leadership pitch ───────────────────────────
+def leadership(path):
+    """The case for the Index, for leaders and funders — drawn from the
+    leadership briefing (the pitch), restated to match what is built. No
+    results anywhere: the only numbers are counts of the coalition, the
+    published comparison studies, the privacy thresholds and the indicative
+    budget already shared with funders."""
+    W, H = landscape(A4); c = canvas.Canvas(path, pagesize=(W, H))
+    c.setTitle("The Jesus Index — leadership pitch"); c.setAuthor("Next Gen Global Collab")
+    M = 54; TW = W - 2 * M; n = [0]
+    DIM = HexColor("#b8bdc7"); SOFT = HexColor("#d7dbe2")
+
+    def slide(title, kick, dark=False):
+        n[0] += 1
+        if n[0] > 1: c.showPage()
+        c.setFillColor(INK if dark else white); c.rect(0, 0, W, H, stroke=0, fill=1)
+        c.setFillColor(CORAL); c.rect(0, H - 6, W * 0.34, 6, stroke=0, fill=1)
+        c.setFillColor(VIOLET); c.rect(W * 0.34, H - 6, W * 0.66, 6, stroke=0, fill=1)
+        mark(c, M + 9, H - 40, 9)
+        wordmark(c, M + 24, H - 44, 12.5, white if dark else INK)
+        kicker(c, M, H - 84, kick, DIM if dark else INK2)
+        y = para(c, title, M, H - 92, TW * 0.85, style(26, white if dark else INK, 31, True))
+        c.setStrokeColor(HexColor("#3a3e46") if dark else RULE); c.line(M, 30, W - M, 30)
+        c.setFont("Helvetica", 7.5); c.setFillColor(DIM if dark else INK2)
+        c.drawString(M, 18, "The Jesus Index · leadership pitch · a working proposal, not a finished plan · jfindx.org")
+        c.drawRightString(W - M, 18, str(n[0]))
+        return y
+
+    def cards(items, y, colours=None, top_pad=24, h=None):
+        cw = (TW - 20 * (len(items) - 1)) / len(items)
+        hh = h or (y - top_pad - 60)
+        for i, (hd, b) in enumerate(items):
+            x = M + i * (cw + 20)
+            c.setFillColor(PAGE); c.roundRect(x, y - top_pad - hh, cw, hh, 12, stroke=0, fill=1)
+            col = (colours or [INK] * len(items))[i]
+            yb = para(c, hd, x + 18, y - top_pad - 18, cw - 36, style(14, col, 18, True))
+            para(c, b, x + 18, yb - 8, cw - 36, style(10.8, INK, 15.5))
+
+    # 1 · cover
+    y = slide("How will we know?", "Leadership pitch · Next Gen Global Collab · on the road to 2033", dark=True)
+    para(c, "Thirty-plus organisations. Dozens of countries. One goal — every young person with a real opportunity to follow Jesus by 2033 — "
+            "and, until now, no shared way to tell whether young people are actually following Him.",
+         M, y - 18, TW * 0.6, style(14, SOFT, 20))
+    para(c, "This is the proposal: one shared measure — the Jesus Index — owned by everyone, run by anyone, so the whole movement finally reads the same picture.",
+         M, y - 110, TW * 0.6, style(14, white, 20, True))
+    c.drawImage(QR, W - M - 150, 60, 150, 150)
+    c.setFont("Helvetica", 9); c.setFillColor(DIM); c.drawRightString(W - M, 48, "jfindx.org · see a demo at jfindx.org/see-a-demo")
+
+    # 2 · the shift
+    y = slide("Same mission. Same questions. A different way of measuring.", "The shift")
+    cards([("What stays the same", "The 2033 goal. The three questions — do they follow Jesus, do they join His mission, does their world look different? And the collaboration: we still measure together."),
+           ("What changes", "From one centralised study the Collab runs, funds and owns — to a crowdsourced shared measure that hundreds of organisations, down to a single local church, run for themselves."),
+           ("Why it matters", "We stop carrying the measuring tape ourselves and hand it to everyone. Each organisation gets value back immediately; the Collab gets a pooled picture no study could afford.")],
+          y, [INK, CORAL_D, VIOLET_D], h=190)
+
+    # 3 · why the change
+    y = slide("Three walls the original study couldn't get past.", "Why the change")
+    cards([("The under-18 wall", "Most Collab organisations work with under-18s. Centrally collecting minors' data across many countries needs ethics infrastructure we don't have. Run at the edge, consent stays with each organisation."),
+           ("The money wall", "The Global Flourishing Study covers 22 countries and cost about $43M. Our ~$1M would buy roughly one country for seven years — not fifty."),
+           ("The quality wall", "A global study on a small budget means ad-hoc sampling: data we can't compare year to year or region to region. A shared instrument used the same way everywhere can be.")],
+          y, [CORAL_DD, CORAL_DD, CORAL_DD], h=190)
+
+    # 4 · collective impact + proven pattern
+    y = slide("The missing leg of Collective Impact — and a proven pattern.", "The thinking behind it")
+    conds = [("Common agenda", "the 2033 vision"), ("Shared measurement", "the Jesus Index"), ("Reinforcing activities", "each partner"),
+             ("Continuous communication", "the gatherings"), ("Backbone support", "NXT Move")]
+    cw = (TW - 4 * 12) / 5
+    for i, (h, g) in enumerate(conds):
+        x = M + i * (cw + 12); miss = i == 1
+        c.setFillColor(CORAL if miss else PAGE); c.roundRect(x, y - 92, cw, 70, 10, stroke=0, fill=1)
+        para(c, h, x + 12, y - 32, cw - 24, style(11, white if miss else INK, 14, True))
+        para(c, ("" if miss else "✓ ") + g, x + 12, y - 64, cw - 24, style(9.5, white if miss else INK2, 12.5))
+    para(c, "Stanford's Collective Impact names five conditions a coalition needs. We have four. The Index builds the fifth.", M, y - 104, TW, style(11, INK2, 15))
+    cards([("Gallup Q12", "Twelve questions in a four-level hierarchy, run by organisations across 50+ industries and benchmarked against a global database."),
+           ("Global Flourishing Study", "Harvard, Baylor and Gallup. A shared index across 22 countries — the model of a common measure, if not the budget."),
+           ("World Vision · Hope & Love", "A validated tool measuring how children experience God's love, released in 2025. The faith sector already does this.")],
+          y - 132, [INK, INK, INK], top_pad=6, h=118)
+
+    # 5 · the model
+    y = slide("Three questions. Four tiers. Twelve cells: the J12.", "The model")
+    para(c, "The <b>three questions</b> are <i>what</i> we measure. The <b>four tiers</b> are <i>how deep</i> it has gone — "
+            "<b>Exposure → Response → Formation → Multiplication</b>. Every question in the survey sits in one cell. "
+            "Read across a row to see where young people stop moving; read down a column to compare the three.<br/><br/>"
+            "The <b>J12</b> is the twelve core questions — one per cell — about five minutes on any phone. The full survey asks more in each cell.",
+         M, y - 14, TW * 0.36, style(11.5, INK, 16.5))
+    j12(c, M + TW * 0.4, y - 10, TW * 0.6, cell_h=58, font=9.5)
+
+    # 6 · three outcomes + how it works
+    y = slide("What we're building — and how the crowdsourced model works.", "Three outcomes")
+    cards([("1 · The shared metric", "One memorable, translatable instrument anyone can run. Free to every ministry, always."),
+           ("2 · The dashboard", "Each organisation sees its own results live, under its own name. The Collab sees the pooled picture."),
+           ("3 · The consulting", "“What does this mean?” — facilitators help turn a score into a changed strategy. The long game.")],
+          y, [CORAL_D, VIOLET_D, INK], h=120)
+    yy = y - 24 - 120 - 22
+    for h, b in [("White-labelled, theirs", "An organisation signs up and runs the Index under its own logo and colour; its data flows back to the shared picture."),
+                 ("Benchmarks earn their place", "Comparisons switch on for a place only once enough people there have completed the Index."),
+                 ("Risk moves to the edge", "Organisations gather data under their own consent; the Index never holds identifiable data about anyone, least of all minors.")]:
+        c.setFillColor(VIOLET); c.roundRect(M, yy - 26, 5, 24, 2, stroke=0, fill=1)
+        para(c, h, M + 16, yy - 2, TW * 0.27, style(12, INK, 15, True))
+        para(c, b, M + 16 + TW * 0.28, yy - 2, TW * 0.7, style(11, INK2, 15))
+        yy -= 40
+
+    # 7 · promises
+    y = slide("The integrity line, and the promises behind it.", "Privacy and honesty")
+    para(c, "“Of those who have completed the Index — here are the results, and here's how you compare.” We never claim to speak for a nation.",
+         M, y - 10, TW * 0.85, style(15, CORAL_DD, 20, True))
+    pr = [("Every score shows its n", "Results describe the people who answered — never a whole population."),
+          ("Nothing that points at a person", "No score under 10 people; no city or area under 400; no country under 2,000."),
+          ("Aggregates only", "No organisation sees an individual answer — not even its own young people's."),
+          ("Anonymous by design", "No names, emails or birthdays; age is a band; IP addresses never stored with answers."),
+          ("Consent before collection", "Confirmed for the organisation and for every survey — no consent, no participation."),
+          ("Never locked", "Questions are researcher-owned and versioned; every answer stays tied to its version.")]
+    cw = (TW - 20) / 2
+    for i, (h, b) in enumerate(pr):
+        x = M + (i % 2) * (cw + 20); yy = y - 70 - (i // 2) * 64
+        para(c, h, x, yy, cw, style(12.5, INK, 16, True))
+        para(c, b, x, yy - 19, cw, style(11, INK2, 15))
+
+    # 8 · who does what + the road
+    y = slide("Who does what, and the road to 2033.", "Partnership and horizon")
+    who = [("The Collab", "Owns the project, the relationships and the people."), ("NXT Move", "The Collab's appointed backbone organisation."),
+           ("Eido Research", "The survey and intelligence engine."), ("Shared IP", "Co-owned by NXT Move and Eido; anyone may publish results crediting both.")]
+    yy = y - 18
+    for h, b in who:
+        para(c, h, M, yy, TW * 0.16, style(11.5, INK, 15, True))
+        para(c, b, M + TW * 0.17, yy, TW * 0.3, style(10.5, INK2, 14.5))
+        yy -= 40
+    road = [("2026", "Build & baseline", "$120K"), ("2027", "Prove the model", "$180K"), ("2028–29", "Scale", "$320K"),
+            ("2030–31", "Trend lines", "$240K"), ("2032–33", "Standard, not survey", "$140K")]
+    x0 = M + TW * 0.52; rw = TW * 0.48; yy = y - 14
+    c.setFont("Helvetica", 7.5); c.setFillColor(INK2); c.drawString(x0, yy, "PHASE"); c.drawRightString(x0 + rw, yy, "INDICATIVE")
+    yy -= 8
+    for yr, h, amt in road:
+        c.setStrokeColor(RULE); c.line(x0, yy, x0 + rw, yy)
+        c.setFont("Helvetica-Bold", 11); c.setFillColor(CORAL_D); c.drawString(x0, yy - 20, yr)
+        c.setFont("Helvetica", 11); c.setFillColor(INK); c.drawString(x0 + 70, yy - 20, h)
+        c.drawRightString(x0 + rw, yy - 20, amt)
+        yy -= 32
+    c.setStrokeColor(INK); c.line(x0, yy, x0 + rw, yy)
+    c.setFont("Helvetica-Bold", 11.5); c.drawString(x0, yy - 20, "Through 2033"); c.drawRightString(x0 + rw, yy - 20, "~$1.0M")
+    para(c, "Early years are lean because data-gathering cost moves to the partners; free measures with paid advanced reports and consulting bend later years toward self-sustaining.",
+         x0, yy - 34, rw, style(9.5, INK2, 13))
+
+    # 9 · the ask
+    y = slide("Run it. See it. Bring the organisations around you.", "What we're asking", dark=True)
+    asks = [("Join", "Sign up your ministry, organisation or church at jfindx.org — free, about two minutes."),
+            ("See a demo", "jfindx.org/see-a-demo walks a fictional ministry, organisation and church through a whole season — every figure invented."),
+            ("Bring others", "Comparisons open as an area grows. The fastest way to see how you compare is to invite the ministries you already work alongside.")]
+    cw = (TW - 200 - 40) / 3
+    for i, (h, b) in enumerate(asks):
+        x = M + i * (cw + 20)
+        para(c, h, x, y - 30, cw, style(16, [CORAL, HexColor("#b69cf9"), white][i], 20, True))
+        para(c, b, x, y - 56, cw, style(11.5, SOFT, 16.5))
+    c.drawImage(QR, W - M - 170, 70, 170, 170)
+    c.setFont("Helvetica", 9); c.setFillColor(DIM); c.drawRightString(W - M, 56, "jfindx.org")
+    para(c, "<i>Clay to be moulded — not a vase to be baked.</i> A working proposal, offered for shaping.", M, 92, TW * 0.6, style(11.5, DIM, 16))
+    c.showPage(); c.save()
+
+
+leadership("public/share/JesusIndex-leadership-pitch.pdf")
+two_pager("public/share/JesusIndex-two-pager.pdf")
+pitch("public/share/JesusIndex-pitch-and-demo.pdf")
 print("ok")

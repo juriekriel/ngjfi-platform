@@ -181,7 +181,7 @@ export function emailHtml(bodyHtml: string, orgName: string, siteUrl: string): s
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border:1px solid #e2e5ea;border-radius:12px;">
 <tr><td style="padding:22px 28px 0;font-family:Arial,Helvetica,sans-serif;">
 <span style="display:inline-block;width:18px;height:18px;border-radius:5px;background:#ff7a47;vertical-align:middle;"></span>
-<span style="font-weight:700;font-size:15px;color:#22252b;vertical-align:middle;margin-left:6px;">JFINDX</span>
+<span style="font-weight:700;font-size:15px;color:#22252b;vertical-align:middle;margin-left:6px;">The Jesus Index</span>
 </td></tr>
 <tr><td style="padding:18px 28px 8px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#22252b;">
 ${bodyHtml}

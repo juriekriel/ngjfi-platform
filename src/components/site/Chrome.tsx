@@ -3,10 +3,10 @@ import Link from "next/link";
 import { EMERALD, INK, MUTED } from "@/lib/model";
 
 /**
- * The masthead. Brand Proof № 3: the header carries the short mark (gradient
- * chip + "J.FIND.x") the same way on every page, signed-out or signed-in — this
- * is a control surface, not the hero. The full serif "The Jesus Index"
- * lockup is reserved for page heroes (see the homepage), never repeated here.
+ * The masthead. Round 4 (Oct 2026): "the Jesus Index is the name and logo all
+ * the way through" — the header carries the rising mark beside the name, The
+ * Jesus Index, the same way on every page, signed-out or signed-in. (This
+ * replaces the short "J.FIND.x" wordmark; jfindx.org stays the address.)
  * Nav is plain Inter Tight, same voice as buttons and body copy — the old
  * "every nav link is tracked, uppercase, tabular mono" treatment was a rule
  * that belonged to the almanac and never got removed when the palette did.
@@ -16,12 +16,14 @@ export function Masthead({ edition }: { edition?: string }) {
     <header className="border-b border-rule">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-3.5 sm:px-8">
         <Link href="/" className="flex items-center gap-2.5 no-underline">
-          <RisingMark className="h-7 w-7 shrink-0" />
-          <span className="text-[18px] font-bold tracking-tight text-ink">J.FIND.x</span>
+          <RisingMark className="h-8 w-8 shrink-0" />
+          <span className="wordmark text-[21px] leading-none tracking-tight text-ink">
+            The <span className="italic">Jesus</span> Index
+          </span>
         </Link>
         <nav className="flex flex-wrap items-center gap-x-6 gap-y-1.5">
-          <NavLink href="/learn">What is the JFINDX?</NavLink>
-          <NavLink href="/#try">Try the survey</NavLink>
+          <NavLink href="/learn">What is the Jesus Index?</NavLink>
+          <NavLink href="/see-a-demo">See a Demo</NavLink>
           <Link
             href="/access"
             className="rounded-lg bg-gradient-to-r from-violet via-violet-deep to-violet-deeper px-4 py-2 text-[14px] font-semibold text-plate no-underline hover:opacity-90"
@@ -32,7 +34,7 @@ export function Masthead({ edition }: { edition?: string }) {
             href="/join"
             className="rounded-lg bg-gradient-to-r from-emerald via-emerald-deep to-emerald-deeper px-4 py-2 text-[14px] font-semibold text-plate no-underline hover:opacity-90"
           >
-            Join the JFINDX
+            Join the Jesus Index
           </Link>
         </nav>
       </div>
@@ -237,7 +239,7 @@ export function Door({
 
 /**
  * The coral → violet rule the site uses above a bold heading (join page,
- * "What is the JFINDX?", calls to action). One component, so every page
+ * "What is the Jesus Index?", calls to action). One component, so every page
  * draws exactly the same line.
  */
 export function GradientRule({ className = "" }: { className?: string }) {

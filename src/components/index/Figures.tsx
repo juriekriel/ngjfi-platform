@@ -384,6 +384,24 @@ export function IntegrityNote({ extra }: { extra?: string }) {
  */
 const PLATFORM_GRADIENT = [EMERALD, GREEN, VIOLET, NAVY, VERMILLION];
 
+/** The J12 mark's cell colours — shared by the small hero mark and the
+ *  interactive J12 on the front page, so the two can never drift. Returns
+ *  null for the six cells outside the cross. */
+const J12_LIT_ORDER: [number, number][] = [
+  [0, 1],
+  [1, 0],
+  [1, 1],
+  [1, 2],
+  [1, 3],
+  [2, 1],
+];
+export function j12CellColour(r: number, c: number): string | null {
+  const i = J12_LIT_ORDER.findIndex(([lr, lc]) => lr === r && lc === c);
+  return i === -1 ? null : PLATFORM_GRADIENT[i % PLATFORM_GRADIENT.length];
+}
+/** `rgb(var(--c-x))` → `rgb(var(--c-x) / a)` — CSS Color 4 alpha on a token. */
+export const j12Lighten = (colour: string, alpha: number) => `${colour.slice(0, -1)} / ${alpha})`;
+
 /**
  * The J12's own diagram: a cross of six lit cells inside a 4×3 grid — one
  * column of three running down, one row of four running across, sharing a
@@ -396,26 +414,8 @@ const PLATFORM_GRADIENT = [EMERALD, GREEN, VIOLET, NAVY, VERMILLION];
 export function J12Grid({ className = "" }: { className?: string }) {
   const COLS = 4;
   const ROWS = 3;
-  // Vertical arm down column 1, horizontal arm across row 1 — six lit cells,
-  // read in a fixed order (top of the vertical arm round to the bottom of
-  // it) so the gradient has a single, consistent direction.
-  const LIT_ORDER: [number, number][] = [
-    [0, 1],
-    [1, 0],
-    [1, 1],
-    [1, 2],
-    [1, 3],
-    [2, 1],
-  ];
-  const colourAt = (r: number, c: number) => {
-    const i = LIT_ORDER.findIndex(([lr, lc]) => lr === r && lc === c);
-    return i === -1 ? null : PLATFORM_GRADIENT[i % PLATFORM_GRADIENT.length];
-  };
-  // Every colour here is `rgb(var(--c-name))`, not a hex literal (see
-  // src/lib/model.ts's token()), so a light tint needs the CSS Color 4
-  // `/ alpha` syntax rather than a hex-alpha suffix — inserted just before
-  // the closing paren.
-  const lighten = (colour: string, alpha: number) => `${colour.slice(0, -1)} / ${alpha})`;
+  const colourAt = j12CellColour;
+  const lighten = j12Lighten;
 
   return (
     <figure className={className}>

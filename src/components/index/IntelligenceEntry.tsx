@@ -51,7 +51,7 @@ export default function IntelligenceEntry() {
   // now lives at the bottom of the front page. Signed-out visitors go there;
   // signed-in members and the Collab keep this page (their second tab).
   useEffect(() => {
-    if (ctx && !ctx.signed_in) window.location.replace("/#global");
+    if (ctx && !ctx.signed_in) window.location.replace("/see-a-demo#global");
   }, [ctx]);
 
   if (!ctx || !ctx.signed_in) return <div className="min-h-screen bg-paper" aria-busy="true" />;

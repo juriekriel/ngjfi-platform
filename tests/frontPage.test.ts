@@ -8,16 +8,16 @@ const read = (p: string) => readFileSync(p, "utf8");
 const walk = (dir: string): string[] =>
   readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).isDirectory() ? walk(join(dir, f)) : [join(dir, f)]));
 
-test("the front page reads hero → journey → try it → global view, in one scroll", () => {
+test("the front page reads hero → J12 → try it → pitch documents, in one scroll", () => {
   const home = read("src/app/page.tsx");
-  const order = ["Start your journey", "<J12Journey", 'id="try"', "<LazySurveyDemo", "<LazyLiveSnapshot", "<Footer"].map((m) => home.indexOf(m));
+  const order = ["Start your journey", "<J12Journey", 'id="try"', "<LazySurveyDemo", "<PitchDocs", "<Footer"].map((m) => home.indexOf(m));
   order.forEach((i, k) => assert.ok(i > 0, `marker ${k} present`));
   assert.deepEqual([...order].sort((a, b) => a - b), order, "sections are in order");
   assert.match(home, /Free for every ministry\. Available now\./);
   assert.ok(!home.includes("And it stays free"), "no 'and it stays free' in the hero (Oct 2026 edit)");
   assert.ok(!/\{ t: "Free"/.test(home), "free is said in the text, not as a benefit tile");
   // Free is said once, in the hero — no tile, tab or button on the front page repeats it.
-  const page = home + read("src/components/site/LiveSnapshot.tsx") + read("src/components/site/Chrome.tsx");
+  const page = home + read("src/components/site/PitchDocs.tsx") + read("src/components/site/SeeADemoCard.tsx") + read("src/components/site/Chrome.tsx");
   const visible = page.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
   assert.equal((visible.match(/\bfree\b/gi) ?? []).length, 1, "free appears once, in the hero");
   assert.match(home, /How does it work\? →/);
@@ -36,7 +36,8 @@ test("no public page links to the retired global-picture page; /history redirect
 test("the nav says Sign in and Join; the footer carries Our story, Privacy, Terms, Consent", () => {
   const chrome = read("src/components/site/Chrome.tsx");
   assert.match(chrome, />\s*Sign in\s*</);
-  assert.match(chrome, /Join the JFINDX\s*</);
+  assert.match(chrome, /Join the Jesus Index\s*</);
+  assert.match(chrome, /href="\/see-a-demo">See a Demo</);
   for (const l of ["Our story", "Privacy", "Terms", "Consent"]) assert.ok(chrome.includes(`"${l}"`), l);
   for (const p of ["learn", "tour", "join", "access", "organisation", "our-story"]) {
     assert.match(read(`src/app/${p}/page.tsx`), /<Footer \/>/, `/${p} has the footer`);

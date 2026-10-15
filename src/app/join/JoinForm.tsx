@@ -253,7 +253,7 @@ export default function JoinForm() {
   return (
     <form onSubmit={submitExpress} className="rounded-xl border-2 border-ink p-6">
       <p className="figcap">Three fields · about thirty seconds</p>
-      <h2 className="mt-3 text-[24px] leading-tight">Join the JFINDX — free</h2>
+      <h2 className="mt-3 text-[24px] leading-tight">Join the Jesus Index — free</h2>
 
       <div className="mt-5 space-y-4">
         <div>

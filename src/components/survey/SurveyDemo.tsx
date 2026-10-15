@@ -19,7 +19,7 @@ import {
   visibleItems,
   type AnswerValue,
 } from "@/lib/instrument";
-import { SAMPLE_ORG } from "@/lib/sample";
+import { SAMPLE_ORG, type SampleOrg } from "@/lib/sample";
 
 /**
  * A device frame. Used by the tour and the front page. The actual respondent survey at /[org] never
@@ -68,7 +68,11 @@ export function PhoneFrame({ children, large = false }: { children: React.ReactN
  * because trying the flow means the most once you have just read why it
  * stops asking certain questions.
  */
-export default function SurveyDemo({ caption = true, large = false }: { caption?: boolean; large?: boolean } = {}) {
+export default function SurveyDemo({
+  caption = true,
+  large = false,
+  org = SAMPLE_ORG,
+}: { caption?: boolean; large?: boolean; org?: SampleOrg } = {}) {
   const items = useMemo(() => fieldedItems(), []);
   const steps = items.length;
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
@@ -105,19 +109,19 @@ export default function SurveyDemo({ caption = true, large = false }: { caption?
   }
 
   return (
-    <div className={`mx-auto w-full ${large ? "max-w-[340px]" : "max-w-[320px]"}`} style={large ? ({ "--phone-top": SAMPLE_ORG.brand } as React.CSSProperties) : undefined}>
+    <div className={`mx-auto w-full ${large ? "max-w-[340px]" : "max-w-[320px]"}`} style={large ? ({ "--phone-top": org.brand } as React.CSSProperties) : undefined}>
       <PhoneFrame large={large}>
-        <div className={`${large ? "shrink-0 pt-1" : ""} px-6 py-5 text-white`} style={{ background: SAMPLE_ORG.brand }}>
+        <div className={`${large ? "shrink-0 pt-1" : ""} px-6 py-5 text-white`} style={{ background: org.brand }}>
           <div className="flex items-center gap-3">
             <div
               className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-black"
-              style={{ color: SAMPLE_ORG.brand }}
+              style={{ color: org.brand }}
             >
-              {SAMPLE_ORG.name.charAt(0)}
+              {org.name.charAt(0)}
             </div>
             <div>
-              <div className="font-semibold leading-tight">{SAMPLE_ORG.name}</div>
-              <div className="text-xs opacity-90">{SAMPLE_ORG.country}</div>
+              <div className="font-semibold leading-tight">{org.name}</div>
+              <div className="text-xs opacity-90">{org.country}</div>
             </div>
           </div>
           <div className="mt-4 h-1.5 overflow-hidden rounded bg-white/30">
@@ -130,15 +134,15 @@ export default function SurveyDemo({ caption = true, large = false }: { caption?
             <div>
               <h1 className="text-xl font-bold leading-tight text-ink">
                 You&apos;re invited to share{" "}
-                <span style={{ color: SAMPLE_ORG.brand }}>where you&apos;re at</span>.
+                <span style={{ color: org.brand }}>where you&apos;re at</span>.
               </h1>
               <p className="mt-3 text-sm leading-relaxed text-ink-2">
-                {ENGLISH.ui("welcome_body", { org: SAMPLE_ORG.name, minutes: WELCOME_MINUTES })}
+                {ENGLISH.ui("welcome_body", { org: org.name, minutes: WELCOME_MINUTES })}
               </p>
               <button
                 onClick={() => setI(0)}
                 className="mt-6 rounded-lg px-6 py-3 font-semibold text-white"
-                style={{ background: SAMPLE_ORG.brand }}
+                style={{ background: org.brand }}
               >
                 Begin →
               </button>
@@ -149,7 +153,7 @@ export default function SurveyDemo({ caption = true, large = false }: { caption?
             <Question
               item={items[i]}
               lang={ENGLISH}
-              brand={SAMPLE_ORG.brand}
+              brand={org.brand}
               busy={false}
               selected={answers[items[i].key]}
               onChoose={choose}
@@ -177,13 +181,13 @@ export default function SurveyDemo({ caption = true, large = false }: { caption?
             <div className="py-6 text-center">
               <div
                 className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full text-3xl text-white"
-                style={{ background: SAMPLE_ORG.brand }}
+                style={{ background: org.brand }}
               >
                 ✓
               </div>
               <h2 className="text-xl font-bold text-ink">Thank you!</h2>
               <p className="mx-auto mt-2 max-w-sm text-sm text-ink-2">
-                Their answer joins {SAMPLE_ORG.name}&apos;s picture of how their community is
+                Their answer joins {org.name}&apos;s picture of how their community is
                 following Jesus. Nobody — not even their own youth leader — will ever see this
                 individual response.
               </p>

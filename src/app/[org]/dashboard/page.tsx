@@ -274,7 +274,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
         view === "settings"
           ? `${dash.org.name} · edit your dashboard`
           : view === "share"
-            ? "Share about the JFINDX"
+            ? "Share about the Jesus Index"
             : view === "team"
               ? `${dash.org.name} · your team & access`
             : inRoom
@@ -437,12 +437,12 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
         </section>
       )}
       {view === "results" && (panels.share || showShare) && (
-        // Share about the JFINDX — last on the page, the same shape as
+        // Share about the Jesus Index — last on the page, the same shape as
         // "Export your results" above it, a shade darker.
         <section className="rounded-2xl border border-ink bg-ink px-4 py-3 text-paper sm:px-6">
           <button type="button" onClick={() => setShowShare((v) => !v)} aria-expanded={showShare}
             className="flex w-full items-center justify-between py-1 text-left text-[14px] font-semibold text-paper">
-            Share about the JFINDX
+            Share about the Jesus Index
             <span aria-hidden className="text-paper/70">{showShare ? "▲" : "▾"}</span>
           </button>
           {showShare && (

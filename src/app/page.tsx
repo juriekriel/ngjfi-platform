@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Footer, GradientRule, Masthead, RisingRule } from "@/components/site/Chrome";
-import { J12Grid } from "@/components/index/Figures";
+import PitchDocs from "@/components/site/PitchDocs";
+import SeeADemoCard from "@/components/site/SeeADemoCard";
 import J12Journey from "@/components/index/J12Journey";
-import { LazyLiveSnapshot, LazySurveyDemo } from "@/components/site/HomeLazy";
+import { LazySurveyDemo } from "@/components/site/HomeLazy";
 import { WELCOME_MINUTES } from "@/lib/instrument";
 
 /**
@@ -13,8 +14,15 @@ import { WELCOME_MINUTES } from "@/lib/instrument";
  *      and two doors: start your journey, or try the survey yourself.
  *   B  The J12 journey — the model as an interactive picture.
  *   C  Try it yourself — the real survey in a phone, beside five steps.
- *   D  The global view — the live counter and map (was /intelligence).
+ *   D  Pitch documents — the PDFs to take to leaders.
  *   E  Footer — built by the Collab · Our story · Privacy · Terms · Consent.
+ *
+ * Round 4 (Oct 2026): the Jesus Index name and mark throughout; the J12
+ * drawn as the real mark with details on hover; "Safe for under-18s" off the
+ * benefits (consent lives in the footer and /resources/consent).
+ * Round 4b: everything demo — the three sample ministries and the global
+ * view — lives on /see-a-demo ("See a Demo" in the nav). The front page shows
+ * no figures at all, real or invented; the hero card is only a door.
  *
  * Built on Miguel's edit list (headline + steps, benefits first, fewer words
  * and more pictures, preview the questions) with Ulrich's direction. Copy
@@ -24,7 +32,6 @@ import { WELCOME_MINUTES } from "@/lib/instrument";
  */
 const BENEFITS: { t: string; d: string; href?: string }[] = [
   { t: "Anonymous", d: "no one — including you — sees an individual's answers" },
-  { t: "Safe for under-18s", d: "consent handled with you, before anyone starts", href: "/resources/consent" },
   { t: "Your brand", d: "your logo, your colour, your words" },
   { t: "Your results, live", d: "they belong to your ministry" },
   { t: "Compare as your area grows", d: "city and country views open as more ministries join" },
@@ -82,7 +89,7 @@ export default function Home() {
           </div>
 
           <aside className="md:pt-2">
-            <J12Grid className="mx-auto max-w-[260px]" />
+            <SeeADemoCard className="mx-auto max-w-[340px]" />
           </aside>
 
           <ul className="grid gap-x-6 gap-y-3 sm:grid-cols-2 md:col-span-2 md:grid-cols-3">
@@ -125,7 +132,7 @@ export default function Home() {
                   href="/join"
                   className="rounded-lg border-2 border-emerald bg-emerald px-5 py-3 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
                 >
-                  Join the JFINDX →
+                  Join the Jesus Index →
                 </Link>
                 <Link href="/tour" className="rounded-lg border border-ink px-5 py-3 text-[14px] font-semibold text-ink no-underline hover:bg-ink hover:text-paper">
                   How does it work? →
@@ -138,8 +145,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── D · the global view ─────────────────────────────────── */}
-        <LazyLiveSnapshot />
+        {/* ── D · pitch documents ─────────────────────────────────── */}
+        <PitchDocs />
       </main>
 
       <Footer />
