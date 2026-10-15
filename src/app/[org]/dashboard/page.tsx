@@ -238,19 +238,19 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
     if (l.is_test)
       empty = {
         title: "This is a test link",
-        body: "Everything works exactly as it will for real — the survey, the offline queue, the thank-you screen — but answers given here are kept apart. They never count in any score, count, map or Collab figure, and they're deleted automatically after 7 days. For a real room, make a new link without the Test box ticked.",
+        body: "Everything works exactly as it will for real — the survey, the offline queue, the thank-you screen — but answers given here are kept apart. They never count in any score, count, map or Collab figure, and they're deleted automatically after 7 days. For a real survey, make a new link without the Test box ticked.",
       };
-    else if (roomErr) empty = { title: "This room couldn't load", body: roomErr };
-    else if (!roomDash) empty = { title: "Loading this room…", body: "" };
+    else if (roomErr) empty = { title: "This survey couldn't load", body: roomErr };
+    else if (!roomDash) empty = { title: "Loading this survey…", body: "" };
     else if (roomDash.n === 0 && l.status === "scheduled" && l.active_from)
       empty = {
         title: `This link opens ${new Date(l.active_from).toLocaleString(undefined, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}`,
-        body: "Nothing has come through it yet, so there is nothing to show — and a zero would be a lie. Its results appear here once enough people finish, and they count toward the whole house at the same time.",
+        body: "Nothing has come through it yet, so there is nothing to show — and a zero would be a lie. Its results appear here once enough people finish, and they count toward your organisation's overall results at the same time.",
       };
     else if (roomDash.suppressed)
       empty = {
-        title: `${roomDash.n} of ${roomDash.min_n} needed before this room shows a score`,
-        body: "Rooms hold to their own floor, because a small room is exactly where a score could point back to a person. These responses already count toward your whole house.",
+        title: `${roomDash.n} of ${roomDash.min_n} needed before this survey shows a score`,
+        body: "Each survey holds to its own floor, because a small survey is exactly where a score could point back to a person. These responses already count toward your organisation's overall results.",
       };
     else empty = null;
   }
@@ -279,7 +279,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
               ? `${dash.org.name} · your team & access`
             : inRoom
               ? (roomName as string)
-              : `${dash.org.name} · the whole house`
+              : `${dash.org.name} · all surveys`
       }
       body={
         view === "settings" && !demoPreview ? (
@@ -343,7 +343,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
         n: shownCompletions?.total ?? n,
         nNote: shownCompletions
           ? completionsNote(shownCompletions)
-          : inRoom ? "through this link · also counted in the house" : "across every link",
+          : inRoom ? "through this survey · also counted in your overall results" : "across every link",
         scoredN: n,
         activeCountries: collab ? countries.length : null,
         countryGate: gate,
@@ -356,7 +356,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
         matrix: collabMatrix,
         allowed: !inRoom,
         reason: inRoom
-          ? "Comparing to the Collab is for the whole house only"
+          ? "Comparing to the Collab uses all your surveys together"
           : "The Collab's pooled view isn't published yet",
       }}
       unengaged={unengaged}

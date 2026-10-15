@@ -33,7 +33,7 @@ export type ConsultContext = {
 };
 
 export function consultContext(v: ConsultView): ConsultContext {
-  const scope = v.tab === "collab" ? "Collab Intelligence · every organisation" : v.roomName ? `${v.orgName} · ${v.roomName}` : `${v.orgName} · the whole house`;
+  const scope = v.tab === "collab" ? "Collab Intelligence · every organisation" : v.roomName ? `${v.orgName} · ${v.roomName}` : `${v.orgName} · all surveys`;
   const viewLabel =
     v.view === "heatmap"
       ? `Heat map, ${v.tierLabel}`

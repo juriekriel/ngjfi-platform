@@ -262,7 +262,7 @@ function OrgConsole({ short, name }: { short: string; name: string }) {
         <Awaiting what="Invitations" why="Adding colleagues arrives with the next build step. For now, ask an administrator to attach someone." />
       </Band>
 
-      <Band letter="E" title="The house" gloss="Everything a respondent sees: your brand at the top, the Index in the footer, nothing in between that says us." figure="white-label">
+      <Band letter="E" title="Your brand" gloss="Everything a respondent sees: your brand at the top, the Index in the footer, nothing in between that says us." figure="white-label">
         <Awaiting
           what="Logo, colour, welcome and closing message"
           why="These exist as columns on your organisation and are already read by the survey. The editing surface is the next build step."
@@ -386,7 +386,7 @@ function NetworkConsole({ short, name }: { short: string; name: string }) {
         )}
       </Band>
 
-      <Band letter="E" title="The house" gloss="A member's survey always carries the member's brand, never the network's. White-label means theirs." figure={`jfindx.org/${short}`}>
+      <Band letter="E" title="Member brands" gloss="A member's survey always carries the member's brand, never the network's. White-label means theirs." figure={`jfindx.org/${short}`}>
         <Awaiting what="Network brand and invitations" why="The next build step. The network page and the invite flow read the columns that already exist." />
       </Band>
     </div>
@@ -520,7 +520,7 @@ function CollabConsole() {
 
         <Tile
           letter="D"
-          figure="the house"
+          figure="the platform"
           title="Development"
           selected={section === "development"}
           onClick={() => setSection("development")}
@@ -687,7 +687,7 @@ function CollabConsole() {
       )}
 
       {section === "development" && (
-        <Band letter="D" title="The house" gloss="The instrument is researcher-owned. This tier reads every version and proposes changes; it cannot edit a published one, because responses are bound to the version they were captured under." figure="read + propose">
+        <Band letter="D" title="The instrument" gloss="The instrument is researcher-owned. This tier reads every version and proposes changes; it cannot edit a published one, because responses are bound to the version they were captured under." figure="read + propose">
           <Link href="/build/instrument" className="mb-4 inline-block rounded-lg border border-rule-2 px-4 py-2.5 text-[14px] font-semibold text-ink no-underline hover:border-ink">
             The instrument — items, checks, proposals →
           </Link>
@@ -1068,7 +1068,7 @@ function AdminConsole() {
         </p>
       </Band>
 
-      <Band letter="E" title="The house" gloss="The instrument register, the reserved names, the settings. Rarely touched — everything here changes the meaning of every number already collected." figure={wl?.instrument?.version ?? "not loaded"}>
+      <Band letter="E" title="Platform settings" gloss="The instrument register, the reserved names, the settings. Rarely touched — everything here changes the meaning of every number already collected." figure={wl?.instrument?.version ?? "not loaded"}>
         <HouseRows house={house} />
         <p className="margin-note mt-3 border-l-2 border-vermillion pl-3">
           The publish switch is the single control on the whole platform that can overclaim. It

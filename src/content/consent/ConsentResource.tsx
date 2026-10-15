@@ -162,7 +162,7 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
           [<b key="b">How long it takes</b>, "About 6 minutes (5 for the J12-only version), plus about 2 optional minutes."],
           [<b key="c">What's collected</b>, "Answers, age group, gender (optional), country, city or area (optional), language, and when they answered. Never names, emails, phone numbers, birthdays or IP addresses."],
           [<b key="d">Who sees what</b>, "You see grouped results only, never one person's answers. Groups smaller than 10 show a count but no score."],
-          [<b key="e">How long answers are kept</b>, "Full answers for 60 days, for quality checks. After that the exact time, the city, typed answers and the room-level link are removed. The cleaned answers are kept for up to 5 years, then only grouped totals remain."],
+          [<b key="e">How long answers are kept</b>, "Full answers for 60 days, for quality checks. After that the exact time, the city, typed answers and the individual survey link are removed. The cleaned answers are kept for up to 5 years, then only grouped totals remain."],
           [<b key="f">Who holds consent records</b>, "You do. Keep them yourself and never send them to the Index."],
         ]} />
       </Sec>
