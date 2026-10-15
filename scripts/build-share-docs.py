@@ -142,7 +142,7 @@ def two_pager(path):
     kicker(c, M, H - 60, "How it works")
     steps = [("1", "A ministry joins", "Join at jfindx.org, then sign in with your ministry email — no password. Your organisation gets its own branded survey and dashboard."),
              ("2", "Consent comes first", "Confirm consent for your organisation, then for each survey you send — including how parental consent was gathered for 13–17s. No consent, no participation."),
-             ("3", "Start a survey for each group", "Choose the J12 or the Full survey, add your own welcome and closing, and set when it opens and closes. Each one is its own “room”, rolling up into your whole organisation."),
+             ("3", "Start a survey for each group", "Choose the J12 or the Full survey, add your own welcome and closing, and set when it opens and closes. Each one has its own results, adding up into your whole organisation."),
              ("4", "Young people answer", "They scan a QR code or tap a link, answer in about six minutes, and are told plainly that only grouped results are ever seen. Those not yet following Jesus answer their own path."),
              ("5", "You read the J12 — live", "Your dashboard shows the J12 matrix, the Unengaged matrix and a world heat map. Choose which views your team sees, export your results, and overlay the Collab's pooled picture."),
              ("6", "Ask what it means", "“What does this mean?” sends your question — and the view you are looking at — to a Collab facilitator, who helps turn a score into a changed strategy.")]
@@ -158,7 +158,7 @@ def two_pager(path):
     promises = ["<b>Only “those who have completed the Index.”</b> Results never claim to describe a whole population, and every score shows how many people it rests on.",
                 "<b>Nothing small enough to point at a person.</b> A score appears at 10 people; a city or area at 400; a country on the map at 2,000.",
                 "<b>Aggregates only.</b> No organisation ever sees an individual's answers — including its own young people's.",
-                "<b>Kept only as long as needed.</b> After 60 days the exact time, city, typed answers and room are removed; cleaned answers are kept up to 5 years, then only grouped totals. Under-13s are stopped at the first question and nothing is kept.",
+                "<b>Kept only as long as needed.</b> After 60 days the exact time, city, typed answers and survey link are removed; cleaned answers are kept up to 5 years, then only grouped totals. Under-13s are stopped at the first question and nothing is kept.",
                 "<b>Minors protected at the edge.</b> Consent, including parental consent, is gathered and held by each ministry — never by the Index.",
                 "<b>Your brand, not ours.</b> Respondents see your name, colour and logo; the Jesus Index sits quietly in the footer."]
     y -= 16
@@ -236,7 +236,7 @@ def pitch(path):
     # 5 · what a ministry sees
     y = slide("Your own dashboard — and the Collab's, side by side.", "The ministry")
     rows = [("Two tabs, identical in shape", "Your organisation's dashboard and Collab Intelligence: the same figures, the same J12 matrix and heat map, in the same places."),
-            ("Rooms", "Every survey you start is its own room — a camp, a partner, a youth night — with its own results, rolling up into your whole organisation."),
+            ("One survey per group", "Every survey you start — a camp, a partner, a youth night — has its own results, adding up into your whole organisation."),
             ("Yours to arrange", "“Edit your dashboard” lets your admin choose which views and tools your team sees. A score never loses its sample size."),
             ("A map that doesn't overclaim", "Countries light up only once 2,000 people there have answered; cities and areas at 400. Until then they stay grey — honestly."),
             ("“What does this mean?”", "Ask a Collab facilitator about exactly the view you're looking at. That's the consulting layer: from a score to a strategy.")]

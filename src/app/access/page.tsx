@@ -17,7 +17,7 @@ export default function AccessPage() {
           <div>
             <p className="figcap">For those building it</p>
             <h1 className="mt-3 text-[36px] leading-[1.05] tracking-tight sm:text-[44px]">
-              The build room.
+              The build console.
             </h1>
             <p className="mt-5 max-w-measure text-[17px] leading-relaxed">
               Everything the public page deliberately leaves out. The roadmap with{" "}
@@ -29,7 +29,7 @@ export default function AccessPage() {
             <h2 className="mt-9 text-[21px] leading-tight">Why it is gated</h2>
             <p className="mt-2 max-w-measure text-[16px] leading-relaxed text-ink-2">
               Not secrecy. A public date that slips is a credibility event with thirty-plus partner
-              organisations; the same slip discussed inside the build room is just a Tuesday. So the
+              organisations; the same slip discussed inside the build console is just a Tuesday. So the
               public page uses sequence — <i>rounds are opening</i> — and the calendar lives in here.
             </p>
             <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">

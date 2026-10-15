@@ -270,7 +270,7 @@ function LinksTile({ orgSlug, origin, name }: { orgSlug: string; origin: string;
         </div>
       ))}
       <p className="text-[12.5px] leading-relaxed text-ink-2">
-        <b className="text-ink">Custom links:</b> “+ Start a new survey” makes a link with its own name and address — {origin.replace(/^https?:\/\//, "")}/{orgSlug}/l/<i>your-name</i> — and its own open and close times. Each one is a room in {name}&apos;s results.
+        <b className="text-ink">Custom links:</b> “+ Start a new survey” makes a link with its own name and address — {origin.replace(/^https?:\/\//, "")}/{orgSlug}/l/<i>your-name</i> — and its own open and close times. Each one has its own results, and all of them add up into {name}&apos;s overall results.
       </p>
     </Tile>
   );

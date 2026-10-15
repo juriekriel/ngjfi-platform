@@ -123,7 +123,7 @@ export default function AccessForm() {
           href="/build"
           className="mt-5 block rounded-lg border-2 border-ink bg-ink px-5 py-3 text-center text-[14px] font-semibold text-paper no-underline"
         >
-          Open the build room →
+          Open the build console →
         </Link>
         <button
           type="button"
@@ -145,7 +145,7 @@ export default function AccessForm() {
         <p className="mt-4 text-[16px] leading-relaxed text-ink-2">
           {mode === "signin" ? (
             <>
-              A sign-in link is on its way to <b>{email}</b>. It opens the build room directly — there
+              A sign-in link is on its way to <b>{email}</b>. It opens the build console directly — there
               is no password to remember, and the link works once.
             </>
           ) : (

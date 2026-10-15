@@ -52,17 +52,22 @@ export default function J12Journey() {
   const active = hover ?? pinned;
   const cell = active ? cells[active - 1] : null;
   const total = cells.length;
+  // How many questions capture each cell, read from the instrument (two in v5).
+  // Said only when every cell has the same number, so the sentence stays true.
+  const perCell = cells.every((c) => c.more === cells[0].more) ? cells[0].more + 1 : null;
+  const NUM = ["no", "one", "two", "three", "four", "five", "six"];
 
   return (
     <section aria-labelledby="j12-journey" className="pb-12 pt-10">
       <GradientRule className="mb-10" />
       <p className="figcap">The J12</p>
       <h2 id="j12-journey" className="mt-2 text-[28px] font-bold leading-tight tracking-tight sm:text-[32px]">
-        {total} questions. One shared measure of Jesus-following.
+        {total} unique items. One shared measure of Jesus-following.
       </h2>
       <p className="mt-3 max-w-measure text-[16.5px] leading-relaxed text-ink-2">
-        Three questions — do they follow Jesus, join his mission, does their world look different — each asked at four
-        depths, from first hearing to helping others. Every cell of the J12 is one question.{" "}
+        Three questions: do they follow Jesus, do they join his mission, does their world look different? Each question
+        is asked at four depths, from first hearing to helping others.
+        {perCell !== null && perCell > 1 && <> And every cell of the J12 is captured across {NUM[perCell] ?? perCell} questions.</>}{" "}
         <span className="hidden sm:inline">Hover a cell to see it.</span>
         <span className="sm:hidden">Tap a cell to see it.</span>
       </p>

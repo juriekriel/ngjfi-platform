@@ -123,7 +123,7 @@ function CollabTab({
           <div className="flex flex-col justify-center gap-1.5 rounded-2xl border border-dashed border-rule-2 bg-plate px-4 py-4 lg:col-span-4">
             <span className="text-[15px] font-semibold">The same screen as your dashboard, read across everyone.</span>
             <span className="max-w-3xl text-[13.5px] leading-relaxed text-ink-2">
-              No organisation is named or broken out here. Overlay puts {org.name}&apos;s whole-house result on top of
+              No organisation is named or broken out here. Overlay puts {org.name}&apos;s overall result on top of
               the pool, so you can see where you sit.
             </span>
           </div>

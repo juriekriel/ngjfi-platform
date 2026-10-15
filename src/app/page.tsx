@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Footer, GradientRule, Masthead, RisingRule } from "@/components/site/Chrome";
 import PitchDocs from "@/components/site/PitchDocs";
 import SeeADemoCard from "@/components/site/SeeADemoCard";
+import HeroBenefits from "@/components/site/HeroBenefits";
 import J12Journey from "@/components/index/J12Journey";
 import { LazySurveyDemo } from "@/components/site/HomeLazy";
 import { WELCOME_MINUTES } from "@/lib/instrument";
@@ -30,7 +31,8 @@ import { WELCOME_MINUTES } from "@/lib/instrument";
  * anonymous to everyone (including you), comparisons appear as your area
  * grows — never a promise of a benchmark that doesn't exist yet.
  */
-const BENEFITS: { t: string; d: string; href?: string }[] = [
+// Round 5: shown as headings only (HeroBenefits), each line appearing on hover/tap.
+const BENEFITS: { t: string; d: string }[] = [
   { t: "Anonymous", d: "no one — including you — sees an individual's answers" },
   { t: "Your brand", d: "your logo, your colour, your words" },
   { t: "Your results, live", d: "they belong to your ministry" },
@@ -86,22 +88,14 @@ export default function Home() {
                 Try the survey yourself ↓
               </a>
             </div>
+
+            <HeroBenefits items={BENEFITS} className="mt-10" />
           </div>
 
           <aside className="md:pt-2">
             <SeeADemoCard className="mx-auto max-w-[340px]" />
           </aside>
 
-          <ul className="grid gap-x-6 gap-y-3 sm:grid-cols-2 md:col-span-2 md:grid-cols-3">
-            {BENEFITS.map((b) => (
-              <li key={b.t} className="border-l-2 border-emerald pl-3">
-                <span className="block text-[15px] font-bold text-ink">
-                  {b.href ? <Link href={b.href} className="text-ink underline decoration-rule-2 underline-offset-2">{b.t}</Link> : b.t}
-                </span>
-                <span className="block text-[13.5px] leading-snug text-ink-2">{b.d}</span>
-              </li>
-            ))}
-          </ul>
         </section>
 
         {/* ── B · the J12 journey ─────────────────────────────────── */}

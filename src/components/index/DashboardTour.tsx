@@ -131,15 +131,15 @@ export default function DashboardTour({
       },
       {
         target: "rooms",
-        kicker: "The house and its rooms",
-        title: "Every link is a room",
+        kicker: "Your surveys",
+        title: "Every link is its own survey",
         body: (
           <>
             <p>
-              <b>The house</b> is every response from every {orgName} link. Each survey link you make — a camp, a youth night, a small group — is its own{" "}
-              <b>room</b>, and every room adds up into the house.
+              <b>All {orgName} surveys</b> is every response from every {orgName} link. Each survey link you make — a camp, a youth night, a small group — is its own{" "}
+              <b>survey</b>, with its own results, and every survey adds up into {orgName}&apos;s overall picture.
             </p>
-            <p>Click a card to see the dashboard for just that room. Click the house to come back.</p>
+            <p>Click a card to see the dashboard for just that survey. Click &ldquo;All {orgName} surveys&rdquo; to come back.</p>
           </>
         ),
       },
@@ -204,8 +204,8 @@ export default function DashboardTour({
         title: "Overlay the Collab",
         body: (
           <p>
-            Lay the pooled picture from every ministry in the NextGen Global Collab over your own, cell by cell. Comparison is for the whole house only — a
-            single room is never compared.
+            Lay the pooled picture from every ministry in the NextGen Global Collab over your own, cell by cell. Comparison uses all {orgName} surveys together — a
+            single survey is never compared on its own.
           </p>
         ),
       },

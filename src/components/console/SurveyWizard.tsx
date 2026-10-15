@@ -115,7 +115,7 @@ export default function SurveyWizard({
         <div className="mt-5">
           <p className="max-w-measure text-[15.5px] leading-relaxed text-ink-2">
             Every survey is owned by exactly one organisation, so its responses can be counted
-            once and removed on request. Which house is this one for?
+            once and removed on request. Which organisation is this one for?
           </p>
           {orgs === null && <p className="mt-4 text-[15px] text-muted">Loading…</p>}
           {orgs?.length === 0 && (

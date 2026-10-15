@@ -139,7 +139,7 @@ export default function RoomCards({
   return (
     <div className="flex flex-col gap-2.5" data-tour="rooms">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-2">The house and its rooms<span className="hidden sm:inline"> · each link is its own room</span></p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-2">Your surveys<span className="hidden sm:inline"> · each link is its own survey</span></p>
         <div className="flex shrink-0 flex-wrap justify-end gap-2">
           {onView && (
             <>
@@ -179,7 +179,7 @@ export default function RoomCards({
       <div className="-mx-1 flex snap-x gap-2.5 overflow-x-auto px-1 pb-1 lg:grid lg:grid-cols-5 lg:overflow-visible">
         <Card on={houseOn}>
           <button type="button" aria-pressed={houseOn} onClick={() => onSelect({ kind: "house" })} className="flex w-full items-center justify-between text-left">
-            <Kicker on={houseOn}>The house</Kicker>
+            <Kicker on={houseOn}>Overall</Kicker>
             <Status on={houseOn} dot="rgb(var(--c-emerald))" label="total" />
           </button>
           <button type="button" onClick={() => onSelect({ kind: "house" })} className="py-1 text-left text-[16px] font-bold">
@@ -192,7 +192,7 @@ export default function RoomCards({
           )}
           <ConsentLine on={houseOn} s={consents?.house} />
           <p className={`text-[12.5px] leading-snug ${houseOn ? "text-paper/75" : "text-ink-2"}`}>
-            Every room rolls up here. Only the house compares to the Collab.
+            Every survey adds up here. Only this overall view compares to the Collab.
           </p>
           <div className="mt-auto flex items-center justify-between gap-2 pt-1.5">
             <span className="whitespace-nowrap text-[13px] font-semibold">n {houseN == null ? "—" : houseN.toLocaleString()}</span>

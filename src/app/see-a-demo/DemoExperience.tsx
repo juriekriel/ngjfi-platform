@@ -67,7 +67,7 @@ const VIEWS: DemoView[] = [
     survey: "full",
     rooms: "Partner churches · Leaders' training · Regional camps",
     intro: "serves youth groups across many partner churches, and wants one picture across all of them.",
-    invite: "Each partner church gets its own room and link; every room rolls up into the network's whole picture.",
+    invite: "Each partner church gets its own survey and link; every survey adds up into the network's overall picture.",
   },
   {
     key: "church",
@@ -234,7 +234,7 @@ function Season({ view }: { view: DemoView }) {
               <dl className="grid gap-3 px-5 py-4 text-[14px] sm:grid-cols-2">
                 <div><dt className="figcap">Their link</dt><dd className="tabular mt-1 text-ink">jfindx.org/{org.slug}</dd></div>
                 <div><dt className="figcap">Survey</dt><dd className="mt-1 text-ink">{set.label} · about {set.minutes} minutes</dd></div>
-                <div><dt className="figcap">Rooms</dt><dd className="mt-1 text-ink">{view.rooms}</dd></div>
+                <div><dt className="figcap">Surveys</dt><dd className="mt-1 text-ink">{view.rooms}</dd></div>
                 <div><dt className="figcap">Consent</dt><dd className="mt-1 text-ink">Confirmed for the {view.noun} and each survey</dd></div>
               </dl>
             </div>

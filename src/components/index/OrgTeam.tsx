@@ -223,7 +223,7 @@ export default function OrgTeam({ sb, orgSlug, orgName }: { sb: SupabaseClient; 
           </div>
           <div>
             <dt className="font-semibold">Coordinator · up to {team.coordinator_limit ?? "any number in the sandbox"}</dt>
-            <dd className="text-ink-2">Sees the dashboard as it is: results, rooms, links and QR codes, exports, and &ldquo;What does this mean?&rdquo;.</dd>
+            <dd className="text-ink-2">Sees the dashboard as it is: results, surveys, links and QR codes, exports, and &ldquo;What does this mean?&rdquo;.</dd>
           </div>
           <div>
             <dt className="font-semibold">Respondents</dt>

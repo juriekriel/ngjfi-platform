@@ -17,8 +17,8 @@ const ALLOWED = new Set(["tab", "scope", "room", "view", "tier", "overlay", "sum
 
 test("house view, matrix with overlay", () => {
   const c = consultContext(base);
-  assert.equal(c.scope, "Shoreline Church · the whole house");
-  assert.equal(c.summary, "Shoreline Church · the whole house · J12 matrix, Collab overlay on · n 186");
+  assert.equal(c.scope, "Shoreline Church · all surveys");
+  assert.equal(c.summary, "Shoreline Church · all surveys · J12 matrix, Collab overlay on · n 186");
   assert.equal(c.room, undefined);
   assert.equal(c.tier, undefined);
 });
