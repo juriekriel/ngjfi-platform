@@ -42,7 +42,7 @@ export default function CollabCompletion({ sb }: { sb: SupabaseClient | null }) 
             <th className="py-1 text-right font-medium">Started</th>
             <th className="py-1 text-right font-medium">Finished</th>
             <th className="py-1 text-right font-medium">Rate</th>
-            <th className="py-1 text-right font-medium">Opted into extras</th>
+            <th className="py-1 text-right font-medium">Answered Drivers &amp; Journey</th>
             <th className="py-1 text-right font-medium">Attention check passed</th>
           </tr>
         </thead>

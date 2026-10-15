@@ -88,8 +88,8 @@ export const STAGES: { key: string; label: string }[] = [
   { key: "age", label: "Age" },
   { key: "screener", label: "Opening questions" },
   { key: "index", label: "Main questions" },
-  { key: "extras_offer", label: "Extras offer" },
-  { key: "extras", label: "Optional extras" },
+  { key: "extras_offer", label: "Extras offer (v5)" },
+  { key: "extras", label: "Drivers & Journey" },
   { key: "about_you", label: "About you" },
 ];
 

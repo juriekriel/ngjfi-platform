@@ -1,7 +1,7 @@
 {
   "version": "v6",
   "scoringVersion": "v0.1.0",
-  "welcome_minutes": 6,
+  "welcome_minutes": 8,
   "field_draft_items": false,
   "item_sets": {
     "full": {
@@ -9,16 +9,16 @@
         "en": "Full survey"
       },
       "description": {
-        "en": "Every question: the J12 reading, the prayer and scripture questions, and the optional Drivers, Journey and Belong–Trust questions."
+        "en": "Every question: the J12 reading, the prayer and scripture questions, and the Drivers and Journey questions — asked of everyone, no opt-out screen."
       },
-      "welcome_minutes": 6
+      "welcome_minutes": 8
     },
     "j12": {
       "label": {
         "en": "J12"
       },
       "description": {
-        "en": "The J12 internal and external questions only — the same screener and the same 24 scored questions on either path, then the four about-you questions. No Drivers, Journey or optional extras."
+        "en": "The J12 internal and external questions only — the same screener and the same 24 scored questions on either path (each with its attention check), then the about-you questions. No Drivers, Journey, prayer or scripture questions."
       },
       "welcome_minutes": 5,
       "sections": [
@@ -27,7 +27,6 @@
         "index"
       ],
       "exclude_keys": [
-        "continue_to_extras",
         "pray_frequency",
         "scripture_frequency"
       ]
@@ -37,8 +36,18 @@
     "en",
     "es"
   ],
-  "note": "v6 -- DRAFT, NOT FIELDED (seed with --status draft; v5 stays active). Prepared 8 Oct 2026 from Dr. Matthew Niermann's review of the Belong-Trust module: (1) 'If this was to be included, I'd put it down in the demographics section since both paths would take this the way it is written. I would not introduce it at this point in the survey.' -> every Belong-Trust item, including the four context items v5 placed at the start of Drivers & Journey (community age, size, before joining, real say), now sits at orders 880-891, after Drivers & Journey and before gender (900); shown to BOTH paths and NO LONGER gated on continue_to_extras. Items that only make sense inside a community keep their belong_community_monthly = yes gate. Every item keeps section 'module', so the J12-only survey version still leaves them out. (2) 'A discernment process by which the trust questions get reduced by 50% -- identifying only the key data that will help organizations adjust their strategy if they knew the information.' -> PENDING Matthew. Proposal on the table: keep trust_listened_without_judgment and trust_asked_to_lead; trust_real_say keep-or-cut (overlaps asked-to-lead); cut trust_feel_heard (overlaps listened-without-judgment) and trust_leaders (broad, sensitive, needs the 'why' before anyone can act). No item is removed until he decides. field_draft_items stays false. Fielding the module moves it out of the optional extras, so everyone on the full survey would see roughly 4-12 more screens: re-check welcome_minutes before fielding. Everything else is v5 unchanged. --- v5 note follows --- v5 -- v4 unchanged, plus the Belong-Trust module (DRAFT): a short, unscored module covering the two layers the J12 does not yet measure directly -- Belong (religious identity, being raised in it, monthly community participation, adults outside the family who know you by name) and Trust (trust in leaders, being listened to without judgment, feeling heard, having a real say, being asked to lead) -- plus two Context items for the planting comparison (age and size of the faith community; what the respondent was part of before joining). Every module item carries section 'module', module 'belong_trust', draft true and scored false: it is reported beside the Index as aggregate option shares (insight_aggregates, migration 0039), never folded into a dimension, tier or cell score (CLAUDE.md #9). Wording is a first draft for co-design with the NXT Move Africa team and young co-researchers; the listening items are drafted from the Sacred Listening Study so results can sit beside the U.S. ones, and will be reworded with the Nairobi co-researchers before the baseline. Placement: first block after continue_to_extras = yes, shown to both branches; community-dependent items only appear once the respondent says they take part in a faith community at least monthly. The draft's single 'how old and how large' context question is split into two screens (one question per screen). Spanish is a working translation for review. AMENDED (same version, not yet fielded): (a) the four Belong-Trust items no other question covers -- community age, community size, before joining, and real say -- now open the Drivers & Journey block for both paths (orders 390-393, section 'driver', origin 'belong_trust'), context first; they still only follow a monthly 'yes' to a faith community. 'Real say' is now a five-point agreement item, unscored like every Drivers & Journey item. (b) [withdrawn before fielding: the draft prayer and scripture Likert items -- weekly prayer and scripture are already asked by pray_frequency and scripture_frequency.] (c) The J12 core flag stays as a label, but no campaign can field the core alone any more (migration 0040): one instrument, no shorter versions. --- v4 note follows --- v4 -- supersedes v3's Index/Drivers/Journey/screener content, sourced from Youth-Collab-Survey-Augmented_F.docx (the 'working draft' pairing an Engaged branch with a parallel Unengaged branch for respondents who don't identify as followers of Jesus). Changes from v3: (1) Screener: 'orientation' gains 'none_of_these' and 'prefer_not_say' options; a new optional 'follower_check' item routes those two answers (stores routing separately from stated identity, per the draft's own implementation note -- 'not sure'/'prefer not to say' on follower_check route to Unengaged without asserting confirmed non-follower status). (2) The old 12-item unscored 'exploration' branch (explore_believe_god etc., v0-v3) is RETIRED in v4 -- archived in v0-v3, not deleted -- replaced by a full 24-item Unengaged Index using the SAME 3x4 domain x tier cells and the same internal/external measure pairing as the Engaged Index, tagged branch:'unengaged'. (3) SCORING DECISION (explicit, researcher-approved, not inferred from the draft): despite sharing the matrix shape, Unengaged responses are NEVER blended into the official Index. They compute a fully separate 'Exploration Index' (src/lib/scoring.ts: explorationIndex/explorationTiers/explorationDomains/explorationMatrix, mirrored in the SQL functions via responses.branch) -- the draft itself says 'it does not make the scores equivalent.' Dashboards must never sum or average the two together. (4) Drivers and Journey each gain a parallel Unengaged variant (still fully unscored, non-negotiable #9) with branch-appropriate wording/options from the draft; continue_to_extras is now unconditional (offered to both branches, not just Engaged). (5) gender is REINSTATED (session_field, new sessions.gender column) after being dropped in v3.1's privacy/approved-metadata review (migration 0019) -- explicit decision for v4, not a silent reversal; flagged here for the record. city/area is ADDED (session_field, new sessions.city column, free text) per the current project non-negotiable #1, which requires a CITY-LEVEL critical-mass gate (not just country) precisely because this field is free text and could otherwise identify a small town -- that gate is schema/config-ready but the analytics enforcement (mirroring 0020's country-tier gate) is not yet built; flagged as follow-up, same posture as the existing benchmarking-service gap. (6) pray_frequency/scripture_frequency are kept verbatim, scored:false, Engaged-only -- CLAUDE.md #5's 'always measurable' requirement is still met the same way v3.2 met it; the draft still doesn't offer a frequency-anchored item for either activity on its own, and that gap is flagged again here for researchers, per non-negotiable #5, rather than silently invented. (7) KNOWN EDGE CASE: a respondent who answers orientation as none_of_these/prefer_not_say and then SKIPS follower_check sees neither Index branch (both gates require an answer; an unanswered gate never passes, per branching.ts's existing leak-prevention design) -- same conservative default every other gated item in this instrument already has, not a new limitation introduced by this version, but worth a product decision if drop-off there turns out to matter. Subject to researcher revision -- never hard-code into UI or scoring. AMENDED 2026-10 (pilot safeguards, same version, no scored item touched): (c) age_band gains a first option, '12 or younger' (under_13), marked ends_survey -- choosing it ends the survey with a polite close and the phone discards the in-progress session (discard_session, migration 0042), so nothing about an under-13 is kept; (d) field_draft_items: false -- items marked draft (the Belong-Trust module) stay in this file and in every report's config, but are NOT shown to respondents until a researcher sets this to true, because their wording is awaiting co-design; (e) welcome_minutes: 6 -- the length the welcome screen promises for the main set, checked by a test against the reference follower path (34 screens). All three are researcher-owned and flagged for sign-off. LOCKED 2026-10-01 by the Collab administrators: v5 is the fielded instrument. It gains item_sets (full / j12, migration 0044) as its last change; from here, anything that changes what a respondent is asked or how it is scored is v6. See \"lock\".",
+  "note": "v6 -- THE PILOT INSTRUMENT (active; supersedes v5 for every campaign, v5 stays locked as the record). Source: Jurie Kriel's Collab decisions of 14 Oct 2026 in 'JFINDX -- Instrument v5 for researcher review (Matthew)', answering Dr. Matthew Niermann's review comments. Changes from v5: (1) Q4 who_is_jesus is DROPPED for the pilot (Matthew: an opening philosophical free-text question costs completions and has no coding frame). It stays in v0-v5. (2) Q56 continue_to_extras is REMOVED: every respondent continues into Drivers & Journey for their route (Matthew: 'If they drop, they drop'). Drivers & Journey stay unscored and are reported as aggregate option shares only (non-negotiables #6, #9); only the continue_to_extras clause was taken off their show_if, the route clauses are unchanged. (3) Belong-Trust (all twelve module items, incl. the four context items) is NOT FIELDED and NOT SCHEDULED: kept in this file as an archive option, every item marked archived: true so it can never be fielded from v6 even if field_draft_items is flipped -- bringing it back is a new version. Matthew's open 50% trust reduction therefore needs no decision for v6. (4) Country stays a pick-list (the survey's country dropdown, src/data/countries.ts, stores the canonical English name); city/area is DROPPED (sessions.city is simply never written by v6). Gender stays, optional. (5) Route B gets attention_check_unengaged, word-for-word Route A's Q17, expects 2, at the same position (after the 12th scored item), unscored; so both Indexes get the same data-quality screening. (6) METHOD NOTE: world_exposure_external / world_exposure_external_unengaged ('I make choices that direct my life toward something bigger than just myself') and world_formation_external / world_formation_external_unengaged ('Becoming a more loving person to everyone around me...') are word-for-word identical ON PURPOSE: intentional anchors for comparing the two routes. They remain scored separately (Index vs Exploration Index) and are never blended (decision 6). (7) welcome_minutes re-timed 6 -> 8 (decision 3): the reference follower path is now 39 screens (v5: 34), 8 of them multi-select lists of 7-13 options, because Drivers & Journey are no longer optional. An estimate (short screens 8-14 s, multi-select 15-35 s), checked by tests/instrumentV6.test.ts; replace it with the median from the pilot timing of three 13-17-year-olds (docs/PILOT_LAUNCH_CHECKLIST.md). J12 only stays at 5 (29-30 screens, no multi-select). Unchanged: every scored item, its wording, tags and scoring (scoringVersion v0.1.0); the under-13 close; prayer/scripture as unscored frequencies where 'Weekly' + 'Most days' meet non-negotiable #5 (decision 5, approved); Route B as a separate Exploration Index (decision 6, approved). STILL OPEN, not encoded here: decision 7 (skipped follower check -- see the proposal in the PR; in the current survey a single-choice question has no Skip, so follower_check cannot be skipped and 'Prefer not to say' already routes to Route B); decision 9 reporting gates (5 / 100) and decision 10 retention (stripped data kept indefinitely) -- pending Matthew's confirmation against the MoU sections 4.2 and 6.1, platform config not instrument; decision 11 Spanish (locale stays 'review', so it previews but never records). Not yet locked: lock v6 once decision 7 is signed off. --- v5 note follows --- v5 -- v4 unchanged, plus the Belong-Trust module (DRAFT): a short, unscored module covering the two layers the J12 does not yet measure directly -- Belong (religious identity, being raised in it, monthly community participation, adults outside the family who know you by name) and Trust (trust in leaders, being listened to without judgment, feeling heard, having a real say, being asked to lead) -- plus two Context items for the planting comparison (age and size of the faith community; what the respondent was part of before joining). Every module item carries section 'module', module 'belong_trust', draft true and scored false: it is reported beside the Index as aggregate option shares (insight_aggregates, migration 0039), never folded into a dimension, tier or cell score (CLAUDE.md #9). Wording is a first draft for co-design with the NXT Move Africa team and young co-researchers; the listening items are drafted from the Sacred Listening Study so results can sit beside the U.S. ones, and will be reworded with the Nairobi co-researchers before the baseline. Placement: first block after continue_to_extras = yes, shown to both branches; community-dependent items only appear once the respondent says they take part in a faith community at least monthly. The draft's single 'how old and how large' context question is split into two screens (one question per screen). Spanish is a working translation for review. AMENDED (same version, not yet fielded): (a) the four Belong-Trust items no other question covers -- community age, community size, before joining, and real say -- now open the Drivers & Journey block for both paths (orders 390-393, section 'driver', origin 'belong_trust'), context first; they still only follow a monthly 'yes' to a faith community. 'Real say' is now a five-point agreement item, unscored like every Drivers & Journey item. (b) [withdrawn before fielding: the draft prayer and scripture Likert items -- weekly prayer and scripture are already asked by pray_frequency and scripture_frequency.] (c) The J12 core flag stays as a label, but no campaign can field the core alone any more (migration 0040): one instrument, no shorter versions. --- v4 note follows --- v4 -- supersedes v3's Index/Drivers/Journey/screener content, sourced from Youth-Collab-Survey-Augmented_F.docx (the 'working draft' pairing an Engaged branch with a parallel Unengaged branch for respondents who don't identify as followers of Jesus). Changes from v3: (1) Screener: 'orientation' gains 'none_of_these' and 'prefer_not_say' options; a new optional 'follower_check' item routes those two answers (stores routing separately from stated identity, per the draft's own implementation note -- 'not sure'/'prefer not to say' on follower_check route to Unengaged without asserting confirmed non-follower status). (2) The old 12-item unscored 'exploration' branch (explore_believe_god etc., v0-v3) is RETIRED in v4 -- archived in v0-v3, not deleted -- replaced by a full 24-item Unengaged Index using the SAME 3x4 domain x tier cells and the same internal/external measure pairing as the Engaged Index, tagged branch:'unengaged'. (3) SCORING DECISION (explicit, researcher-approved, not inferred from the draft): despite sharing the matrix shape, Unengaged responses are NEVER blended into the official Index. They compute a fully separate 'Exploration Index' (src/lib/scoring.ts: explorationIndex/explorationTiers/explorationDomains/explorationMatrix, mirrored in the SQL functions via responses.branch) -- the draft itself says 'it does not make the scores equivalent.' Dashboards must never sum or average the two together. (4) Drivers and Journey each gain a parallel Unengaged variant (still fully unscored, non-negotiable #9) with branch-appropriate wording/options from the draft; continue_to_extras is now unconditional (offered to both branches, not just Engaged). (5) gender is REINSTATED (session_field, new sessions.gender column) after being dropped in v3.1's privacy/approved-metadata review (migration 0019) -- explicit decision for v4, not a silent reversal; flagged here for the record. city/area is ADDED (session_field, new sessions.city column, free text) per the current project non-negotiable #1, which requires a CITY-LEVEL critical-mass gate (not just country) precisely because this field is free text and could otherwise identify a small town -- that gate is schema/config-ready but the analytics enforcement (mirroring 0020's country-tier gate) is not yet built; flagged as follow-up, same posture as the existing benchmarking-service gap. (6) pray_frequency/scripture_frequency are kept verbatim, scored:false, Engaged-only -- CLAUDE.md #5's 'always measurable' requirement is still met the same way v3.2 met it; the draft still doesn't offer a frequency-anchored item for either activity on its own, and that gap is flagged again here for researchers, per non-negotiable #5, rather than silently invented. (7) KNOWN EDGE CASE: a respondent who answers orientation as none_of_these/prefer_not_say and then SKIPS follower_check sees neither Index branch (both gates require an answer; an unanswered gate never passes, per branching.ts's existing leak-prevention design) -- same conservative default every other gated item in this instrument already has, not a new limitation introduced by this version, but worth a product decision if drop-off there turns out to matter. Subject to researcher revision -- never hard-code into UI or scoring. AMENDED 2026-10 (pilot safeguards, same version, no scored item touched): (c) age_band gains a first option, '12 or younger' (under_13), marked ends_survey -- choosing it ends the survey with a polite close and the phone discards the in-progress session (discard_session, migration 0042), so nothing about an under-13 is kept; (d) field_draft_items: false -- items marked draft (the Belong-Trust module) stay in this file and in every report's config, but are NOT shown to respondents until a researcher sets this to true, because their wording is awaiting co-design; (e) welcome_minutes: 6 -- the length the welcome screen promises for the main set, checked by a test against the reference follower path (34 screens). All three are researcher-owned and flagged for sign-off. LOCKED 2026-10-01 by the Collab administrators: v5 is the fielded instrument. It gains item_sets (full / j12, migration 0044) as its last change; from here, anything that changes what a respondent is asked or how it is scored is v6. See \"lock\".",
   "core_note": "`core: true` marks the NGC12 — the memorable 12-item core that can be run alone.",
+  "adopts_from": {
+    "v5": {
+      "drops_unscored": [
+        "who_is_jesus",
+        "continue_to_extras",
+        "city"
+      ],
+      "why": "Collab decisions of 14 Oct 2026 (review doc 'Instrument v5 for researcher review', sign-off rows 1, 3, 4, 8). Every scored item is unchanged, so a v5 campaign can move to v6 without any score changing meaning; the three dropped items are unscored. Applied by adopt_instrument_version(version, drops) (migration 0059)."
+    }
+  },
   "items": [
     {
       "key": "age_band",
@@ -215,41 +224,6 @@
           }
         }
       ],
-      "section": "screener"
-    },
-    {
-      "key": "who_is_jesus",
-      "question_domain": "screener",
-      "tier": "na",
-      "type": "open_text",
-      "scored": false,
-      "show_if": {
-        "any": [
-          {
-            "key": "orientation",
-            "in": [
-              "new_follower",
-              "committed_growing"
-            ]
-          },
-          {
-            "key": "follower_check",
-            "in": [
-              "yes"
-            ]
-          }
-        ]
-      },
-      "max_length": 300,
-      "order": 60,
-      "text": {
-        "en": "In your own words — who do you believe Jesus is?",
-        "es": "En tus propias palabras: ¿quién crees que es Jesús?"
-      },
-      "help": {
-        "en": "There is no right answer, and this is anonymous. Please don't include your name or anyone else's.",
-        "es": "No hay respuesta correcta y es anónimo. Por favor no incluyas tu nombre ni el de nadie más."
-      },
       "section": "screener"
     },
     {
@@ -1688,6 +1662,48 @@
       "section": "index"
     },
     {
+      "key": "attention_check_unengaged",
+      "question_domain": "screener",
+      "tier": "na",
+      "type": "likert_5",
+      "scored": false,
+      "attention_check": {
+        "expected": 2
+      },
+      "show_if": {
+        "all": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "new_follower",
+              "committed_growing"
+            ]
+          }
+        ],
+        "any": [
+          {
+            "key": "orientation",
+            "not_in": [
+              "none_of_these",
+              "prefer_not_say"
+            ]
+          },
+          {
+            "key": "follower_check",
+            "not_in": [
+              "yes"
+            ]
+          }
+        ]
+      },
+      "order": 257,
+      "text": {
+        "en": "So we know you're reading carefully, please choose \"A little true of me\" for this one.",
+        "es": "Para saber que estás leyendo con atención, elige \"Un poco cierto de mí\" en esta."
+      },
+      "section": "screener"
+    },
+    {
       "key": "mission_formation_internal_unengaged",
       "question_domain": "mission",
       "tier": "formation",
@@ -2180,49 +2196,12 @@
       "section": "index"
     },
     {
-      "key": "continue_to_extras",
-      "question_domain": "screener",
-      "tier": "na",
-      "type": "single_select",
-      "scored": false,
-      "options": [
-        {
-          "value": "yes",
-          "text": {
-            "en": "Sure, a few more",
-            "es": "Claro, algunas más"
-          }
-        },
-        {
-          "value": "no",
-          "text": {
-            "en": "No thanks, I'm done",
-            "es": "No, gracias, ya terminé"
-          }
-        }
-      ],
-      "order": 320,
-      "text": {
-        "en": "That's the main set — thank you. Want to help us understand your journey a bit more? A few optional questions, about two more minutes.",
-        "es": "Ese es el conjunto principal — gracias. ¿Quieres ayudarnos a entender un poco más tu camino? Algunas preguntas opcionales, unos dos minutos más."
-      },
-      "section": "screener"
-    },
-    {
       "key": "driver_sources_of_belief_engaged",
       "question_domain": "drivers",
       "tier": "na",
       "type": "multi_select",
       "scored": false,
       "show_if": {
-        "all": [
-          {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          }
-        ],
         "any": [
           {
             "key": "orientation",
@@ -2327,14 +2306,6 @@
       "type": "multi_select",
       "scored": false,
       "show_if": {
-        "all": [
-          {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          }
-        ],
         "any": [
           {
             "key": "orientation",
@@ -2417,14 +2388,6 @@
       "type": "multi_select",
       "scored": false,
       "show_if": {
-        "all": [
-          {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          }
-        ],
         "any": [
           {
             "key": "orientation",
@@ -2521,14 +2484,6 @@
       "type": "multi_select",
       "scored": false,
       "show_if": {
-        "all": [
-          {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          }
-        ],
         "any": [
           {
             "key": "orientation",
@@ -2618,14 +2573,6 @@
       "type": "multi_select",
       "scored": false,
       "show_if": {
-        "all": [
-          {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          }
-        ],
         "any": [
           {
             "key": "orientation",
@@ -2750,14 +2697,6 @@
       "type": "multi_select",
       "scored": false,
       "show_if": {
-        "all": [
-          {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          }
-        ],
         "any": [
           {
             "key": "orientation",
@@ -2882,14 +2821,6 @@
       "type": "multi_select",
       "scored": false,
       "show_if": {
-        "all": [
-          {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          }
-        ],
         "any": [
           {
             "key": "orientation",
@@ -2979,14 +2910,6 @@
       "type": "multi_select",
       "scored": false,
       "show_if": {
-        "all": [
-          {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          }
-        ],
         "any": [
           {
             "key": "orientation",
@@ -3206,12 +3129,6 @@
       "show_if": {
         "all": [
           {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          },
-          {
             "key": "orientation",
             "not_in": [
               "new_follower",
@@ -3302,12 +3219,6 @@
       ],
       "show_if": {
         "all": [
-          {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          },
           {
             "key": "orientation",
             "not_in": [
@@ -3449,12 +3360,6 @@
       "show_if": {
         "all": [
           {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          },
-          {
             "key": "orientation",
             "not_in": [
               "new_follower",
@@ -3587,12 +3492,6 @@
       ],
       "show_if": {
         "all": [
-          {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          },
           {
             "key": "orientation",
             "not_in": [
@@ -3741,12 +3640,6 @@
       "show_if": {
         "all": [
           {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          },
-          {
             "key": "orientation",
             "not_in": [
               "new_follower",
@@ -3894,12 +3787,6 @@
       "show_if": {
         "all": [
           {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          },
-          {
             "key": "orientation",
             "not_in": [
               "new_follower",
@@ -4011,12 +3898,6 @@
       ],
       "show_if": {
         "all": [
-          {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          },
           {
             "key": "orientation",
             "not_in": [
@@ -4144,12 +4025,6 @@
       "show_if": {
         "all": [
           {
-            "key": "continue_to_extras",
-            "in": [
-              "yes"
-            ]
-          },
-          {
             "key": "orientation",
             "not_in": [
               "new_follower",
@@ -4274,7 +4149,8 @@
             "es": "Prefiero no decirlo"
           }
         }
-      ]
+      ],
+      "archived": true
     },
     {
       "key": "belong_religion_raised",
@@ -4330,7 +4206,8 @@
             "es": "No estoy seguro/a"
           }
         }
-      ]
+      ],
+      "archived": true
     },
     {
       "key": "belong_community_monthly",
@@ -4365,7 +4242,8 @@
       "help": {
         "en": "A church, fellowship, youth group, mosque, temple or any other faith community.",
         "es": "Una iglesia, grupo de jóvenes, comunidad, mezquita, templo o cualquier otra comunidad de fe."
-      }
+      },
+      "archived": true
     },
     {
       "key": "belong_known_by_name",
@@ -4420,7 +4298,8 @@
             "es": "No estoy seguro/a"
           }
         }
-      ]
+      ],
+      "archived": true
     },
     {
       "key": "trust_leaders",
@@ -4482,7 +4361,8 @@
             "es": "Totalmente"
           }
         }
-      ]
+      ],
+      "archived": true
     },
     {
       "key": "trust_listened_without_judgment",
@@ -4530,7 +4410,8 @@
             "es": "No estoy seguro/a"
           }
         }
-      ]
+      ],
+      "archived": true
     },
     {
       "key": "trust_feel_heard",
@@ -4599,7 +4480,8 @@
             "es": "En realidad no hablo allí"
           }
         }
-      ]
+      ],
+      "archived": true
     },
     {
       "key": "trust_asked_to_lead",
@@ -4647,7 +4529,8 @@
             "es": "No estoy seguro/a"
           }
         }
-      ]
+      ],
+      "archived": true
     },
     {
       "key": "context_community_age",
@@ -4702,7 +4585,8 @@
           }
         }
       ],
-      "module": "belong_trust"
+      "module": "belong_trust",
+      "archived": true
     },
     {
       "key": "context_community_size",
@@ -4757,7 +4641,8 @@
           }
         }
       ],
-      "module": "belong_trust"
+      "module": "belong_trust",
+      "archived": true
     },
     {
       "key": "context_before_joining",
@@ -4812,7 +4697,8 @@
           }
         }
       ],
-      "module": "belong_trust"
+      "module": "belong_trust",
+      "archived": true
     },
     {
       "key": "trust_real_say",
@@ -4837,7 +4723,8 @@
         "en": "I have a real say in decisions in my faith community.",
         "es": "Tengo voz real en las decisiones de mi comunidad de fe."
       },
-      "module": "belong_trust"
+      "module": "belong_trust",
+      "archived": true
     },
     {
       "key": "gender",
@@ -4895,21 +4782,6 @@
       "text": {
         "en": "In which country do you live?",
         "es": "¿En qué país vives?"
-      },
-      "section": "demographic"
-    },
-    {
-      "key": "city",
-      "question_domain": "demographic",
-      "tier": "na",
-      "type": "open_text",
-      "scored": false,
-      "session_field": "city",
-      "max_length": 60,
-      "order": 910,
-      "text": {
-        "en": "In which city or area do you live?",
-        "es": "¿En qué ciudad o área vives?"
       },
       "section": "demographic"
     }

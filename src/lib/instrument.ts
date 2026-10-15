@@ -1,4 +1,4 @@
-import instrumentV5 from "@/data/instrument.v5.json";
+import instrumentV6 from "@/data/instrument.v6.json";
 import {
   endsSurvey as endsRule,
   fieldable,
@@ -87,6 +87,10 @@ export interface InstrumentItem {
   module?: string;
   /** Wording is a working draft for co-design; not yet researcher-approved. */
   draft?: boolean;
+  /** Kept in the definition as an archive option only (e.g. Belong–Trust in v6): never
+   * fielded and never reported from this version, whatever field_draft_items says.
+   * Bringing it back is a new instrument version. */
+  archived?: boolean;
   /** Where an item was first drafted, when it has since moved section (e.g. "belong_trust"). */
   origin?: string;
 }
@@ -104,7 +108,7 @@ export interface Instrument {
   item_sets?: Record<string, ItemSetDef>;
 }
 
-export const instrument = instrumentV5 as unknown as Instrument;
+export const instrument = instrumentV6 as unknown as Instrument;
 
 /**
  * How many questions each item set actually asks.

@@ -69,7 +69,7 @@ export default function LearnPage() {
                 The first question asks where someone&apos;s walk with Jesus is. Those already following get one set of questions; those not yet following get another, worded for them. Both are measured across the same four depths.
               </p>
               <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
-                Answers from those still exploring go into a separate Exploration Index, with the same anonymity, and never change the main score. At the end, anyone can answer a few optional questions about what has helped them.
+                Answers from those still exploring go into a separate Exploration Index, with the same anonymity, and never change the main score. Then everyone answers a few questions about what has helped or held them back.
               </p>
             </div>
             <Plate label="The two branches">
