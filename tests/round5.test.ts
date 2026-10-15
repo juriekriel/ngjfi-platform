@@ -17,7 +17,7 @@ test("benefits: headings only, context on hover, under the hero buttons", () => 
   assert.deepEqual([...order].sort((a, b) => a - b), order, "benefits sit under the two buttons, in the left column (round 7)");
   const b = read("src/components/site/HeroBenefits.tsx");
   assert.match(b, /Why use the Jesus Index\?/);
-  assert.match(b, /ways this helps you:/);
+  assert.match(b, /ways this serves you:/);
   assert.match(b, /onMouseEnter/);
   assert.match(b, /sr-only/, "the context is still read out without hovering");
   // Round 7: stacked vertically, filling the left column so it ends level
@@ -34,7 +34,7 @@ test("benefits: headings only, context on hover, under the hero buttons", () => 
 test("the J12 says 12 unique items, and counts its questions per cell from the instrument", () => {
   const j = read("src/components/index/J12Journey.tsx");
   assert.match(j, /\{total\} unique items\. One shared measure of Jesus-following\./);
-  assert.match(j, /captured across \{NUM\[perCell\]/);
+  assert.match(j, /measured by \{NUM\[perCell\] \?\? perCell\} survey questions/);
 });
 
 test("no house or room metaphor in what people read", () => {

@@ -35,7 +35,7 @@ export default function HeroBenefits({ items, className = "" }: { items: { t: st
       <h2 id="benefits-heading" className="text-[20px] font-bold leading-tight tracking-tight text-ink">
         Why use the Jesus Index?
       </h2>
-      <p className="mt-1 text-[15px] text-ink-2">{WORD[items.length] ?? items.length} ways this helps you:</p>
+      <p className="mt-1 text-[15px] text-ink-2">{WORD[items.length] ?? items.length} ways this serves you:</p>
 
       <ul className="mt-3 grid flex-1 auto-rows-fr gap-2" onMouseLeave={() => setHover(null)}>
         {items.map((b, i) => {

@@ -169,23 +169,22 @@ export default function JoinForm() {
         <ol className="mt-3 list-decimal space-y-2 pl-5 text-[15.5px] leading-relaxed text-ink-2">
           <li>
             <Link href="/access" className="font-semibold text-ink underline underline-offset-2">Sign in</Link>{" "}
-            with your ministry email to set up your page — your logo, colour and welcome.
+            with your ministry email to set up your page: your logo, colour and welcome.
           </li>
-          <li>Try your survey with a test link. Answers on a test link are never kept.</li>
+          <li>Try your survey with a test link. Test answers are never saved.</li>
           <li>
             Read the{" "}
-            <Link href="/resources/consent" className="font-semibold text-ink underline underline-offset-2">consent resource</Link>{" "}
-            and confirm consent — for your organisation, and for each survey you send.
+            <Link href="/resources/consent" className="font-semibold text-ink underline underline-offset-2">consent guide</Link>{" "}
+            and confirm consent for your ministry and for each survey you send.
           </li>
-          <li>We&apos;ll email you the day live answers start recording, when the pilots open.</li>
-          {wantsCall === "yes" || wantsCall === "maybe" ? <li>You asked about a setup call — we&apos;ll email you to find a time.</li> : null}
+          
+          {wantsCall === "yes" || wantsCall === "maybe" ? <li>You asked about a setup call. We&apos;ll email you to find a time.</li> : null}
         </ol>
         <p className="mt-4 text-[15px] leading-relaxed text-ink-2">
-          Questions? {CONTACT ? <>Write to <a href={`mailto:${CONTACT}`} className="font-semibold text-ink underline underline-offset-2">{CONTACT}</a>.</> : "Reply to the welcome email — a person reads it."}
+          Questions? {CONTACT ? <>Write to <a href={`mailto:${CONTACT}`} className="font-semibold text-ink underline underline-offset-2">{CONTACT}</a>.</> : "Reply to the welcome email. A real person reads it."}
         </p>
         <p className="margin-note mt-5 border-l-2 border-emerald pl-3">
-          Nothing on this list is ever joined to respondent data. Respondents are anonymous; this is a
-          contact list for adults at organisations. Those two things live apart by design.
+          This contact list is never joined to survey answers. Young people answer anonymously; this list only holds adults at ministries.
         </p>
       </div>
     );
@@ -193,12 +192,8 @@ export default function JoinForm() {
   if (stage === "shape")
     return (
       <form onSubmit={submitShape} className="rounded-xl border-2 border-ink p-6">
-        <p className="figcap">Optional · about a minute</p>
-        <p className="figcap mt-1 text-emerald">You&apos;re in — this part is optional</p>
-        <h2 className="mt-3 text-[24px] leading-tight">Help us set you up</h2>
-        <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
-          Four questions, all optional. Where you work tells us when your city and country comparisons
-          can open, and a setup call gets your team reading results with a person beside them.
+        <p className="text-[15px] leading-relaxed text-ink-2">
+          Four optional questions. Where you work tells us when your city and country comparisons can open. A setup call gets your team reading results with a person beside them.
         </p>
 
         <div className="mt-5 space-y-4">
@@ -246,14 +241,14 @@ export default function JoinForm() {
             Skip this
           </button>
         </div>
-        <p className="margin-note mt-3">Skip it if you would rather. You will still hear from us.</p>
+        <p className="margin-note mt-3">Skip this if you like. You&apos;ll still hear from us.</p>
       </form>
     );
 
   return (
     <form onSubmit={submitExpress} className="rounded-xl border-2 border-ink p-6">
-      <p className="figcap">Three fields · about thirty seconds</p>
-      <h2 className="mt-3 text-[24px] leading-tight">Join the Jesus Index — free</h2>
+      <p className="figcap">Take the next step</p>
+      <h2 className="mt-3 text-[24px] leading-tight">Join the Jesus Index, for free</h2>
 
       <div className="mt-5 space-y-4">
         <div>
@@ -265,10 +260,7 @@ export default function JoinForm() {
           <label className={label} htmlFor="org">Organisation, church or ministry name</label>
           <input id="org" required className={`${field} mt-1.5`} value={org} onChange={(e) => setOrg(e.target.value)}
             placeholder="e.g. Riverside Youth, First Baptist Dallas, Young Life Argentina" />
-          <p className="margin-note mt-1">
-            Whatever you&apos;d call it — a local church, a youth ministry, a network, an NGO. No
-            wrong answer here.
-          </p>
+          
         </div>
         <div>
           <label className={label} htmlFor="role">Your role</label>
@@ -282,10 +274,7 @@ export default function JoinForm() {
         className="mt-6 w-full rounded-lg border-2 border-emerald bg-emerald px-5 py-3 text-[14px] font-semibold text-plate disabled:opacity-50">
         {busy ? "Saving…" : "Join now →"}
       </button>
-      <p className="margin-note mt-3">
-        Free for ministries, and it stays free. No obligation. A few optional questions come next —
-        they help us set you up.
-      </p>
+      
     </form>
   );
 }

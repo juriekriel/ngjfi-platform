@@ -12,21 +12,21 @@ export const PITCH_DOCS = [
   {
     href: "/share/JesusIndex-leadership-pitch.pdf",
     kicker: "Leadership pitch · 9 pages · PDF",
-    title: "Why a shared measure — and why now",
-    body: "The case for the Index: the shift to a crowdsourced measure, the model, the promises, who does what, and the road to 2033.",
+    title: "Why a shared measure, and why this matters now.",
+    body: "The case for the Index: why measuring Jesus-following matters, how it works, who does what, and what this means for the future.",
     lead: true,
   },
   {
     href: "/share/JesusIndex-two-pager.pdf",
     kicker: "Two-pager · PDF",
     title: "What the Jesus Index is, and how it works",
-    body: "The three questions and four tiers, what a young person does, what a ministry sees, and the privacy promises — for a board or a partner.",
+    body: "The three questions and four tiers, what a young person answers, what your ministry sees, and how answers stay anonymous. Specifically written for a board or partner.",
   },
   {
     href: "/share/JesusIndex-pitch-and-demo.pdf",
     kicker: "Pitch & demo guide · 8 pages · PDF",
     title: "Walk someone through it",
-    body: "Why it exists, how to use it, and step-by-step demo instructions — for a leaders' meeting or a call.",
+    body: "Why it exists, how to use it, and step-by-step notes for a leaders' meeting or a call.",
   },
 ] as const;
 
@@ -36,11 +36,10 @@ export default function PitchDocs() {
       <GradientRule className="mb-10" />
       <p className="figcap">Pitch documents</p>
       <h2 id="pitch-heading" className="mt-2 text-[28px] font-bold leading-tight tracking-tight sm:text-[32px]">
-        Take it to your leaders.
+        Take it to your team.
       </h2>
       <p className="mt-3 max-w-measure text-[16.5px] leading-relaxed text-ink-2">
-        Download, print or forward. Nothing in them is a result — the documents describe the instrument, the platform
-        and its promises.
+        Download, print, or forward. These explain the Index in detail, and can be downloaded with one click.
       </p>
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         {PITCH_DOCS.map((f) => (

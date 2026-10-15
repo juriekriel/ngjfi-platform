@@ -12,7 +12,7 @@
  * surface that can show demo figures renders one of these.
  */
 
-export const DEMO_WORDS = "Demo data — invented organisations and answers, not research";
+export const DEMO_WORDS = "These are not real ministries, churches, or organisations. This is presented for illustrative purposes only.";
 
 export function DataLabel({ kind, n, className = "" }: { kind: "live" | "demo"; n?: number | null; className?: string }) {
   if (kind === "demo")
@@ -37,14 +37,14 @@ export function DataLabel({ kind, n, className = "" }: { kind: "live" | "demo"; 
   );
 }
 
-export function DemoFrame({ children, className = "", label = "Demo data" }: { children: React.ReactNode; className?: string; label?: string }) {
+export function DemoFrame({ children, className = "", label = "Demo data", suffix = true }: { children: React.ReactNode; className?: string; label?: string; suffix?: boolean }) {
   return (
     <div className={`relative rounded-2xl border-2 border-dashed border-emerald/70 p-4 pt-7 sm:p-6 sm:pt-8 ${className}`}>
       <span
         className="tabular absolute -top-3 left-4 rounded-md bg-emerald px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] text-plate"
         title={DEMO_WORDS}
       >
-        {label} · invented
+        {suffix ? `${label} · invented` : label}
       </span>
       {children}
     </div>

@@ -24,9 +24,9 @@ export default function SeeADemoCard({ className = "" }: { className?: string })
       </div>
       <p className="mt-5 text-[19px] font-bold leading-snug text-ink">See a Demo</p>
       <p className="mt-1 text-[14px] leading-relaxed text-ink-2">
-        Follow a fictional one through a whole season — survey, dashboard, and what they change.
+        See a fictional ministry, church, or organization&apos;s survey, dashboard, and the results they gathered.
       </p>
-      <p className="mt-4 text-[13px] font-semibold text-ink">See your:</p>
+      <p className="mt-4 text-[13px] font-semibold text-ink">See it as a:</p>
       <div className="mt-2 grid gap-2">
         {DOORS.map((d) => (
           <Link

@@ -67,7 +67,7 @@ const VIEWS: DemoView[] = [
     survey: "full",
     rooms: "Partner churches · Leaders' training · Regional camps",
     intro: "serves youth groups across many partner churches, and wants one picture across all of them.",
-    invite: "Each partner church gets its own survey and link; every survey adds up into the network's overall picture.",
+    invite: "You create your own survey links, and every survey adds up to your organization's overall picture.",
   },
   {
     key: "church",
@@ -109,18 +109,17 @@ export default function DemoExperience() {
       <section className="pt-12">
         <p className="figcap">See a Demo</p>
         <h1 className="mt-2 text-[34px] font-bold leading-[1.08] tracking-tight sm:text-[44px]">
-          See the Jesus Index at work.
+          See the Jesus Index at work
         </h1>
         <p className="mt-4 max-w-measure text-[18px] leading-relaxed text-ink-2">
-          Pick the one most like you, and follow it through a season: making the survey its own, inviting its young
-          people, reading its results and deciding what to change. Then see the global view.
+          Ministry, church, or as an organization - you get to decide the view. Scroll through a complete dashboard experience for: setting up your survey, inviting your young people, and reading your results. And, as a bonus, see a global view of others&apos; results as a comparison.
         </p>
         <div className="mt-5">
           <DataLabel kind="demo" />
         </div>
 
         <div className="mt-9 flex flex-wrap items-center gap-x-4 gap-y-3">
-          <span id="see-your" className="text-[17px] font-bold text-ink">See your:</span>
+          <span id="see-your" className="text-[17px] font-bold text-ink">See it as a:</span>
           <div role="tablist" aria-labelledby="see-your" className="grid w-full grid-cols-3 gap-1 rounded-xl border border-rule bg-paper-deep p-1 sm:inline-flex sm:w-auto">
             {VIEWS.map((v) => {
               const on = v.key === key;
@@ -166,22 +165,22 @@ export default function DemoExperience() {
       <section aria-labelledby="cta" className="pb-16 pt-4">
         <div className="relative overflow-hidden rounded-3xl bg-ink px-6 py-10 text-paper sm:px-10 sm:py-12">
           <span aria-hidden className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald via-emerald-deep to-violet" />
-          <p className="figcap text-paper/70">Not a demo</p>
+          <p className="figcap text-paper/70">Want to see it for yourself?</p>
           <h2 id="cta" className="mt-2 max-w-2xl text-[30px] font-bold leading-tight tracking-tight sm:text-[38px]">
-            You can see this for your {view.noun}, now.
+            You can see this for your {view.noun} today.
           </h2>
           <p className="mt-3 max-w-measure text-[16.5px] leading-relaxed text-paper/80">
-            Your own branded survey, your own link and QR code, and your own results — live, as your young people answer.
+            Create your own survey link and QR code, with results that arrive as your young people answer.
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-4">
             <Link
               href="/join"
               className="rounded-lg border-2 border-emerald bg-emerald px-6 py-3.5 text-[15px] font-semibold text-plate no-underline hover:bg-emerald-deep"
             >
-              Join the Jesus Index →
+              Join free →
             </Link>
             <Link href="/tour" className="text-[14.5px] font-semibold text-paper underline decoration-paper/40 underline-offset-4 hover:decoration-paper">
-              Or take the guided tour
+              Learn more about the Index
             </Link>
           </div>
         </div>
@@ -218,8 +217,8 @@ function Season({ view }: { view: DemoView }) {
         </div>
       </section>
 
-      <Step n={1} title="They make it theirs." lead="Their name, their colour, their own link and QR code. The Jesus Index sits quietly in the footer.">
-        <DemoFrame label="Demo set-up">
+      <Step n={1} title="Make it your own" lead="Create your own unique name, color, link, and QR code. The Jesus Index appears only as a small credit in the footer.">
+        <DemoFrame label="Demo only" suffix={false}>
           <div className="grid items-center gap-6 md:grid-cols-[1fr_auto]">
             <div className="overflow-hidden rounded-2xl border border-rule bg-plate shadow-sm">
               <div className="flex items-center gap-3 px-5 py-4 text-white" style={{ background: org.brand }}>
@@ -232,33 +231,33 @@ function Season({ view }: { view: DemoView }) {
                 </span>
               </div>
               <dl className="grid gap-3 px-5 py-4 text-[14px] sm:grid-cols-2">
-                <div><dt className="figcap">Their link</dt><dd className="tabular mt-1 text-ink">jfindx.org/{org.slug}</dd></div>
-                <div><dt className="figcap">Survey</dt><dd className="mt-1 text-ink">{set.label} · about {set.minutes} minutes</dd></div>
+                <div><dt className="figcap">Your link</dt><dd className="tabular mt-1 text-ink">jfindx.org/{org.slug}</dd></div>
+                <div><dt className="figcap">J12 Survey</dt><dd className="mt-1 text-ink">{set.label} · about {set.minutes} minutes</dd></div>
                 <div><dt className="figcap">Surveys</dt><dd className="mt-1 text-ink">{view.rooms}</dd></div>
-                <div><dt className="figcap">Consent</dt><dd className="mt-1 text-ink">Confirmed for the {view.noun} and each survey</dd></div>
+                <div><dt className="figcap">Consent</dt><dd className="mt-1 text-ink">Confirmed for your {view.noun} and each survey</dd></div>
               </dl>
             </div>
             <div className="flex flex-col items-center gap-2">
               <QrCode value={`https://jfindx.org/${org.slug}`} size={156} label={`QR code for ${name}'s demo survey`} />
-              <span className="text-[12px] text-muted">Their own QR code</span>
+              <span className="text-[12px] text-muted">Your own QR code</span>
             </div>
           </div>
         </DemoFrame>
       </Step>
 
-      <Step n={2} title="Their young people answer — on any phone." lead={`${view.invite} Try it: nothing you tap is saved.`}>
+      <Step n={2} title="Your young people take part on any phone" lead={`${view.invite} Try it: nothing you tap is saved.`}>
         <div className="grid items-center gap-10 md:grid-cols-[1fr_380px]">
           <ul className="flex flex-col gap-4 text-[15.5px] leading-relaxed text-ink-2">
-            <li><b className="text-ink">Under their name.</b> To a young person it is {name} asking — because it is.</li>
-            <li><b className="text-ink">No names, emails or birthdays.</b> Age is a band. Only grouped results are ever shown — to {name} too.</li>
+            <li><b className="text-ink">Under your name.</b> Young people see {name} asking, not us.</li>
+            <li><b className="text-ink">No names, emails or birthdays.</b> Age is a range. Only grouped results are shown, to {name} too.</li>
             <li><b className="text-ink">Works with a bad signal.</b> Answers wait on the phone and send when it&apos;s back.</li>
-            <li><b className="text-ink">Every path counts.</b> Those not yet following Jesus answer their own questions, scored apart.</li>
+            <li><b className="text-ink">Every path counts.</b> Those not yet following Jesus answer their own questions, scored separately.</li>
           </ul>
           <SurveyDemo large org={org} />
         </div>
       </Step>
 
-      <Step n={3} title="Their results arrive live." lead="The same dashboard every ministry gets. Every score carries its sample size, and nothing points at a person.">
+      <Step n={3} title="Your results come in as answers arrive" lead="The same dashboard every ministry gets. Every score shows how many people it's based on, and nothing points to a person.">
         <DemoFrame label="Demo dashboard">
           <IndexPlate value={d.index} n={d.n} change={change} edition={`${name} · this season`} caption="Change shown since their first season" />
           <div className="mt-8 grid gap-x-12 gap-y-10 md:grid-cols-2">
@@ -274,11 +273,11 @@ function Season({ view }: { view: DemoView }) {
               <ItemLedger items={d.items.slice(0, 8)} labelFor={itemLabel} />
             </Plate>
           </div>
-          <IntegrityNote extra="Invented figures, for the demo only." />
+          <IntegrityNote text="Invented figures, for the demo only. Aggregate group results only, and never one person's answers, for those who completed the Index." />
         </DemoFrame>
       </Step>
 
-      <Step n={4} title="They decide what to change." lead="Read from the figures above — a starting point for the leaders' conversation, not a prescription.">
+      <Step n={4} title="You get to take the next step" lead="A starting point for your leaders' conversation, as informed by your results.">
         <DemoFrame label="Demo reading">
           <ol className="grid gap-4 md:grid-cols-3">
             {reading.map((r, i) => (
@@ -290,8 +289,7 @@ function Season({ view }: { view: DemoView }) {
             ))}
           </ol>
           <p className="mt-5 text-[14px] text-ink-2">
-            Then &ldquo;What does this mean?&rdquo; sends the question — with the view attached — to a Collab facilitator, and next
-            season&apos;s survey shows whether the change worked.
+            Then &ldquo;What does this mean?&rdquo; sends the question, with this view attached, to a Collab facilitator. Next season&apos;s survey shows whether the change worked.
           </p>
         </DemoFrame>
       </Step>
@@ -329,16 +327,16 @@ function read(d: ReturnType<typeof sampleDashboard>): { h: string; p: string }[]
   }
   return [
     {
-      h: `The biggest step down is ${TIER_LABEL[drop.from]} → ${TIER_LABEL[drop.to]}.`,
-      p: `The journey narrows by ${fig(drop.by)} there — the place to look first. Young people get as far as ${TIER_LABEL[drop.from].toLowerCase()} and stall.`,
+      h: `The biggest drop is from ${TIER_LABEL[drop.from]} to ${TIER_LABEL[drop.to]}.`,
+      p: `Scores fall by ${fig(drop.by)} here, so start here. Young people reach ${TIER_LABEL[drop.from].toLowerCase()} and stall.`,
     },
     {
-      h: `${DOMAIN_SHORT[strong.k]} is their strongest question.`,
-      p: `At ${fig(strong.v)} on the 1–5 scale. Name what is working there and protect it while changing something else.`,
+      h: `${DOMAIN_SHORT[strong.k]} is their strongest area.`,
+      p: `It scores ${fig(strong.v)} out of 5. Name what's working there and keep it while you change something else.`,
     },
     {
-      h: `Weakest cell: “${MATRIX_PHRASE[low.d][low.t]}”.`,
-      p: `${DOMAIN_SHORT[low.d]} × ${TIER_LABEL[low.t]} scores ${fig(low.v)}. One concrete practice aimed at this cell gives next season something to measure.`,
+      h: `Weakest box: “${MATRIX_PHRASE[low.d][low.t]}”.`,
+      p: `${DOMAIN_SHORT[low.d]} × ${TIER_LABEL[low.t]} scores ${fig(low.v)}. One concrete practice aimed here gives next season something to measure.`,
     },
   ];
 }

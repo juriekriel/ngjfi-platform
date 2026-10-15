@@ -207,7 +207,7 @@ export default function SurveyDemo({
       </PhoneFrame>
       {caption && (
         <p className="figcap mt-3 text-center leading-relaxed">
-          Demo — nothing you tap is saved · the questions young people see today
+          Demo: nothing you tap is saved · the questions young people see today
         </p>
       )}
     </div>

@@ -13,7 +13,7 @@ test("Field Notes is gone from the site and its emails", () => {
 
 test("the join page: new banner, bold Before you ask with hover answers, gradient CTAs", () => {
   const page = read("src/app/join/page.tsx");
-  assert.match(page, /edition="See Jesus-Following in your nextgen, today"/);
+  assert.match(page, /edition="See Jesus-Following in your young people, today"/);
   assert.ok(!page.includes("§"), "no section sign in the banner");
   assert.match(page, /font-bold[^"]*">\s*Before you ask/);
   // One line atop each of the three CTAs, plus one per "What happens when you join" step.

@@ -42,7 +42,7 @@ export default function CoverageMap() {
 
   return (
     <div className="border-t-2 border-ink pt-4">
-      <p className="figcap">Who&apos;s already on the list</p>
+      <p className="figcap">The Index across the globe</p>
       <svg
         viewBox={`0 0 ${WORLD_VIEWBOX.w} ${WORLD_VIEWBOX.h}`}
         className="mt-3 w-full"
@@ -65,8 +65,8 @@ export default function CoverageMap() {
       </svg>
       <p className="margin-note mt-3 leading-relaxed">
         {total > 0
-          ? `${total.toLocaleString()} organisation${total === 1 ? "" : "s"} across ${(rows ?? []).length} countr${(rows ?? []).length === 1 ? "y" : "ies"} so far — darker means more have signed up from there. Commitments, not results: nothing here is a score.`
-          : "Nobody yet — be the first to put your country on this map."}
+          ? `${total.toLocaleString()} ministr${total === 1 ? "y" : "ies"} in ${(rows ?? []).length} countr${(rows ?? []).length === 1 ? "y" : "ies"} have joined. Darker means more sign-ups. This map shows sign-ups only, not survey results.`
+          : "No sign-ups yet. Yours can be the first."}
       </p>
     </div>
   );
