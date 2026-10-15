@@ -88,13 +88,14 @@ export default function Home() {
                 Try the survey yourself ↓
               </a>
             </div>
-
-            <HeroBenefits items={BENEFITS} className="mt-10" />
           </div>
 
           <aside className="md:pt-2">
             <SeeADemoCard className="mx-auto max-w-[340px]" />
           </aside>
+
+          {/* Round 6: one horizontal row of five, across the full width. */}
+          <HeroBenefits items={BENEFITS} className="md:col-span-2" />
 
         </section>
 

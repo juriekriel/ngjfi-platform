@@ -12,14 +12,19 @@ const visible = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\
 
 test("benefits: headings only, context on hover, under the hero buttons", () => {
   const home = read("src/app/page.tsx");
-  const order = ["Try the survey yourself", "<HeroBenefits", "<SeeADemoCard"].map((m) => home.indexOf(m));
+  const order = ["Try the survey yourself", "<SeeADemoCard", "<HeroBenefits"].map((m) => home.indexOf(m));
   order.forEach((i, k) => assert.ok(i > 0, `marker ${k}`));
-  assert.deepEqual([...order].sort((a, b) => a - b), order, "benefits sit under the two buttons, in the left column");
+  assert.deepEqual([...order].sort((a, b) => a - b), order, "benefits run as one row under the hero (round 6)");
   const b = read("src/components/site/HeroBenefits.tsx");
   assert.match(b, /Why use the Jesus Index\?/);
   assert.match(b, /ways this helps you:/);
   assert.match(b, /onMouseEnter/);
   assert.match(b, /sr-only/, "the context is still read out without hovering");
+  // Round 6: all five in one horizontal row, gradient edge when active.
+  assert.match(home, /<HeroBenefits items=\{BENEFITS\} className="md:col-span-2" \/>/);
+  assert.match(b, /md:grid-cols-5/);
+  assert.match(b, /style=\{on \? GRADIENT_EDGE : PLAIN_EDGE\}/);
+  assert.match(b, /linear-gradient\(135deg, rgb\(var\(--c-emerald\)\), rgb\(var\(--c-violet\)\)\) border-box/);
 });
 
 test("the J12 says 12 unique items, and counts its questions per cell from the instrument", () => {
