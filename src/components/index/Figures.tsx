@@ -114,7 +114,7 @@ export function JourneyFunnel({
 }) {
   return (
     <table className="w-full text-left">
-      <caption className="sr-only">Index by tier — the journey funnel</caption>
+      <caption className="sr-only">Index by tier: the journey funnel</caption>
       <thead>
         <tr className="figcap">
           <th scope="col" className="pb-2 font-normal">Tier</th>
@@ -363,11 +363,10 @@ export function ItemLedger({
 
 /* ── 07 · the integrity footer, on every surface that shows a number ──── */
 
-export function IntegrityNote({ extra }: { extra?: string }) {
+export function IntegrityNote({ extra, text }: { extra?: string; text?: string }) {
   return (
     <p className="figcap mt-6 leading-relaxed">
-      Aggregates only — never an individual response. Of those who completed the Index.
-      {extra ? ` ${extra}` : ""}
+      {text ?? <>Aggregates only — never an individual response. Of those who completed the Index.{extra ? ` ${extra}` : ""}</>}
     </p>
   );
 }
@@ -442,7 +441,7 @@ export function J12Grid({ className = "" }: { className?: string }) {
         })}
       </div>
       <figcaption className="figcap mt-3 leading-relaxed">
-        The J12 — one shared instrument
+        The J12: one shared measure
       </figcaption>
     </figure>
   );
@@ -468,8 +467,8 @@ export function J12Grid({ className = "" }: { className?: string }) {
  * across the same four tiers, worded for where they actually are.
  */
 const BRANCH_TRACKS = [
-  { key: "following", label: "Already following Jesus", note: "feeds the Index" },
-  { key: "exploring", label: "Not yet — exploring, undecided, or another faith", note: "feeds the Exploration Index, kept apart" },
+  { key: "following", label: "Already following Jesus", note: "goes to the Index" },
+  { key: "exploring", label: "Not yet", note: "goes to the Exploration Index" },
 ] as const;
 
 export function BranchDiagram({ className = "" }: { className?: string }) {
@@ -477,7 +476,7 @@ export function BranchDiagram({ className = "" }: { className?: string }) {
     <figure className={className}>
       <div className="flex justify-center">
         <div className="rounded-lg border-2 border-ink px-4 py-2 text-center text-[13px] font-semibold leading-snug text-ink">
-          One question: where are you right now?
+          One question: are you a follower of Jesus?
         </div>
       </div>
 
@@ -535,30 +534,7 @@ export function BranchDiagram({ className = "" }: { className?: string }) {
         ))}
       </div>
 
-      <svg
-        viewBox="0 0 200 30"
-        className="mx-auto mt-1 block h-[26px] w-full max-w-[260px]"
-        aria-hidden="true"
-      >
-        <path
-          d="M 30 0 L 100 26 M 170 0 L 100 26"
-          fill="none"
-          stroke={RULE}
-          strokeWidth={2}
-          strokeLinecap="round"
-        />
-      </svg>
-
-      <div className="flex justify-center">
-        <div className="rounded-lg border border-rule bg-paper-deep px-4 py-2 text-center text-[12.5px] leading-snug text-ink-2">
-          Optional — a few more questions about their own journey
-        </div>
-      </div>
-
-      <figcaption className="figcap mt-4 leading-relaxed">
-        One screener, two honest tracks, the same four tiers asked of both — then an optional last
-        step for anyone willing to say more.
-      </figcaption>
+      
     </figure>
   );
 }

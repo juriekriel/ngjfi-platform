@@ -34,9 +34,9 @@ test("/see-a-demo: three tabs, the global view, and the call to action — in th
   const demo = code(read("src/app/see-a-demo/DemoExperience.tsx"));
   for (const s of ["SAMPLE_MINISTRY", "SAMPLE_ORG", "SAMPLE_CHURCH"]) assert.ok(demo.includes(s), s);
   for (const t of ['tab: "Ministry"', 'tab: "Organisation"', 'tab: "Church"']) assert.ok(demo.includes(t), t);
-  assert.match(demo, /See your:/);
+  assert.match(demo, /See it as a:/);
   assert.match(demo, /role="tablist"/);
-  const order = ['role="tablist"', "<Season", "<LazyLiveSnapshot", "You can see this for your", "Join the Jesus Index"].map((m) => demo.indexOf(m));
+  const order = ['role="tablist"', "<Season", "<LazyLiveSnapshot", "You can see this for your", "Join free"].map((m) => demo.indexOf(m));
   order.forEach((i, k) => assert.ok(i > 0, `marker ${k}`));
   assert.deepEqual([...order].sort((a, b) => a - b), order);
   assert.match(demo, /href="\/join"/);

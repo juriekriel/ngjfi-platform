@@ -33,25 +33,25 @@ import { WELCOME_MINUTES } from "@/lib/instrument";
  */
 // Round 5: shown as headings only (HeroBenefits), each line appearing on hover/tap.
 const BENEFITS: { t: string; d: string }[] = [
-  { t: "Anonymous", d: "no one — including you — sees an individual's answers" },
+  { t: "Anonymous", d: "no one, including you, sees an individual's answers" },
   { t: "Your brand", d: "your logo, your colour, your words" },
-  { t: "Your results, live", d: "they belong to your ministry" },
-  { t: "Compare as your area grows", d: "city and country views open as more ministries join" },
-  { t: "See Jesus-following in the next generation", d: "locally and globally" },
+  { t: "Live results", d: "your dashboard updates with every response, and the data belongs to your ministry." },
+  { t: "Compare your results", d: "Country comparisons allow you to see your results in context." },
+  { t: "See Jesus-following in the next generation", d: "both locally and globally." },
 ];
 
 const STEPS: { t: string; d: string }[] = [
-  { t: "Join", d: "About two minutes." },
-  { t: "Make it yours", d: "Your logo and colour; your link and QR code." },
-  { t: "Invite your young people", d: `They answer on any phone in about ${WELCOME_MINUTES} minutes, anonymously.` },
-  { t: "See your results", d: "Grouped results, live." },
-  { t: "Compare", d: "City and country views open as your area grows." },
+  { t: "Join", d: "It takes just two minutes." },
+  { t: "Make it yours", d: "Add your own logo and colour, and create your first survey link." },
+  { t: "Share it with your young people", d: "Use the link or QR code to share it with your youth group, camp, or even in a group chat." },
+  { t: "See your results", d: `In about ${WELCOME_MINUTES} minutes, your dashboard will fill in as answers arrive, anonymously.` },
+  { t: "Compare and plan", d: "Once enough ministries near you take part, see how you compare at a country-level." },
 ];
 
 export default function Home() {
   return (
     <>
-      <Masthead edition="A project of the Next Gen Global Collab · on the road to 2033" />
+      <Masthead edition="From the Next Gen Global Collab: 30+ ministries, one goal for 2033" />
 
       <main className="mx-auto max-w-5xl px-5">
         {/* ── A · hero ─────────────────────────────────────────────── */}
@@ -65,15 +65,17 @@ export default function Home() {
             </h1>
             <RisingRule className="mt-3 h-6 w-full max-w-[460px]" />
             <p className="tabular mt-1 text-[11px] uppercase tracking-[0.16em] text-ink-2">
-              A global measure of Jesus-following
+              The Next Gen Jesus-Following Index
+
             </p>
 
             <p className="mt-8 text-[24px] font-semibold leading-snug text-ink">
-              Free for every ministry. Available now.
+              Do you know where your young people are with Jesus?
             </p>
             <p className="mt-3 max-w-measure text-[18px] leading-relaxed text-ink-2">
-              A {WELCOME_MINUTES}-minute survey your young people take on any phone, under your name. You see your
-              results live.
+              Most of us count who turns up. The Jesus Index shows what&apos;s underneath: who believes, who&apos;s growing,
+              and who&apos;s helping someone else follow Jesus. Your young people answer anonymously, on any phone, in
+              about {WELCOME_MINUTES} minutes. Free to join and free to run, permanently.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-3">
@@ -107,7 +109,7 @@ export default function Home() {
         <section id="try" aria-labelledby="try-heading" className="scroll-mt-6 py-12">
           <GradientRule className="mb-10" />
           <p className="figcap">Try it yourself</p>
-          <h2 id="try-heading" className="mt-2 text-[28px] font-bold leading-tight tracking-tight sm:text-[32px]">See it from their side.</h2>
+          <h2 id="try-heading" className="mt-2 text-[28px] font-bold leading-tight tracking-tight sm:text-[32px]">What your young people see</h2>
           <div className="mt-8 grid items-center gap-10 md:grid-cols-[1fr_400px] md:gap-14">
             <div>
               <ol className="flex flex-col gap-5">
@@ -128,7 +130,7 @@ export default function Home() {
                   href="/join"
                   className="rounded-lg border-2 border-emerald bg-emerald px-5 py-3 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
                 >
-                  Join the Jesus Index →
+                  Start your own →
                 </Link>
                 <Link href="/tour" className="rounded-lg border border-ink px-5 py-3 text-[14px] font-semibold text-ink no-underline hover:bg-ink hover:text-paper">
                   How does it work? →

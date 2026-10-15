@@ -74,7 +74,7 @@ export function Footer() {
           >
             Next Gen Global Collab
           </a>
-          , to see everyone in the next generation having an opportunity to follow Jesus by 2033.
+          , to see every young person have a real opportunity to follow Jesus by 2033.
         </p>
         <nav aria-label="About the Index" className="flex flex-wrap gap-4 text-[13px] sm:ml-auto">
           {[

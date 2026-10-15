@@ -29,6 +29,16 @@ import { DOMAINS, DOMAIN_GLOSS, DOMAIN_LABEL, DOMAIN_SHORT, MATRIX_PHRASE, RULE,
 
 type Cell = { n: number; d: string; t: string; core: string | null; more: number };
 
+// Front-page wording for the "How to read it" list, keyed by tier. Falls back to
+// TIER_GLOSS (the model's own gloss) for any tier added later, so a new tier
+// never renders blank.
+const TIER_QUESTION: Record<string, string> = {
+  exposure: "have they encountered Jesus?",
+  response: "have they responded to Him?",
+  formation: "are they being formed in Him?",
+  multiplication: "are they multiplying their faith?",
+};
+
 const tierDot = (tier: string) => `rgb(var(--c-map-${tier}))`;
 
 function buildCells(): Cell[] {
@@ -65,11 +75,10 @@ export default function J12Journey() {
         {total} unique items. One shared measure of Jesus-following.
       </h2>
       <p className="mt-3 max-w-measure text-[16.5px] leading-relaxed text-ink-2">
-        Three questions: do they follow Jesus, do they join his mission, does their world look different? Each question
-        is asked at four depths, from first hearing to helping others.
-        {perCell !== null && perCell > 1 && <> And every cell of the J12 is captured across {NUM[perCell] ?? perCell} questions.</>}{" "}
-        <span className="hidden sm:inline">Hover a cell to see it.</span>
-        <span className="sm:hidden">Tap a cell to see it.</span>
+        Do they follow Jesus? Do they participate in His mission? Does their world look different? We ask each question at four depths, from first hearing about Jesus to helping someone else follow Him.
+        {perCell !== null && perCell > 1 && <> Every box in the J12 is measured by {NUM[perCell] ?? perCell} survey questions.</>}{" "}
+        <span className="hidden sm:inline">Hover a box to see how it&apos;s represented in the survey.</span>
+        <span className="sm:hidden">Tap a box to see how it&apos;s represented in the survey.</span>
       </p>
 
       <div className="mt-8 grid items-start gap-8 md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] md:gap-12">
@@ -139,7 +148,7 @@ export default function J12Journey() {
             ))}
           </div>
           <p className="figcap mt-4 leading-relaxed">
-            The J12 · rows are the three questions, columns the four tiers · the cross is the mark
+            The J12 · rows are the three questions, columns are the four depths
           </p>
         </div>
 
@@ -171,8 +180,7 @@ export default function J12Journey() {
               )}
               {cell.more > 0 && (
                 <p className="mt-4 text-[13.5px] leading-relaxed text-ink-2">
-                  The full survey asks {cell.more} more question{cell.more === 1 ? "" : "s"} in this cell, so the score rests
-                  on more than one answer.
+                  The full survey asks {cell.more} more question{cell.more === 1 ? "" : "s"} here, so no score rests on a single answer.
                 </p>
               )}
             </>
@@ -180,21 +188,21 @@ export default function J12Journey() {
             <div className="flex h-full flex-col justify-center">
               <p className="figcap">How to read it</p>
               <p className="mt-3 text-[20px] font-bold leading-snug text-ink">
-                Each cell is one question. Read across a row to see how far faith has gone.
+                Each box is one core question. Read left to right to see how far faith has gone.
               </p>
               <ul className="mt-4 flex flex-col gap-2 text-[14.5px] text-ink-2">
                 {TIERS.map((tk, i) => (
                   <li key={tk} className="flex items-center gap-2.5">
                     <span aria-hidden className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: tierDot(tk) }} />
                     <span>
-                      <b className="text-ink">{i + 1}. {TIER_LABEL[tk]}</b> — {TIER_GLOSS[tk]}
+                      <b className="text-ink">{i + 1}. {TIER_LABEL[tk]}</b> — {TIER_QUESTION[tk] ?? TIER_GLOSS[tk]}
                     </span>
                   </li>
                 ))}
               </ul>
               <p className="mt-4 text-[13px] text-muted">
                 <span className="hidden sm:inline">Hover</span>
-                <span className="sm:hidden">Tap</span> any cell for its question.
+                <span className="sm:hidden">Tap</span> any box for its question.
               </p>
             </div>
           )}

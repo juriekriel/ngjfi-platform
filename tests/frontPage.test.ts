@@ -13,13 +13,14 @@ test("the front page reads hero → J12 → try it → pitch documents, in one s
   const order = ["Start your journey", "<J12Journey", 'id="try"', "<LazySurveyDemo", "<PitchDocs", "<Footer"].map((m) => home.indexOf(m));
   order.forEach((i, k) => assert.ok(i > 0, `marker ${k} present`));
   assert.deepEqual([...order].sort((a, b) => a - b), order, "sections are in order");
-  assert.match(home, /Free for every ministry\. Available now\./);
+  assert.match(home, /Do you know where your young people are with Jesus\?/);
   assert.ok(!home.includes("And it stays free"), "no 'and it stays free' in the hero (Oct 2026 edit)");
   assert.ok(!/\{ t: "Free"/.test(home), "free is said in the text, not as a benefit tile");
   // Free is said once, in the hero — no tile, tab or button on the front page repeats it.
   const page = home + read("src/components/site/PitchDocs.tsx") + read("src/components/site/SeeADemoCard.tsx") + read("src/components/site/Chrome.tsx");
   const visible = page.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
-  assert.equal((visible.match(/\bfree\b/gi) ?? []).length, 1, "free appears once, in the hero");
+  assert.equal((visible.match(/\bfree\b/gi) ?? []).length, 2, "free is said only in the hero line (Oct 2026: \"Free to join and free to run\")");
+  assert.match(home, /Free to join and free to run/);
   assert.match(home, /How does it work\? →/);
   assert.ok(!home.includes("seven-minute"), "minutes come from the instrument");
 });

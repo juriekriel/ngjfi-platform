@@ -32,7 +32,7 @@ test("join steps, learn page and footer share the gradient-and-bold style", () =
   assert.match(join, /from-emerald via-emerald-deep to-violet/);
   const learn = read("src/app/learn/page.tsx");
   assert.ok(!/one claim/i.test(learn), "The one claim section is gone");
-  assert.match(learn, />Three guarantees</);
+  assert.match(learn, />Three guarantees/);
   for (const href of ["/organisation", "/see-a-demo#global", "/join"]) assert.ok(learn.includes(`href: "${href}"`), `still links to ${href}`);
   // Footer: back to a thin rule (Oct 2026: the gradient there was too much).
   assert.match(read("src/components/site/Chrome.tsx"), /<footer className="border-t border-rule">/);
