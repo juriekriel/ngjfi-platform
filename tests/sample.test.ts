@@ -96,7 +96,12 @@ test("the live survey and the tour share one question renderer", () => {
 
 test("the landing page renders live components and carries no fabricated scores", () => {
   const home = src("../src/app/page.tsx");
-  assert.match(home, /from "@\/components\/index\/Figures"/);
+  // The front page draws the J12 through the shared figure set (J12Journey →
+  // Figures), and — since round 4b — shows no figures of any kind: the global
+  // view and every demo moved to /see-a-demo.
+  assert.match(home, /<J12Journey \/>/);
+  assert.match(src("../src/components/index/J12Journey.tsx"), /from "@\/components\/index\/Figures"/);
+  assert.ok(!/LiveSnapshot/.test(home), "the global view lives on /see-a-demo, not the front page");
 
   // Deliberate: the front page never pulls sample/fabricated results. Before
   // the production-readiness round this meant "show the plain-language
@@ -111,10 +116,11 @@ test("the landing page renders live components and carries no fabricated scores"
     "the landing page must not pull sample results — send people to /demo for numbers",
   );
   const liveSnapshot = src("../src/components/site/LiveSnapshot.tsx");
-  assert.ok(
-    !/from "@\/lib\/sample"/.test(liveSnapshot),
-    "the homepage's live snapshot must read real data (platform_totals/collab_intelligence), never the sample generator",
-  );
+  // Round 4b: the global view moved to /see-a-demo, and its DEMO view may fall
+  // back to sampleWorld() once the sandbox is deleted — but nothing else from
+  // the sample module, and only inside the demo view (tests/round4.test.ts).
+  const sampleImports = liveSnapshot.match(/import \{([^}]*)\} from "@\/lib\/sample"/);
+  assert.ok(!sampleImports || sampleImports[1].trim() === "sampleWorld", "only sampleWorld() may come from the sample module");
   assert.match(
     liveSnapshot,
     /rpc\("platform_totals"\)/,

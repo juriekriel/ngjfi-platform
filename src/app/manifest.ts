@@ -13,7 +13,7 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "The Jesus Index",
-    short_name: "JFINDX",
+    short_name: "Jesus Index",
     description: "A global measure of Jesus-following.",
     start_url: "/",
     display: "standalone",

@@ -84,7 +84,7 @@ export async function POST(req: Request) {
         `Setup call ${call === "yes" ? "requested" : "maybe"}: ${orgName}`,
         `<p><b>${escapeHtml(orgName)}</b> said <b>${call}</b> to a 30-minute setup call.</p>
          <ul>
-           <li>Email: <a href="mailto:${escapeHtml(email)}?subject=${encodeURIComponent("Your JFINDX setup call")}">${escapeHtml(email)}</a></li>
+           <li>Email: <a href="mailto:${escapeHtml(email)}?subject=${encodeURIComponent("Your Jesus Index setup call")}">${escapeHtml(email)}</a></li>
            <li>Role: ${escapeHtml(role || "—")}</li>
            <li>Countries: ${escapeHtml(payload.countries || "—")}</li>
            <li>Young people reached: ${escapeHtml(payload.reach || "—")}</li>

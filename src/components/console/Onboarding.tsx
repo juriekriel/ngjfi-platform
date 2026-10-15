@@ -103,7 +103,7 @@ export function ApplicationsBand({
     <Band
       letter="A"
       title="Applications"
-      gloss="Everyone who has asked to come in — through “Join the JFINDX”, an access request, or by setting their ministry up themselves. Each becomes a working organisation with one action."
+      gloss="Everyone who has asked to come in — through “Join the Jesus Index”, an access request, or by setting their ministry up themselves. Each becomes a working organisation with one action."
       figure={apps ? `${apps.join.length + apps.access.length + apps.pending_orgs.length} waiting` : "…"}
     >
       {err && <p className="text-[13px] text-vermillion">{err}</p>}
@@ -154,7 +154,7 @@ export function ApplicationsBand({
           </section>
 
           <section>
-            <p className="figcap">Join the JFINDX · applications</p>
+            <p className="figcap">Join the Jesus Index · applications</p>
             {apps.join.length ? (
               <Rows>
                 {apps.join.map((a) => (
@@ -629,9 +629,9 @@ type SetupCall = {
 
 /** The follow-up email, ready in the administrator's own mail app. */
 export function setupCallMailto(c: Pick<SetupCall, "email" | "org_name">): string {
-  const subject = "Your JFINDX setup call";
+  const subject = "Your Jesus Index setup call";
   const body =
-    `Hi,\n\nThanks for joining the JFINDX with ${c.org_name}. You asked about a 30-minute setup call — ` +
+    `Hi,\n\nThanks for joining the Jesus Index with ${c.org_name}. You asked about a 30-minute setup call — ` +
     `we'll set up your survey together and walk your team through reading the results.\n\n` +
     `What times work for you in the next week or two? Let me know your time zone too.\n\n` +
     `Thanks,\n`;

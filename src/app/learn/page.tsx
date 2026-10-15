@@ -147,7 +147,7 @@ export default function LearnPage() {
           <div className="mt-5 grid gap-6 sm:grid-cols-3">
             {[
               { href: "/organisation", h: "What you get out of it →", p: "A diagnosis, benchmarked, under your own brand." },
-              { href: "/#global", h: "A global picture →", p: "Where momentum is strong, and where it isn't yet." },
+              { href: "/see-a-demo#global", h: "A global picture →", p: "Where momentum is strong, and where it isn't yet." },
               { href: "/join", h: "Join the Index →", p: "For organisations and churches." },
             ].map((c) => (
               <Link key={c.href} href={c.href} className="group no-underline">

@@ -40,7 +40,7 @@ export const PANELS: PanelDef[] = [
   { key: "consult", group: "Tools", label: "What does this mean?", description: "Ask a Collab facilitator about the view you're looking at." },
   { key: "who_answered", group: "Below the results", label: "Who answered", description: "Age groups, gender and places, grouped." },
   { key: "export", group: "Below the results", label: "Export your results", description: "CSV and PDF downloads, plus the per-question detail." },
-  { key: "share", group: "Below the results", label: "Share about the JFINDX", description: "Documents and a QR code to pass on." },
+  { key: "share", group: "Below the results", label: "Share about the Jesus Index", description: "Documents and a QR code to pass on." },
 ];
 
 export const VIEW_KEYS: PanelKey[] = ["matrix", "unengaged", "heatmap"];

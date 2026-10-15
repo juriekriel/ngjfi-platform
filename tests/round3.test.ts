@@ -33,20 +33,23 @@ test("join steps, learn page and footer share the gradient-and-bold style", () =
   const learn = read("src/app/learn/page.tsx");
   assert.ok(!/one claim/i.test(learn), "The one claim section is gone");
   assert.match(learn, />Three guarantees</);
-  for (const href of ["/organisation", "/#global", "/join"]) assert.ok(learn.includes(`href: "${href}"`), `still links to ${href}`);
+  for (const href of ["/organisation", "/see-a-demo#global", "/join"]) assert.ok(learn.includes(`href: "${href}"`), `still links to ${href}`);
   // Footer: back to a thin rule (Oct 2026: the gradient there was too much).
   assert.match(read("src/components/site/Chrome.tsx"), /<footer className="border-t border-rule">/);
 });
 
-test("lane questions appear on hover, and the landing phone has real proportions", () => {
+test("the J12 shows a cell's question on hover, and the landing phone has real proportions", () => {
+  // Round 4 replaced the lane-hover table with the J12 mark: hovering a cell
+  // shows its lane question (DOMAIN_LABEL) in the detail panel.
   const j = read("src/components/index/J12Journey.tsx");
-  assert.match(j, /opacity: focus\.lane === d \? 1 : 0/);
-  assert.match(j, /\{DOMAIN_LABEL\[d\]\}/);
+  assert.match(j, /onMouseEnter=\{\(\) => setHover\(k\.n\)\}/);
+  assert.match(j, /\{DOMAIN_LABEL\[cell\.d\]\}/);
   assert.match(read("src/components/survey/SurveyDemo.tsx"), /aspect-\[9\/19\.5\]/);
 });
 
 test("round 4: logo, World × Response, guarantees on hover, no black line on learn", () => {
-  assert.match(read("src/components/site/Chrome.tsx"), />J\.FIND\.x</);
+  // The J.FIND.x wordmark was replaced by the Jesus Index lockup in round 4 (Oct 2026) — tests/round4.test.ts.
+  assert.match(read("src/components/site/Chrome.tsx"), /<RisingMark/);
   assert.equal(MATRIX_PHRASE.world.response, "believes faith matters");
   const learn = read("src/app/learn/page.tsx");
   assert.ok(!learn.includes("border-b border-ink"), "no black line above the first gradient");

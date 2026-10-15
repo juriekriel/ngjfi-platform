@@ -1214,7 +1214,7 @@ function OrgDetailPanel({ shortName }: { shortName: string }) {
                 </p>
               )}
               <p className="margin-note mt-3 border-l-2 border-rule pl-3">
-                No passwords exist on JFINDX. &quot;Resend link&quot; sends a fresh one-time sign-in
+                No passwords exist on the Jesus Index. &quot;Resend link&quot; sends a fresh one-time sign-in
                 email via Supabase Auth — the same link a person would request themselves.
               </p>
             </div>

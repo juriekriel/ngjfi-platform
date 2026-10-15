@@ -114,7 +114,7 @@ export default function JoinPage() {
               <p className="mt-3 text-[17px] font-bold leading-snug text-ink group-hover:underline">See how it works →</p>
               <p className="margin-note mt-1">A guided walk through the real product.</p>
             </Link>
-            <Link href="/#global" className="group no-underline">
+            <Link href="/see-a-demo#global" className="group no-underline">
               <span aria-hidden className="block h-1 rounded-full bg-gradient-to-r from-emerald via-emerald-deep to-violet" />
               <p className="mt-3 text-[17px] font-bold leading-snug text-ink group-hover:underline">A global picture →</p>
               <p className="margin-note mt-1">See where the movement stands first.</p>
