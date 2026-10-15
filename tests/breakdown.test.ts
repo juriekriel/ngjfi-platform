@@ -29,5 +29,5 @@ test("the completion line states the rate with its base", () => {
 });
 
 test("stop points come back in survey order", () => {
-  assert.deepEqual(stopPoints(base).map((s) => s.label), ["Opening questions", "Main questions", "Optional extras"]);
+  assert.deepEqual(stopPoints(base).map((s) => s.label), ["Opening questions", "Main questions", "Drivers & Journey"]);
 });

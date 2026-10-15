@@ -45,6 +45,8 @@ export interface BranchableItem {
   attention_check?: { expected: number | string };
   /** Wording still in co-design: kept in the definition, fielded only on request. */
   draft?: boolean;
+  /** Archive option only: kept in the definition, never fielded from this version. */
+  archived?: boolean;
   options?: { value: string | number; ends_survey?: boolean }[];
   /** Which part of the instrument this is (screener / index / driver / …) — item sets select by it. */
   section?: string;
@@ -54,7 +56,7 @@ export interface BranchableItem {
  * A named version of the survey an organisation can field (instrument config,
  * `item_sets`). "full" is the whole instrument. Any other set narrows it by
  * section and, optionally, by key — e.g. "j12": the screener, the J12 index
- * items and the demographics, without Drivers, Journey or the extras offer.
+ * items and the demographics, without Drivers or Journey.
  * It never changes how an item is scored: every set asks each scored item
  * exactly as the full survey does, so its scores stay comparable.
  */
@@ -83,10 +85,11 @@ export function inItemSet<T extends BranchableItem>(
 
 /**
  * The items a respondent can be shown: drafts are held back unless the
- * instrument explicitly fields them (`field_draft_items: true`).
+ * instrument explicitly fields them (`field_draft_items: true`); archived
+ * items are never shown — fielding them again is a new version.
  */
 export function fieldable<T extends BranchableItem>(items: T[], fieldDrafts = false): T[] {
-  return inOrder(items.filter((i) => fieldDrafts || !i.draft));
+  return inOrder(items.filter((i) => !i.archived && (fieldDrafts || !i.draft)));
 }
 
 /** Does this answer end the survey (an option marked `ends_survey`, e.g. under the cohort's age range)? */

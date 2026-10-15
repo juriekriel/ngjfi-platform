@@ -42,7 +42,7 @@ export type ModuleSpec = { id: string; label: string; draft: boolean; items: Mod
 export function modulesOf(inst: Instrument = instrument): ModuleSpec[] {
   const by = new Map<string, ModuleSpec>();
   for (const i of [...inst.items].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))) {
-    if (i.section !== "module" || !i.module) continue;
+    if (i.section !== "module" || !i.module || i.archived) continue;
     const m = by.get(i.module) ?? { id: i.module, label: MODULE_LABEL[i.module] ?? i.module, draft: false, items: [] };
     m.draft = m.draft || !!i.draft;
     m.items.push({

@@ -1,4 +1,4 @@
-// Seeds the database from the canonical instrument file (src/data/instrument.v5.json):
+// Seeds the database from the canonical instrument file (src/data/instrument.v6.json):
 //   - upserts the instrument version + its expanded items
 //   - with --with-demo-org, ALSO upserts the Sunrise persona into the SANDBOX
 //
@@ -28,7 +28,7 @@ if (!url || !key) {
 
 const sb = createClient(url, key, { auth: { persistSession: false } });
 const inst = JSON.parse(
-  readFileSync(new URL("../src/data/instrument.v5.json", import.meta.url), "utf8"),
+  readFileSync(new URL("../src/data/instrument.v6.json", import.meta.url), "utf8"),
 );
 
 // 1) instrument version (stores the full definition for reference)
@@ -77,10 +77,12 @@ if (gone.length) {
   if (e2c) throw e2c;
 }
 
-// Move existing campaigns/waves onto this version where it is a strict,
-// identically-scored superset of theirs (migration 0039). Otherwise they keep
+// Move existing campaigns/waves onto this version where it asks everything
+// theirs does with identical scoring, apart from named unscored drops (0039, 0059). Otherwise they keep
 // rejecting any new question the survey now shows.
-const { data: adopted, error: e2b } = await sb.rpc("adopt_instrument_version", { p_version: inst.version });
+// Unscored items this version deliberately stops asking (instrument "adopts_from", migration 0059).
+const drops = [...new Set(Object.values(inst.adopts_from ?? {}).flatMap((a) => a.drops_unscored ?? []))];
+const { data: adopted, error: e2b } = await sb.rpc("adopt_instrument_version", { p_version: inst.version, p_drop_unscored: drops });
 if (e2b) throw e2b;
 console.log("✓ Adopted:", JSON.stringify(adopted));
 

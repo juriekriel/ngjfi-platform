@@ -69,7 +69,7 @@ export function WhatEachMeasures({ id }: { id?: string }) {
       asks: [
         "Where they are with faith (the screener), so each person gets the right path",
         "The J12: Follow, Mission and World, each at four depths — Exposure, Response, Formation, Multiplication",
-        "Four about-you questions: age group, gender (optional), country, city (optional)",
+        "Three about-you questions: age group, gender (optional), country",
       ],
       shows: "Your J12 index, the J12 and Unengaged matrices, and the heat map.",
     },
@@ -79,7 +79,7 @@ export function WhatEachMeasures({ id }: { id?: string }) {
       asks: [
         "Everything in the J12",
         "How often they pray and read scripture each week",
-        "Optional extras: what helps or holds their faith back (Drivers), and what shaped it (Journey)",
+        "What helps or holds their faith back (Drivers), and what shaped it (Journey)",
       ],
       shows: "Everything the J12 shows, plus grouped answers to the Drivers and Journey questions beside your score (under Export your results). Prayer and scripture are recorded too — never folded into the score.",
     },

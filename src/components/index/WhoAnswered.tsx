@@ -94,7 +94,7 @@ export default function WhoAnswered({ sb, orgSlug, linkId, season }: Props) {
         {comp?.extras_opt_in_rate != null && (
           <p className="mt-2 text-[13px] text-ink-2">
             {Math.round(comp.extras_opt_in_rate * 100)}% of {comp.extras_reached.toLocaleString("en")} who reached the
-            optional questions chose to answer them.
+            Drivers &amp; Journey questions answered them.
           </p>
         )}
       </div>

@@ -58,7 +58,6 @@ export default function PrivacyPage() {
                 <li>your age group (for example 13–17), never your birthday</li>
                 <li>your gender, only if you choose to give it</li>
                 <li>the country you say you live in</li>
-                <li>your city or area, only if you choose to give it</li>
                 <li>the language you used, when you answered, and which version of the survey you answered</li>
                 <li>which organisation&apos;s link you used</li>
               </ul>

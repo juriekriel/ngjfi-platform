@@ -24,15 +24,15 @@ test("every locked instrument version is unchanged — a change means a new vers
   }
 });
 
-test("v5 is locked, and the live instrument is v5", () => {
+test("v5 is locked and stays the record; the live instrument is v6", () => {
   const v5 = load("v5") as { lock?: { locked?: boolean; locked_on?: string; decisions_recorded?: string[] } };
   assert.equal(v5.lock?.locked, true);
   assert.equal(v5.lock?.locked_on, locks.v5.locked_on);
   assert.ok((v5.lock?.decisions_recorded ?? []).some((d) => /pray_frequency/.test(d)), "the prayer/scripture decision (#5) is on the record");
   const src = readFileSync(new URL("../src/lib/instrument.ts", import.meta.url), "utf8");
-  assert.match(src, /from "@\/data\/instrument\.v5\.json"/, "the app fields v5");
+  assert.match(src, /from "@\/data\/instrument\.v6\.json"/, "the app fields v6");
   const seed = readFileSync(new URL("../scripts/seed-instrument.mjs", import.meta.url), "utf8");
-  assert.match(seed, /process\.argv\[2\] \?\? "v5"/, "the seed script defaults to v5");
+  assert.match(seed, /process\.argv\[2\] \?\? "v6"/, "the seed script defaults to v6");
 });
 
 test("translations stay editable under a lock; English wording and scoring don't", () => {

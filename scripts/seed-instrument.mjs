@@ -2,7 +2,7 @@
 // API, using the same SUPABASE_ACCESS_TOKEN that scripts/apply-migrations.mjs
 // reads. No service-role key required.
 //
-//   node scripts/seed-instrument.mjs           seeds src/data/instrument.v5.json
+//   node scripts/seed-instrument.mjs           seeds src/data/instrument.v6.json
 //   node scripts/seed-instrument.mjs v0        seeds a specific version file
 //   node scripts/seed-instrument.mjs v6 --status draft
 //                                              loads a version WITHOUT activating it:
@@ -22,7 +22,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const REF = "whtbfhbhkhwfmeekvmxq";
-const version = process.argv[2] ?? "v5";
+const version = process.argv[2] ?? "v6";
 const statusFlag = process.argv.indexOf("--status");
 const status = statusFlag > -1 ? process.argv[statusFlag + 1] : "active";
 if (!["active", "draft"].includes(status)) throw new Error(`--status must be "active" or "draft", not "${status}"`);
@@ -55,6 +55,13 @@ async function runSql(tok, sql) {
 const path = fileURLToPath(new URL(`../src/data/instrument.${version}.json`, import.meta.url));
 const json = readFileSync(path, "utf8").trim();
 const inst = JSON.parse(json);
+
+// Unscored items this version deliberately stops asking (instrument "adopts_from",
+// migration 0059). Only these may be missing when a campaign moves onto it;
+// a scored item can never be dropped this way.
+const drops = [...new Set(Object.values(inst.adopts_from ?? {}).flatMap((a) => a.drops_unscored ?? []))];
+for (const k of drops) if (!/^[a-z0-9_]+$/.test(k)) throw new Error(`adopts_from: "${k}" is not an item key`);
+const dropsSql = `array[${drops.map((k) => `'${k}'`).join(", ")}]::text[]`;
 
 // $inst$ rather than $json$: the instrument contains apostrophes in question
 // wording, and a dollar-quoted string is the only escaping that survives them
@@ -108,7 +115,7 @@ delete from public.items i
 -- asks everything their current version asks with identical scoring tags
 -- (migration 0039). Without this, a campaign still on the previous version
 -- would reject every new question the survey now shows.
-${status === "active" ? `select public.adopt_instrument_version('${inst.version}') as adopted;` : "-- draft: no campaign is moved onto it"}
+${status === "active" ? `select public.adopt_instrument_version('${inst.version}', ${dropsSql}) as adopted;` : "-- draft: no campaign is moved onto it"}
 ${inst.lock?.locked ? `
 -- The JSON says this version is locked (instrument.${inst.version}.json "lock").
 select public.lock_instrument_version('${inst.version}', $lock$${JSON.stringify(inst.lock)}$lock$) as locked;
