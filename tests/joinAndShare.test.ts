@@ -27,8 +27,9 @@ test("the share documents are built from the real mark and current facts", () =>
   const py = read("scripts/build-share-docs.py");
   assert.match(py, /icon-mark\.svg/);
   assert.match(py, /linearGradient/);
-  assert.ok(!/About 7 minutes|3-minute/.test(py), "no retired survey lengths");
-  assert.match(py, /About 6 minutes/);
+  assert.ok(!/About 7 minutes|About 6 minutes|about six minutes|3-minute/.test(py), "no retired survey lengths");
+  assert.match(py, /About 8 minutes/, "v6's full survey length (round 8)");
+  assert.ok(!/city optional/.test(py), "v6 asks no city");
   assert.match(py, /Start a new survey/);
   assert.match(py, /resources\/consent/);
 });

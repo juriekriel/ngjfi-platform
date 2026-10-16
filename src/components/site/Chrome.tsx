@@ -2,6 +2,11 @@ import Link from "next/link";
 
 import { EMERALD, INK, MUTED } from "@/lib/model";
 
+/** The line under the name, wherever the logo appears (round 8, Oct 2026). */
+export const LOGO_TAGLINE = "a global measure of Jesus-following";
+/** The Collab's goal, as the front-page banner states it (round 8). */
+export const GOAL_LINE = "To see every young person have a real opportunity to follow Jesus by 2033.";
+
 /**
  * The masthead. Round 4 (Oct 2026): "the Jesus Index is the name and logo all
  * the way through" — the header carries the rising mark beside the name, The
@@ -16,9 +21,12 @@ export function Masthead({ edition }: { edition?: string }) {
     <header className="border-b border-rule">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-3.5 sm:px-8">
         <Link href="/" className="flex items-center gap-2.5 no-underline">
-          <RisingMark className="h-8 w-8 shrink-0" />
-          <span className="wordmark text-[21px] leading-none tracking-tight text-ink">
-            The <span className="italic">Jesus</span> Index
+          <RisingMark className="h-9 w-9 shrink-0" />
+          <span className="flex flex-col">
+            <span className="wordmark text-[21px] leading-none tracking-tight text-ink">
+              The <span className="italic">Jesus</span> Index
+            </span>
+            <span className="mt-1 text-[11.5px] leading-none text-ink-2">{LOGO_TAGLINE}</span>
           </span>
         </Link>
         <nav className="flex flex-wrap items-center gap-x-6 gap-y-1.5">

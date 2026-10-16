@@ -5,7 +5,7 @@ documents" and the dashboard's "Share about the Jesus Index"):
   public/share/JesusIndex-two-pager.pdf         (A4 portrait, 2 pages)
   public/share/JesusIndex-pitch-and-demo.pdf    (A4 landscape, 8 pages)
 Content is drawn only from what the platform actually does (CLAUDE.md,
-the live instrument v5, the dashboards as built, the privacy notice and the
+the live instrument v6 (locked 16 Oct 2026), the dashboards as built, the privacy notice and the
 consent resource) — no invented statistics. Re-run after any change to them:
   python3 scripts/build-share-docs.py
 The mark is drawn from public/icon-mark.svg's own geometry, so the PDFs
@@ -60,14 +60,19 @@ def mark(c, x, y, r=11):
     c.roundRect(X(77), Y(43.25 + 4.5), 28 * k, 4.5 * k, 2.25 * k, stroke=0, fill=1)
     c.restoreState()
 
-def wordmark(c, x, y, size=15, color=INK):
-    """The name, set as the lockup: The *Jesus* Index (serif, italic Jesus)."""
+TAGLINE = "a global measure of Jesus-following"
+
+def wordmark(c, x, y, size=15, color=INK, tagline=True):
+    """The name, set as the lockup: The *Jesus* Index (serif, italic Jesus), with the tagline underneath."""
+    x0 = x
     c.setFillColor(color)
     c.setFont("Times-Roman", size); c.drawString(x, y, "The ")
     x += c.stringWidth("The ", "Times-Roman", size)
     c.setFont("Times-Italic", size); c.drawString(x, y, "Jesus")
     x += c.stringWidth("Jesus ", "Times-Italic", size)
     c.setFont("Times-Roman", size); c.drawString(x, y, "Index")
+    if tagline:
+        c.setFont("Helvetica", size * 0.52); c.drawString(x0, y - size * 0.78, TAGLINE)
 
 def kicker(c, x, y, text, color=INK2):
     c.setFont("Helvetica", 8); c.setFillColor(color); c.drawString(x, y, text.upper())
@@ -111,11 +116,11 @@ def two_pager(path):
     M = 46; TW = W - 2 * M
 
     # page 1
-    mark(c, M + 11, H - 52); wordmark(c, M + 30, H - 57, 17)
+    mark(c, M + 11, H - 54); wordmark(c, M + 30, H - 54, 17)
     c.setFont("Helvetica", 8.5); c.setFillColor(INK2); c.drawRightString(W - M, H - 56, "jfindx.org")
     kicker(c, M, H - 100, "A shared measure for the Next Gen Global Collab")
     y = para(c, "How are young people following Jesus — and where do they stop moving?", M, H - 108, TW * 0.9, style(25, INK, 30, True))
-    y = para(c, "The Jesus Index (the Next Gen Jesus-Following Index) is one short, anonymous survey that any ministry can run with the young people it reaches, aged 13 to 30. "
+    y = para(c, "The Jesus Index, a global measure of Jesus-following, is one short, anonymous survey that any ministry can run with the young people it reaches, aged 13 to 30. "
              "It's free for every ministry. Each one sees its own results live, as people answer. Together, the Collab sees a picture no single ministry could see alone.",
              M, y - 12, TW * 0.92, style(11, INK2, 16))
 
@@ -126,7 +131,7 @@ def two_pager(path):
     y = j12(c, M, y - 12, TW, cell_h=40, font=8)
 
     kicker(c, M, y - 26, "What it takes")
-    cols = [("About 6 minutes", "One question per screen on any phone. Choose the J12 (about 5 minutes) or the Full survey (about 6, plus optional extras)."),
+    cols = [("About 8 minutes", "One question per screen on any phone. Choose the J12 (about 5 minutes) or the Full survey (about 8, every question for the young person's path)."),
             ("Anonymous by design", "No names, emails, phone numbers or birthdays; IP addresses are never stored with answers. Age is a band."),
             ("Works with no signal", "Once the survey has opened on a phone, it runs offline and sends answers when signal returns.")]
     cw = (TW - 24) / 3; yy = y - 34
@@ -143,7 +148,7 @@ def two_pager(path):
     steps = [("1", "A ministry joins", "Join at jfindx.org, then sign in with your ministry email — no password. Your organisation gets its own branded survey and dashboard."),
              ("2", "Consent comes first", "Confirm consent for your organisation, then for each survey you send — including how parental consent was gathered for 13–17s. No consent, no participation."),
              ("3", "Start a survey for each group", "Choose the J12 or the Full survey, add your own welcome and closing, and set when it opens and closes. Each one has its own results, adding up into your whole organisation."),
-             ("4", "Young people answer", "They scan a QR code or tap a link, answer in about six minutes, and are told plainly that only grouped results are ever seen. Those not yet following Jesus answer their own path."),
+             ("4", "Young people answer", "They scan a QR code or tap a link, answer in about eight minutes, and are told plainly that only grouped results are ever seen. Those not yet following Jesus answer their own path."),
              ("5", "You read the J12 — live", "Your dashboard shows the J12 matrix, the Unengaged matrix and a world heat map. Choose which views your team sees, export your results, and overlay the Collab's pooled picture."),
              ("6", "Ask what it means", "“What does this mean?” sends your question — and the view you are looking at — to a Collab facilitator, who helps turn a score into a changed strategy.")]
     y = H - 72
@@ -187,8 +192,8 @@ def pitch(path):
         c.setFillColor(INK if dark else white); c.rect(0, 0, W, H, stroke=0, fill=1)
         c.setFillColor(CORAL); c.rect(0, H - 6, W * 0.34, 6, stroke=0, fill=1)
         c.setFillColor(VIOLET); c.rect(W * 0.34, H - 6, W * 0.66, 6, stroke=0, fill=1)
-        mark(c, M + 9, H - 40, 9)
-        wordmark(c, M + 24, H - 44, 12.5, white if dark else INK)
+        mark(c, M + 9, H - 42, 9)
+        wordmark(c, M + 24, H - 42, 12.5, white if dark else INK)
         kicker(c, M, H - 84, kick, HexColor("#b8bdc7") if dark else INK2)
         y = para(c, title, M, H - 92, TW * 0.85, style(26, white if dark else INK, 31, True))
         c.setStrokeColor(HexColor("#3a3e46") if dark else RULE); c.line(M, 30, W - M, 30)
@@ -224,7 +229,7 @@ def pitch(path):
     # 4 · what a young person does
     y = slide("About six minutes, on any phone — with no signal if need be.", "The respondent")
     items = [("Scan or tap", "A QR code on a poster, or a link in a group chat. Your welcome first, your thank-you last."), ("Choose a language", "English today, Spanish in review and more on the way — every word is translatable."),
-             ("One question per screen", "The J12 in about 5 minutes, the Full survey in about 6. Country from a list; city optional."), ("Anonymous, and told so", "No names, emails or birthdays; age is a band. They're told only grouped results are ever seen."),
+             ("One question per screen", "The J12 in about 5 minutes, the Full survey in about 8. Country from a list; no city, no free text."), ("Anonymous, and told so", "No names, emails or birthdays; age is a band. They're told only grouped results are ever seen."),
              ("Offline-proof", "Answers are kept on the phone and sent automatically when signal returns."), ("Every path counts", "Those not yet following Jesus answer their own questions — counted, and scored apart.")]
     cw = (TW - 36) / 3; ch = (y - 110) / 2
     for i, (h, b) in enumerate(items):
@@ -304,8 +309,8 @@ def leadership(path):
         c.setFillColor(INK if dark else white); c.rect(0, 0, W, H, stroke=0, fill=1)
         c.setFillColor(CORAL); c.rect(0, H - 6, W * 0.34, 6, stroke=0, fill=1)
         c.setFillColor(VIOLET); c.rect(W * 0.34, H - 6, W * 0.66, 6, stroke=0, fill=1)
-        mark(c, M + 9, H - 40, 9)
-        wordmark(c, M + 24, H - 44, 12.5, white if dark else INK)
+        mark(c, M + 9, H - 42, 9)
+        wordmark(c, M + 24, H - 42, 12.5, white if dark else INK)
         kicker(c, M, H - 84, kick, DIM if dark else INK2)
         y = para(c, title, M, H - 92, TW * 0.85, style(26, white if dark else INK, 31, True))
         c.setStrokeColor(HexColor("#3a3e46") if dark else RULE); c.line(M, 30, W - M, 30)

@@ -3,5 +3,9 @@
   "v5": {
     "locked_on": "2026-10-01",
     "sha256": "d99003360518ccb47174a8cbb9b2d8dfa52dadd8e199df5f9112f72b635000f7"
+  },
+  "v6": {
+    "locked_on": "2026-10-16",
+    "sha256": "8cc04b651d3f42f6ce4edd903f0efcd086d33339fe279cf422b3b0dcaabee80e"
   }
 }

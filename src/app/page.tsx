@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Footer, GradientRule, Masthead, RisingRule } from "@/components/site/Chrome";
+import { Footer, GOAL_LINE, GradientRule, LOGO_TAGLINE, Masthead, RisingRule } from "@/components/site/Chrome";
 import PitchDocs from "@/components/site/PitchDocs";
 import SeeADemoCard from "@/components/site/SeeADemoCard";
 import HeroBenefits from "@/components/site/HeroBenefits";
@@ -51,7 +51,7 @@ const STEPS: { t: string; d: string }[] = [
 export default function Home() {
   return (
     <>
-      <Masthead edition="From the Next Gen Global Collab: 30+ ministries, one goal for 2033" />
+      <Masthead edition={GOAL_LINE} />
 
       <main className="mx-auto max-w-5xl px-5">
         {/* ── A · hero ─────────────────────────────────────────────── */}
@@ -60,14 +60,10 @@ export default function Home() {
               what's left of it, so it ends level with the See a Demo card. */}
           <div className="flex flex-col">
             <h1 className="wordmark text-[42px] leading-[0.98] tracking-tight sm:text-[56px]">
-              The <span className="italic">Jesus</span>{" "}
-              <span className="tabular text-[36px] uppercase tracking-[0.14em] sm:text-[48px]">Index</span>
+              The <span className="italic">Jesus</span> Index
             </h1>
             <RisingRule className="mt-3 h-6 w-full max-w-[460px]" />
-            <p className="tabular mt-1 text-[11px] uppercase tracking-[0.16em] text-ink-2">
-              The Next Gen Jesus-Following Index
-
-            </p>
+            <p className="mt-1 text-[15px] text-ink-2">{LOGO_TAGLINE}</p>
 
             <p className="mt-8 text-[24px] font-semibold leading-snug text-ink">
               Do you know where your young people are with Jesus?
