@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Footer, Masthead } from "@/components/site/Chrome";
+import { Footer, GradientRule, Masthead } from "@/components/site/Chrome";
 import { Matrix, Plate } from "@/components/index/Figures";
 import LearnExplorer from "@/app/learn/LearnExplorer";
 import { OPEN_QUESTIONS } from "@/data/history";
@@ -42,13 +42,17 @@ export default function HistoryPage() {
 
       <main className="mx-auto max-w-5xl px-5">
         {/* standfirst */}
-        <section className="grid gap-8 border-b border-ink py-10 md:grid-cols-[1.5fr_1fr] md:gap-12">
+        <section className="grid gap-8 py-10 md:grid-cols-[1.5fr_1fr] md:gap-12">
           <div>
             <p className="figcap">Our story · How did we get here?</p>
-            <h1 className="mt-3 text-[38px] leading-[1.02] tracking-tight sm:text-[46px]">
+            <h1 className="mt-3 text-[38px] font-bold leading-[1.02] tracking-tight sm:text-[46px]">
               A coalition tried to buy a picture of youth faith.
               <br />
-              It ended up <span className="italic">building the measure</span> and giving it away.
+              It ended up{" "}
+              <span className="bg-gradient-to-r from-emerald via-emerald-deep to-violet bg-clip-text text-transparent">
+                building the measure
+              </span>{" "}
+              and giving it away.
             </h1>
             <p className="mt-6 max-w-measure text-[18px] leading-relaxed text-ink-2">
               That sentence is the whole through-line, and it took about eighteen months of expensive
@@ -67,14 +71,16 @@ export default function HistoryPage() {
         </section>
 
         {/* the explorable record */}
+        <GradientRule />
         <LearnExplorer />
 
         {/* the one real finding */}
-        <section className="border-t-2 border-ink py-10">
+        <section className="py-10">
+          <GradientRule className="mb-8" />
           <div className="grid gap-8 md:grid-cols-[1fr_1.4fr] md:gap-12">
             <div>
               <p className="figcap">The evidence that started it</p>
-              <h2 className="mt-2 text-[27px] leading-tight">Belief outruns practice.</h2>
+              <h2 className="mt-2 text-[27px] font-bold leading-tight tracking-tight">Belief outruns practice.</h2>
               <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
                 The Dallas–Fort Worth pilot is the only data the project ran before the platform itself
                 existed, and it did the job a pilot is supposed to do: it found a gap nobody could
@@ -130,9 +136,10 @@ export default function HistoryPage() {
         </section>
 
         {/* the model */}
-        <section className="border-t-2 border-ink py-10">
+        <section className="py-10">
+          <GradientRule className="mb-8" />
           <p className="figcap">What it actually measures</p>
-          <h2 className="mt-2 text-[27px] leading-tight">Three questions × four tiers.</h2>
+          <h2 className="mt-2 text-[27px] font-bold leading-tight tracking-tight">Three questions × four tiers.</h2>
           <div className="mt-5 grid gap-8 md:grid-cols-[1fr_1.6fr] md:gap-12">
             <div>
               <p className="max-w-measure text-[16px] leading-relaxed text-ink-2">
@@ -158,10 +165,11 @@ export default function HistoryPage() {
         </section>
 
         {/* integrity */}
-        <section id="integrity" className="-mx-5 mt-4 bg-ink px-5 py-12 text-paper">
-          <div className="mx-auto max-w-5xl">
+        <section id="integrity" className="mt-4 overflow-hidden rounded-2xl bg-ink text-paper shadow-sm">
+          <span aria-hidden className="block h-1 bg-gradient-to-r from-emerald via-emerald-deep to-violet" />
+          <div className="px-6 py-10 sm:px-10 sm:py-12">
             <p className="figcap text-muted">The line that governs everything</p>
-            <h2 className="mt-3 text-[30px] leading-[1.15] text-paper sm:text-[36px]">
+            <h2 className="mt-3 text-[30px] font-bold leading-[1.15] tracking-tight text-paper sm:text-[36px]">
               We will never claim to speak for a nation.
             </h2>
             <div className="mt-6 grid max-w-4xl gap-x-10 gap-y-4 text-[16px] leading-relaxed text-rule md:grid-cols-2">
@@ -180,9 +188,10 @@ export default function HistoryPage() {
         </section>
 
         {/* open questions */}
-        <section className="border-b border-ink py-10">
+        <section className="py-10">
+          <GradientRule className="mb-8" />
           <p className="figcap">Still unsettled</p>
-          <h2 className="mt-2 text-[27px] leading-tight">Questions we have not answered.</h2>
+          <h2 className="mt-2 text-[27px] font-bold leading-tight tracking-tight">Questions we have not answered.</h2>
           <p className="mt-3 max-w-measure text-[16px] leading-relaxed text-ink-2">
             Publishing these is deliberate. A measurement standard that hides its open problems is not
             a standard, it is a product. If you have a view on any of them, we want it.
@@ -193,34 +202,37 @@ export default function HistoryPage() {
                 <span className="tabular text-[11px] tracking-[0.16em] text-muted">
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <h3 className="text-[17px] leading-snug">{o.q}</h3>
+                <h3 className="text-[17px] font-semibold leading-snug text-ink">{o.q}</h3>
                 <p className="text-[15px] leading-relaxed text-ink-2">{o.why}</p>
               </li>
             ))}
           </ol>
-          <p className="mt-8 max-w-measure text-[16px] italic leading-relaxed">
+          <p className="mt-8 max-w-measure text-[16px] font-semibold leading-relaxed text-ink">
             Clay to be moulded — not a vase to be baked.
           </p>
         </section>
 
         {/* onward */}
         <section className="py-10">
+          <GradientRule className="mb-8" />
           <div className="grid gap-4 sm:grid-cols-3">
-            <Link href="/learn" className="border-t-2 border-ink pt-3 no-underline">
-              <p className="figcap">Start here</p>
-              <p className="mt-2 text-[18px] leading-snug">What is the Index →</p>
-              <p className="margin-note mt-1">The short version.</p>
-            </Link>
-            <Link href="/tour" className="border-t-2 border-ink pt-3 no-underline">
-              <p className="figcap">Or</p>
-              <p className="mt-2 text-[18px] leading-snug">See how it works →</p>
-              <p className="margin-note mt-1">A guided walk, one step at a time.</p>
-            </Link>
-            <Link href="/join" className="border-t-2 border-emerald pt-3 no-underline">
-              <p className="figcap">When you are ready</p>
-              <p className="mt-2 text-[18px] leading-snug text-emerald">Join the Index →</p>
-              <p className="margin-note mt-1">For organisations and churches.</p>
-            </Link>
+            {[
+              { href: "/learn", kicker: "Start here", title: "What is the Index", note: "The short version." },
+              { href: "/tour", kicker: "Or", title: "See how it works", note: "A guided walk, one step at a time." },
+              { href: "/join", kicker: "When you are ready", title: "Join the Index", note: "For organisations and churches.", lead: true },
+            ].map((d) => (
+              <Link
+                key={d.href}
+                href={d.href}
+                className={`group flex flex-col rounded-2xl border p-5 no-underline shadow-sm transition-colors ${
+                  d.lead ? "border-ink bg-ink text-paper hover:bg-ink/90" : "border-rule bg-plate text-ink hover:border-ink"
+                }`}
+              >
+                <span className={`figcap ${d.lead ? "text-paper/70" : ""}`}>{d.kicker}</span>
+                <span className="mt-2 text-[19px] font-bold leading-snug tracking-tight">{d.title} →</span>
+                <span className={`mt-1 text-[14px] leading-relaxed ${d.lead ? "text-paper/80" : "text-ink-2"}`}>{d.note}</span>
+              </Link>
+            ))}
           </div>
         </section>
       </main>

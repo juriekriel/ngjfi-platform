@@ -242,6 +242,18 @@ export function Door({
  * "What is the Jesus Index?", calls to action). One component, so every page
  * draws exactly the same line.
  */
+/**
+ * The coral → violet edge (front-page benefits, selected console tiles): the
+ * fill paints the padding box, the gradient shows through a transparent border.
+ */
+export const GRADIENT_EDGE: React.CSSProperties = {
+  border: "2px solid transparent",
+  background:
+    "linear-gradient(rgb(var(--c-plate)), rgb(var(--c-plate))) padding-box, linear-gradient(135deg, rgb(var(--c-emerald)), rgb(var(--c-violet))) border-box",
+  boxShadow: "0 4px 14px -6px rgb(var(--c-violet) / 0.35)",
+};
+export const PLAIN_EDGE: React.CSSProperties = { border: "2px solid rgb(var(--c-rule-2))", background: "rgb(var(--c-plate))" };
+
 export function GradientRule({ className = "" }: { className?: string }) {
   return <span aria-hidden className={`block h-1 rounded-full bg-gradient-to-r from-emerald via-emerald-deep to-violet ${className}`} />;
 }

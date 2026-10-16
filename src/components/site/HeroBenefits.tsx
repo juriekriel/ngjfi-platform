@@ -12,16 +12,7 @@
  * Every description is also inside its button for screen readers.
  */
 import { useState } from "react";
-
-// The masthead's coral → violet, drawn as a 2px edge: the fill paints the
-// padding box, the gradient shows through the transparent border.
-const GRADIENT_EDGE: React.CSSProperties = {
-  border: "2px solid transparent",
-  background:
-    "linear-gradient(rgb(var(--c-plate)), rgb(var(--c-plate))) padding-box, linear-gradient(135deg, rgb(var(--c-emerald)), rgb(var(--c-violet))) border-box",
-  boxShadow: "0 4px 14px -6px rgb(var(--c-violet) / 0.35)",
-};
-const PLAIN_EDGE: React.CSSProperties = { border: "2px solid rgb(var(--c-rule-2))", background: "rgb(var(--c-plate))" };
+import { GRADIENT_EDGE, PLAIN_EDGE } from "@/components/site/Chrome";
 
 const WORD = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
 
