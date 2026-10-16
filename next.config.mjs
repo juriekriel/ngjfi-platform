@@ -15,6 +15,11 @@ const nextConfig = {
       { source: "/share/JFINDX-pitch-and-demo.pdf", destination: "/share/JesusIndex-pitch-and-demo.pdf", permanent: true },
     ];
   },
+  // Round 8 (Oct 2026): the leadership pitch, generated from the live
+  // instrument (scripts/build-pitch.mjs). beforeFiles so it wins over [org].
+  async rewrites() {
+    return { beforeFiles: [{ source: "/pitch", destination: "/pitch/index.html" }] };
+  },
 };
 
 export default nextConfig;

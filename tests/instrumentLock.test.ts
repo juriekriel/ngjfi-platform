@@ -35,6 +35,13 @@ test("v5 is locked and stays the record; the live instrument is v6", () => {
   assert.match(seed, /process\.argv\[2\] \?\? "v6"/, "the seed script defaults to v6");
 });
 
+test("v6 is locked as the confirmed pilot instrument (16 Oct 2026)", () => {
+  const v6 = load("v6") as { lock?: { locked?: boolean; locked_on?: string; decisions_recorded?: string[] } };
+  assert.equal(v6.lock?.locked, true, "v6 carries its lock");
+  assert.equal(v6.lock?.locked_on, locks.v6?.locked_on, "the JSON lock and the fingerprint agree on the date");
+  assert.ok((v6.lock?.decisions_recorded ?? []).some((d) => /Decision 7/.test(d)), "decision 7's outcome is on the record");
+});
+
 test("translations stay editable under a lock; English wording and scoring don't", () => {
   const base = load("v5");
   const clone = () => JSON.parse(JSON.stringify(base)) as { items: { text: Record<string, string>; scored?: boolean }[] };

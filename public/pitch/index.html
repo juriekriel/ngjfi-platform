@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Jesus Index — Leadership Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Clean research-dashboard palette — cool neutrals, white cards, coral accent */
+    --ink:#22252b; --paper:#f5f6f8; --paper-deep:#eceef2; --paper-card:#ffffff;
+    --rule:#e2e5ea; --rule-soft:#eef0f4;
+    --accent:#ff7a47; --accent-soft:#ff9762;
+    --gold:#8b5cf6; --moss:#3f9d72; --slate:#5b6470; --muted:#8b9099;
+    --bench:#2f80c4;
+    /* one clean sans family across the UI; weight + tracking carry the hierarchy */
+    --serif:'Inter Tight',sans-serif; --sans:'Inter Tight',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:16px; line-height:1.55; min-height:100vh;}
+
+  /* cover / title page */
+  .topbar.hidden{display:none;}
+  .cover{min-height:100vh; display:flex; flex-direction:column; padding:30px 30px 26px;}
+  .cover-top{display:flex; justify-content:space-between; align-items:center; gap:12px;}
+  .cover-brand{font-family:var(--sans); font-weight:700; font-size:14px; letter-spacing:-0.01em;}
+  .cover-brand .x{color:var(--accent);}
+  .cover-doc{font-family:var(--mono); font-size:9.5px; letter-spacing:0.16em; text-transform:uppercase; color:var(--muted);}
+  .cover-mid{flex:1; display:flex; flex-direction:column; justify-content:center; max-width:900px; margin:0 auto; width:100%; padding:36px 0;}
+  .cover-kicker{font-family:var(--mono); font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:var(--accent); margin-bottom:22px; display:flex; align-items:center; gap:12px;}
+  .cover-kicker::after{content:""; flex:1; height:1px; background:var(--rule); max-width:130px;}
+  .cover-vision{font-family:var(--sans); font-size:clamp(15px,1.9vw,18px); color:var(--slate); margin-bottom:16px; font-weight:500; max-width:560px; line-height:1.4;}
+  .cover-hook{font-family:var(--sans); font-weight:800; font-size:clamp(50px,10vw,104px); line-height:0.9; letter-spacing:-0.035em; margin-bottom:30px;}
+  .cover-hook em{font-style:normal; color:var(--accent);}
+  .cover-blurb{font-size:clamp(16px,1.9vw,19px); line-height:1.62; color:#3a3d44; max-width:600px; margin-bottom:36px;}
+  .cover-blurb b{color:var(--ink); font-weight:600;}
+  .cover-cta{display:inline-flex; align-items:center; gap:12px; align-self:flex-start; background:var(--accent); color:#fff; border:none; cursor:pointer; font-family:var(--mono); font-size:12px; letter-spacing:0.12em; text-transform:uppercase; font-weight:600; padding:18px 30px; border-radius:2px; transition:transform .15s ease, background .15s ease;}
+  .cover-cta:hover{transform:translateY(-2px); background:#ef5f2c;}
+  .cover-cta .arr{font-size:17px; line-height:1;}
+  .cover-foot{display:flex; justify-content:space-between; align-items:center; gap:12px; border-top:1px solid var(--rule); padding-top:16px; font-family:var(--mono); font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); flex-wrap:wrap;}
+  @media(max-width:560px){ .cover{padding:24px 22px;} .cover-hook{font-size:clamp(44px,13vw,60px);} }
+
+  /* cover draft / credit note */
+  .cover-note{border-left:3px solid var(--accent); background:var(--paper-card); border:1px solid var(--rule); border-left:3px solid var(--accent); padding:16px 20px; max-width:620px; margin-bottom:30px;}
+  .cover-note .cn-k{font-family:var(--mono); font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); margin-bottom:8px;}
+  .cover-note p{font-size:13px; line-height:1.55; color:var(--slate); margin:0;}
+  .cover-note p b{color:var(--ink); font-weight:600;}
+  .cover-note .clay{display:block; margin-top:10px; font-weight:600; color:var(--ink); font-size:13.5px;}
+  .cover-note .clay em{font-style:italic; color:var(--accent); font-weight:600;}
+  a{color:var(--accent); text-decoration:none; border-bottom:1px solid rgba(255,122,71,0.35); transition:border .15s ease;}
+  a:hover{border-bottom-color:var(--accent);}
+  em.it{font-family:var(--serif); font-style:italic; font-weight:400; color:var(--accent);}
+
+  .topbar{position:sticky; top:0; z-index:50; background:rgba(245,246,248,0.93); backdrop-filter:blur(8px);
+    border-top:3px solid var(--ink); border-bottom:1px solid var(--ink); display:flex; justify-content:space-between; align-items:center; padding:11px 28px; flex-wrap:wrap; gap:10px;}
+  .brand{font-family:var(--serif); font-weight:700; font-size:15px; letter-spacing:-0.01em;}
+  .brand em{font-style:italic; font-weight:400; color:var(--accent);}
+  .tabs{display:flex; gap:4px; flex-wrap:wrap;}
+  .tab{font-family:var(--mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; border:1px solid transparent; background:none; cursor:pointer; color:var(--muted); padding:8px 13px; border-radius:2px; font-weight:600; transition:all .16s ease;}
+  .tab:hover{color:var(--ink); background:var(--paper-deep);}
+  .tab.active{color:var(--paper); background:var(--ink);}
+
+  .screen{display:none; animation:rise .45s cubic-bezier(.2,.7,.3,1);}
+  .screen.active{display:block;}
+  @keyframes rise{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 28px;}
+
+  .eyebrow{font-family:var(--mono); font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:var(--accent); margin-bottom:16px; display:flex; align-items:center; gap:12px;}
+  .eyebrow::after{content:""; flex:1; height:1px; background:var(--rule); max-width:90px;}
+
+  /* hero */
+  .hero{padding:64px 0 30px;}
+  .hero .kicker{font-family:var(--mono); font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:var(--muted); margin-bottom:22px;}
+  .hero h1{font-family:var(--serif); font-weight:900; font-size:clamp(40px,6.6vw,76px); line-height:0.95; letter-spacing:-0.027em; margin-bottom:20px;}
+  .hero h1 em{font-style:italic; font-weight:400; color:var(--accent);}
+  .hero .lede{font-family:var(--serif); font-style:italic; font-size:clamp(19px,2.4vw,24px); line-height:1.4; color:var(--slate); max-width:700px; margin-bottom:18px;}
+  .handle{font-family:var(--mono); font-size:11px; letter-spacing:0.1em; color:var(--muted); text-transform:uppercase;}
+  .handle b{color:var(--accent); font-weight:600;}
+
+  /* stays/changes */
+  .sc{display:grid; grid-template-columns:1.55fr 1fr; border:1px solid var(--ink); margin:30px 0;}
+  .sc-stay{padding:30px 32px; background:var(--paper-card); border-right:1px solid var(--ink);}
+  .sc-change{padding:30px 32px; background:var(--paper-deep);}
+  .sc h3{font-family:var(--mono); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:20px;}
+  .sc-stay h3{color:var(--moss);} .sc-change h3{color:var(--muted);}
+  .stay-item{padding:15px 0; border-top:1px solid var(--rule-soft);}
+  .stay-item:first-of-type{border-top:none; padding-top:0;}
+  .stay-item .big{font-family:var(--serif); font-size:23px; font-weight:500; line-height:1.18; letter-spacing:-0.01em;}
+  .stay-item .sub{font-size:13.5px; color:var(--slate); margin-top:3px;}
+  .change-flow{font-size:14px; color:var(--slate); line-height:1.5;}
+  .change-flow .from{display:block; padding:11px 0; border-bottom:1px dashed var(--rule); color:var(--muted);}
+  .change-flow .to{display:block; padding-top:13px; color:var(--ink);}
+  .change-flow .to b{color:var(--accent); font-weight:600;}
+  .change-note{font-family:var(--serif); font-style:italic; font-size:14px; color:var(--muted); margin-top:18px; line-height:1.4;}
+
+  /* pull quote */
+  .pull{border-top:2px solid var(--ink); border-bottom:2px solid var(--ink); padding:38px 0; margin:38px 0; text-align:center;}
+  .pull blockquote{font-family:var(--serif); font-weight:500; font-size:clamp(25px,3.9vw,40px); line-height:1.1; letter-spacing:-0.02em; max-width:880px; margin:0 auto;}
+  .pull blockquote em{font-style:italic; color:var(--accent);}
+  .pull cite{display:block; font-family:var(--mono); font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin-top:20px; font-style:normal;}
+
+  .section-head{margin:50px 0 22px;}
+  .section-head h2{font-family:var(--serif); font-weight:700; font-size:clamp(26px,3.4vw,38px); letter-spacing:-0.02em; line-height:1.05;}
+  .section-head p{font-family:var(--serif); font-style:italic; font-size:17px; color:var(--slate); margin-top:8px; max-width:640px;}
+
+  .outcomes{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  .oc{background:var(--paper-card); border:1px solid var(--rule); padding:24px 22px;}
+  .oc .num{font-family:var(--serif); font-weight:900; font-size:40px; line-height:1; color:var(--accent-soft); margin-bottom:14px;}
+  .oc h4{font-family:var(--serif); font-size:21px; font-weight:500; margin-bottom:8px; letter-spacing:-0.01em;}
+  .oc p{font-size:14px; color:var(--slate); line-height:1.5;}
+  .oc .tagline{font-family:var(--mono); font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-top:12px;}
+
+  .deeper-intro{font-family:var(--mono); font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:var(--muted); margin:52px 0 6px; display:flex; align-items:center; gap:12px;}
+  .deeper-intro::after{content:""; flex:1; height:1px; background:var(--rule);}
+  details.acc{border-bottom:1px solid var(--rule);}
+  details.acc summary{list-style:none; cursor:pointer; padding:20px 4px; display:flex; align-items:baseline; gap:16px;}
+  details.acc summary::-webkit-details-marker{display:none;}
+  details.acc summary .ix{font-family:var(--mono); font-size:11px; color:var(--accent); font-weight:600; min-width:24px;}
+  details.acc summary .tt{font-family:var(--serif); font-size:21px; font-weight:500; letter-spacing:-0.01em; flex:1; line-height:1.2;}
+  details.acc summary .sgn{font-family:var(--serif); font-size:24px; color:var(--muted); transition:transform .2s ease; line-height:1;}
+  details.acc[open] summary .sgn{transform:rotate(45deg);}
+  details.acc summary:hover .tt{color:var(--accent);}
+  .acc-body{padding:0 4px 26px 44px; max-width:820px;}
+  .acc-body p{font-size:15px; color:#4a4a44; margin-bottom:13px; line-height:1.6;}
+  .acc-body p strong{color:var(--ink); font-weight:600;}
+  .acc-body ul{list-style:none; margin:6px 0 16px;}
+  .acc-body ul li{position:relative; padding:9px 0 9px 24px; border-top:1px solid var(--rule-soft); font-size:14.5px; color:#4a4a44; line-height:1.5;}
+  .acc-body ul li::before{content:"→"; position:absolute; left:0; color:var(--accent); font-family:var(--serif);}
+  .acc-body ul li b{color:var(--ink); font-weight:600;}
+  .stat-inline{font-family:var(--serif); font-weight:700; color:var(--accent); font-style:normal;}
+
+  /* budget phase table inside accordion */
+  .budget{width:100%; border-collapse:collapse; margin:6px 0 4px;}
+  .budget th{font-family:var(--mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); text-align:left; padding:0 10px 10px 0; font-weight:600; border-bottom:1px solid var(--rule);}
+  .budget th.r{text-align:right; padding-right:0;}
+  .budget td{padding:11px 10px 11px 0; border-bottom:1px solid var(--rule-soft); font-size:13.5px; color:#4a4a44; vertical-align:top;}
+  .budget td.r{text-align:right; padding-right:0; font-family:var(--mono); font-size:13px; font-weight:600; color:var(--ink); white-space:nowrap;}
+  .budget td .yr{font-family:var(--mono); font-size:10px; letter-spacing:0.08em; color:var(--muted); text-transform:uppercase; display:block; margin-bottom:2px;}
+  .budget td .ph{font-family:var(--sans); font-weight:600; font-size:14px; color:var(--ink);}
+  .budget tr.total td{border-bottom:none; border-top:2px solid var(--ink); padding-top:13px; font-size:14px;}
+  .budget tr.total td.r{font-family:var(--sans); font-size:17px; font-weight:700; color:var(--accent);}
+  .budget tr.total td .ph{font-weight:700;}
+
+  .ci{display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin:18px 0 8px;}
+  .ci-cell{border:1px solid var(--rule); background:var(--paper-card); padding:13px 11px; text-align:center;}
+  .ci-cell.on{background:var(--moss); border-color:var(--moss);}
+  .ci-cell .cn{font-family:var(--mono); font-size:9px; letter-spacing:0.1em; color:var(--muted); text-transform:uppercase;}
+  .ci-cell.on .cn{color:rgba(255,255,255,0.75);}
+  .ci-cell .cl{font-size:12.5px; font-weight:500; margin-top:6px; line-height:1.25;}
+  .ci-cell.on .cl{color:#fff;}
+  .ci-cell .cw{font-family:var(--mono); font-size:8.5px; letter-spacing:0.06em; color:var(--moss); text-transform:uppercase; margin-top:6px;}
+  .ci-cell.on .cw{color:#fff; font-weight:600;}
+
+  /* pattern cards */
+  .pattern{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:6px 0 16px;}
+  .pc{border:1px solid var(--rule); background:var(--paper-card); padding:18px 18px; border-top:3px solid var(--rule);}
+  .pc.g1{border-top-color:var(--bench);} .pc.g2{border-top-color:var(--gold);} .pc.g3{border-top-color:var(--accent);}
+  .pc .pck{font-family:var(--mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:8px;}
+  .pc h5{font-family:var(--serif); font-size:19px; font-weight:500; margin-bottom:8px; line-height:1.15;}
+  .pc p{font-size:13px; color:#4a4a44; line-height:1.5; margin-bottom:10px;}
+  .pc .lk{font-family:var(--mono); font-size:9.5px; letter-spacing:0.08em; text-transform:uppercase;}
+
+  .q12{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:14px 0;}
+  .q12 .col{border:1px solid var(--rule); padding:16px 18px; background:var(--paper-card);}
+  .q12 .col h5{font-family:var(--mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:10px;}
+  .q12 .gallup h5{color:var(--bench);} .q12 .ours h5{color:var(--accent);}
+  .q12 .col p{font-size:13.5px; margin-bottom:0; color:#4a4a44;}
+
+  /* mapping matrix on pitch/survey */
+  .mtx{width:100%; border-collapse:collapse; margin:14px 0;}
+  .mtx th{font-family:var(--mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); padding:8px 6px; border-bottom:1px solid var(--rule); text-align:center; font-weight:600;}
+  .mtx th.row{text-align:left; width:30%;}
+  .mtx td{padding:9px 6px; border-bottom:1px solid var(--rule-soft); text-align:center; font-size:12.5px; color:#4a4a44;}
+  .mtx td.row{text-align:left; font-family:var(--serif); font-size:15px; font-weight:500;}
+  .mtx td.row em{font-style:italic; font-size:12px; color:var(--muted); display:block;}
+
+  /* ask */
+  .ask{background:var(--ink); color:var(--paper); margin-top:60px; padding:56px 0;}
+  .ask .eyebrow{color:var(--accent-soft);} .ask .eyebrow::after{background:rgba(255,255,255,0.18);}
+  .ask h2{font-family:var(--serif); font-weight:500; font-size:clamp(26px,3.6vw,40px); letter-spacing:-0.02em; line-height:1.1; margin-bottom:26px; max-width:780px;}
+  .ask h2 em{font-style:italic; color:var(--accent-soft);}
+  .ask-list{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.15); margin-bottom:30px;}
+  .ask-item{background:var(--ink); padding:22px 20px;}
+  .ask-item .n{font-family:var(--mono); font-size:10px; letter-spacing:0.14em; color:var(--accent-soft); margin-bottom:10px;}
+  .ask-item h4{font-family:var(--serif); font-size:18px; font-weight:500; margin-bottom:8px;}
+  .ask-item p{font-size:13.5px; color:rgba(245,246,248,0.85); line-height:1.5;}
+  .ask-fine{font-family:var(--serif); font-style:italic; font-size:14px; color:rgba(245,246,248,0.6); max-width:740px; line-height:1.5;}
+
+  .demo-nav{padding:54px 0 70px; text-align:center;}
+  .demo-nav .eyebrow{justify-content:center;} .demo-nav .eyebrow::after{display:none;}
+  .demo-nav h3{font-family:var(--serif); font-weight:500; font-size:26px; margin-bottom:6px;}
+  .demo-nav .sub{font-family:var(--serif); font-style:italic; color:var(--slate); margin-bottom:28px;}
+  .demo-cards{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  .demo-card{border:1px solid var(--ink); background:var(--paper-card); padding:26px 22px; cursor:pointer; text-align:left; transition:all .16s ease;}
+  .demo-card:hover{background:var(--ink);}
+  .demo-card:hover *{color:var(--paper) !important;}
+  .demo-card .dc-n{font-family:var(--mono); font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); margin-bottom:12px;}
+  .demo-card h4{font-family:var(--serif); font-size:22px; font-weight:500; margin-bottom:7px; letter-spacing:-0.01em;}
+  .demo-card p{font-size:13.5px; color:var(--slate); line-height:1.45;}
+  .demo-card .go{font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); margin-top:14px; display:inline-block;}
+
+  /* illustrative */
+  .illus{display:flex; align-items:center; gap:12px; background:var(--paper-deep); border:1px solid var(--gold); border-left:4px solid var(--gold); padding:13px 18px; font-size:13px; color:#5a5a52; line-height:1.45;}
+  .illus .tag{font-family:var(--mono); font-size:9px; letter-spacing:0.14em; text-transform:uppercase; background:var(--gold); color:#fff; padding:4px 9px; white-space:nowrap; font-weight:600;}
+  .illus b{color:var(--ink);}
+
+  .demo-top{padding:42px 0 8px;}
+  .backlink{font-family:var(--mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); cursor:pointer; background:none; border:none; padding:0; margin-bottom:22px; display:inline-flex; gap:7px; align-items:center;}
+  .backlink:hover{color:var(--accent);}
+  .demo-h{font-family:var(--serif); font-weight:700; font-size:clamp(28px,4vw,44px); letter-spacing:-0.022em; line-height:1; margin:14px 0 10px;}
+  .demo-sub{font-family:var(--serif); font-style:italic; font-size:18px; color:var(--slate); max-width:680px; margin-bottom:24px;}
+
+  /* prominent 3-questions × 4-tiers key grid (top of survey) */
+  .skey{border:1px solid var(--ink); background:var(--paper-card); padding:24px 26px 26px; margin-top:6px;}
+  .skey-h{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:6px;}
+  .skey-h .t{font-family:var(--sans); font-weight:700; font-size:21px; letter-spacing:-0.01em;}
+  .skey-h .k{font-family:var(--mono); font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted);}
+  .skey-sub{font-size:14px; color:var(--slate); line-height:1.5; max-width:780px; margin-bottom:20px;}
+  .skey-sub b{color:var(--ink); font-weight:600;} .skey-sub em{font-style:normal; color:var(--accent); font-weight:600;}
+  .skey-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  .skey-grid{width:100%; border-collapse:separate; border-spacing:6px; min-width:640px;}
+  .skey-grid th, .skey-grid td{padding:13px 14px; text-align:left; vertical-align:top; border-radius:8px;}
+  .skey-grid .corner{background:none; width:21%; padding:0;}
+  .sk-axis{font-family:var(--mono); font-size:8.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); align-self:end; padding:0 0 8px 2px !important;}
+  .sk-tier{font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; font-weight:600; line-height:1.25; width:19.75%;}
+  .sk-tier span{display:block; font-family:var(--sans); font-size:9px; letter-spacing:0.02em; text-transform:none; font-weight:500; opacity:0.75; margin-top:3px;}
+  .sk-tier.t1{background:#eceae2; color:var(--slate);}
+  .sk-tier.t2{background:#ffe6da; color:#d2521f;}
+  .sk-tier.t3{background:#f0e4fb; color:#8a4fb0;}
+  .sk-tier.t4{background:#e1efe7; color:#3c7a5c;}
+  .sk-q{font-family:var(--sans); font-weight:600; font-size:14px; line-height:1.2; background:var(--paper-deep);}
+  .sk-q span{display:block; font-family:var(--mono); font-size:8.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); font-weight:500; margin-top:4px;}
+  .skey-grid td.cell{font-size:12.5px; color:#4a4a44; line-height:1.32;}
+  .skey-grid td.c1{background:#f5f4ef;} .skey-grid td.c2{background:#fff4ef;}
+  .skey-grid td.c3{background:#f8f2fd;} .skey-grid td.c4{background:#eff7f2;}
+  .skey-foot{font-family:var(--serif); font-style:italic; font-size:13px; color:var(--muted); margin-top:16px; line-height:1.45;}
+  .skey-foot b{font-style:normal; color:var(--accent); font-weight:600;}
+
+  /* preview-as-respondent callout + button */
+  .preview-cta{display:flex; align-items:center; justify-content:space-between; gap:18px; border:1px solid var(--ink); background:var(--ink); color:var(--paper); padding:18px 22px; margin-top:18px; flex-wrap:wrap;}
+  .preview-cta .pcx{max-width:560px;}
+  .preview-cta .pck{font-family:var(--mono); font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent-soft); margin-bottom:6px;}
+  .preview-cta .pct{font-family:var(--serif); font-size:18px; font-weight:500; line-height:1.3;}
+  .preview-cta .pct em{font-style:italic; color:var(--accent-soft);}
+  .preview-btn{font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; font-weight:600; cursor:pointer; white-space:nowrap; background:var(--paper); color:var(--ink); border:none; padding:14px 22px; transition:transform .14s ease, background .14s ease;}
+  .preview-btn:hover{transform:translateY(-1px); background:#fff;}
+  .preview-btn .dot{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--accent); margin-right:9px; vertical-align:middle;}
+
+  /* modal overlay */
+  .modal-scrim{position:fixed; inset:0; z-index:200; background:rgba(26,26,23,0.62); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; padding:24px;}
+  .modal-scrim.open{display:flex; animation:fadein .25s ease;}
+  @keyframes fadein{from{opacity:0;} to{opacity:1;}}
+
+  /* the white-labelled survey card — Sunrise brand identity */
+  .sr{
+    --sr-primary:#e0742f; --sr-deep:#b9551f; --sr-cream:#f7f8fa; --sr-card:#ffffff;
+    --sr-ink:#26282d; --sr-soft:#7c828b; --sr-line:#e6e8ec; --sr-warm:#f6e7d6;
+    width:100%; max-width:540px; max-height:90vh; background:var(--sr-cream); color:var(--sr-ink);
+    border-radius:14px; overflow:hidden; display:flex; flex-direction:column; position:relative;
+    box-shadow:0 30px 80px rgba(0,0,0,0.4); animation:pop .3s cubic-bezier(.2,.8,.3,1);
+  }
+  @keyframes pop{from{opacity:0; transform:translateY(16px) scale(.98);} to{opacity:1; transform:translateY(0) scale(1);}}
+  .sr-close{position:absolute; top:14px; right:14px; z-index:5; width:30px; height:30px; border-radius:50%; border:none; background:rgba(0,0,0,0.06); color:var(--sr-ink); font-size:18px; cursor:pointer; line-height:1; display:flex; align-items:center; justify-content:center;}
+  .sr-close:hover{background:rgba(0,0,0,0.12);}
+
+  /* sunrise header band */
+  .sr-head{background:linear-gradient(135deg,#f0975a 0%,var(--sr-primary) 55%,var(--sr-deep) 100%); padding:26px 28px 22px; color:#fff; position:relative;}
+  .sr-brand{display:flex; align-items:center; gap:12px;}
+  .sr-logo{width:42px; height:42px; border-radius:50%; background:rgba(255,255,255,0.95); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-weight:900; font-size:20px; color:var(--sr-primary); box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+  .sr-brand .nm{font-family:var(--serif); font-weight:600; font-size:18px; line-height:1.05;}
+  .sr-brand .tg{font-family:var(--sans); font-size:11px; opacity:0.9; margin-top:2px;}
+  .sr-prog{height:5px; background:rgba(255,255,255,0.28); border-radius:3px; margin-top:20px; overflow:hidden;}
+  .sr-prog-fill{height:100%; background:#fff; border-radius:3px; width:0%; transition:width .35s ease;}
+  .sr-step-label{font-family:var(--mono); font-size:9px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.85; margin-top:9px;}
+
+  .sr-body{padding:28px; overflow-y:auto; flex:1;}
+
+  /* welcome screen */
+  .sr-welcome h2{font-family:var(--serif); font-weight:700; font-size:26px; line-height:1.12; letter-spacing:-0.015em; margin-bottom:12px;}
+  .sr-welcome h2 em{font-style:italic; color:var(--sr-primary);}
+  .sr-welcome p{font-size:14.5px; color:#4a3f33; line-height:1.6; margin-bottom:14px;}
+  .sr-facts{display:flex; gap:10px; margin:18px 0 6px; flex-wrap:wrap;}
+  .sr-fact{flex:1; min-width:120px; background:var(--sr-warm); border-radius:9px; padding:13px 14px;}
+  .sr-fact .fk{font-family:var(--mono); font-size:8.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--sr-deep); margin-bottom:4px;}
+  .sr-fact .fv{font-family:var(--serif); font-size:15px; font-weight:500;}
+
+  /* question screen */
+  .sr-q .sr-qn{font-family:var(--mono); font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--sr-primary); margin-bottom:12px;}
+  .sr-q .sr-qt{font-family:var(--serif); font-weight:500; font-size:21px; line-height:1.28; letter-spacing:-0.01em; margin-bottom:20px;}
+  .sr-opts{display:flex; flex-direction:column; gap:9px;}
+  .sr-opt{border:1.5px solid var(--sr-line); background:var(--sr-card); border-radius:10px; padding:14px 16px; font-size:14.5px; color:var(--sr-ink); cursor:pointer; text-align:left; transition:all .14s ease; display:flex; align-items:center; gap:12px; font-family:var(--sans);}
+  .sr-opt:hover{border-color:var(--sr-primary); background:#fffdfb;}
+  .sr-opt .tick{width:20px; height:20px; border-radius:50%; border:2px solid var(--sr-line); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all .14s ease;}
+  .sr-opt.sel{border-color:var(--sr-primary); background:var(--sr-warm);}
+  .sr-opt.sel .tick{border-color:var(--sr-primary); background:var(--sr-primary);}
+  .sr-opt.sel .tick::after{content:"✓"; color:#fff; font-size:11px; font-weight:700;}
+  .sr-opt.multi .tick{border-radius:5px;}
+
+  /* likert row */
+  .sr-likert{display:flex; gap:7px;}
+  .sr-lk{flex:1; border:1.5px solid var(--sr-line); background:var(--sr-card); border-radius:9px; padding:14px 4px; text-align:center; cursor:pointer; transition:all .14s ease;}
+  .sr-lk:hover{border-color:var(--sr-primary);}
+  .sr-lk .n{font-family:var(--serif); font-weight:700; font-size:19px; display:block;}
+  .sr-lk .l{font-size:8.5px; color:var(--sr-soft); text-transform:uppercase; letter-spacing:0.03em; margin-top:4px; line-height:1.2; display:block;}
+  .sr-lk.sel{border-color:var(--sr-primary); background:var(--sr-primary);}
+  .sr-lk.sel .n{color:#fff;} .sr-lk.sel .l{color:rgba(255,255,255,0.9);}
+  .sr-hint{font-size:11px; color:var(--sr-soft); margin-top:12px; text-align:center;}
+
+  /* thank-you */
+  .sr-done{text-align:center; padding:14px 0;}
+  .sr-done .ring{width:64px; height:64px; border-radius:50%; background:var(--sr-warm); display:flex; align-items:center; justify-content:center; margin:8px auto 18px; font-size:30px; color:var(--sr-primary);}
+  .sr-done h2{font-family:var(--serif); font-weight:700; font-size:24px; margin-bottom:10px;}
+  .sr-done p{font-size:14px; color:#4a3f33; line-height:1.6; max-width:380px; margin:0 auto 10px;}
+
+  /* footer / nav */
+  .sr-foot{padding:16px 28px; border-top:1px solid var(--sr-line); background:var(--sr-card); display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .sr-powered{font-family:var(--mono); font-size:8.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--sr-soft);}
+  .sr-powered b{color:var(--sr-deep); font-weight:600;}
+  .sr-nav{display:flex; gap:9px;}
+  .sr-btn{font-family:var(--sans); font-weight:600; font-size:13px; cursor:pointer; border:none; border-radius:8px; padding:11px 22px; transition:all .14s ease;}
+  .sr-btn.primary{background:var(--sr-primary); color:#fff;}
+  .sr-btn.primary:hover{background:var(--sr-deep);}
+  .sr-btn.ghost{background:none; color:var(--sr-soft); padding:11px 14px;}
+  .sr-btn.ghost:hover{color:var(--sr-ink);}
+  .sr-btn:disabled{opacity:0.4; cursor:not-allowed;}
+  .sr-banner{font-family:var(--mono); font-size:8px; letter-spacing:0.12em; text-transform:uppercase; background:var(--gold); color:#fff; padding:5px 0; text-align:center;}
+
+  @media(max-width:560px){
+    .preview-cta{flex-direction:column; align-items:flex-start;}
+    .sr{max-height:94vh;} .sr-body{padding:22px;} .sr-likert{gap:4px;} .sr-lk{padding:11px 2px;}
+  }
+
+  /* white label bar */
+  .wl-bar{display:flex; align-items:center; justify-content:space-between; border:1px solid var(--ink); padding:14px 20px; background:var(--paper-card); flex-wrap:wrap; gap:10px;}
+  .wl-org{display:flex; align-items:center; gap:13px;}
+  .wl-logo{width:38px; height:38px; border-radius:50%; background:var(--moss); color:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-weight:700; font-size:15px;}
+  .wl-org .nm{font-family:var(--serif); font-weight:500; font-size:18px; line-height:1;}
+  .wl-org .tg{font-family:var(--mono); font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-top:4px;}
+  .wl-meta{font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); text-align:right; line-height:1.6;}
+
+  /* survey items */
+  .sect{margin:34px 0 8px; border-top:2px solid var(--ink); padding-top:16px;}
+  .sect .sq{font-family:var(--serif); font-weight:700; font-size:26px; letter-spacing:-0.02em; line-height:1.05;}
+  .sect .sq .sn{font-family:var(--mono); font-size:11px; letter-spacing:0.16em; color:var(--accent); display:block; margin-bottom:7px; font-weight:600;}
+  .sect .sd{font-family:var(--serif); font-style:italic; font-size:15px; color:var(--slate); margin-top:6px;}
+  .tier-sub{font-family:var(--mono); font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); margin:22px 0 10px; padding-bottom:5px; border-bottom:1px solid var(--rule-soft);}
+
+  .item{border:1px solid var(--rule-soft); border-left:3px solid var(--rule); padding:14px 16px; margin-bottom:8px; background:var(--paper-card);}
+  .item.t1{border-left-color:var(--slate);} .item.t2{border-left-color:var(--accent);}
+  .item.t3{border-left-color:var(--gold);} .item.t4{border-left-color:var(--moss);}
+  .item .ihead{display:flex; justify-content:space-between; gap:10px; align-items:baseline; margin-bottom:9px; flex-wrap:wrap;}
+  .chip{font-family:var(--mono); font-size:8px; letter-spacing:0.1em; text-transform:uppercase; padding:3px 7px; white-space:nowrap; font-weight:600;}
+  .chip.t1{background:#eceae2; color:var(--slate);} .chip.t2{background:#ffe6da; color:#d2521f;}
+  .chip.t3{background:#f0e4fb; color:#8a4fb0;} .chip.t4{background:#e1efe7; color:#3c7a5c;}
+  .chip.scale{background:none; border:1px solid var(--rule); color:var(--muted);}
+  .item .qt{font-family:var(--serif); font-size:18px; font-weight:500; line-height:1.25; letter-spacing:-0.005em;}
+  .item .qt .rev{font-family:var(--mono); font-size:8px; letter-spacing:0.08em; color:var(--accent-soft); vertical-align:super;}
+  .scale-mini{display:flex; gap:5px; margin-top:11px; flex-wrap:wrap;}
+  .sm-pill{border:1px solid var(--rule); background:var(--paper); padding:6px 9px; font-family:var(--mono); font-size:8.5px; letter-spacing:0.04em; text-transform:uppercase; color:var(--muted);}
+  .sm-pill.lk{min-width:32px; text-align:center; font-family:var(--serif); font-size:13px; font-weight:600; color:var(--ink); padding:4px 8px;}
+  .chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:11px;}
+  .chips .opt{border:1px solid var(--rule); background:var(--paper); padding:6px 11px; font-size:12px; color:var(--slate);}
+  .chips .note{font-family:var(--mono); font-size:8.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); align-self:center;}
+
+  /* dashboards */
+  .metrics{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--rule); border:1px solid var(--rule); margin:8px 0 26px;}
+  .mc{background:var(--paper-card); padding:20px 18px;}
+  .mc .ml{font-family:var(--mono); font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:9px;}
+  .mc .mv{font-family:var(--serif); font-weight:700; font-size:34px; line-height:1; letter-spacing:-0.01em;}
+  .mc .mv.sm{font-size:22px;}
+  .mc .md{font-size:12px; margin-top:7px;}
+  .up{color:var(--moss); font-weight:600;} .down{color:var(--accent); font-weight:600;} .neu{color:var(--muted);}
+
+  .panel{border:1px solid var(--ink); background:var(--paper-card); padding:26px 28px; margin-bottom:18px;}
+  .panel-h{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; flex-wrap:wrap; gap:8px;}
+  .panel-h h3{font-family:var(--serif); font-weight:500; font-size:23px; letter-spacing:-0.01em;}
+  .panel-h .leg{font-family:var(--mono); font-size:9.5px; letter-spacing:0.06em; color:var(--muted); display:flex; gap:14px; align-items:center; flex-wrap:wrap;}
+  .leg .key{display:inline-flex; align-items:center; gap:5px;}
+  .leg .swatch{width:18px; height:8px; display:inline-block;} .leg .swatch.org{background:var(--accent);}
+  .leg .tick{width:2px; height:13px; display:inline-block;} .leg .tick.nat{background:var(--gold);} .leg .tick.glob{background:var(--bench);}
+  .panel-note{font-family:var(--serif); font-style:italic; font-size:13px; color:var(--muted); margin-bottom:22px;}
+
+  .jbar{margin-bottom:20px;}
+  .jbar .jh{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:7px;}
+  .jbar .jn{font-family:var(--serif); font-size:18px; font-weight:500;}
+  .jbar .jn em{font-style:italic; font-size:14px; color:var(--muted);}
+  .jbar .jvals{font-family:var(--mono); font-size:10px; letter-spacing:0.04em; color:var(--muted);}
+  .jbar .jvals b{font-size:14px; color:var(--ink);}
+  .jtrack{position:relative; height:22px; background:var(--paper-deep); border:1px solid var(--rule-soft);}
+  .jfill{position:absolute; left:0; top:0; height:100%; background:var(--accent); opacity:0.85;}
+  .jfill.good{background:var(--moss);}
+  .jmark{position:absolute; top:-4px; width:2px; height:30px;}
+  .jmark.nat{background:var(--gold);} .jmark.glob{background:var(--bench);}
+
+  .diag{display:flex; gap:14px; align-items:flex-start; background:var(--paper-deep); border-left:4px solid var(--accent); padding:20px 22px; margin-top:6px;}
+  .diag .dh{font-family:var(--mono); font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); margin-bottom:7px; font-weight:600;}
+  .diag p{font-size:14px; color:#4a4a44; line-height:1.55;}
+
+  /* dual lens */
+  .twocol{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  .mini-bars .mb{margin-bottom:14px;}
+  .mini-bars .mbh{display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px;}
+  .mini-bars .mbh b{font-family:var(--serif); font-size:15px;}
+  .mtrack{height:14px; background:var(--paper-deep); border:1px solid var(--rule-soft); position:relative;}
+  .mfill{height:100%; background:var(--bench);}
+
+  /* per-question insight table */
+  .ins{width:100%; border-collapse:collapse;}
+  .ins th{font-family:var(--mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); text-align:left; padding:0 8px 11px; font-weight:600; border-bottom:1px solid var(--rule);}
+  .ins th.r{text-align:right;}
+  .ins td{padding:11px 8px; border-bottom:1px solid var(--rule-soft); vertical-align:middle; font-size:13.5px;}
+  .ins td.r{text-align:right; font-family:var(--mono); font-size:12.5px;}
+  .ins .qn{font-family:var(--serif); font-size:14.5px; line-height:1.3;}
+  .ins .tg{font-family:var(--mono); font-size:8px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted);}
+  .ins .big{font-family:var(--serif); font-weight:700; font-size:15px;}
+  .delta-up{color:var(--moss); font-weight:600;} .delta-dn{color:var(--accent); font-weight:600;} .delta-fl{color:var(--muted);}
+
+  .cols2{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  .stack{border:1px solid var(--rule); background:var(--paper-card); padding:20px 22px;}
+  .stack h4{font-family:var(--serif); font-size:18px; font-weight:500; margin-bottom:4px;}
+  .stack .sh{font-family:var(--mono); font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:14px;}
+  .mv-row{display:flex; justify-content:space-between; align-items:baseline; padding:10px 0; border-top:1px solid var(--rule-soft); font-size:14px;}
+  .mv-row:first-of-type{border-top:none;}
+  .mv-row .lbl{font-family:var(--serif); font-size:15px;}
+  .mv-row .val{font-family:var(--mono); font-size:13px; font-weight:600;}
+
+  .focus{display:flex; gap:13px; align-items:flex-start; padding:14px 0; border-top:1px solid var(--rule-soft);}
+  .focus:first-of-type{border-top:none;}
+  .focus .fn{font-family:var(--serif); font-weight:900; font-size:24px; color:var(--accent-soft); line-height:1; min-width:26px;}
+  .focus .ft{font-family:var(--serif); font-size:16px; font-weight:500; margin-bottom:3px;}
+  .focus .fd{font-size:13px; color:var(--slate); line-height:1.45;}
+
+  /* funnel */
+  .funnel{margin:8px 0;}
+  .fn-row{display:flex; align-items:center; gap:12px; margin-bottom:8px;}
+  .fn-label{font-family:var(--mono); font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); white-space:nowrap; width:110px; flex-shrink:0;}
+  .fn-track{flex:1; min-width:0;}
+  .fn-bar{height:38px; background:var(--moss); display:flex; align-items:center; padding-left:14px; color:#fff; font-family:var(--sans); font-weight:600; font-size:14px; border-radius:3px; transition:width .4s;}
+  .fn-bar.low{background:var(--accent);}
+  .fn-drop{font-family:var(--mono); font-size:10px; color:var(--accent); white-space:nowrap; width:40px; flex-shrink:0;}
+
+  /* tier world map — tile-grid cartogram */
+  .map-controls{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:4px;}
+  .map-btn{font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; font-weight:600; cursor:pointer; border:1px solid var(--rule); background:var(--paper-card); color:var(--slate); padding:9px 15px; border-radius:6px; transition:all .14s ease;}
+  .map-btn:hover{border-color:var(--ink); color:var(--ink);}
+  .map-btn.active{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+  .map-cap{font-family:var(--serif); font-style:italic; font-size:14px; color:var(--slate); margin:15px 0 16px; min-height:20px; line-height:1.45;}
+  .map-cap b{font-style:normal; color:var(--ink); font-weight:600;}
+  .map-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  .tilemap{display:grid; grid-template-columns:repeat(13,1fr); grid-auto-rows:44px; gap:5px; min-width:560px; max-width:620px;}
+  .tile{height:100%; border-radius:5px; background:var(--paper-deep); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; transition:background .3s ease,color .3s ease; position:relative;}
+  .tile .tc{font-family:var(--mono); font-size:10px; font-weight:600; line-height:1;}
+  .tile .tv{font-family:var(--sans); font-size:9px; font-weight:600; line-height:1; opacity:0.9;}
+  .tile.lvl-green{background:#3f9d72; color:#fff;}
+  .tile.lvl-orange{background:#e0993f; color:#fff;}
+  .tile.lvl-red{background:#d65349; color:#fff;}
+  .tile.lvl-grey{background:#e6e8ec; color:#9aa0a8;}
+  .tile:hover{outline:2px solid var(--ink); outline-offset:1px; z-index:2;}
+  .map-legend{display:flex; gap:16px; flex-wrap:wrap; margin-top:18px; font-family:var(--mono); font-size:9.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted);}
+  .map-legend .lg{display:inline-flex; align-items:center; gap:6px;}
+  .map-legend .sw{width:13px; height:13px; border-radius:3px;}
+  .map-legend .sw.green{background:#3f9d72;} .map-legend .sw.orange{background:#e0993f;}
+  .map-legend .sw.red{background:#d65349;} .map-legend .sw.grey{background:#e6e8ec; border:1px solid var(--rule);}
+
+  /* 3x4 matrix heat */
+  .heat{width:100%; border-collapse:separate; border-spacing:4px;}
+  .heat th{font-family:var(--mono); font-size:8.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); padding:4px; text-align:center; font-weight:600;}
+  .heat th.row{text-align:left; width:24%;}
+  .heat td.row{font-family:var(--serif); font-size:14px; font-weight:500; text-align:left; padding-left:2px;}
+  .heat td.cell{text-align:center; font-family:var(--serif); font-weight:700; font-size:17px; padding:14px 4px;}
+
+  /* findings */
+  .finds{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--rule); border:1px solid var(--rule); margin-bottom:18px;}
+  .fcard{background:var(--paper-card); padding:18px 16px;}
+  .fcard .fv{font-family:var(--serif); font-weight:900; font-size:30px; line-height:1; color:var(--accent);}
+  .fcard .fl{font-size:12.5px; color:#4a4a44; line-height:1.4; margin-top:9px;}
+
+  .age-row{display:flex; align-items:center; gap:14px; margin-bottom:12px;}
+  .age-lbl{font-family:var(--mono); font-size:10px; letter-spacing:0.08em; color:var(--slate); width:90px;}
+  .age-track{flex:1; height:18px; background:var(--paper-deep); border:1px solid var(--rule-soft); position:relative;}
+  .age-fill{height:100%; background:var(--moss);}
+  .age-val{font-family:var(--serif); font-weight:700; font-size:15px; width:40px; text-align:right;}
+
+  .compare{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .cmp{border:1px solid var(--rule); padding:18px; text-align:center;}
+  .cmp.net{border-top:3px solid var(--moss);} .cmp.pub{border-top:3px solid var(--slate);}
+  .cmp .ck{font-family:var(--mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:8px;}
+  .cmp .cv{font-family:var(--serif); font-weight:900; font-size:38px; line-height:1;}
+  .cmp.net .cv{color:var(--moss);} .cmp.pub .cv{color:var(--slate);}
+  .cmp .cs{font-size:12px; color:var(--slate); margin-top:7px;}
+
+  .regions{width:100%; border-collapse:collapse;}
+  .regions th{font-family:var(--mono); font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); text-align:left; padding:0 0 12px; font-weight:600; border-bottom:1px solid var(--rule);}
+  .regions th.r{text-align:right;}
+  .regions td{padding:13px 0; border-bottom:1px solid var(--rule-soft); vertical-align:middle;}
+  .regions td.r{text-align:right;}
+  .rg-name{font-family:var(--serif); font-size:16px; font-weight:500;}
+  .rg-bar-wrap{width:130px; height:9px; background:var(--paper-deep); display:inline-block; position:relative; border:1px solid var(--rule-soft);}
+  .rg-bar{position:absolute; left:0; top:0; height:100%; background:var(--moss);}
+  .rg-score{font-family:var(--serif); font-weight:700; font-size:18px;}
+  .rg-resp{font-family:var(--mono); font-size:12px; color:var(--slate);}
+  .rg-tr{font-family:var(--mono); font-size:12px; font-weight:600;}
+
+  .insight-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--rule); border:1px solid var(--rule);}
+  .ig{background:var(--paper-card); padding:18px 16px; text-align:center;}
+  .ig .igt{font-family:var(--mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:10px;}
+  .ig .igv{font-family:var(--serif); font-weight:700; font-size:30px; line-height:1;}
+  .ig .igs{font-size:11px; color:var(--slate); margin-top:6px;}
+
+  .footer{border-top:1px solid var(--ink); margin-top:40px; padding:20px 0 60px;}
+  .footer .wrap{display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); flex-wrap:wrap; gap:8px;}
+
+  @media(max-width:860px){
+    .sc{grid-template-columns:1fr;} .sc-stay{border-right:none; border-bottom:1px solid var(--ink);}
+    .outcomes,.demo-cards,.ask-list,.metrics,.pattern,.finds,.twocol,.cols2,.compare,.insight-grid{grid-template-columns:1fr 1fr;}
+    .ci{grid-template-columns:1fr 1fr 1fr;} .q12{grid-template-columns:1fr;}
+  }
+  @media(max-width:560px){
+    .finds,.metrics,.insight-grid{grid-template-columns:1fr 1fr;}
+    .twocol,.cols2,.compare,.pattern,.outcomes,.demo-cards,.ask-list{grid-template-columns:1fr;}
+    .hero{padding:40px 0 20px;} .acc-body{padding-left:4px;}
+    .fn-label,.age-lbl{width:auto;}
+  }
+  /* v6 survey tab (round 8) */
+  .brand-tag{display:block; font-family:var(--sans); font-style:normal; font-weight:400; font-size:10.5px; letter-spacing:0; color:inherit; opacity:.72; margin-top:2px;}
+  .h1-tag{font-size:17px; color:var(--ink-2,#5b6270); margin:-6px 0 14px;}
+  .route{margin:34px 0 4px; padding:14px 18px; border-radius:12px; background:var(--ink,#22252b); color:#fff;}
+  .route .rk{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; opacity:.75;}
+  .route .rt{font-weight:700; font-size:19px; margin-top:3px;}
+  .route .rd{font-size:13px; opacity:.85; margin-top:4px; line-height:1.5;}
+  .chip.unscored{background:transparent; border:1px dashed currentColor; color:var(--ink-2,#5b6270);}
+  .chip.meas{background:#eef0f4; color:var(--ink,#22252b);}
+  .route-note{font-size:12px; color:var(--ink-2,#5b6270); margin-top:8px;}
+  .route-note b{color:var(--ink,#22252b);}
+  .ichips{display:inline-flex; gap:6px; flex-wrap:wrap;}
+</style>
+</head>
+<body>
+
+<nav class="topbar hidden">
+  <div class="brand">The <em>Jesus</em> Index<span class="brand-tag">a global measure of Jesus-following</span></div>
+  <div class="tabs">
+    <button class="tab active" data-screen="pitch">The Pitch</button>
+    <button class="tab" data-screen="survey">The Survey</button>
+    <button class="tab" data-screen="org">Org Dashboard</button>
+    <button class="tab" data-screen="network">Collab Intelligence</button>
+  </div>
+</nav>
+
+<!-- ===== COVER ===== -->
+<section class="screen active cover" id="cover">
+  <div class="cover-top">
+    <div class="cover-brand">The <span class="x">Jesus</span> Index<span class="brand-tag">a global measure of Jesus-following</span></div>
+    <div class="cover-doc">Leadership Briefing · Working Proposal</div>
+  </div>
+  <div class="cover-mid">
+    <div class="cover-kicker">NextGen Global Collab · Road to 2033</div>
+    <p class="cover-vision">To see every young person have a real opportunity to follow Jesus by 2033.</p>
+    <h1 class="cover-hook">How will we <em>know</em>?</h1>
+    <p class="cover-blurb">Thirty-plus organisations. Dozens of countries. One bold goal — and, until now, <b>no shared way to tell whether young people are actually following Jesus</b>. Each of us counts our own outputs, alone. This is a proposal to change that: one shared measure, owned by everyone, that lets the whole movement finally see the same picture.</p>
+    <div class="cover-note">
+      <div class="cn-k">A draft proposal — for input and shaping</div>
+      <p>This draws on the extensive work of the Next Gen Global Collab, in consultation with the involved organisations and their seconded researchers — <b>Ulrich Lombard</b>, <b>Eido Research</b>, and <b>Dr. Matthew Niermann</b>. It is offered as a starting point, not a finished plan.<span class="clay">Clay to be moulded — <em>not a vase to be baked.</em></span></p>
+    </div>
+    <button class="cover-cta" data-screen="pitch">On to the pitch <span class="arr">→</span></button>
+  </div>
+  <div class="cover-foot">
+    <span>A working proposal · for the leadership team</span>
+    <span>jfindx.org</span>
+  </div>
+</section>
+
+<!-- ===== PITCH ===== -->
+<section class="screen" id="pitch">
+  <div class="wrap">
+    <div class="hero">
+      <div class="kicker">NextGen Global Collab · Leadership Briefing · Working Proposal</div>
+      <h1>The <em>Jesus</em> Index</h1>
+      <p class="h1-tag">a global measure of Jesus-following</p>
+      <p class="lede">One shared way to measure whether young people are following Jesus — crowdsourced across hundreds of organisations, so the whole movement reads the same scoreboard, together, on the road to 2033.</p>
+      <p class="handle">Referred to simply as <b>the Index</b> &nbsp;·&nbsp; at <b>jfindx.org</b></p>
+    </div>
+
+    <div class="eyebrow">The shift, in one frame</div>
+    <div class="sc">
+      <div class="sc-stay">
+        <h3>What stays exactly the same</h3>
+        <div class="stay-item"><div class="big">The 2033 goal</div><div class="sub">A credible way to measure the next generation's opportunity to follow Jesus.</div></div>
+        <div class="stay-item"><div class="big">The three questions</div><div class="sub">Do they follow Jesus? Do they participate in His mission? Does their world look different?</div></div>
+        <div class="stay-item"><div class="big">The collaborative nature</div><div class="sub">We still measure it <em>together</em>, as a coalition — now more than ever.</div></div>
+      </div>
+      <div class="sc-change">
+        <h3>What changes — only how we do it</h3>
+        <div class="change-flow">
+          <span class="from"><b>From:</b> one centralised 50-country study that the Collab runs, funds and owns.</span>
+          <span class="to"><b>To:</b> a <b>crowdsourced</b> shared measure that hundreds of organisations — down to a single local church — run for themselves, pooling their data into one common picture.</span>
+        </div>
+        <p class="change-note">The mission, the questions and the partnership are untouched. We've simply handed the measuring tape to everyone, instead of carrying it ourselves.</p>
+      </div>
+    </div>
+
+    <div class="pull">
+      <blockquote>We're not centralising the research anymore.<br>We're <em>crowdsourcing</em> it — and empowering everyone to own it.</blockquote>
+      <cite>— the heart of the pivot</cite>
+    </div>
+
+    <div class="section-head">
+      <h2>What we're actually building</h2>
+      <p>Three outcomes, in order — each one valuable on its own, even if the next never happened.</p>
+    </div>
+    <div class="outcomes">
+      <div class="oc"><div class="num">1</div><h4>The shared metric</h4><p>A single, memorable, translatable instrument — the Index — that anyone can run to measure faith engagement and the discipleship journey.</p><div class="tagline">The common language</div></div>
+      <div class="oc"><div class="num">2</div><h4>The dashboard</h4><p>Each organisation sees its own results instantly, benchmarked against region and globe. The Collab sees the shared intelligence.</p><div class="tagline">The shared intelligence</div></div>
+      <div class="oc"><div class="num">3</div><h4>The consulting</h4><p>We help organisations act on what they see — turning a number into changed strategy. The long game, and the deepest impact.</p><div class="tagline">The lasting change</div></div>
+    </div>
+
+    <div class="deeper-intro">Go deeper — expand only what you need</div>
+
+    <details class="acc">
+      <summary><span class="ix">01</span><span class="tt">Why the change?</span><span class="sgn">+</span></summary>
+      <div class="acc-body">
+        <p>A clear-eyed look at the original 50-country study surfaced three walls that no amount of tweaking could move. As Matthew put it, we were adjusting the haircut budget when the rent was the problem.</p>
+        <ul>
+          <li><b>The under-18 wall.</b> Our research director cannot put his name on centrally-collected data for minors across many countries without enormous, multi-country ethics-board infrastructure. About 70% of Collab organisations work with under-18s — so an "18-and-over" headline doesn't serve the coalition.</li>
+          <li><b>The money wall.</b> A robust 50-country longitudinal study cannot be done on our ~$1M budget. For scale: the <a href="https://globalflourishingstudy.com" target="_blank" rel="noopener">Global Flourishing Study</a> covers 22 countries and required <span class="stat-inline">~$43M</span>. One million dollars buys roughly one country for seven years — not fifty.</li>
+          <li><b>The quality wall.</b> Forcing a global study onto a small budget means snowball sampling and ad-hoc collection — data we can't compare year to year or region to region. Serious research partners like OneHope were rightly hesitant to sign off on that.</li>
+        </ul>
+        <p>The crowdsourced model removes all three at once: organisations gather their own data under their own consent models, so the cost, the legal load, and the Western-sampling bias all move off our central plate.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span class="ix">02</span><span class="tt">The thinking behind it: Collective Impact</span><span class="sgn">+</span></summary>
+      <div class="acc-body">
+        <p>This isn't a new idea — it's a return to one of our own founding ideas. Stanford's <strong>Collective Impact</strong> framework names five conditions a coalition needs to move the needle together. We already have four. The one we kept reaching past is <strong>shared measurement</strong>.</p>
+        <div class="ci">
+          <div class="ci-cell"><div class="cn">Condition 1</div><div class="cl">Common agenda</div><div class="cw">✓ the 2033 vision</div></div>
+          <div class="ci-cell on"><div class="cn">Condition 2</div><div class="cl">Shared measurement</div><div class="cw">The Index</div></div>
+          <div class="ci-cell"><div class="cn">Condition 3</div><div class="cl">Reinforcing activities</div><div class="cw">✓ each partner</div></div>
+          <div class="ci-cell"><div class="cn">Condition 4</div><div class="cl">Continuous communication</div><div class="cw">✓ the gatherings</div></div>
+          <div class="ci-cell"><div class="cn">Condition 5</div><div class="cl">Backbone support</div><div class="cw">✓ NXT Move</div></div>
+        </div>
+        <p>The Index simply <strong>builds the missing leg</strong>. A shared measure never required the world's largest research programme — it required agreement on what we all measure, and a place for the crowdsourced data to come home to.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span class="ix">03</span><span class="tt">A proven pattern — here are three</span><span class="sgn">+</span></summary>
+      <div class="acc-body">
+        <p>For this to be a proven pattern, it has to <em>be</em> a pattern. It is. Across business, academia and the faith sector, the same play recurs: define one shared measure, validate it, give it away, and let everyone benchmark against it.</p>
+        <div class="pattern">
+          <div class="pc g1">
+            <div class="pck">Business · workplace</div>
+            <h5>Gallup Q12</h5>
+            <p>Twelve questions, organised in a four-level hierarchy, used across 50+ industries — you run it and benchmark against a global database. Powers the annual <em>State of the Global Workplace</em>.</p>
+            <span class="lk"><a href="https://www.gallup.com/workplace/356063/gallup-q12-employee-engagement-survey.aspx" target="_blank" rel="noopener">See Q12 →</a></span>
+          </div>
+          <div class="pc g2">
+            <div class="pck">Academia · global</div>
+            <h5>Global Flourishing Study</h5>
+            <p>Harvard's Human Flourishing Program + Baylor + Gallup. Its Secure Flourishing Index measures six domains across 200,000 people in 22 countries. The very study we cite as too costly to copy — but its <em>shared index</em> is exactly the model.</p>
+            <span class="lk"><a href="https://globalflourishingstudy.com" target="_blank" rel="noopener">See the GFS →</a></span>
+          </div>
+          <div class="pc g3">
+            <div class="pck">Faith sector · children</div>
+            <h5>World Vision · Hope &amp; Love</h5>
+            <p>A validated tool measuring how children experience God's love across six signs of hope — Compassion, Joy, Purpose, Resilience, Wisdom, Spirituality. Built with Harvard, Duke &amp; UEL. Released 2025.</p>
+            <span class="lk"><a href="https://www.worldvision.org/about-us/media-center/world-vision-announces-hope-love-measure-the-first-validated-tool-to-quantify-how-children-experience-gods-love" target="_blank" rel="noopener">Announcement →</a> &nbsp; <a href="https://www.wvi.org/sites/default/files/2025-09/Measuring%20the%20Experience%20of%20God's%20Love%20Final%20Report%206.6.25.pdf" target="_blank" rel="noopener">Full report →</a></span>
+          </div>
+        </div>
+        <p>And beyond these, the whole idea is everyday practice — the Net Promoter Score is a single number millions of organisations report and benchmark against. We learn the <strong>model</strong>, not the questions: where Q12 measures organisational growth, the Index measures <em>gospel momentum</em> across four tiers — <em>have I encountered, responded, am I being shaped, does it spread?</em></p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span class="ix">04</span><span class="tt">How the crowdsourced model works</span><span class="sgn">+</span></summary>
+      <div class="acc-body">
+        <p>An organisation signs up and gets the Index <strong>white-labelled as their own</strong> — their logo, their survey, their results to keep. Their data flows back to the Index. When a country reaches a critical mass of crowdsourced responses, benchmarking switches on for that country.</p>
+        <ul>
+          <li><b>The integrity line.</b> We never claim to speak for a whole nation. We only ever say: <em>"of those who have completed the Index, here are the results — and here's how you compare."</em> That single discipline is what makes crowdsourced data responsible.</li>
+          <li><b>Tiered access.</b> The measures are free and open to anyone. A standard report is free. An advanced report is paid — but free for Collab members. Coaching and consulting sit on top as a paid layer.</li>
+          <li><b>Risk moves to the edge.</b> Because organisations run it themselves with their own consent models, central liability for under-18 data largely disappears.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span class="ix">05</span><span class="tt">Who does what</span><span class="sgn">+</span></summary>
+      <div class="acc-body">
+        <p>Still being finalised — presented here as the proposed shape, not a settled contract.</p>
+        <ul>
+          <li><b>The Collab owns the project</b> — and crucially, owns the relationships and the people. NXT Move continues as the appointed three-year backbone of the Collab.</li>
+          <li><b><a href="https://www.eidoresearch.com/" target="_blank" rel="noopener">Eido Research</a> provides the engine</b> — the survey infrastructure and the intelligence platform. This sits squarely in their wheelhouse; they're already building shared-measure platforms of exactly this kind, so we add one new standardised measure onto infrastructure others are already funding.</li>
+          <li><b>Co-owned IP</b> — the Index would be jointly held, governed by a contract between NXT Move (for the Collab) and <a href="https://www.eidoresearch.com/" target="_blank" rel="noopener">Eido Research</a>. Anyone can publish results as long as both are credited.</li>
+          <li><b>Partner organisations participate</b> — they run it, keep their own data, and get diagnostics back. The ask shifts from "give time to our research" to "use this and benefit."</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span class="ix">06</span><span class="tt">The numbers</span><span class="sgn">+</span></summary>
+      <div class="acc-body">
+        <p>The budget doesn't change — <strong>the same ~<span class="stat-inline">$1M</span> through 2033</strong> that we've already taken to foundations. What changes is what it buys. The old plan would have spent the entire envelope on field research in a handful of countries and still come up short. The pivot fits comfortably inside $1M and funds the whole platform — the shared metric, the dashboard, distribution, and consulting — with room to scale as adoption grows.</p>
+        <p>These are realistic starting points, not a ceiling. Early years are lean because the crowdsourced model pushes data-gathering cost out to the partners; later years carry the dashboard build-out, translation, and the human layer.</p>
+        <table class="budget">
+          <thead><tr><th>Phase</th><th>Focus</th><th class="r">Indicative</th></tr></thead>
+          <tbody>
+            <tr><td><span class="yr">2026</span><span class="ph">Build &amp; baseline</span></td><td>Finalise the Index, dashboard v1, DFW + Buenos Aires pilots</td><td class="r">$120K</td></tr>
+            <tr><td><span class="yr">2027</span><span class="ph">Prove the model</span></td><td>Activate key countries &amp; Collab-engaged orgs; infrastructure backbone</td><td class="r">$180K</td></tr>
+            <tr><td><span class="yr">2028–29</span><span class="ph">Scale</span></td><td>Many countries live; first flagship report; certified facilitators</td><td class="r">$320K</td></tr>
+            <tr><td><span class="yr">2030–31</span><span class="ph">Trend lines</span></td><td>Multi-wave data; dashboard v2 &amp; multilingual; consulting layer</td><td class="r">$240K</td></tr>
+            <tr><td><span class="yr">2032–33</span><span class="ph">Standard</span></td><td>Embed as the shared metric; transition toward self-sustaining</td><td class="r">$140K</td></tr>
+            <tr class="total"><td><span class="ph">Total through 2033</span></td><td>The full seven-year horizon</td><td class="r">~$1.0M</td></tr>
+          </tbody>
+        </table>
+        <ul>
+          <li><b>Increasingly self-funding.</b> The tiered model (free measures &amp; standard report; paid advanced reports &amp; consulting) offsets later-year costs, so the curve bends toward sustainability rather than perpetual fundraising.</li>
+          <li><b>More fundable, not less.</b> Same number, stronger story. Foundations hesitate at "another seven-year research project"; they lean in at a dashboard, a data model, and impact consulting — concrete, fundable assets. When we showed a dashboard, the room lit up.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span class="ix">07</span><span class="tt">The seven-year horizon</span><span class="sgn">+</span></summary>
+      <div class="acc-body">
+        <ul>
+          <li><b>2026 · Build &amp; baseline.</b> Index finalised and validated; dashboard v1 built; pilot waves run in Dallas–Fort Worth and Buenos Aires to establish the baseline.</li>
+          <li><b>2027 · Prove the model.</b> Activate a handful of key countries and NextGen Collab–engaged organisations to initiate real momentum and demonstrate that the crowdsourced model works at scale.</li>
+          <li><b>2028–2029 · Scale.</b> Many countries live; first flagship <em>State of the Next Generation</em>; certified facilitators trained.</li>
+          <li><b>2030–2031 · Trend lines.</b> Multiple waves of comparable data; first responsible cross-region insights; multilingual dashboard.</li>
+          <li><b>2032–2033 · Standard, not survey.</b> The Index is referenced as the shared metric for next-gen discipleship; self-sustaining model; the 2033 vision in view.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><span class="ix">08</span><span class="tt">How the 4 tiers fit the 3 questions</span><span class="sgn">+</span></summary>
+      <div class="acc-body">
+        <p>We keep both frameworks. The simplest way they relate: <strong>the 3 questions are <em>what</em> we measure; the 4 tiers are <em>how deep</em> it has gone.</strong> That makes them two axes of one grid — every question can be read at every tier.</p>
+        <table class="mtx">
+          <thead><tr><th class="row">&nbsp;</th><th>Exposure</th><th>Response</th><th>Formation</th><th>Multiplication</th></tr></thead>
+          <tbody>
+            <tr><td class="row">Follow Jesus<em>personal faith</em></td><td>heard of Jesus</td><td>believes</td><td>being shaped</td><td>helps others believe</td></tr>
+            <tr><td class="row">Participate in mission<em>outward</em></td><td>aware of the call</td><td>convinced it's theirs</td><td>practising witness</td><td>mobilising others</td></tr>
+            <tr><td class="row">World looks different<em>lived impact</em></td><td>sees faith should matter</td><td>believes it does</td><td>choices reshaped</td><td>changing their spheres</td></tr>
+          </tbody>
+        </table>
+        <p>The survey stays grouped by the three questions; each item is tagged with the tier it probes; and the dashboards report both lenses. See it live on the <b>Survey</b> and <b>Org Dashboard</b> tabs.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="ask">
+    <div class="wrap">
+      <div class="eyebrow">What we're asking on Wednesday</div>
+      <h2>Affirm the <em>direction</em> in principle — so the team can build the framework and bring it back.</h2>
+      <div class="ask-list">
+        <div class="ask-item"><div class="n">Affirm 01</div><h4>Adopt the shift</h4><p>Move from a centralised global study to a crowdsourced shared Index + dashboard as the Collab's research direction.</p></div>
+        <div class="ask-item"><div class="n">Affirm 02</div><h4>Confirm the name</h4><p>Adopt the name — <b>the Jesus Index</b>, a global measure of Jesus-following — as the banner this work moves under.</p></div>
+        <div class="ask-item"><div class="n">Affirm 03</div><h4>Agree the path</h4><p>Bless the change-management sequence: brief Collab leaders first, then engage their research people for input — not full redesign.</p></div>
+      </div>
+      <p class="ask-fine">The survey and dashboards on the next tabs are deliberately illustrative — built to make the idea concrete and stir the conversation. The survey tab shows the locked v6 pilot instrument, word for word, exactly as young people answer it. The dashboards stay illustrative: every figure on them is invented.</p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="demo-nav">
+      <div class="eyebrow">See how it works</div>
+      <h3>Three screens to make it real</h3>
+      <p class="sub">A young person's survey, the value an organisation gets back, and the intelligence the Collab stewards.</p>
+      <div class="demo-cards">
+        <div class="demo-card" data-screen="survey"><div class="dc-n">Screen 01</div><h4>The Survey</h4><p>The complete instrument — grouped by the three questions, every item tagged by tier.</p><span class="go">Open the survey →</span></div>
+        <div class="demo-card" data-screen="org"><div class="dc-n">Screen 02</div><h4>Org Dashboard</h4><p>Per-question insight, year-on-year shifts, gaps to national, and focus areas for next season.</p><span class="go">Open the dashboard →</span></div>
+        <div class="demo-card" data-screen="network"><div class="dc-n">Screen 03</div><h4>Collab Intelligence</h4><p>The crowdsourced picture — findings and visualisations across 11 regions.</p><span class="go">Open the intelligence →</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SURVEY ===== -->
+<section class="screen" id="survey">
+  <div class="wrap">
+    <div class="demo-top">
+      <button class="backlink" data-screen="pitch">← Back to the pitch</button>
+      <div class="eyebrow">Screen 01 · The Survey</div>
+      <h2 class="demo-h">The complete instrument</h2>
+      <p class="demo-sub">Instrument v6, the pilot instrument, locked 2026-10-16. Every question below is exactly what a young person is asked, generated from the instrument file the survey runs. About 8 minutes for the full survey, about 5 for the J12 only.</p>
+    </div>
+
+    <div class="skey">
+      <div class="skey-h">
+        <div class="t">Three questions, four tiers</div>
+        <div class="k">The shape of the whole instrument</div>
+      </div>
+      <p class="skey-sub">The <b>three questions</b> are <em>what</em> we measure. The <b>four tiers</b> are <em>how deep</em> it has gone. Every question can be read at every tier — and the cell where they meet is what each item is really probing.</p>
+      <div class="skey-scroll">
+        <table class="skey-grid">
+          <thead>
+            <tr>
+              <th class="corner sk-axis">Question&nbsp;↓ &nbsp;/&nbsp; Tier&nbsp;→</th>
+              <th class="sk-tier t1">Exposure<span>have I encountered?</span></th>
+              <th class="sk-tier t2">Response<span>have I responded?</span></th>
+              <th class="sk-tier t3">Formation<span>am I being shaped?</span></th>
+              <th class="sk-tier t4">Multiplication<span>does it spread?</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th class="sk-q">Follow Jesus<span>Personal faith</span></th>
+              <td class="cell c1">Heard of Jesus</td>
+              <td class="cell c2">Believes</td>
+              <td class="cell c3">Being shaped</td>
+              <td class="cell c4">Helps others believe</td>
+            </tr>
+            <tr>
+              <th class="sk-q">Participate in His mission<span>Outward</span></th>
+              <td class="cell c1">Aware of the call</td>
+              <td class="cell c2">Convinced it's theirs</td>
+              <td class="cell c3">Practising witness</td>
+              <td class="cell c4">Mobilising others</td>
+            </tr>
+            <tr>
+              <th class="sk-q">Their world looks different<span>Lived impact</span></th>
+              <td class="cell c1">Sees faith should matter</td>
+              <td class="cell c2">Believes it does</td>
+              <td class="cell c3">Choices reshaped</td>
+              <td class="cell c4">Changing their spheres</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="skey-foot">So the survey reads top-to-bottom by the three questions — and every item is tagged with the tier it sits in. <b>Both lenses, one instrument.</b></p>
+    </div>
+
+    <div class="illus"><span class="tag">Locked · v6</span><span>48 scored questions across both routes. Any change to what is asked or how it is scored is a new version, never an edit.</span></div>
+
+    <div class="preview-cta">
+      <div class="pcx">
+        <div class="pck">See it the way a young person does</div>
+        <div class="pct">Below is the instrument as <em>the leadership team</em> reviews it — tagged and annotated. But when Sunrise distributes it, a young person sees something simpler and fully branded to them.</div>
+      </div>
+      <button class="preview-btn" id="openPreview"><span class="dot"></span>Preview the live survey</button>
+    </div>
+
+    <div class="wl-bar" style="margin-top:18px;">
+      <div class="wl-org"><div class="wl-logo">S</div><div><div class="nm">Sunrise Youth Collective</div><div class="tg">White-labelled · powered by the Index</div></div></div>
+      <div class="wl-meta">Their logo · their survey<br>Their data to keep</div>
+    </div>
+
+    <!-- legend / mapping -->
+    <div class="panel" style="margin-top:18px;">
+      <div class="panel-h"><h3>The tier tags</h3></div>
+      <p class="panel-note">Each item below is grouped under one of the three questions and carries a tag for the tier it probes — the same four tiers as the grid above.</p>
+      <div class="chips">
+        <span class="opt"><span class="chip t1">Exposure</span> &nbsp;encountered</span>
+        <span class="opt"><span class="chip t2">Response</span> &nbsp;believed</span>
+        <span class="opt"><span class="chip t3">Formation</span> &nbsp;being shaped</span>
+        <span class="opt"><span class="chip t4">Multiplication</span> &nbsp;spreading</span>
+        <span class="note">↑ tiers &nbsp;·&nbsp; every cell has one <b>Internal</b> (belief) and one <b>External</b> (action) question</span>
+      </div>
+    </div>
+
+    <div class="sect"><div class="sq"><span class="sn">Getting started</span>Who is answering, and which route they take</div><div class="sd">Asked of everyone. The answers decide the route; nothing here is scored.</div></div>
+    <div class="item t1" data-key="age_band"><div class="ihead"><span class="ichips"><span class="chip unscored">About you · unscored</span></span><span class="chip scale">Single choice</span></div><div class="qt">How old are you?</div><div class="chips"><span class="opt">12 or younger → ends the survey, nothing kept</span><span class="opt">13–17</span><span class="opt">18–22</span><span class="opt">23–30</span></div></div>
+    <div class="item t1" data-key="orientation"><div class="ihead"><span class="ichips"><span class="chip unscored">Routing · unscored</span></span><span class="chip scale">Single choice</span></div><div class="qt">Which of these is most like you right now?</div><div class="chips"><span class="opt">Confident God does not exist</span><span class="opt">Open, but not exploring</span><span class="opt">Open, and actively exploring</span><span class="opt">God exists, but I follow another religion</span><span class="opt">Interested in Jesus, want to know more</span><span class="opt">New follower of Jesus</span><span class="opt">Committed, actively growing</span><span class="opt">None of these describes me</span><span class="opt">Prefer not to say</span></div></div>
+    <div class="item t1" data-key="follower_check"><div class="ihead"><span class="ichips"><span class="chip unscored">Routing · unscored</span></span><span class="chip scale">Single choice</span></div><div class="qt">Do you currently consider yourself a follower of Jesus?</div><div class="chips"><span class="opt">Yes</span><span class="opt">No</span><span class="opt">Not sure</span><span class="opt">Prefer not to say</span></div></div>
+    <div class="route-note"><b>Route A</b> (the Index): "New follower of Jesus" or "Committed, actively growing", or "Yes" to the follow-up. <b>Route B</b> (the Exploration Index): every other answer, including "Not sure" and "Prefer not to say". The follow-up is only asked after "None of these" or "Prefer not to say".</div>
+    <div class="route"><div class="rk">Route A · following Jesus</div><div class="rt">The Index</div><div class="rd">24 scored questions, two in every cell of the 3 × 4 grid (one internal, one external), plus the two prayer and scripture questions, which are measured but not scored.</div></div>
+    <div class="sect"><div class="sq"><span class="sn">Question 01 · Do they follow Jesus?</span>Personal faith</div></div>
+    <div class="tier-sub">Exposure</div>
+    <div class="item t1" data-key="follow_exposure_internal"><div class="ihead"><span class="ichips"><span class="chip t1">Exposure</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I want to keep learning more about who Jesus is and what he taught.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t1" data-key="follow_exposure_external"><div class="ihead"><span class="ichips"><span class="chip t1">Exposure</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I have had opportunities to learn what Jesus taught and why it matters.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Response</div>
+    <div class="item t2" data-key="follow_response_internal"><div class="ihead"><span class="ichips"><span class="chip t2">Response</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I believe forgiveness of sins is only possible through faith in Jesus.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t2" data-key="follow_response_external"><div class="ihead"><span class="ichips"><span class="chip t2">Response</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I have chosen to follow Jesus, whom I believe is God.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Formation</div>
+    <div class="item t3" data-key="follow_formation_internal"><div class="ihead"><span class="ichips"><span class="chip t3">Formation</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">The Bible challenges me to reconsider my choices and behavior.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t3" data-key="follow_formation_external"><div class="ihead"><span class="ichips"><span class="chip t3">Formation</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I engage in forms of prayer that bring me into personal engagement with God.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Multiplication</div>
+    <div class="item t4" data-key="follow_multiplication_internal"><div class="ihead"><span class="ichips"><span class="chip t4">Multiplication</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I believe the gospel is good news in my life and worth sharing with people who aren't Christians.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t4" data-key="follow_multiplication_external"><div class="ihead"><span class="ichips"><span class="chip t4">Multiplication</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">In the last six months, I have shared something about Jesus with someone who doesn't follow him.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="sect"><div class="sq"><span class="sn">Question 02 · Do they participate in His mission?</span>Outward</div></div>
+    <div class="tier-sub">Exposure</div>
+    <div class="item t1" data-key="mission_exposure_internal"><div class="ihead"><span class="ichips"><span class="chip t1">Exposure</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I understand what it means to take part in Jesus' mission.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t1" data-key="mission_exposure_external"><div class="ihead"><span class="ichips"><span class="chip t1">Exposure</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I currently have someone helping me follow Jesus.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Response</div>
+    <div class="item t2" data-key="mission_response_internal"><div class="ihead"><span class="ichips"><span class="chip t2">Response</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I believe sharing the message of Jesus is part of following him.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t2" data-key="mission_response_external"><div class="ihead"><span class="ichips"><span class="chip t2">Response</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I have accepted taking part in Jesus' mission as my responsibility as a follower of Jesus.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t1" data-key="attention_check"><div class="ihead"><span class="ichips"><span class="chip unscored">Attention check · unscored</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">So we know you're reading carefully, please choose &quot;A little true of me&quot; for this one.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Formation</div>
+    <div class="item t3" data-key="mission_formation_internal"><div class="ihead"><span class="ichips"><span class="chip t3">Formation</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">Serving others as part of a Christian community is an important part of how I follow Jesus.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t3" data-key="mission_formation_external"><div class="ihead"><span class="ichips"><span class="chip t3">Formation</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I try to show people who are not Christians how following Jesus shapes my daily life.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Multiplication</div>
+    <div class="item t4" data-key="mission_multiplication_internal"><div class="ihead"><span class="ichips"><span class="chip t4">Multiplication</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I want to invite other people to join me in activities connected to Jesus' mission.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t4" data-key="mission_multiplication_external"><div class="ihead"><span class="ichips"><span class="chip t4">Multiplication</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I have helped someone else grow in their following of Jesus.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="sect"><div class="sq"><span class="sn">Question 03 · Does their world look different?</span>Lived impact</div></div>
+    <div class="tier-sub">Exposure</div>
+    <div class="item t1" data-key="world_exposure_internal"><div class="ihead"><span class="ichips"><span class="chip t1">Exposure</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I believe following Jesus leads to real good for people and the world.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t1" data-key="world_exposure_external"><div class="ihead"><span class="ichips"><span class="chip t1">Exposure</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I make choices that direct my life toward something bigger than just myself.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Response</div>
+    <div class="item t2" data-key="world_response_internal"><div class="ihead"><span class="ichips"><span class="chip t2">Response</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I believe my faith is about more than my personal life. It should make a difference in the world.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t2" data-key="world_response_external"><div class="ihead"><span class="ichips"><span class="chip t2">Response</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">Following Jesus makes a real difference in how I treat people and respond to needs around me.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Formation</div>
+    <div class="item t3" data-key="world_formation_internal"><div class="ihead"><span class="ichips"><span class="chip t3">Formation</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I seek to do God's will in my day-to-day life, even when it is different from my own.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t3" data-key="world_formation_external"><div class="ihead"><span class="ichips"><span class="chip t3">Formation</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">Becoming a more loving person to everyone around me is something I work on every day.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Multiplication</div>
+    <div class="item t4" data-key="world_multiplication_internal"><div class="ihead"><span class="ichips"><span class="chip t4">Multiplication</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I believe followers of Jesus should work together to make positive changes in their communities.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t4" data-key="world_multiplication_external"><div class="ihead"><span class="ichips"><span class="chip t4">Multiplication</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I encourage other Christians to connect their faith with the way they live and serve.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="sect"><div class="sq"><span class="sn">Route A · Core activities</span>Prayer and scripture</div><div class="sd">Measured every time and reported as their own figure; 'Weekly' or 'Most days' counts. Not part of the Index score.</div></div>
+    <div class="item t3" data-key="pray_frequency"><div class="ihead"><span class="ichips"><span class="chip unscored">Core activity · measured, unscored</span></span><span class="chip scale">Frequency</span></div><div class="qt">I pray to God.</div><div class="chips"><span class="opt">Rarely or never</span><span class="opt">Monthly</span><span class="opt">Weekly</span><span class="opt">Most days</span></div></div>
+    <div class="item t3" data-key="scripture_frequency"><div class="ihead"><span class="ichips"><span class="chip unscored">Core activity · measured, unscored</span></span><span class="chip scale">Frequency</span></div><div class="qt">I read or hear scripture.</div><div class="chips"><span class="opt">Rarely or never</span><span class="opt">Monthly</span><span class="opt">Weekly</span><span class="opt">Most days</span></div></div>
+    <div class="route"><div class="rk">Route B · not currently following</div><div class="rt">The Exploration Index</div><div class="rd">The same 3 × 4 grid, 24 questions worded for someone exploring. Scored separately and <b>never blended</b> with the Index.</div></div>
+    <div class="sect"><div class="sq"><span class="sn">Route B · Question 01 · Do they follow Jesus?</span>Personal faith</div></div>
+    <div class="tier-sub">Exposure</div>
+    <div class="item t1" data-key="follow_exposure_internal_unengaged"><div class="ihead"><span class="ichips"><span class="chip t1">Exposure</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I am interested in hearing different views about God or spirituality.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t1" data-key="follow_exposure_external_unengaged"><div class="ihead"><span class="ichips"><span class="chip t1">Exposure</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I have had opportunities to hear what Christians believe about Jesus.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Response</div>
+    <div class="item t2" data-key="follow_response_internal_unengaged"><div class="ihead"><span class="ichips"><span class="chip t2">Response</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I think there is something in human nature that needs to be put right, beyond what we can do on our own.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t2" data-key="follow_response_external_unengaged"><div class="ihead"><span class="ichips"><span class="chip t2">Response</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I have considered reasons for and against believing in God.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Formation</div>
+    <div class="item t3" data-key="follow_formation_internal_unengaged"><div class="ihead"><span class="ichips"><span class="chip t3">Formation</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I think the Bible offers something worth considering about how to live.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t3" data-key="follow_formation_external_unengaged"><div class="ihead"><span class="ichips"><span class="chip t3">Formation</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I make time to reflect on questions about God, spirituality, or life's meaning.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Multiplication</div>
+    <div class="item t4" data-key="follow_multiplication_internal_unengaged"><div class="ihead"><span class="ichips"><span class="chip t4">Multiplication</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I think talking about questions of belief can be valuable, even when people reach different conclusions.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t4" data-key="follow_multiplication_external_unengaged"><div class="ihead"><span class="ichips"><span class="chip t4">Multiplication</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">In the last six months, I have talked with someone about my views or questions about God or spirituality.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="sect"><div class="sq"><span class="sn">Route B · Question 02 · Do they participate in His mission?</span>Outward</div></div>
+    <div class="tier-sub">Exposure</div>
+    <div class="item t1" data-key="mission_exposure_internal_unengaged"><div class="ihead"><span class="ichips"><span class="chip t1">Exposure</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I understand why Christians want to share their faith with others.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t1" data-key="mission_exposure_external_unengaged"><div class="ihead"><span class="ichips"><span class="chip t1">Exposure</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I know someone I can talk with honestly about God or spirituality.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Response</div>
+    <div class="item t2" data-key="mission_response_internal_unengaged"><div class="ihead"><span class="ichips"><span class="chip t2">Response</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I have chosen to take responsibility for making a positive difference in the world around me.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t2" data-key="mission_response_external_unengaged"><div class="ihead"><span class="ichips"><span class="chip t2">Response</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I believe I have a part to play in making the world a better place.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t1" data-key="attention_check_unengaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Attention check · unscored</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">So we know you're reading carefully, please choose &quot;A little true of me&quot; for this one.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Formation</div>
+    <div class="item t3" data-key="mission_formation_internal_unengaged"><div class="ihead"><span class="ichips"><span class="chip t3">Formation</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">Being part of a community that helps others matters to me.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t3" data-key="mission_formation_external_unengaged"><div class="ihead"><span class="ichips"><span class="chip t3">Formation</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I take part in activities with other people that put my beliefs and values into action.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Multiplication</div>
+    <div class="item t4" data-key="mission_multiplication_internal_unengaged"><div class="ihead"><span class="ichips"><span class="chip t4">Multiplication</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I want to invite others to join activities that reflect what I believe matters.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t4" data-key="mission_multiplication_external_unengaged"><div class="ihead"><span class="ichips"><span class="chip t4">Multiplication</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I have helped someone think through their own beliefs or questions about faith.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="sect"><div class="sq"><span class="sn">Route B · Question 03 · Does their world look different?</span>Lived impact</div></div>
+    <div class="tier-sub">Exposure</div>
+    <div class="item t1" data-key="world_exposure_internal_unengaged"><div class="ihead"><span class="ichips"><span class="chip t1">Exposure</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I think faith or spirituality can motivate people to make a positive difference in the world.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t1" data-key="world_exposure_external_unengaged"><div class="ihead"><span class="ichips"><span class="chip t1">Exposure</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I make choices that direct my life toward something bigger than just myself.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Response</div>
+    <div class="item t2" data-key="world_response_internal_unengaged"><div class="ihead"><span class="ichips"><span class="chip t2">Response</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I believe my values should make a difference beyond my personal life.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t2" data-key="world_response_external_unengaged"><div class="ihead"><span class="ichips"><span class="chip t2">Response</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">My beliefs and values make a real difference in how I treat people and respond to needs around me.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Formation</div>
+    <div class="item t3" data-key="world_formation_internal_unengaged"><div class="ihead"><span class="ichips"><span class="chip t3">Formation</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I try to do what I believe is right, even when it conflicts with what I want.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t3" data-key="world_formation_external_unengaged"><div class="ihead"><span class="ichips"><span class="chip t3">Formation</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">Becoming a more loving person to everyone around me is something I work on every day.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="tier-sub">Multiplication</div>
+    <div class="item t4" data-key="world_multiplication_internal_unengaged"><div class="ihead"><span class="ichips"><span class="chip t4">Multiplication</span><span class="chip meas">Internal</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I believe people with different religious or nonreligious views can work together to improve their communities.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="item t4" data-key="world_multiplication_external_unengaged"><div class="ihead"><span class="ichips"><span class="chip t4">Multiplication</span><span class="chip meas">External</span></span><span class="chip scale">5 points · how true of me</span></div><div class="qt">I encourage people around me to put their values into action in how they live and help others.</div><div class="scale-mini"><span class="sm-pill">1 · Not at all true of me</span><span class="sm-pill">2 · A little true of me</span><span class="sm-pill">3 · Somewhat true of me</span><span class="sm-pill">4 · Mostly true of me</span><span class="sm-pill">5 · Completely true of me</span></div></div>
+    <div class="sect"><div class="sq"><span class="sn">Route A · Drivers &amp; Journey</span>What shapes the journey</div><div class="sd">Asked of everyone on this route. Unscored: reported only as grouped option shares, never folded into a score.</div></div>
+    <div class="item t1" data-key="driver_sources_of_belief_engaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Driver · unscored</span></span><span class="chip scale">Choose up to 3</span></div><div class="qt">Which of the following most shape what you believe about Jesus and faith? Select up to three.</div><div class="chips"><span class="opt">My own judgment</span><span class="opt">The Bible</span><span class="opt">Family</span><span class="opt">Friends or other people I trust</span><span class="opt">Church or Christian leaders</span><span class="opt">Other Christians my age</span><span class="opt">Personal experiences</span><span class="opt">Social media, podcasts, or other online content</span><span class="opt">I am not sure</span><span class="opt">Other</span></div></div>
+    <div class="item t1" data-key="driver_conditions_for_growth_engaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Driver · unscored</span></span><span class="chip scale">Check all that apply</span></div><div class="qt">Which of the following are currently true of you? Check all that apply.</div><div class="chips"><span class="opt">I have asked someone to help me grow in my faith.</span><span class="opt">I can make time to pray, read the Bible, or learn about Jesus.</span><span class="opt">I have a safe place to be honest about my struggles with following Jesus.</span><span class="opt">I spend time with people who help me become more like Jesus.</span><span class="opt">I have opportunities to ask honest questions about my faith.</span><span class="opt">I feel connected to a Christian community.</span><span class="opt">None of these are currently true of me.</span></div></div>
+    <div class="item t1" data-key="driver_confidence_and_agency_engaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Driver · unscored</span></span><span class="chip scale">Check all that apply</span></div><div class="qt">What shapes your willingness to share your faith? Check all that apply.</div><div class="chips"><span class="opt">Confidence in what I believe</span><span class="opt">Fear of how other people may respond</span><span class="opt">Whether I feel equipped</span><span class="opt">Seeing other people share their faith</span><span class="opt">My relationships with people who are not Christians</span><span class="opt">Whether I believe sharing my faith is my responsibility</span><span class="opt">Having an opportunity to share</span><span class="opt">Being invited to share alongside other people</span><span class="opt">Other</span></div></div>
+    <div class="item t1" data-key="driver_relational_risk_engaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Driver · unscored</span></span><span class="chip scale">Check all that apply</span></div><div class="qt">Which of the following describe how you feel about talking about faith with people who are not Christians? Check all that apply.</div><div class="chips"><span class="opt">I talk about it naturally.</span><span class="opt">I talk about it mainly with people I am close to.</span><span class="opt">I am open to talking about it when it feels real or relevant.</span><span class="opt">I usually wait to be asked about it.</span><span class="opt">I avoid it because I want to keep relationships comfortable.</span><span class="opt">I worry about offending people.</span><span class="opt">I am not sure how to bring it up.</span><span class="opt">Other</span></div></div>
+    <div class="item t1" data-key="journey_encounter_and_response_engaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Journey · unscored</span></span><span class="chip scale">Check all that apply</span></div><div class="qt">Which people or experiences were most important in helping you encounter, understand, and respond to Jesus? Check all that apply.</div><div class="chips"><span class="opt">A friend or peer</span><span class="opt">A family member</span><span class="opt">A church gathering</span><span class="opt">A church or ministry leader</span><span class="opt">A school or campus experience</span><span class="opt">Online content or social media</span><span class="opt">An outreach or service experience</span><span class="opt">A clear talk or presentation</span><span class="opt">A personal conversation</span><span class="opt">A course or guided discussion</span><span class="opt">Reading the Bible myself</span><span class="opt">A significant experience or moment in my life</span><span class="opt">Other</span></div></div>
+    <div class="item t1" data-key="journey_continued_formation_engaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Journey · unscored</span></span><span class="chip scale">Check all that apply</span></div><div class="qt">What has helped you grow to become more like Jesus in how you live? Check all that apply.</div><div class="chips"><span class="opt">One-on-one mentoring</span><span class="opt">Conversations with Christian friends</span><span class="opt">Being challenged or encouraged</span><span class="opt">Learning in a group</span><span class="opt">Being welcomed into a Christian community</span><span class="opt">Shared practices such as prayer, worship, or meals</span><span class="opt">Reading or studying the Bible</span><span class="opt">Observing how another Christian lives</span><span class="opt">Teaching or preaching</span><span class="opt">Serving alongside other people</span><span class="opt">A local church</span><span class="opt">An online Christian community</span><span class="opt">Other</span></div></div>
+    <div class="item t1" data-key="journey_participation_in_mission_engaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Journey · unscored</span></span><span class="chip scale">Check all that apply</span></div><div class="qt">What has helped you begin to live out or share your faith in Jesus? Check all that apply.</div><div class="chips"><span class="opt">Someone encouraged or invited me.</span><span class="opt">I had an opportunity to serve.</span><span class="opt">I was trained or shown how.</span><span class="opt">I did it alongside other people.</span><span class="opt">I developed a personal conviction.</span><span class="opt">I saw someone else model it.</span><span class="opt">A church or ministry provided an opportunity.</span><span class="opt">Other</span></div></div>
+    <div class="item t1" data-key="journey_multiplication_engaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Journey · unscored</span></span><span class="chip scale">Check all that apply</span></div><div class="qt">What would help you take the next step in helping others follow Jesus? Check all that apply.</div><div class="chips"><span class="opt">Someone to guide me</span><span class="opt">Clear next steps</span><span class="opt">Training or practical tools</span><span class="opt">An opportunity to try</span><span class="opt">Encouragement</span><span class="opt">Other people to do it with</span><span class="opt">Greater confidence in what I believe</span><span class="opt">Nothing; I already feel equipped to take this step</span><span class="opt">I am not interested in taking this step</span><span class="opt">Other</span></div></div>
+    <div class="sect"><div class="sq"><span class="sn">Route B · Drivers &amp; Journey</span>What shapes the journey</div><div class="sd">Asked of everyone on this route. Unscored: reported only as grouped option shares, never folded into a score.</div></div>
+    <div class="item t1" data-key="driver_sources_of_belief_unengaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Driver · unscored</span></span><span class="chip scale">Choose up to 3</span></div><div class="qt">Which of the following most shape your views about God, religion, or spirituality? Select up to three.</div><div class="chips"><span class="opt">My own judgment</span><span class="opt">Family</span><span class="opt">Friends or other people I trust</span><span class="opt">Church or Christian leaders</span><span class="opt">Christians my age</span><span class="opt">Personal experiences</span><span class="opt">Social media, podcasts, or other online content</span><span class="opt">Science or evidence</span><span class="opt">Teachers or education</span><span class="opt">The Bible</span><span class="opt">Books or ideas outside Christianity</span><span class="opt">Other religious or nonreligious communities</span><span class="opt">I am not sure</span><span class="opt">Other</span><span class="opt">None of these</span></div></div>
+    <div class="item t1" data-key="driver_conditions_for_growth_unengaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Driver · unscored</span></span><span class="chip scale">Check all that apply</span></div><div class="qt">Which of the following are currently true of you? Check all that apply.</div><div class="chips"><span class="opt">I have asked someone to help me think through questions about belief or life's meaning.</span><span class="opt">I make time to think about questions of belief or life's meaning.</span><span class="opt">I have a safe place to be honest about my beliefs, doubts, or disbelief.</span><span class="opt">I spend time with people who help me think about the kind of person I want to become.</span><span class="opt">I have opportunities to ask honest questions about religion or spirituality.</span><span class="opt">I feel accepted by Christians I know, whether or not we agree about faith.</span><span class="opt">None of these are currently true of me.</span></div></div>
+    <div class="item t1" data-key="driver_confidence_and_agency_unengaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Driver · unscored</span></span><span class="chip scale">Check all that apply</span></div><div class="qt">What affects your willingness to talk about your beliefs, doubts, or disbelief? Check all that apply.</div><div class="chips"><span class="opt">Confidence in my own views</span><span class="opt">How I expect other people to respond</span><span class="opt">Whether I can explain my views</span><span class="opt">Seeing other people talk openly about their beliefs</span><span class="opt">My relationships with people whose beliefs differ from mine</span><span class="opt">Whether I think the conversation would be worthwhile</span><span class="opt">Having an opportunity to talk</span><span class="opt">Being invited into a conversation</span><span class="opt">Whether my questions would be taken seriously</span><span class="opt">Whether I would feel pressured to change my beliefs</span><span class="opt">Whether the topic interests me</span><span class="opt">Other</span><span class="opt">None of these</span><span class="opt">I am not sure</span></div></div>
+    <div class="item t1" data-key="driver_relational_risk_unengaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Driver · unscored</span></span><span class="chip scale">Check all that apply</span></div><div class="qt">How do you feel about talking with Christians about religion or belief? Check all that apply.</div><div class="chips"><span class="opt">I talk about it naturally.</span><span class="opt">I talk about it mainly with people I am close to.</span><span class="opt">I am open to talking about it when it feels relevant to my life.</span><span class="opt">I usually wait to be asked about it.</span><span class="opt">I avoid it because I want to keep relationships comfortable.</span><span class="opt">I worry about offending people.</span><span class="opt">I am not sure how to bring it up.</span><span class="opt">I worry that my views would be judged or dismissed.</span><span class="opt">I worry that I would be pressured to become Christian.</span><span class="opt">I am not interested in these conversations.</span><span class="opt">I do not know any Christians I could talk with.</span><span class="opt">Other</span><span class="opt">I am not sure</span></div></div>
+    <div class="item t1" data-key="journey_encounter_and_response_unengaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Journey · unscored</span></span><span class="chip scale">Check all that apply</span></div><div class="qt">Which people or experiences have most shaped your views about Jesus or Christianity? Check all that apply.</div><div class="chips"><span class="opt">A friend or peer</span><span class="opt">A family member</span><span class="opt">A Christian church gathering</span><span class="opt">A Christian church or ministry leader</span><span class="opt">A school or campus experience</span><span class="opt">Online content or social media</span><span class="opt">A talk or presentation</span><span class="opt">A personal conversation</span><span class="opt">A course or guided discussion</span><span class="opt">Reading the Bible myself</span><span class="opt">A significant experience or moment in my life</span><span class="opt">Books or ideas outside Christianity</span><span class="opt">Other</span><span class="opt">None of these</span><span class="opt">I am not sure</span></div></div>
+    <div class="item t1" data-key="journey_continued_formation_unengaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Journey · unscored</span></span><span class="chip scale">Check all that apply</span></div><div class="qt">What has helped you develop your views about the kind of person you want to become? Check all that apply.</div><div class="chips"><span class="opt">One-on-one mentoring</span><span class="opt">Conversations with friends</span><span class="opt">Being challenged or encouraged</span><span class="opt">Learning in a group</span><span class="opt">Being welcomed into a community</span><span class="opt">Shared activities such as meals, reflection, or discussion</span><span class="opt">Reading or studying ideas that matter to me</span><span class="opt">Observing how someone else lives</span><span class="opt">Teaching or talks</span><span class="opt">Serving alongside other people</span><span class="opt">An online community</span><span class="opt">Time to think on my own</span><span class="opt">Other</span><span class="opt">Nothing has helped me in this way</span><span class="opt">I am not sure</span></div></div>
+    <div class="item t1" data-key="journey_participation_in_mission_unengaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Journey · unscored</span></span><span class="chip scale">Check all that apply</span></div><div class="qt">What, if anything, would make you hesitate to join an activity organized by a Christian group? Check all that apply.</div><div class="chips"><span class="opt">I am not interested in the activities they offer.</span><span class="opt">I would not know anyone there.</span><span class="opt">I would be unsure what to expect.</span><span class="opt">I would worry about being pressured to adopt Christian beliefs.</span><span class="opt">I would worry about being judged or not accepted.</span><span class="opt">Some of their beliefs or values conflict with mine.</span><span class="opt">I have had a negative experience with a Christian group.</span><span class="opt">Practical issues, such as time, transportation, or cost.</span><span class="opt">Nothing would make me hesitate.</span><span class="opt">I am not sure.</span></div></div>
+    <div class="item t1" data-key="journey_multiplication_unengaged"><div class="ihead"><span class="ichips"><span class="chip unscored">Journey · unscored</span></span><span class="chip scale">Check all that apply</span></div><div class="qt">What, if anything, makes it difficult for you to consider following Jesus? Check all that apply.</div><div class="chips"><span class="opt">I do not know enough about Jesus or Christianity.</span><span class="opt">I am not convinced that Christian beliefs are true.</span><span class="opt">I have questions I have not found satisfactory answers to.</span><span class="opt">Some Christian teachings conflict with my views or values.</span><span class="opt">Suffering and injustice make belief in God difficult for me.</span><span class="opt">My experiences with Christians or churches have put me off.</span><span class="opt">I would worry about how people close to me would respond.</span><span class="opt">I would worry about what I might be expected to change.</span><span class="opt">I am satisfied with my current beliefs or outlook on life.</span><span class="opt">Following Jesus is not something I have thought about.</span><span class="opt">Other</span><span class="opt">I am not sure.</span></div></div>
+    <div class="sect"><div class="sq"><span class="sn">About you</span>A few details to enable benchmarking</div><div class="sd">Optional where marked. No names, emails, birthdays or city.</div></div>
+    <div class="item t1" data-key="gender"><div class="ihead"><span class="ichips"><span class="chip unscored">About you · unscored</span></span><span class="chip scale">Single choice</span></div><div class="qt">What best describes your gender?</div><div class="chips"><span class="opt">Male</span><span class="opt">Female</span><span class="opt">Other</span><span class="opt">Prefer not to say</span></div></div>
+    <div class="item t1" data-key="country"><div class="ihead"><span class="ichips"><span class="chip unscored">About you · unscored</span></span><span class="chip scale">Pick-list</span></div><div class="qt">In which country do you live?</div><div class="chips"><span class="opt">Country ▾ (every country, from a list)</span></div></div>
+  </div>
+  <div class="footer"><div class="wrap"><span>NextGen Global Collab · The Index</span><span>Instrument v6 · locked 2026-10-16</span></div></div>
+</section>
+
+<!-- ===== ORG DASHBOARD ===== -->
+<section class="screen" id="org">
+  <div class="wrap">
+    <div class="demo-top">
+      <button class="backlink" data-screen="pitch">← Back to the pitch</button>
+      <div class="eyebrow">Screen 02 · Org Dashboard</div>
+      <h2 class="demo-h">What an organisation gets back</h2>
+      <p class="demo-sub">Their own results — by question and by tier — with year-on-year shifts, gaps to the national average, and a suggested focus for next season.</p>
+    </div>
+
+    <div class="illus"><span class="tag">Illustrative</span><span>Sample figures for a fictional organisation, to show the shape of the value. <b>Not real data.</b></span></div>
+
+    <div class="wl-bar" style="margin-top:18px;">
+      <div class="wl-org"><div class="wl-logo">S</div><div><div class="nm">Sunrise Youth Collective</div><div class="tg">Buenos Aires, Argentina · 2027 vs 2026</div></div></div>
+      <div class="wl-meta">428 responses · ages 13–30<br>2nd annual wave</div>
+    </div>
+
+    <div class="metrics" style="margin-top:18px;">
+      <div class="mc"><div class="ml">Index score</div><div class="mv">60</div><div class="md"><span class="up">▲ +4 YoY</span> · <span class="up">+5 vs global</span></div></div>
+      <div class="mc"><div class="ml">Biggest YoY gain</div><div class="mv sm">Formation</div><div class="md"><span class="up">+7 vs last year</span></div></div>
+      <div class="mc"><div class="ml">Vs national</div><div class="mv sm">Multiplication</div><div class="md"><span class="down">−8 below average</span></div></div>
+      <div class="mc"><div class="ml">Responses</div><div class="mv">428</div><div class="md neu">±4.7% margin</div></div>
+    </div>
+
+    <!-- dual lens -->
+    <div class="twocol">
+      <div class="panel" style="margin-bottom:0;">
+        <div class="panel-h"><h3>By question</h3><span class="leg">domain scores</span></div>
+        <p class="panel-note">The 3 questions — <em>what</em> they're strong in.</p>
+        <div class="mini-bars">
+          <div class="mb"><div class="mbh"><span>Follow Jesus</span><b>71</b></div><div class="mtrack"><div class="mfill" style="width:71%; background:var(--accent);"></div></div></div>
+          <div class="mb"><div class="mbh"><span>Participate in mission</span><b>54</b></div><div class="mtrack"><div class="mfill" style="width:54%; background:var(--moss);"></div></div></div>
+          <div class="mb"><div class="mbh"><span>World looks different</span><b>55</b></div><div class="mtrack"><div class="mfill" style="width:55%; background:var(--gold);"></div></div></div>
+        </div>
+      </div>
+      <div class="panel" style="margin-bottom:0;">
+        <div class="panel-h"><h3>By tier</h3><span class="leg">journey depth</span></div>
+        <p class="panel-note">The 4 tiers — <em>how deep</em> it has gone.</p>
+        <div class="mini-bars">
+          <div class="mb"><div class="mbh"><span>Exposure</span><b>95</b></div><div class="mtrack"><div class="mfill" style="width:95%; background:var(--slate);"></div></div></div>
+          <div class="mb"><div class="mbh"><span>Response</span><b>73</b></div><div class="mtrack"><div class="mfill" style="width:73%; background:var(--accent);"></div></div></div>
+          <div class="mb"><div class="mbh"><span>Formation</span><b>52</b></div><div class="mtrack"><div class="mfill" style="width:52%; background:var(--gold);"></div></div></div>
+          <div class="mb"><div class="mbh"><span>Multiplication</span><b>21</b></div><div class="mtrack"><div class="mfill" style="width:21%; background:var(--moss);"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- journey vs benchmarks -->
+    <div class="panel" style="margin-top:18px;">
+      <div class="panel-h">
+        <h3>The discipleship journey</h3>
+        <div class="leg"><span class="key"><span class="swatch org"></span> Your org</span><span class="key"><span class="tick nat"></span> National</span><span class="key"><span class="tick glob"></span> Global</span></div>
+      </div>
+      <p class="panel-note">Your bar, with the national and global benchmarks marked.</p>
+      <div class="jbar"><div class="jh"><span class="jn">Exposure <em>· encountered</em></span><span class="jvals">Org <b>95</b> · Nat 90 · Glob 88</span></div><div class="jtrack"><div class="jfill good" style="width:95%"></div><div class="jmark nat" style="left:90%"></div><div class="jmark glob" style="left:88%"></div></div></div>
+      <div class="jbar"><div class="jh"><span class="jn">Response <em>· believed</em></span><span class="jvals">Org <b>73</b> · Nat 63 · Glob 60</span></div><div class="jtrack"><div class="jfill good" style="width:73%"></div><div class="jmark nat" style="left:63%"></div><div class="jmark glob" style="left:60%"></div></div></div>
+      <div class="jbar"><div class="jh"><span class="jn">Formation <em>· being shaped</em></span><span class="jvals">Org <b>52</b> · Nat 44 · Glob 42</span></div><div class="jtrack"><div class="jfill good" style="width:52%"></div><div class="jmark nat" style="left:44%"></div><div class="jmark glob" style="left:42%"></div></div></div>
+      <div class="jbar"><div class="jh"><span class="jn">Multiplication <em>· spreading</em></span><span class="jvals">Org <b>21</b> · Nat 29 · Glob 30</span></div><div class="jtrack"><div class="jfill" style="width:21%"></div><div class="jmark nat" style="left:29%"></div><div class="jmark glob" style="left:30%"></div></div></div>
+      <div class="diag"><div><div class="dh">Diagnostic</div><p>Sunrise out-performs both benchmarks on <b>encountering</b> and <b>believing</b> — they reach young people and those young people respond. But the journey stalls at the top: only <b>21%</b> are discipling someone else, <b>8 points below</b> the national average. The gap isn't belief; it's reproduction.</p></div></div>
+    </div>
+
+    <!-- per-question insight -->
+    <div class="panel">
+      <div class="panel-h"><h3>Per-question insight</h3><span class="leg">org · national · gap · year-on-year</span></div>
+      <p class="panel-note">Item-level detail — where the org sits against the national average, and what moved since last year.</p>
+      <table class="ins">
+        <thead><tr><th>Item</th><th class="r">Org</th><th class="r">Nat'l</th><th class="r">Gap</th><th class="r">YoY</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tg">Q1 · Response</span><div class="qn">Has chosen to follow Jesus, believing He is God</div></td><td class="r"><span class="big">82</span></td><td class="r">74</td><td class="r delta-up">+8</td><td class="r delta-up">▲ +3</td></tr>
+          <tr><td><span class="tg">Q1 · Formation</span><div class="qn">The Bible challenges their choices</div></td><td class="r"><span class="big">61</span></td><td class="r">66</td><td class="r delta-dn">−5</td><td class="r delta-dn">▼ −4</td></tr>
+          <tr><td><span class="tg">Q1 · Formation</span><div class="qn">Prayer that engages them with God</div></td><td class="r"><span class="big">68</span></td><td class="r">59</td><td class="r delta-up">+9</td><td class="r delta-up">▲ +7</td></tr>
+          <tr><td><span class="tg">Q2 · Exposure</span><div class="qn">Has someone helping them follow Jesus</div></td><td class="r"><span class="big">44</span></td><td class="r">41</td><td class="r delta-up">+3</td><td class="r delta-up">▲ +5</td></tr>
+          <tr><td><span class="tg">Q1 · Multiplication</span><div class="qn">Shared about Jesus in the last six months</div></td><td class="r"><span class="big">29</span></td><td class="r">38</td><td class="r delta-dn">−9</td><td class="r delta-fl">— 0</td></tr>
+          <tr><td><span class="tg">Q2 · Multiplication</span><div class="qn">Has helped someone else grow</div></td><td class="r"><span class="big">21</span></td><td class="r">29</td><td class="r delta-dn">−8</td><td class="r delta-dn">▼ −2</td></tr>
+          <tr><td><span class="tg">Q3 · Response</span><div class="qn">Faith changes how they treat people</div></td><td class="r"><span class="big">64</span></td><td class="r">57</td><td class="r delta-up">+7</td><td class="r delta-up">▲ +6</td></tr>
+          <tr><td><span class="tg">Q3 · Multiplication</span><div class="qn">Encourages others to live out their faith</div></td><td class="r"><span class="big">47</span></td><td class="r">49</td><td class="r delta-dn">−2</td><td class="r delta-up">▲ +2</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- shifts + discrepancies -->
+    <div class="cols2">
+      <div class="stack">
+        <h4>Major shifts since last year</h4>
+        <div class="sh">What moved most · 2026 → 2027</div>
+        <div class="mv-row"><span class="lbl">Prayer that engages with God</span><span class="val delta-up">▲ +7</span></div>
+        <div class="mv-row"><span class="lbl">Faith changes how they treat people</span><span class="val delta-up">▲ +6</span></div>
+        <div class="mv-row"><span class="lbl">Has someone helping them follow Jesus</span><span class="val delta-up">▲ +5</span></div>
+        <div class="mv-row"><span class="lbl">The Bible challenges their choices</span><span class="val delta-dn">▼ −4</span></div>
+        <div class="mv-row"><span class="lbl">Has helped someone else grow</span><span class="val delta-dn">▼ −2</span></div>
+      </div>
+      <div class="stack">
+        <h4>Where you differ from the nation</h4>
+        <div class="sh">Largest gaps to the Argentina average</div>
+        <div class="mv-row"><span class="lbl">Prayer that engages with God</span><span class="val delta-up">+9 ahead</span></div>
+        <div class="mv-row"><span class="lbl">Has chosen to follow Jesus</span><span class="val delta-up">+8 ahead</span></div>
+        <div class="mv-row"><span class="lbl">Shared about Jesus (6 mo.)</span><span class="val delta-dn">−9 behind</span></div>
+        <div class="mv-row"><span class="lbl">Has helped someone else grow</span><span class="val delta-dn">−8 behind</span></div>
+        <div class="mv-row"><span class="lbl">The Bible challenges their choices</span><span class="val delta-dn">−5 behind</span></div>
+      </div>
+    </div>
+
+    <!-- focus areas -->
+    <div class="panel" style="margin-top:18px;">
+      <div class="panel-h"><h3>Suggested focus for next season</h3></div>
+      <p class="panel-note">Generated from the gaps above — a starting point for the conversation, not a prescription.</p>
+      <div class="focus"><div class="fn">1</div><div><div class="ft">Close the multiplication gap</div><div class="fd">Your young people believe and are being formed, but few are yet discipling others. Build simple, reproducible "each-one-reach-one" pathways and give every formed student one person to invest in.</div></div></div>
+      <div class="focus"><div class="fn">2</div><div><div class="ft">Let Scripture challenge choices</div><div class="fd">The one area both below national and falling year-on-year. Worth a targeted focus on letting the Bible speak into everyday decisions, where culture is clearly pulling the other way.</div></div></div>
+      <div class="focus"><div class="fn">3</div><div><div class="ft">Protect what's working</div><div class="fd">Prayer and "faith changes how I treat people" both jumped — name what you changed last year and keep doing it. Your strength is turning belief into a shaped life.</div></div></div>
+      <div style="margin-top:18px;"><a href="https://www.eidoresearch.com/" target="_blank" rel="noopener" style="font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase;">Talk to a certified facilitator about your multiplication gap →</a></div>
+    </div>
+
+    <!-- trend -->
+    <div class="panel">
+      <div class="panel-h"><h3>Movement over time</h3></div>
+      <p class="panel-note">The number the Collab cares about most: the year-over-year change (Δ) against the baseline.</p>
+      <div style="display:flex; gap:30px; align-items:center; flex-wrap:wrap;">
+        <svg style="flex:1; min-width:280px;" viewBox="0 0 460 200" role="img" aria-label="Index rising from 56 baseline to 60 to 63">
+          <line x1="40" y1="20" x2="40" y2="160" stroke="#d9d6c4"/><line x1="40" y1="160" x2="440" y2="160" stroke="#d9d6c4"/>
+          <text x="14" y="44" font-family="JetBrains Mono" font-size="10" fill="#9a9a90">70</text>
+          <text x="14" y="110" font-family="JetBrains Mono" font-size="10" fill="#9a9a90">50</text>
+          <text x="14" y="164" font-family="JetBrains Mono" font-size="10" fill="#9a9a90">30</text>
+          <polyline points="80,108 230,95 400,82" fill="none" stroke="#3f9d72" stroke-width="2.5"/>
+          <circle cx="80" cy="108" r="5" fill="#3f9d72"/><circle cx="230" cy="95" r="5" fill="#3f9d72"/><circle cx="400" cy="82" r="5" fill="#ff7a47"/>
+          <text x="80" y="182" font-family="JetBrains Mono" font-size="9" fill="#9a9a90" text-anchor="middle">BASELINE · 56</text>
+          <text x="230" y="182" font-family="JetBrains Mono" font-size="9" fill="#9a9a90" text-anchor="middle">2026 · 60</text>
+          <text x="400" y="182" font-family="JetBrains Mono" font-size="9" fill="#ff7a47" text-anchor="middle">2027 · 63</text>
+        </svg>
+        <div style="flex:1; min-width:220px;"><p style="font-size:13.5px; color:var(--slate); line-height:1.55;">After focused work on discipleship, Sunrise's Index has climbed <b>7 points</b> off baseline. The dashboard's job isn't to grade them — it's to show whether last season's effort actually moved the thing they were trying to move.</p></div>
+      </div>
+    </div>
+
+    <div class="illus" style="border-color:var(--bench); border-left-color:var(--bench);"><span class="tag" style="background:var(--bench);">Integrity</span><span>Benchmarks reflect only those who have completed the Index in that nation — never a claim about the whole population. <b>"Of those who completed the survey…"</b></span></div>
+  </div>
+  <div class="footer"><div class="wrap"><span>NextGen Global Collab · The Index</span><span>Illustrative dashboard · not real data</span></div></div>
+</section>
+
+<!-- ===== NETWORK INTELLIGENCE ===== -->
+<section class="screen" id="network">
+  <div class="wrap">
+    <div class="demo-top">
+      <button class="backlink" data-screen="pitch">← Back to the pitch</button>
+      <div class="eyebrow">Screen 03 · Collab Intelligence</div>
+      <h2 class="demo-h">What the Collab sees</h2>
+      <p class="demo-sub">The crowdsourced picture — every organisation's contribution, rolled into one living view of the next generation. The kind of finding no scattered study could prove.</p>
+    </div>
+
+    <div class="illus"><span class="tag">Illustrative</span><span>A projection of the picture at scale — tens of thousands of responses, hundreds of orgs, across the 11 regions. <b>Not real data.</b></span></div>
+
+    <div class="metrics" style="margin-top:18px;">
+      <div class="mc"><div class="ml">Total responses</div><div class="mv">64,200</div><div class="md up">▲ growing weekly</div></div>
+      <div class="mc"><div class="ml">Participating orgs</div><div class="mv">312</div><div class="md neu">churches → networks</div></div>
+      <div class="mc"><div class="ml">Countries</div><div class="mv">47</div><div class="md neu">across 11 regions</div></div>
+      <div class="mc"><div class="ml">Languages</div><div class="mv">14</div><div class="md neu">live translations</div></div>
+    </div>
+
+    <!-- funnel -->
+    <div class="panel">
+      <div class="panel-h"><h3>The journey funnel</h3><span class="leg">global average · all responses</span></div>
+      <p class="panel-note">The headline finding: young believers are reached and respond — but the journey narrows sharply toward formation and, especially, multiplication.</p>
+      <div class="funnel">
+        <div class="fn-row"><span class="fn-label">Exposure</span><div class="fn-track"><div class="fn-bar" style="width:88%">88</div></div><span class="fn-drop"></span></div>
+        <div class="fn-row"><span class="fn-label">Response</span><div class="fn-track"><div class="fn-bar" style="width:60%">60</div></div><span class="fn-drop">−28</span></div>
+        <div class="fn-row"><span class="fn-label">Formation</span><div class="fn-track"><div class="fn-bar" style="width:42%">42</div></div><span class="fn-drop">−18</span></div>
+        <div class="fn-row"><span class="fn-label">Multiplication</span><div class="fn-track"><div class="fn-bar low" style="width:30%">30</div></div><span class="fn-drop">−12</span></div>
+      </div>
+    </div>
+
+    <!-- 3x4 matrix -->
+    <div class="panel">
+      <div class="panel-h"><h3>Questions × tiers</h3><span class="leg">global heat-grid · darker = higher</span></div>
+      <p class="panel-note">Both frameworks at once — every domain (rows) read at every depth (columns). The drop-off is visible everywhere; following runs ahead of mission, which runs ahead of world-impact.</p>
+      <table class="heat">
+        <thead><tr><th class="row">&nbsp;</th><th>Exposure</th><th>Response</th><th>Formation</th><th>Multiplication</th></tr></thead>
+        <tbody>
+          <tr><td class="row">Follow Jesus</td>
+            <td class="cell" style="background:rgba(63,157,114,0.92); color:#fff;">92</td>
+            <td class="cell" style="background:rgba(63,157,114,0.70); color:#fff;">70</td>
+            <td class="cell" style="background:rgba(63,157,114,0.50);">50</td>
+            <td class="cell" style="background:rgba(63,157,114,0.34);">34</td></tr>
+          <tr><td class="row">Participate in mission</td>
+            <td class="cell" style="background:rgba(63,157,114,0.86); color:#fff;">86</td>
+            <td class="cell" style="background:rgba(63,157,114,0.58);">58</td>
+            <td class="cell" style="background:rgba(63,157,114,0.40);">40</td>
+            <td class="cell" style="background:rgba(255,122,71,0.34);">30</td></tr>
+          <tr><td class="row">World looks different</td>
+            <td class="cell" style="background:rgba(63,157,114,0.86); color:#fff;">86</td>
+            <td class="cell" style="background:rgba(63,157,114,0.52);">52</td>
+            <td class="cell" style="background:rgba(255,122,71,0.36);">36</td>
+            <td class="cell" style="background:rgba(255,122,71,0.30);">26</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- findings -->
+    <div class="panel">
+      <div class="panel-h"><h3>What the crowdsourced data reveals</h3></div>
+      <p class="panel-note">Correlations the shared dataset makes visible — illustrative, to show the kind of claim the model can support once validated.</p>
+      <div class="finds">
+        <div class="fcard"><div class="fv">3.4×</div><div class="fl">Young people with someone discipling them are 3.4× more likely to be discipling another.</div></div>
+        <div class="fcard"><div class="fv">61%</div><div class="fl">Formation scores explain 61% of the variation in whether multiplication happens.</div></div>
+        <div class="fcard"><div class="fv">62%</div><div class="fl">Witness activation among top-tier respondents — versus just 14% in the bottom tier.</div></div>
+        <div class="fcard"><div class="fv">2.5×</div><div class="fl">Strong formation corresponds to 2.5× higher self-reported life meaning and purpose.</div></div>
+      </div>
+    </div>
+
+    <!-- top quartile + network vs public -->
+    <div class="cols2">
+      <div class="panel" style="margin-bottom:0;">
+        <div class="panel-h"><h3>What "good" looks like</h3></div>
+        <p class="panel-note">Top-quartile organisations vs bottom-quartile, on the tier everyone struggles with.</p>
+        <div class="age-row"><span class="age-lbl">Top quartile</span><div class="age-track"><div class="age-fill" style="width:58%"></div></div><span class="age-val">58%</span></div>
+        <div class="age-row"><span class="age-lbl">Median</span><div class="age-track"><div class="age-fill" style="width:30%; background:var(--gold);"></div></div><span class="age-val">30%</span></div>
+        <div class="age-row"><span class="age-lbl">Bottom quartile</span><div class="age-track"><div class="age-fill" style="width:9%; background:var(--accent);"></div></div><span class="age-val">9%</span></div>
+        <p style="font-size:12.5px; color:var(--slate); margin-top:6px;">Multiplication rate by org quartile. Studying the top quartile is how we learn what actually drives reproduction.</p>
+      </div>
+      <div class="panel" style="margin-bottom:0;">
+        <div class="panel-h"><h3>Engaged vs public</h3></div>
+        <p class="panel-note">Engaged ministry networks against a general public benchmark — the "plumb line" control sample.</p>
+        <div class="compare">
+          <div class="cmp net"><div class="ck">Ministry network</div><div class="cv">42</div><div class="cs">formation score</div></div>
+          <div class="cmp pub"><div class="ck">Public panel</div><div class="cv">12</div><div class="cs">formation score</div></div>
+        </div>
+        <p style="font-size:12.5px; color:var(--slate); margin-top:12px;">The gap between the two is, in effect, the measurable difference ministry makes. <em>(Public-panel sampling is a later, funded phase.)</em></p>
+      </div>
+    </div>
+
+    <!-- age bands -->
+    <div class="panel" style="margin-top:18px;">
+      <div class="panel-h"><h3>Multiplication by age</h3><span class="leg">% discipling another · global</span></div>
+      <p class="panel-note">Reproduction rises with age — younger believers need the most help taking the step from formed to multiplying.</p>
+      <div class="age-row"><span class="age-lbl">13–17</span><div class="age-track"><div class="age-fill" style="width:22%; background:var(--accent);"></div></div><span class="age-val">22%</span></div>
+      <div class="age-row"><span class="age-lbl">18–22</span><div class="age-track"><div class="age-fill" style="width:31%; background:var(--gold);"></div></div><span class="age-val">31%</span></div>
+      <div class="age-row"><span class="age-lbl">23–30</span><div class="age-track"><div class="age-fill" style="width:39%"></div></div><span class="age-val">39%</span></div>
+    </div>
+
+    <!-- regions -->
+    <div class="panel">
+      <div class="panel-h"><h3>The 11 regions</h3><div class="leg">Index · responses · year-on-year</div></div>
+      <p class="panel-note">Benchmarking switches on for a region once it reaches a critical mass. The Global South leads — exactly the picture a Western-anchored study would have missed.</p>
+      <table class="regions">
+        <thead><tr><th>Region</th><th>Index</th><th class="r">Responses</th><th class="r">YoY</th></tr></thead>
+        <tbody>
+          <tr><td><span class="rg-name">Africa</span></td><td><span class="rg-bar-wrap"><span class="rg-bar" style="width:64%"></span></span> <span class="rg-score">64</span></td><td class="r"><span class="rg-resp">11,400</span></td><td class="r"><span class="rg-tr up">▲ +4</span></td></tr>
+          <tr><td><span class="rg-name">Brazil</span></td><td><span class="rg-bar-wrap"><span class="rg-bar" style="width:62%"></span></span> <span class="rg-score">62</span></td><td class="r"><span class="rg-resp">4,300</span></td><td class="r"><span class="rg-tr up">▲ +5</span></td></tr>
+          <tr><td><span class="rg-name">Latin America</span></td><td><span class="rg-bar-wrap"><span class="rg-bar" style="width:60%"></span></span> <span class="rg-score">60</span></td><td class="r"><span class="rg-resp">5,550</span></td><td class="r"><span class="rg-tr up">▲ +3</span></td></tr>
+          <tr><td><span class="rg-name">Southeast Asia</span></td><td><span class="rg-bar-wrap"><span class="rg-bar" style="width:58%"></span></span> <span class="rg-score">58</span></td><td class="r"><span class="rg-resp">7,200</span></td><td class="r"><span class="rg-tr up">▲ +5</span></td></tr>
+          <tr><td><span class="rg-name">South Pacific</span></td><td><span class="rg-bar-wrap"><span class="rg-bar" style="width:56%"></span></span> <span class="rg-score">56</span></td><td class="r"><span class="rg-resp">3,100</span></td><td class="r"><span class="rg-tr neu">— 0</span></td></tr>
+          <tr><td><span class="rg-name">South Asia</span></td><td><span class="rg-bar-wrap"><span class="rg-bar" style="width:54%"></span></span> <span class="rg-score">54</span></td><td class="r"><span class="rg-resp">6,400</span></td><td class="r"><span class="rg-tr up">▲ +6</span></td></tr>
+          <tr><td><span class="rg-name">North America</span></td><td><span class="rg-bar-wrap"><span class="rg-bar" style="width:53%"></span></span> <span class="rg-score">53</span></td><td class="r"><span class="rg-resp">8,900</span></td><td class="r"><span class="rg-tr down">▼ −1</span></td></tr>
+          <tr><td><span class="rg-name">East Asia</span></td><td><span class="rg-bar-wrap"><span class="rg-bar" style="width:49%"></span></span> <span class="rg-score">49</span></td><td class="r"><span class="rg-resp">2,950</span></td><td class="r"><span class="rg-tr up">▲ +3</span></td></tr>
+          <tr><td><span class="rg-name">Central Asia</span></td><td><span class="rg-bar-wrap"><span class="rg-bar" style="width:47%"></span></span> <span class="rg-score">47</span></td><td class="r"><span class="rg-resp">1,500</span></td><td class="r"><span class="rg-tr neu">— 0</span></td></tr>
+          <tr><td><span class="rg-name">Europe</span></td><td><span class="rg-bar-wrap"><span class="rg-bar" style="width:46%"></span></span> <span class="rg-score">46</span></td><td class="r"><span class="rg-resp">10,600</span></td><td class="r"><span class="rg-tr neu">— 0</span></td></tr>
+          <tr><td><span class="rg-name">Middle East &amp; North Africa</span></td><td><span class="rg-bar-wrap"><span class="rg-bar" style="width:45%"></span></span> <span class="rg-score">45</span></td><td class="r"><span class="rg-resp">2,300</span></td><td class="r"><span class="rg-tr up">▲ +4</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- tier world map -->
+    <div class="panel">
+      <div class="panel-h"><h3>The map, tier by tier</h3><span class="leg">click a tier · nations coloured by score</span></div>
+      <p class="panel-note">The same crowdsourced data, on the map. Switch tiers to watch the world shift — strong where the journey runs deep, sparse where it has barely begun.</p>
+      <div class="map-controls" id="mapControls">
+        <button class="map-btn active" data-tier="0">Exposure</button>
+        <button class="map-btn" data-tier="1">Response</button>
+        <button class="map-btn" data-tier="2">Formation</button>
+        <button class="map-btn" data-tier="3">Multiplication</button>
+      </div>
+      <div class="map-cap" id="mapCap"></div>
+      <div class="map-scroll">
+        <div class="tilemap" id="tilemap"></div>
+      </div>
+      <div class="map-legend">
+        <span class="lg"><span class="sw green"></span> Strong · 58+</span>
+        <span class="lg"><span class="sw orange"></span> Emerging · 42–57</span>
+        <span class="lg"><span class="sw red"></span> Early · under 42</span>
+        <span class="lg"><span class="sw grey"></span> No data yet</span>
+      </div>
+      <p class="panel-note" style="margin:18px 0 0;">A tile-grid view — each square is a nation, placed roughly by geography. Illustrative scores; benchmarking switches on per nation once it reaches a critical mass of responses.</p>
+    </div>
+
+    <!-- what it powers -->
+    <div class="panel">
+      <div class="panel-h"><h3>What this intelligence powers</h3></div>
+      <div class="insight-grid">
+        <div class="ig"><div class="igt">Annual flagship</div><div class="igv">1</div><div class="igs"><em>State of the Next Generation</em></div></div>
+        <div class="ig"><div class="igt">Org diagnostics</div><div class="igv">312</div><div class="igs">live dashboards, each benchmarked</div></div>
+        <div class="ig"><div class="igt">Consulting leads</div><div class="igv">∞</div><div class="igs">every gap is a conversation</div></div>
+        <div class="ig"><div class="igt">Funder proof</div><div class="igv">Δ</div><div class="igs">measurable movement, year on year</div></div>
+      </div>
+      <p class="panel-note" style="margin:20px 0 0;">A literal, interactive globe view of this picture — the "Globe Tracker" — is the natural v2, and exactly the kind of concrete asset foundations fund.</p>
+    </div>
+  </div>
+  <div class="footer"><div class="wrap"><span>NextGen Global Collab · The Index · stewarded by the project team</span><span>Illustrative intelligence · not real data</span></div></div>
+</section>
+
+<!-- ===== WHITE-LABELLED RESPONDENT MODAL (Sunrise) ===== -->
+<div class="modal-scrim" id="previewScrim" role="dialog" aria-modal="true" aria-label="Sunrise Youth Collective survey preview">
+  <div class="sr">
+    <div class="sr-banner">Illustrative preview · how the survey looks when an organisation distributes it</div>
+    <button class="sr-close" id="closePreview" aria-label="Close preview">×</button>
+    <div class="sr-head">
+      <div class="sr-brand">
+        <div class="sr-logo">S</div>
+        <div><div class="nm">Sunrise Youth Collective</div><div class="tg">Buenos Aires</div></div>
+      </div>
+      <div class="sr-prog"><div class="sr-prog-fill" id="srProg"></div></div>
+      <div class="sr-step-label" id="srStepLabel">Welcome</div>
+    </div>
+    <div class="sr-body" id="srBody"><!-- injected --></div>
+    <div class="sr-foot">
+      <div class="sr-powered">Powered by <b>the Jesus Index</b></div>
+      <div class="sr-nav" id="srNav"><!-- injected --></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ---- tab switching ---- */
+  const tabs = document.querySelectorAll('.tab');
+  const screens = document.querySelectorAll('.screen');
+  const topbar = document.querySelector('.topbar');
+  function show(name){
+    screens.forEach(s => s.classList.toggle('active', s.id === name));
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.screen === name));
+    if(topbar) topbar.classList.toggle('hidden', name === 'cover');
+    window.scrollTo({top:0});
+  }
+  document.querySelectorAll('[data-screen]').forEach(el => el.addEventListener('click', () => show(el.dataset.screen)));
+
+  /* ---- tier world map (tile-grid cartogram) ---- */
+  (function(){
+    const grid = document.getElementById('tilemap');
+    if(!grid) return;
+    const controls = document.getElementById('mapControls');
+    const cap = document.getElementById('mapCap');
+    const tierNames = ['Exposure','Response','Formation','Multiplication'];
+    const caps = [
+      'Exposure — <b>heard almost everywhere</b>, though access stays hard across the closed nations.',
+      'Response — <b>belief follows, unevenly.</b> Strong across the Global South, thinner where the culture has secularised.',
+      'Formation — <b>the map cools.</b> Far fewer are being shaped than have believed — even in reached places.',
+      'Multiplication — <b>the frontier.</b> Rare almost everywhere, with a handful of bright spots leading the way.'
+    ];
+    // [code, name, gridColumn, gridRow, [exposure, response, formation, multiplication] | null]
+    const data = [
+      ['CA','Canada',2,1,[82,54,36,22]],
+      ['US','United States',2,2,[85,60,44,28]],
+      ['MX','Mexico',2,3,[88,64,48,34]],
+      ['CO','Colombia',3,4,[90,68,52,42]],
+      ['BR','Brazil',3,5,[91,70,55,44]],
+      ['AR','Argentina',3,6,[84,56,40,24]],
+      ['GB','United Kingdom',6,2,[80,52,34,20]],
+      ['FR','France',6,3,[78,48,30,18]],
+      ['ES','Spain',6,4,[82,50,33,21]],
+      ['DE','Germany',7,2,[79,53,36,23]],
+      ['PL','Poland',8,2,[88,64,46,30]],
+      ['TR','Turkiye',9,3,[38,28,22,14]],
+      ['EG','Egypt',8,4,[40,30,26,18]],
+      ['SA','Saudi Arabia',9,4,null],
+      ['NG','Nigeria',6,5,[92,76,60,60]],
+      ['CD','DR Congo',7,6,[89,72,56,44]],
+      ['ET','Ethiopia',8,5,[88,70,54,42]],
+      ['KE','Kenya',8,6,[90,74,58,58]],
+      ['ZA','South Africa',7,7,[84,60,42,28]],
+      ['KZ','Kazakhstan',10,2,[41,30,22,14]],
+      ['UZ','Uzbekistan',10,3,null],
+      ['PK','Pakistan',10,4,[41,30,22,14]],
+      ['IN','India',11,4,[56,46,38,26]],
+      ['BD','Bangladesh',12,4,[43,32,24,16]],
+      ['MN','Mongolia',11,2,null],
+      ['CN','China',12,3,[40,30,24,16]],
+      ['JP','Japan',13,2,[56,38,26,16]],
+      ['KR','South Korea',13,3,[82,64,50,38]],
+      ['TH','Thailand',11,5,[57,48,36,24]],
+      ['VN','Vietnam',12,5,[54,46,38,28]],
+      ['PH','Philippines',13,5,[90,70,54,42]],
+      ['ID','Indonesia',12,6,[57,50,42,30]],
+      ['PG','Papua New Guinea',13,6,[90,68,52,42]],
+      ['AU','Australia',12,7,[82,54,36,22]],
+      ['NZ','New Zealand',13,8,[80,52,34,20]]
+    ];
+    function level(v){ if(v===null||v===undefined) return 'grey'; if(v>=58) return 'green'; if(v>=42) return 'orange'; return 'red'; }
+    let tier = 0;
+    function render(){
+      grid.innerHTML = '';
+      data.forEach(d=>{
+        const v = d[4] ? d[4][tier] : null;
+        const cell = document.createElement('div');
+        cell.className = 'tile lvl-' + level(v);
+        cell.style.gridColumn = d[2];
+        cell.style.gridRow = d[3];
+        cell.title = d[1] + ' \u00b7 ' + tierNames[tier] + ': ' + (v===null ? 'no data' : v);
+        cell.innerHTML = '<span class="tc">'+d[0]+'</span><span class="tv">'+(v===null?'\u2014':v)+'</span>';
+        grid.appendChild(cell);
+      });
+      cap.innerHTML = caps[tier];
+    }
+    controls.addEventListener('click', e=>{
+      const b = e.target.closest('.map-btn'); if(!b) return;
+      tier = parseInt(b.dataset.tier,10);
+      controls.querySelectorAll('.map-btn').forEach(x=>x.classList.toggle('active', x===b));
+      render();
+    });
+    render();
+  })();
+
+  /* ---- white-labelled respondent preview ---- */
+  (function(){
+    const scrim = document.getElementById('previewScrim');
+    const body  = document.getElementById('srBody');
+    const nav   = document.getElementById('srNav');
+    const prog  = document.getElementById('srProg');
+    const label = document.getElementById('srStepLabel');
+    if(!scrim) return;
+
+    // representative slice of the instrument — one per "screen", spanning the journey + 3 questions
+    const steps = [{"kind":"welcome"},{"kind":"single","label":"Question 1 of 6","tag":"A quick start","q":"Which of these is most like you right now?","opts":["Confident God does not exist","Open, but not exploring","Open, and actively exploring","God exists, but I follow another religion","Interested in Jesus, want to know more","New follower of Jesus","Committed, actively growing","None of these describes me","Prefer not to say"]},{"kind":"likert","label":"Question 2 of 6","tag":"Following Jesus","q":"I have chosen to follow Jesus, whom I believe is God."},{"kind":"likert","label":"Question 3 of 6","tag":"His mission","q":"I have helped someone else grow in their following of Jesus."},{"kind":"likert","label":"Question 4 of 6","tag":"A different world","q":"Becoming a more loving person to everyone around me is something I work on every day."},{"kind":"single","label":"Question 5 of 6","tag":"Following Jesus","q":"I pray to God.","opts":["Rarely or never","Monthly","Weekly","Most days"]},{"kind":"multi","label":"Question 6 of 6","tag":"What shapes you","q":"Which of the following most shape what you believe about Jesus and faith? Select up to three.","max":3,"opts":["My own judgment","The Bible","Family","Friends or other people I trust","Church or Christian leaders","Other Christians my age","Personal experiences","Social media, podcasts, or other online content","I am not sure","Other"]},{"kind":"done"}];
+    const likertLabels = ["Not at all true of me","A little true of me","Somewhat true of me","Mostly true of me","Completely true of me"];
+    const answers = {};
+    let i = 0;
+
+    function open(){ scrim.classList.add('open'); document.body.style.overflow='hidden'; i=0; render(); }
+    function close(){ scrim.classList.remove('open'); document.body.style.overflow=''; }
+
+    function render(){
+      const s = steps[i];
+      const pct = Math.round((i/(steps.length-1))*100);
+      prog.style.width = pct + '%';
+      label.textContent = s.kind==='welcome' ? 'Welcome' : (s.kind==='done' ? 'All done' : s.label);
+
+      if(s.kind==='welcome'){
+        body.innerHTML =
+          '<div class="sr-welcome">'+
+          '<h2>You\u2019re invited to share <em>where you\u2019re at</em>.</h2>'+
+          '<p>Sunrise Youth Collective is part of a global community learning how to walk with young people as they follow Jesus. Your honest answers help us serve you better.</p>'+
+          '<div class="sr-facts">'+
+            '<div class="sr-fact"><div class="fk">Takes</div><div class="fv">About 8 minutes</div></div>'+
+            '<div class="sr-fact"><div class="fk">Your answers</div><div class="fv">Anonymous</div></div>'+
+            '<div class="sr-fact"><div class="fk">No wrong answers</div><div class="fv">Just be honest</div></div>'+
+          '</div>'+
+          '<p style="margin-top:16px; font-size:13px; color:#8a7a6a;">There are no right or wrong answers — wherever you are is a good place to start.</p>'+
+          '</div>';
+        nav.innerHTML = '<button class="sr-btn primary" data-act="next">Begin →</button>';
+      }
+      else if(s.kind==='done'){
+        body.innerHTML =
+          '<div class="sr-done">'+
+          '<div class="ring">✓</div>'+
+          '<h2>Thank you!</h2>'+
+          '<p>Your response has been added to Sunrise Youth Collective\u2019s picture of how their community is following Jesus.</p>'+
+          '<p style="font-size:12.5px; color:#8a7a6a;">Sunrise only ever sees grouped results, never individual answers.</p>'+
+          '</div>';
+        nav.innerHTML = '<button class="sr-btn ghost" data-act="restart">Replay</button><button class="sr-btn primary" data-act="close">Close preview</button>';
+      }
+      else {
+        let inner = '<div class="sr-q"><div class="sr-qn">'+s.tag+'</div><div class="sr-qt">'+s.q+'</div>';
+        if(s.kind==='likert'){
+          inner += '<div class="sr-likert">';
+          for(let n=1;n<=5;n++){
+            const sel = answers[i]===n ? ' sel':'';
+            inner += '<div class="sr-lk'+sel+'" data-val="'+n+'"><span class="n">'+n+'</span><span class="l">'+likertLabels[n-1]+'</span></div>';
+          }
+          inner += '</div><div class="sr-hint">Tap the number that fits best</div>';
+        } else if(s.kind==='yn'){
+          inner += '<div class="sr-opts">';
+          ['Yes','No'].forEach(o=>{
+            const sel = answers[i]===o ? ' sel':'';
+            inner += '<button class="sr-opt'+sel+'" data-val="'+o+'"><span class="tick"></span>'+o+'</button>';
+          });
+          inner += '</div>';
+        } else if(s.kind==='single'){
+          inner += '<div class="sr-opts">';
+          s.opts.forEach(o=>{
+            const sel = answers[i]===o ? ' sel':'';
+            inner += '<button class="sr-opt'+sel+'" data-val="'+o.replace(/"/g,'&quot;')+'"><span class="tick"></span>'+o+'</button>';
+          });
+          inner += '</div>';
+        } else if(s.kind==='multi'){
+          const cur = answers[i] || [];
+          inner += '<div class="sr-opts">';
+          s.opts.forEach(o=>{
+            const sel = cur.indexOf(o)>-1 ? ' sel':'';
+            inner += '<button class="sr-opt multi'+sel+'" data-val="'+o.replace(/"/g,'&quot;')+'"><span class="tick"></span>'+o+'</button>';
+          });
+          inner += '</div><div class="sr-hint">Choose up to '+s.max+'</div>';
+        }
+        inner += '</div>';
+        body.innerHTML = inner;
+
+        const answered = s.kind==='multi' ? ((answers[i]||[]).length>0) : (answers[i]!==undefined);
+        nav.innerHTML =
+          (i>1 ? '<button class="sr-btn ghost" data-act="back">← Back</button>' : '<button class="sr-btn ghost" data-act="back">← Back</button>')+
+          '<button class="sr-btn primary" data-act="next"'+(answered?'':' disabled')+'>'+(i===steps.length-2?'Finish':'Next →')+'</button>';
+        wireOptions(s);
+      }
+      body.scrollTop = 0;
+    }
+
+    function wireOptions(s){
+      body.querySelectorAll('.sr-lk, .sr-opt').forEach(el=>{
+        el.addEventListener('click', ()=>{
+          const val = el.dataset.val;
+          if(s.kind==='multi'){
+            let cur = answers[i] || [];
+            const idx = cur.indexOf(val);
+            if(idx>-1){ cur.splice(idx,1); }
+            else { if(cur.length>=s.max) cur.shift(); cur.push(val); }
+            answers[i] = cur;
+          } else if(s.kind==='likert'){
+            answers[i] = parseInt(val,10);
+          } else {
+            answers[i] = val;
+          }
+          render();
+        });
+      });
+    }
+
+    nav.addEventListener('click', (e)=>{
+      const act = e.target.dataset.act; if(!act) return;
+      if(act==='next' && i<steps.length-1) i++;
+      else if(act==='back' && i>0) i--;
+      else if(act==='restart'){ for(const k in answers) delete answers[k]; i=0; }
+      else if(act==='close'){ close(); return; }
+      render();
+    });
+
+    document.getElementById('openPreview').addEventListener('click', open);
+    document.getElementById('closePreview').addEventListener('click', close);
+    scrim.addEventListener('click', (e)=>{ if(e.target===scrim) close(); });
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && scrim.classList.contains('open')) close(); });
+  })();
+</script>
+</body>
+</html>
