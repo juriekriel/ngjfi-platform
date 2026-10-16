@@ -4,7 +4,7 @@ import { TEAM_ROLE_LABEL, normaliseRole } from "@/lib/team";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";
-import { Masthead } from "@/components/site/Chrome";
+import { GradientRule, Masthead } from "@/components/site/Chrome";
 import {
   Action,
   Awaiting,
@@ -35,8 +35,9 @@ import CommsBoard, { useCommsCount } from "@/components/console/CommsBoard";
  *
  * One console, four scopes. The five bands are the same components in the same
  * order whether you are Shoreline Church or an administrator; what changes is
- * which RPC fills them. See /build/wireframes for the specification, and
- * `claude/index-console-tiers-and-survey-verbs.md` for why.
+ * which RPC fills them. See `claude/index-console-tiers-and-survey-verbs.md`
+ * for why. (The /build/wireframes spec page was retired in Oct 2026 — this
+ * file is the specification now.)
  *
  * EVERY authorisation decision happens in the database — `my_context()`,
  * `field_authority()`, `campaign_upsert()` — never here. This component renders
@@ -142,7 +143,7 @@ export default function Console() {
         >
           <Link
             href="/access"
-            className="inline-block rounded-lg bg-ink px-5 py-3 text-[14px] font-semibold text-paper no-underline hover:bg-ink/90"
+            className="inline-block rounded-lg bg-gradient-to-r from-violet via-violet-deep to-violet-deeper px-5 py-3 text-[14px] font-semibold text-plate no-underline hover:opacity-90"
           >
             {fromLink ? "Send me a new link →" : "Sign in →"}
           </Link>
@@ -221,7 +222,7 @@ function OrgConsole({ short, name }: { short: string; name: string }) {
               {wl?.links ? "Change your survey →" : "Set up your survey →"}
             </Action>
             {wl?.links && (
-              <ul className="mt-5 border-t border-ink">
+              <ul className="mt-5 border-t border-rule">
                 <LinkRow {...wl.links.community} />
                 <LinkRow {...wl.links.public} />
               </ul>
@@ -250,7 +251,7 @@ function OrgConsole({ short, name }: { short: string; name: string }) {
             </Rows>
             <Link
               href={`/${short}/dashboard`}
-              className="mt-4 inline-block rounded-lg bg-ink px-4 py-2.5 text-[14px] font-semibold text-paper no-underline hover:bg-ink/90"
+              className="mt-4 inline-block rounded-lg bg-gradient-to-r from-violet via-violet-deep to-violet-deeper px-4 py-2.5 text-[14px] font-semibold text-plate no-underline hover:opacity-90"
             >
               Open the full dashboard →
             </Link>
@@ -475,7 +476,7 @@ function CollabConsole() {
           {orgs.length ? (
             <TileList names={orgs.map((o) => o.name)} selected={section === "organisations"} />
           ) : (
-            <p className={`text-[12.5px] ${section === "organisations" ? "text-paper/70" : "text-muted"}`}>
+            <p className="text-[12.5px] text-muted">
               None in the live space yet.
             </p>
           )}
@@ -490,21 +491,21 @@ function CollabConsole() {
         >
           <ul className="space-y-0.5 text-[12.5px] leading-snug">
             <li className="flex justify-between gap-2">
-              <span className={section === "surveys" ? "text-paper/70" : "text-muted"}>Unique respondents</span>
+              <span className="text-muted">Unique respondents</span>
               <span className="tabular">{started.toLocaleString()}</span>
             </li>
             <li className="flex justify-between gap-2">
-              <span className={section === "surveys" ? "text-paper/70" : "text-muted"}>Completion</span>
+              <span className="text-muted">Completion</span>
               <span className="tabular">{pct(completed, started)}</span>
             </li>
             {langs.slice(0, 3).map((l) => (
               <li key={l.locale} className="flex justify-between gap-2">
-                <span className={section === "surveys" ? "text-paper/70" : "text-muted"}>{languageName(l.locale)}</span>
+                <span className="text-muted">{languageName(l.locale)}</span>
                 <span className="tabular">{l.started.toLocaleString()}</span>
               </li>
             ))}
             {langs.length > 3 && (
-              <li className={section === "surveys" ? "text-paper/70" : "text-muted"}>+{langs.length - 3} more</li>
+              <li className="text-muted">+{langs.length - 3} more</li>
             )}
           </ul>
         </Tile>
@@ -544,7 +545,7 @@ function CollabConsole() {
               ] as const
             ).map(([k, v]) => (
               <li key={k} className="flex justify-between gap-2">
-                <span className={section === "consulting" ? "text-paper/70" : "text-muted"}>{k}</span>
+                <span className="text-muted">{k}</span>
                 <span className="tabular">{consulting.items ? v : "—"}</span>
               </li>
             ))}
@@ -663,7 +664,7 @@ function CollabConsole() {
           <Band letter="C" title="The reading" gloss="The pooled picture — live space only, never the sandbox. Every figure carries its sample size, and no geography is named until it passes the gate." figure="live space">
             <Link
               href="/intelligence"
-              className="inline-block rounded-lg bg-ink px-4 py-2.5 text-[14px] font-semibold text-paper no-underline hover:bg-ink/90"
+              className="inline-block rounded-lg bg-gradient-to-r from-violet via-violet-deep to-violet-deeper px-4 py-2.5 text-[14px] font-semibold text-plate no-underline hover:opacity-90"
             >
               Open Collab Intelligence →
             </Link>
@@ -722,6 +723,251 @@ type Worklist = {
     global_view_published: boolean;
   };
 };
+
+/**
+ * The Console tab's controls (migration 0060): the two critical-mass gates and
+ * the global-view publish switch, with the live sample size beside the switch.
+ * Every check — admin only, allow-listed keys, whole-number gates, no
+ * publishing below the gate — happens in admin_set_platform_setting(); this
+ * component only asks. Until 0060 is applied it shows the current values
+ * read-only and says why.
+ */
+type Controls = {
+  gate: number;
+  country_gate: number;
+  global_view_published: boolean;
+  live_completed: number;
+  log: { key: string; old_value: unknown; new_value: unknown; created_at: string; email: string | null }[];
+};
+
+const SETTING_LABEL: Record<string, string> = {
+  critical_mass_gate: "Org / region gate",
+  country_critical_mass_gate: "Country gate",
+  publish_global_view: "Global view",
+};
+
+function PlatformControls({ wl, onChanged }: { wl: Worklist | null; onChanged: () => void }) {
+  const sb = useMemo(() => getSupabaseBrowser(), []);
+  const [c, setC] = useState<Controls | null>(null);
+  const [missing, setMissing] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [gate, setGate] = useState("");
+  const [countryGate, setCountryGate] = useState("");
+  const [confirmPublish, setConfirmPublish] = useState(false);
+
+  const apply = (d: Controls) => {
+    setC(d);
+    setGate(String(d.gate));
+    setCountryGate(String(d.country_gate));
+  };
+
+  const load = useCallback(async () => {
+    if (!sb) return;
+    const { data, error } = await sb.rpc("admin_platform_controls");
+    if (error) {
+      if (/admin_platform_controls|function .* does not exist|schema cache/i.test(error.message)) setMissing(true);
+      else setErr(error.message);
+      return;
+    }
+    apply(data as Controls);
+  }, [sb]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  async function set(key: string, value: number | boolean) {
+    if (!sb) return;
+    setBusy(key);
+    setErr(null);
+    const { data, error } = await sb.rpc("admin_set_platform_setting", { p_key: key, p_value: value });
+    setBusy(null);
+    setConfirmPublish(false);
+    if (error) setErr(error.message);
+    else {
+      apply(data as Controls);
+      onChanged();
+    }
+  }
+
+  // Before 0060: the worklist still carries the values, read-only.
+  const view = c ?? (wl ? { gate: wl.spaces.gate, country_gate: wl.spaces.country_gate, global_view_published: wl.spaces.global_view_published, live_completed: null as number | null, log: [] } : null);
+  if (!view) return <p className="text-[14px] text-muted">Loading…</p>;
+  const editable = !!c && !missing;
+  const live = c?.live_completed ?? null;
+  const belowGate = live != null && live < view.gate;
+
+  const input = "tabular w-28 rounded-lg border border-rule-2 bg-plate px-3 py-2 text-[14px] text-ink focus:border-ink disabled:bg-paper-deep disabled:text-muted";
+  const save = "rounded-lg bg-gradient-to-r from-violet via-violet-deep to-violet-deeper px-3.5 py-2 text-[13px] font-semibold text-plate hover:opacity-90 disabled:opacity-40";
+
+  const gateRow = ({ k, label, hint, value, setValue, current }: { k: string; label: string; hint: string; value: string; setValue: (v: string) => void; current: number }) => {
+    const n = Number(value);
+    const valid = Number.isInteger(n) && n >= 1;
+    return (
+      <li key={k} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3.5">
+        <span className="min-w-0">
+          <span className="block text-[15px] font-semibold text-ink">{label}</span>
+          <span className="block text-[12.5px] text-ink-2">{hint}</span>
+        </span>
+        <span className="flex items-center gap-2">
+          <input
+            type="number"
+            min={1}
+            step={1}
+            inputMode="numeric"
+            aria-label={label}
+            value={value}
+            disabled={!editable}
+            onChange={(e) => setValue(e.target.value)}
+            className={input}
+          />
+          <button type="button" className={save} disabled={!editable || !valid || n === current || busy === k} onClick={() => set(k, n)}>
+            {busy === k ? "Saving…" : "Save"}
+          </button>
+        </span>
+      </li>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      {missing && (
+        <p className="rounded-xl border border-rule bg-paper-deep px-4 py-3 text-[13.5px] leading-relaxed text-ink-2">
+          These controls need migration 0060 applied to this database. Until then the values below are read-only.
+        </p>
+      )}
+      {err && <Trouble message={err} />}
+
+      <div className="grid gap-4 md:grid-cols-[1.25fr_1fr]">
+        {/* the publish switch, alone, with its sample size */}
+        <div className="rounded-2xl border border-rule bg-plate p-5 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[15px] font-semibold text-ink">Publish the global view</p>
+              <p className="mt-0.5 text-[12.5px] leading-snug text-ink-2">
+                The one switch that can overclaim. While off, /intelligence shows its honest empty state.
+              </p>
+            </div>
+            <span
+              className={`rounded-full px-2.5 py-1 text-[12px] font-semibold ${
+                view.global_view_published ? "bg-emerald/15 text-emerald-deeper" : "bg-paper-deep text-ink-2"
+              }`}
+            >
+              {view.global_view_published ? "Published" : "Not published"}
+            </span>
+          </div>
+          <p className="tabular mt-4 text-[30px] font-bold leading-none tracking-tight text-ink">
+            {live == null ? "—" : live.toLocaleString()}
+            <span className="ml-2 text-[14px] font-normal text-muted">/ {view.gate.toLocaleString()} gate</span>
+          </p>
+          <p className="mt-1 text-[12.5px] text-muted">completed responses in the live space · sandbox never counts</p>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {view.global_view_published ? (
+              <button
+                type="button"
+                disabled={!editable || busy === "publish_global_view"}
+                onClick={() => set("publish_global_view", false)}
+                className="rounded-lg border border-ink px-4 py-2 text-[13.5px] font-semibold text-ink hover:bg-ink hover:text-paper disabled:opacity-40"
+              >
+                Unpublish
+              </button>
+            ) : confirmPublish ? (
+              <>
+                <button
+                  type="button"
+                  disabled={busy === "publish_global_view"}
+                  onClick={() => set("publish_global_view", true)}
+                  className="rounded-lg bg-gradient-to-r from-emerald via-emerald-deep to-emerald-deeper px-4 py-2 text-[13.5px] font-semibold text-plate hover:opacity-90 disabled:opacity-40"
+                >
+                  {busy === "publish_global_view" ? "Publishing…" : "Yes, publish it"}
+                </button>
+                <button type="button" onClick={() => setConfirmPublish(false)} className="rounded-lg border border-rule-2 px-4 py-2 text-[13.5px] font-semibold text-ink hover:border-ink">
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                disabled={!editable || belowGate}
+                onClick={() => setConfirmPublish(true)}
+                className="rounded-lg bg-gradient-to-r from-emerald via-emerald-deep to-emerald-deeper px-4 py-2 text-[13.5px] font-semibold text-plate hover:opacity-90 disabled:opacity-40"
+              >
+                Publish…
+              </button>
+            )}
+            {belowGate && !view.global_view_published && (
+              <span className="text-[12.5px] text-ink-2">
+                {(view.gate - (live ?? 0)).toLocaleString()} more completions before this can be published.
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* instrument + the two spaces */}
+        <div className="rounded-2xl border border-rule bg-plate p-5 shadow-sm">
+          <p className="text-[15px] font-semibold text-ink">Instrument</p>
+          <p className="mt-0.5 text-[13px] text-ink-2">
+            {wl?.instrument ? `${wl.instrument.version} · ${wl.instrument.items} items · ${wl.instrument.status}` : "Not loaded — run npm run db:seed"}
+          </p>
+          <Link href="/build/instrument" className="mt-2 inline-block text-[13px] font-semibold text-violet-deeper no-underline hover:underline">
+            Open the instrument →
+          </Link>
+          {wl && (
+            <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-rule pt-4">
+              {(["live", "demo"] as const).map((k) => (
+                <div key={k}>
+                  <dt className="figcap">{k === "live" ? "Live · published" : "Sandbox · never published"}</dt>
+                  <dd className="tabular mt-1 text-[13px] leading-snug text-ink">
+                    {wl.spaces[k].orgs.toLocaleString()} orgs
+                    <br />
+                    {wl.spaces[k].sessions.toLocaleString()} sessions
+                    <br />
+                    {wl.spaces[k].responses.toLocaleString()} answers
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </div>
+      </div>
+
+      <ul className="divide-y divide-rule rounded-xl border border-rule bg-plate px-4 shadow-sm sm:px-5">
+        {gateRow({
+          k: "critical_mass_gate",
+          label: "Critical-mass gate · organisation, region, city",
+          hint: "Completions before any of these can be named with a score.",
+          value: gate,
+          setValue: setGate,
+          current: view.gate,
+        })}
+        {gateRow({
+          k: "country_critical_mass_gate",
+          label: "Critical-mass gate · country",
+          hint: "Completions before a country can be named. Checked separately from the gate above.",
+          value: countryGate,
+          setValue: setCountryGate,
+          current: view.country_gate,
+        })}
+      </ul>
+
+      {c && c.log.length > 0 && (
+        <div>
+          <p className="figcap mb-2">Recent changes</p>
+          <ul className="space-y-1 text-[12.5px] text-ink-2">
+            {c.log.map((l, i) => (
+              <li key={i} className="tabular">
+                {new Date(l.created_at).toLocaleDateString()} · {SETTING_LABEL[l.key] ?? l.key}: {String(l.old_value ?? "—")} → {String(l.new_value)}
+                {l.email ? ` · ${l.email}` : ""}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
 
 /**
  * Open / paused / closed, one click to change. The two non-active states are
@@ -824,7 +1070,7 @@ function AdminConsole() {
     <div className="space-y-10">
       {err && <Trouble message={err} />}
 
-      {/* Five tiles, one entry point each (E · Comms, 0056). Tile A is the worklist itself —
+      {/* Five tiles, one entry point each (E · Communication, 0056). Tile A is the worklist itself —
           "Waiting on you" merged into it, so the queue is visible without a
           click — and it is a plain container rather than a switch, because
           its Approve / Decline buttons cannot live inside a <button>. B and D
@@ -839,11 +1085,11 @@ function AdminConsole() {
           onClick={() => setSection("applications")}
         >
           <ul className="space-y-1 text-[12.5px] leading-snug">
-            <li className="flex justify-between gap-2"><span className={section === "applications" ? "text-paper/70" : "text-muted"}>Join applications</span><span className="tabular">{applications.apps?.join.length ?? "—"}</span></li>
-            <li className="flex justify-between gap-2"><span className={section === "applications" ? "text-paper/70" : "text-muted"}>Access requests</span><span className="tabular">{applications.apps?.access.length ?? "—"}</span></li>
-            <li className="flex justify-between gap-2"><span className={section === "applications" ? "text-paper/70" : "text-muted"}>Awaiting activation</span><span className="tabular">{applications.apps?.pending_orgs.length ?? "—"}</span></li>
+            <li className="flex justify-between gap-2"><span className="text-muted">Join applications</span><span className="tabular">{applications.apps?.join.length ?? "—"}</span></li>
+            <li className="flex justify-between gap-2"><span className="text-muted">Access requests</span><span className="tabular">{applications.apps?.access.length ?? "—"}</span></li>
+            <li className="flex justify-between gap-2"><span className="text-muted">Awaiting activation</span><span className="tabular">{applications.apps?.pending_orgs.length ?? "—"}</span></li>
             {otherPending.slice(0, 2).map((p, i) => (
-              <li key={`${p.label}-${i}`} className={section === "applications" ? "text-paper/80" : "text-ink-2"}>
+              <li key={`${p.label}-${i}`} className="text-ink-2">
                 {p.urgency === "high" && <span className="mr-1 text-vermillion">▲</span>}
                 {p.label}
               </li>
@@ -870,7 +1116,7 @@ function AdminConsole() {
 
         <Tile
           letter="D"
-          figure="everything else"
+          figure="controls & roll"
           title="Console"
           selected={section === "console"}
           onClick={() => setSection("console")}
@@ -881,7 +1127,7 @@ function AdminConsole() {
         <Tile
           letter="E"
           figure={commsCount == null ? "…" : `${commsCount} org admin${commsCount === 1 ? "" : "s"}`}
-          title="Comms"
+          title="Communication"
           gloss="Email every Org Administrator, or nudge one to their next step."
           selected={section === "comms"}
           onClick={() => setSection("comms")}
@@ -891,8 +1137,8 @@ function AdminConsole() {
       {section === "comms" && (
         <Band
           letter="E"
-          title="Comms"
-          gloss="Updates to every Org Administrator, and the six-step onboarding sequence — each email filled with that person's name, organisation and links. The audience is read at the moment you press Send, so everyone added since is included."
+          title="Communication"
+          gloss="Updates to every Org Administrator, and the six-step onboarding sequence — each email filled in with that person's name, organisation and links."
           figure="org administrators"
         >
           <CommsBoard sb={sb} />
@@ -939,144 +1185,116 @@ function AdminConsole() {
       )}
 
       {section === "console" && (
-      <div className="space-y-10">
-      <Band letter="0" title="Pilot readiness" gloss="Run this before any organisation hands out a real link. Everything the database can check is checked; the rest is a list to confirm by hand." figure="pre-flight">
-        <PilotReadiness sb={sb} />
-      </Band>
-      <Band letter="2" title="Consent register" gloss="Which organisations have agreed to consent, and which not — for their organisation and for every survey they send: for what, by whom and when. No consent, no participation." figure="two levels">
-        <ConsentRegister sb={sb} />
-      </Band>
-      <Band letter="1" title="Survey completion" gloss="Who started, who finished, and where people stop — per organisation. Counts only; the attention check is a data-quality line for researchers." figure="completion">
-        <CollabCompletion sb={sb} />
-      </Band>
-      <Band letter="B" title="Surveys" gloss="Both verbs, unrestricted — and every act of fielding on someone else's behalf is written to the action log with your name on it." figure="unrestricted">
-        {wizard ? (
-          <SurveyWizard
-            onDone={() => {
-              setWizard(false);
-              load();
-            }}
-            onCancel={() => setWizard(false)}
-          />
-        ) : (
-          <Action primary onClick={() => setWizard(true)}>
-            Field for an organisation →
-          </Action>
-        )}
-      </Band>
+        <div className="space-y-12">
+          <Band
+            title="Platform controls"
+            gloss="The settings that change what every number on the platform may say. Each change is checked and logged in the database."
+            figure={wl?.instrument ? `instrument ${wl.instrument.version}` : "instrument not loaded"}
+          >
+            <PlatformControls wl={wl} onChanged={load} />
+          </Band>
 
-      <Band letter="C" title="The reading" gloss="The only console that sees both data spaces at once, side by side, always labelled. This is where a claim could escape unlabelled, so this is where the guard rails are loudest." figure="both spaces">
-        {wl && (
-          <>
-            <table className="w-full rounded-xl border border-rule bg-plate text-left shadow-sm">
-              <thead>
-                <tr className="figcap">
-                  <th className="border-b border-rule px-4 pb-2 pt-4 font-normal">Space</th>
-                  <th className="border-b border-rule pb-2 pt-4 text-right font-normal">Orgs</th>
-                  <th className="border-b border-rule pb-2 pt-4 text-right font-normal">Sessions</th>
-                  <th className="border-b border-rule px-4 pb-2 pt-4 text-right font-normal">Responses</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(["live", "demo"] as const).map((k, i) => (
-                  <tr key={k} className={i === 0 ? "border-b border-rule" : ""}>
-                    <th scope="row" className="px-4 py-2.5 text-left text-[15px] font-normal">
-                      {k === "live" ? "Live" : "Sandbox"}
-                      <span className="ml-2 italic text-muted">{k === "live" ? "published" : "never published"}</span>
-                    </th>
-                    <td className="tabular py-2.5 text-right text-[15px]">{wl.spaces[k].orgs.toLocaleString()}</td>
-                    <td className="tabular py-2.5 text-right text-[15px]">{wl.spaces[k].sessions.toLocaleString()}</td>
-                    <td className="tabular px-4 py-2.5 text-right text-[15px]">{wl.spaces[k].responses.toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <p className="margin-note mt-3">
-              Gate: <b>{wl.spaces.gate}</b> completions before an org or region is named,{" "}
-              <b>{wl.spaces.country_gate}</b> for a country. Global view{" "}
-              {wl.spaces.global_view_published ? "published" : "not published"}. Instrument{" "}
-              <b>{wl.instrument ? `${wl.instrument.version} · ${wl.instrument.items} items` : "not loaded"}</b>.
-            </p>
-          </>
-        )}
-      </Band>
+          <Band title="Pilot readiness" gloss="Run this before any organisation hands out a real link." figure="pre-flight">
+            <PilotReadiness sb={sb} />
+          </Band>
 
-      <Band letter="D" title="The roll" gloss="Every person, organisation and network — and the one thing only this tier can do: step into any other console and see exactly what they see." figure={`${wl?.organisations.length ?? 0} org · ${nets.length} network`}>
-        <div className="grid gap-6 md:grid-cols-2">
-          <div>
-            <p className="figcap">Organisations</p>
-            {wl?.organisations.length ? (
-              <Rows>
-                {wl.organisations.map((o) => (
-                  <Row key={o.short_name} label={o.name} meta={`${o.responses.toLocaleString()} responses`}>
-                    <span className="flex items-center gap-2">
-                      <StatusToggle current={o.status} onChange={(s) => setStatus(o.short_name, s)} />
-                      <button
-                        onClick={() => setSelectedOrg(selectedOrg === o.short_name ? null : o.short_name)}
-                        className={`rounded-md border px-2.5 py-1 text-[12.5px] font-semibold ${
-                          selectedOrg === o.short_name
-                            ? "border-ink bg-ink text-paper"
-                            : "border-rule-2 text-ink-2 hover:border-ink hover:text-ink"
-                        }`}
-                      >
-                        Manage
-                      </button>
-                      <Link href={`/${o.short_name}/dashboard`} className="rounded-md border border-rule-2 px-2.5 py-1 text-[12.5px] font-semibold text-ink-2 no-underline hover:border-ink hover:text-ink">
-                        Open
-                      </Link>
-                    </span>
-                  </Row>
-                ))}
-              </Rows>
-            ) : (
-              <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
-                None yet. The live space stays empty on purpose until a real organisation arrives.
-              </p>
+          <Band
+            title="Organisations, networks & people"
+            gloss="Open, pause or shut any organisation's survey, manage its links and team, or field a survey on its behalf (logged with your name)."
+            figure={`${wl?.organisations.length ?? 0} org · ${nets.length} network · ${wl?.people.length ?? 0} people`}
+          >
+            <div className="mb-5">
+              {wizard ? (
+                <SurveyWizard
+                  onDone={() => {
+                    setWizard(false);
+                    load();
+                  }}
+                  onCancel={() => setWizard(false)}
+                />
+              ) : (
+                <Action primary onClick={() => setWizard(true)}>
+                  Field a survey for an organisation →
+                </Action>
+              )}
+            </div>
+            <div className="grid gap-6 md:grid-cols-[1.6fr_1fr]">
+              <div>
+                <p className="figcap mb-2">Organisations</p>
+                {wl?.organisations.length ? (
+                  <Rows>
+                    {wl.organisations.map((o) => (
+                      <Row key={o.short_name} label={o.name} meta={`${o.responses.toLocaleString()} responses`}>
+                        <span className="flex items-center gap-2">
+                          <StatusToggle current={o.status} onChange={(st) => setStatus(o.short_name, st)} />
+                          <button
+                            onClick={() => setSelectedOrg(selectedOrg === o.short_name ? null : o.short_name)}
+                            aria-pressed={selectedOrg === o.short_name}
+                            className={`rounded-md border px-2.5 py-1 text-[12.5px] font-semibold ${
+                              selectedOrg === o.short_name
+                                ? "border-violet-deeper bg-violet-deeper text-plate"
+                                : "border-rule-2 text-ink-2 hover:border-ink hover:text-ink"
+                            }`}
+                          >
+                            Manage
+                          </button>
+                          <Link
+                            href={`/${o.short_name}/dashboard`}
+                            className="rounded-md border border-rule-2 px-2.5 py-1 text-[12.5px] font-semibold text-ink-2 no-underline hover:border-ink hover:text-ink"
+                          >
+                            Open
+                          </Link>
+                        </span>
+                      </Row>
+                    ))}
+                  </Rows>
+                ) : (
+                  <p className="text-[15px] leading-relaxed text-ink-2">None yet.</p>
+                )}
+              </div>
+              <div className="space-y-5">
+                <div>
+                  <p className="figcap mb-2">Networks</p>
+                  {nets.length ? (
+                    <Rows>
+                      {nets.map((n) => (
+                        <Row key={n.short_name} label={n.name} meta={n.kind} />
+                      ))}
+                    </Rows>
+                  ) : (
+                    <p className="text-[15px] text-ink-2">None yet.</p>
+                  )}
+                </div>
+                <div>
+                  <p className="figcap mb-2">People</p>
+                  <Rows>
+                    {(wl?.people ?? []).map((p) => (
+                      <Row key={p.email} label={p.email} meta={p.role} />
+                    ))}
+                  </Rows>
+                </div>
+              </div>
+            </div>
+            {selectedOrg && (
+              <>
+                <OrgDetailPanel shortName={selectedOrg} />
+                <OrgManagePanel shortName={selectedOrg} onChanged={load} />
+              </>
             )}
-          </div>
-          <div>
-            <p className="figcap">Networks</p>
-            {nets.length ? (
-              <Rows>
-                {nets.map((n) => (
-                  <Row key={n.short_name} label={n.name} meta={n.kind} />
-                ))}
-              </Rows>
-            ) : (
-              <p className="mt-2 text-[15px] text-ink-2">None yet.</p>
-            )}
-          </div>
-        </div>
-        {selectedOrg && (
-          <>
-            <OrgDetailPanel shortName={selectedOrg} />
-            <OrgManagePanel shortName={selectedOrg} onChanged={load} />
-          </>
-        )}
-        <div className="mt-5">
-          <p className="figcap">People</p>
-          <Rows>
-            {(wl?.people ?? []).map((p) => (
-              <Row key={p.email} label={p.email} meta={p.role} />
-            ))}
-          </Rows>
-        </div>
-        <p className="margin-note mt-3 border-l-2 border-rule pl-3">
-          Tiers are changed with <span className="tabular">set_user_role()</span>, which refuses
-          unless you are already an administrator and refuses to change your own — so one
-          compromised session cannot promote itself or lock the others out.
-        </p>
-      </Band>
+          </Band>
 
-      <Band letter="E" title="Platform settings" gloss="The instrument register, the reserved names, the settings. Rarely touched — everything here changes the meaning of every number already collected." figure={wl?.instrument?.version ?? "not loaded"}>
-        <HouseRows house={house} />
-        <p className="margin-note mt-3 border-l-2 border-vermillion pl-3">
-          The publish switch is the single control on the whole platform that can overclaim. It
-          lives here, alone, with the sample size next to it — never on a settings page with
-          fifteen others.
-        </p>
-      </Band>
-      </div>
+          <Band
+            title="Consent register"
+            gloss="Which organisations have confirmed consent, for the organisation and for each survey — for what, by whom and when."
+            figure="two levels"
+          >
+            <ConsentRegister sb={sb} />
+          </Band>
+
+          <Band title="Survey completion" gloss="Who started, who finished and where people stop, per organisation. Counts only." figure="completion">
+            <CollabCompletion sb={sb} />
+          </Band>
+        </div>
       )}
     </div>
   );
@@ -1279,43 +1497,38 @@ function Shell({
 
   return (
     <>
-      <Masthead edition={`The Index${tier ? ` · ${tier}` : ""} · working engine · not public`} />
+      <Masthead edition={`Console${tier ? ` · ${tier}` : ""} · signed in · not public`} />
       <main className="mx-auto max-w-5xl px-5 py-10">
-        <div className="border-b border-rule pb-5">
-          <p className="figcap">The engine</p>
-          <h1 className="mt-2 text-[32px] font-bold leading-tight text-ink">
-            The Index
-            {tier && <span className="text-ink-2"> · {tier}</span>}
+        <div>
+          <p className="figcap">Console</p>
+          <h1 className="mt-2 text-[38px] font-bold leading-[1.02] tracking-tight text-ink sm:text-[44px]">
+            {tier || "The Index"}
           </h1>
-          <p className="mt-2 max-w-measure text-[15px] leading-relaxed text-ink-2">
-            Five bands, the same order at every tier. What is on this page is what is waiting on a
-            person.
+          <p className="mt-3 max-w-measure text-[16px] leading-relaxed text-ink-2">
+            What is on this page is what is waiting on a person.
           </p>
 
           {houses.length > 1 && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {houses.map((h) => (
-                <button
-                  key={key(h)}
-                  onClick={() => onScope(h)}
-                  className={`rounded-lg px-3.5 py-2 text-[13.5px] font-semibold ${
-                    scope && key(scope) === key(h)
-                      ? "bg-ink text-paper"
-                      : "border border-rule-2 text-ink-2 hover:border-ink hover:text-ink"
-                  }`}
-                >
-                  {h.kind === "admin" ? "Administrator" : h.kind === "collab" ? "Collab" : h.name}
-                </button>
-              ))}
+            <div role="tablist" aria-label="View the console as" className="mt-5 inline-flex flex-wrap gap-1 rounded-xl border border-rule bg-paper-deep p-1">
+              {houses.map((h) => {
+                const on = !!scope && key(scope) === key(h);
+                return (
+                  <button
+                    key={key(h)}
+                    role="tab"
+                    aria-selected={on}
+                    onClick={() => onScope(h)}
+                    className={`rounded-lg px-3.5 py-2 text-[13.5px] font-semibold transition-colors ${
+                      on ? "bg-plate text-ink shadow-sm" : "text-ink-2 hover:text-ink"
+                    }`}
+                  >
+                    {h.kind === "admin" ? "Administrator" : h.kind === "collab" ? "Collab" : h.name}
+                  </button>
+                );
+              })}
             </div>
           )}
-
-          <Link
-            href="/build/wireframes"
-            className="mt-4 inline-block rounded-lg border border-rule-2 px-3.5 py-2 text-[13.5px] font-semibold text-ink-2 no-underline hover:border-ink hover:text-ink"
-          >
-            The console spec — all four tiers →
-          </Link>
+          <GradientRule className="mt-6" />
         </div>
         <div className="mt-9">{children}</div>
       </main>

@@ -8,6 +8,7 @@
  * It never creates a database client (tests/frontPage.test.ts).
  */
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { ENGLISH } from "@/lib/i18n";
 import { Question } from "@/components/survey/QuestionCard";
 import {
@@ -202,12 +203,15 @@ export default function SurveyDemo({
           )}
         </div>
         <p className="shrink-0 border-t border-rule px-5 py-3 text-center font-mono text-[9px] uppercase tracking-widest text-muted">
-          Powered by the Next Gen Jesus-Following Index
+          Demo: nothing you tap is saved · the questions young people see today
         </p>
       </PhoneFrame>
       {caption && (
-        <p className="figcap mt-3 text-center leading-relaxed">
-          Demo: nothing you tap is saved · the questions young people see today
+        <p className="mt-3 text-center text-[13.5px] leading-relaxed text-ink-2">
+          Want to see the entire survey?{" "}
+          <Link href="/survey" className="font-semibold text-violet-deeper underline decoration-violet/40 underline-offset-2 hover:decoration-violet-deeper">
+            Click here.
+          </Link>
         </p>
       )}
     </div>

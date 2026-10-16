@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Administrator → E · Comms (migration 0056).
+ * Administrator → E · Communication (migration 0056).
  *
  * Email every Org Administrator, or one of them, from the console — with the
  * six onboarding steps ready as templates, filled per person ({{first_name}},
@@ -117,7 +117,7 @@ export default function CommsBoard({ sb }: { sb: SupabaseClient | null }) {
     if (first)
       setErr(
         /function .* does not exist|schema cache/i.test(first.message)
-          ? "Comms needs migration 0056 applied to this database."
+          ? "Communication needs migration 0056 applied to this database."
           : first.message,
       );
     else setErr(null);
@@ -225,7 +225,7 @@ export default function CommsBoard({ sb }: { sb: SupabaseClient | null }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div role="tablist" aria-label="Comms" className="inline-flex flex-wrap gap-1 rounded-xl bg-rule/70 p-1">
+        <div role="tablist" aria-label="Communication" className="inline-flex flex-wrap gap-1 rounded-xl bg-rule/70 p-1">
           {(
             [
               ["board", "Sequence board"],

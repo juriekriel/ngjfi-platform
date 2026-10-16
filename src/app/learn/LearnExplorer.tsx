@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { ERAS } from "@/data/history";
+import { GradientRule } from "@/components/site/Chrome";
 
 /**
  * The record, explorable.
  *
  * An era rail plus expandable beats. Deliberately not an animated timeline —
- * the almanac language rules out motion, and a reader who wants the whole story
+ * the site rules out decorative motion, and a reader who wants the whole story
  * can open everything at once and read it as one continuous document, which a
  * carousel would prevent.
  */
@@ -36,7 +37,7 @@ export default function LearnExplorer() {
         <button
           type="button"
           onClick={() => setOpen(allOpen ? [] : ERAS.map((e) => e.id))}
-          className="ml-auto rounded-md border border-ink px-2.5 py-1 text-[13px] font-semibold text-ink hover:bg-ink hover:text-paper"
+          className="ml-auto rounded-lg border border-ink px-3.5 py-1.5 text-[13px] font-semibold text-ink hover:bg-ink hover:text-paper"
         >
           {allOpen ? "Collapse all" : "Read it all"}
         </button>
@@ -55,10 +56,10 @@ export default function LearnExplorer() {
               >
                 <span className="tabular text-[15px] text-muted">{era.ordinal}</span>
                 <span>
-                  <span className="block font-serif text-[22px] leading-tight text-ink">
+                  <span className="block text-[21px] font-bold leading-tight tracking-tight text-ink">
                     {era.title}
                   </span>
-                  <span className="mt-1 block font-serif text-[15px] leading-snug text-ink-2 md:hidden">
+                  <span className="mt-1 block text-[14px] leading-snug text-ink-2 md:hidden">
                     {era.window}
                   </span>
                 </span>
@@ -71,12 +72,13 @@ export default function LearnExplorer() {
               {isOpen && (
                 <div className="grid gap-8 pb-9 md:grid-cols-[1fr_1.7fr] md:gap-12">
                   <div className="md:pl-[4.5rem]">
-                    <p className="max-w-measure font-serif text-[17px] leading-relaxed">
+                    <p className="max-w-measure text-[17px] leading-relaxed text-ink">
                       {era.standfirst}
                     </p>
                     {era.marker && (
-                      <div className="mt-6 border-t-2 border-ink pt-2">
-                        <p className="tabular text-[38px] leading-none text-ink">
+                      <div className="mt-6 rounded-2xl border border-rule bg-plate p-4 shadow-sm">
+                        <GradientRule className="mb-3 w-12" />
+                        <p className="tabular text-[38px] font-bold leading-none tracking-tight text-ink">
                           {era.marker.figure}
                         </p>
                         <p className="figcap mt-2 leading-relaxed">{era.marker.caption}</p>
@@ -93,7 +95,7 @@ export default function LearnExplorer() {
                           </span>
                           <span className="figcap">{b.when}</span>
                         </div>
-                        <h4 className="mt-1.5 text-[18px] leading-snug">{b.title}</h4>
+                        <h4 className="mt-1.5 text-[17px] font-semibold leading-snug text-ink">{b.title}</h4>
                         <p className="mt-2 text-[15.5px] leading-relaxed text-ink-2">{b.body}</p>
                         {b.consequence && (
                           <p className="mt-3 border-l-2 border-emerald pl-3 text-[14.5px] leading-relaxed">

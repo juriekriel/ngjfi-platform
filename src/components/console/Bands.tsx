@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { GRADIENT_EDGE, GradientRule, PLAIN_EDGE } from "@/components/site/Chrome";
 
 /**
  * The console's furniture — shared by all four tiers.
@@ -15,28 +16,26 @@ import Link from "next/link";
 /* ── a band ───────────────────────────────────────────────────────────── */
 
 export function Band({
-  letter,
   title,
   gloss,
   figure,
   children,
 }: {
-  letter: string;
+  /** Kept for call-site compatibility; no longer drawn (Oct 2026: the letters were noise). */
+  letter?: string;
   title: string;
   gloss?: string;
   figure?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="border-l-2 border-ink pl-4 sm:pl-5">
+    <section>
+      <GradientRule className="mb-5" />
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 className="text-[21px] leading-tight">
-          <span className="tabular mr-2 text-[12px] text-muted">{letter}</span>
-          {title}
-        </h2>
+        <h2 className="text-[22px] font-bold leading-tight tracking-tight text-ink">{title}</h2>
         {figure && <span className="figcap">{figure}</span>}
       </header>
-      {gloss && <p className="margin-note mt-1.5 max-w-measure">{gloss}</p>}
+      {gloss && <p className="mt-1.5 max-w-measure text-[14px] leading-relaxed text-ink-2">{gloss}</p>}
       <div className="mt-4">{children}</div>
     </section>
   );
@@ -149,7 +148,7 @@ export function Action({
       disabled={disabled}
       className={`rounded-lg px-4 py-2.5 text-[14px] font-semibold disabled:opacity-40 ${
         primary
-          ? "bg-emerald text-plate hover:bg-emerald-deep"
+          ? "bg-gradient-to-r from-emerald via-emerald-deep to-emerald-deeper text-plate hover:opacity-90"
           : "border border-rule-2 text-ink hover:border-ink"
       }`}
     >
@@ -218,7 +217,6 @@ export function Trouble({ message }: { message: string }) {
  *              whose Approve/Decline buttons cannot live inside a <button>)
  */
 export function Tile({
-  letter,
   figure,
   title,
   gloss,
@@ -228,7 +226,8 @@ export function Tile({
   className = "",
   children,
 }: {
-  letter: string;
+  /** Kept for call-site compatibility; no longer drawn. */
+  letter?: string;
   figure?: string;
   title: string;
   gloss?: string;
@@ -238,54 +237,50 @@ export function Tile({
   className?: string;
   children?: React.ReactNode;
 }) {
-  const shell = `flex flex-col rounded-xl border p-4 text-left shadow-sm ${
-    selected ? "border-ink bg-ink text-paper" : "border-rule-2 bg-plate text-ink hover:border-ink"
-  } ${className}`;
+  // Selected = the site's coral → violet edge on white (as the front-page
+  // benefits), not an ink fill — text colours never invert.
+  const shell = `flex flex-col rounded-xl p-4 text-left shadow-sm transition-shadow motion-reduce:transition-none ${className}`;
+  const edge = selected ? GRADIENT_EDGE : PLAIN_EDGE;
   const inner = (
     <>
-      <p className={`tabular text-[11px] ${selected ? "text-paper/70" : "text-muted"}`}>
-        {letter}
-        {figure ? ` · ${figure}` : ""}
-      </p>
-      <h3 className="mt-1 text-[16px] font-semibold">{title}</h3>
-      {gloss && (
-        <p className={`mt-1 text-[13px] leading-snug ${selected ? "text-paper/80" : "text-ink-2"}`}>{gloss}</p>
-      )}
+      <p className="tabular text-[11px] text-muted">{figure}</p>
+      <h3 className={`mt-1 text-[16px] font-bold tracking-tight ${selected ? "text-emerald-deeper" : "text-ink"}`}>{title}</h3>
+      {gloss && <p className="mt-1 text-[13px] leading-snug text-ink-2">{gloss}</p>}
       {children && <div className="mt-3 flex-1">{children}</div>}
     </>
   );
 
   if (href)
     return (
-      <Link href={href} className={`${shell} no-underline`}>
+      <Link href={href} className={`${shell} text-ink no-underline hover:shadow-md`} style={edge}>
         {inner}
       </Link>
     );
   if (onClick)
     return (
-      <button type="button" onClick={onClick} aria-pressed={selected} className={shell}>
+      <button type="button" onClick={onClick} aria-pressed={selected} className={`${shell} hover:shadow-md`} style={edge}>
         {inner}
       </button>
     );
-  return <div className={shell}>{inner}</div>;
+  return <div className={shell} style={edge}>{inner}</div>;
 }
 
 /**
  * A short roster inside a tile: the first few names, then "+N more". The tile
  * is a preview; the band it opens carries the full list.
  */
-export function TileList({ names, max = 4, selected = false }: { names: string[]; max?: number; selected?: boolean }) {
+export function TileList({ names, max = 4 }: { names: string[]; max?: number; selected?: boolean }) {
   if (!names.length) return null;
   const shown = names.slice(0, max);
   return (
-    <ul className={`space-y-0.5 text-[12.5px] leading-snug ${selected ? "text-paper/90" : "text-ink"}`}>
+    <ul className="space-y-0.5 text-[12.5px] leading-snug text-ink">
       {shown.map((n) => (
         <li key={n} className="truncate">
           {n}
         </li>
       ))}
       {names.length > max && (
-        <li className={selected ? "text-paper/70" : "text-muted"}>+{names.length - max} more</li>
+        <li className="text-muted">+{names.length - max} more</li>
       )}
     </ul>
   );
@@ -308,8 +303,8 @@ export type HouseSettings = {
 };
 
 /** The tile-sized preview. */
-export function HouseFigures({ house, selected = false }: { house: HouseSettings | null; selected?: boolean }) {
-  const dim = selected ? "text-paper/70" : "text-muted";
+export function HouseFigures({ house }: { house: HouseSettings | null; selected?: boolean }) {
+  const dim = "text-muted";
   const Line = ({ k, v, warn = false }: { k: string; v: string; warn?: boolean }) => (
     <li className="flex items-baseline justify-between gap-2">
       <span className={dim}>{k}</span>

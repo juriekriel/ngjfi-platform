@@ -28,7 +28,9 @@ test("benefits: headings only, context on hover, under the hero buttons", () => 
   assert.ok(!/md:grid-cols-5/.test(b), "no longer a horizontal row");
   assert.match(read("src/components/site/SeeADemoCard.tsx"), /flex h-full flex-col/);
   assert.match(b, /style=\{on \? GRADIENT_EDGE : PLAIN_EDGE\}/);
-  assert.match(b, /linear-gradient\(135deg, rgb\(var\(--c-emerald\)\), rgb\(var\(--c-violet\)\)\) border-box/);
+  // The edge itself is shared with the console tiles (Oct 2026), so it lives in Chrome.
+  assert.match(b, /import \{ GRADIENT_EDGE, PLAIN_EDGE \} from "@\/components\/site\/Chrome"/);
+  assert.match(read("src/components/site/Chrome.tsx"), /linear-gradient\(135deg, rgb\(var\(--c-emerald\)\), rgb\(var\(--c-violet\)\)\) border-box/);
 });
 
 test("the J12 says 12 unique items, and counts its questions per cell from the instrument", () => {
@@ -52,4 +54,23 @@ test("no house or room metaphor in what people read", () => {
       assert.ok(!phrase.test(line), `${f}:${i + 1} still says house/room: ${line.trim().slice(0, 90)}`);
     });
   }
+});
+
+test("Oct 2026 round: phone demo copy, /survey, console spec retired, Communication", () => {
+  const demo = read("src/components/survey/SurveyDemo.tsx");
+  assert.ok(!demo.includes("Powered by the Next Gen Jesus-Following Index"), "the phone strip is the demo line now");
+  assert.match(demo, /Demo: nothing you tap is saved · the questions young people see today/);
+  assert.match(demo, /Want to see the entire survey\?/);
+  assert.match(demo, /href="\/survey"/);
+  const survey = read("src/app/survey/page.tsx");
+  assert.match(survey, /fieldedItems\(\)/, "the survey page is generated from the instrument");
+  assert.match(survey, /<Footer \/>/);
+  assert.match(read("supabase/migrations/0060_admin_platform_controls.sql"), /\('survey',/);
+  const consolePage = read("src/app/build/Console.tsx");
+  assert.ok(!consolePage.includes('href="/build/wireframes"'), "no link to the retired spec");
+  assert.ok(!consolePage.includes('title="Comms"'), "Comms is called Communication");
+  assert.match(consolePage, /title="Communication"/);
+  assert.match(consolePage, /admin_set_platform_setting/);
+  for (const f of ["src/app/learn/LearnExplorer.tsx", "src/app/our-story/page.tsx"])
+    assert.ok(!read(f).includes("font-serif"), `${f} uses the site's one typeface`);
 });
