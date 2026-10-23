@@ -36,7 +36,7 @@ export default function PrivacyPage() {
           body: (
             <>
               <p>
-                The Next Gen Jesus-Following Index (&ldquo;the Index&rdquo;) is a survey that churches and ministries run
+                The Jesus Index (&ldquo;the Index&rdquo;), a global measure of Jesus-following, is a survey that churches and ministries run
                 with young people aged 13 to 30, under their own name. This page explains what happens to the answers.
               </p>
               <p>
@@ -86,8 +86,8 @@ export default function PrivacyPage() {
                 anyone else&apos;s.
               </p>
               <p>
-                The survey is for people aged 13 and over. If you tell us you are 12 or younger, the survey ends straight
-                away and nothing you chose is kept.
+                The survey is for people aged 13 to 30. If you tell us you are 12 or younger, or 31 or older, the survey ends
+                straight away and nothing you chose is kept.
               </p>
               <p>
                 If you lose signal, your answers wait on your phone and are sent when it reconnects, then deleted from the

@@ -47,7 +47,7 @@ export default function OrgConsent({ slug }: { slug: string }) {
       </main>
       <footer className="no-print border-t border-rule">
         <div className="mx-auto flex max-w-4xl items-center gap-2 px-5 py-5 text-[12.5px] text-ink-2">
-          <RisingMark className="h-4 w-4" /> Powered by the Jesus-Following Index · jfindx.org
+          <RisingMark className="h-4 w-4" /> Powered by the Jesus Index · jfindx.org
         </div>
       </footer>
     </>

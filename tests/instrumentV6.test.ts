@@ -37,10 +37,11 @@ test("v6 passes every integrity check", () => {
   for (const c of runChecks(v6.items, v6.locales)) assert.ok(c.ok, `${c.label} — ${c.detail}`);
 });
 
-test("v6 is the live instrument; v5 stays locked as the record", () => {
+test("v6 stays locked as the record (v7 carries it forward); v5 too", () => {
   assert.equal(v6.version, "v6");
-  assert.match(readFileSync("src/lib/instrument.ts", "utf8"), /from "@\/data\/instrument\.v6\.json"/, "the app fields v6");
-  assert.match(readFileSync("scripts/seed-instrument.mjs", "utf8"), /process\.argv\[2\] \?\? "v6"/, "the seed script defaults to v6");
+  assert.equal((v6 as { lock?: { locked?: boolean } }).lock?.locked, true, "v6 stays locked");
+  // The live version is v7 = v6 + the over-30 exit (tests/instrumentV7.test.ts).
+  assert.match(readFileSync("src/lib/instrument.ts", "utf8"), /from "@\/data\/instrument\.v7\.json"/, "the app fields v7");
   assert.equal((v5 as { lock?: { locked?: boolean } }).lock?.locked, true, "v5 stays locked");
 });
 

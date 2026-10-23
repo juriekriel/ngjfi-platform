@@ -48,7 +48,8 @@ begin
 
   perform test.login(v_admin);
   r := public.admin_comms_templates();
-  perform test.ok(jsonb_array_length(r) = 6 and r->0->>'key' = 'step_1_dashboard' and r->5->>'key' = 'step_6_about_collab', 'six steps, in order');
+  -- 0063 added more stages after Launch; the six original steps still come first, in order.
+  perform test.ok(jsonb_array_length(r) >= 6 and r->0->>'key' = 'step_1_dashboard' and r->5->>'key' = 'step_6_about_collab', 'six steps, in order');
 
   -- the audience: org admins + invited org admins; no coordinators, sandbox or closed orgs
   r := public.admin_comms_recipients();

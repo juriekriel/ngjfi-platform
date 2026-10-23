@@ -1,16 +1,19 @@
 "use client";
 
 /**
- * Administrator → E · Communication (migration 0056).
+ * Administrator → E · Communication (migrations 0056, 0063).
  *
  * Email every Org Administrator, or one of them, from the console — with the
- * six onboarding steps ready as templates, filled per person ({{first_name}},
- * {{org_name}}, their own dashboard link…).
+ * steps of four stages ready as templates (Launch · Support and Encouragement ·
+ * Reading your Data · Global Perspective), filled per person ({{first_name}},
+ * {{org_name}}, their own dashboard link…) and, for Global Perspective, with
+ * live platform figures read from the database at send time.
  *
  * Four views:
- *   Sequence board  every Org Administrator × the six steps: what each has had,
- *                   and a "Send step N" button for their next one. Each column
- *                   can also go to everyone who hasn't had that step yet.
+ *   Stages          pick a stage; every Org Administrator × that stage's steps:
+ *                   what each has had, and a "Send step N" button for their
+ *                   next one. Each column can also go to everyone who hasn't
+ *                   had that step yet.
  *   Compose         a template (or a blank page), one person or everyone,
  *                   a live preview of exactly what that person will receive.
  *   Templates       edit the steps and one-off updates.
@@ -27,14 +30,19 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { Action, Row, Rows, Trouble } from "@/components/console/Bands";
 import {
   PLACEHOLDERS,
+  STAGES,
   firstNameFrom,
   nextStep,
   recipientKey,
   renderEmail,
   sequenceOf,
+  stageLabel,
   unknownPlaceholders,
+  usesFacts,
   type CommsRecipient,
   type CommsTemplate,
+  type GlobalFacts,
+  type Stage,
 } from "@/lib/comms";
 
 type HistoryRow = {
@@ -105,6 +113,11 @@ export default function CommsBoard({ sb }: { sb: SupabaseClient | null }) {
   const [draft, setDraft] = useState<Draft>(BLANK);
   const [sending, setSending] = useState(false);
   const [sender, setSender] = useState("");
+  // Which stage's sequence the board shows (0063).
+  const [stage, setStage] = useState<Stage>("launch");
+  // Live figures for the Global Perspective emails' preview (0063). The send
+  // route fetches its own copy at send time.
+  const [facts, setFacts] = useState<GlobalFacts | null>(null);
 
   const load = useCallback(async () => {
     if (!sb) return;
@@ -124,6 +137,9 @@ export default function CommsBoard({ sb }: { sb: SupabaseClient | null }) {
     setTemplates((t.data as CommsTemplate[]) ?? []);
     setPeople((p.data as CommsRecipient[]) ?? []);
     setHistory((h.data as HistoryRow[]) ?? []);
+    // Optional: a database before 0063 simply has no live figures to preview.
+    const f = await sb.rpc("admin_comms_global_facts");
+    setFacts(f.error ? null : (f.data as GlobalFacts));
   }, [sb, sandbox, invited]);
 
   useEffect(() => {
@@ -140,7 +156,7 @@ export default function CommsBoard({ sb }: { sb: SupabaseClient | null }) {
     });
   }, [sb]);
 
-  const steps = useMemo(() => sequenceOf(templates ?? []), [templates]);
+  const steps = useMemo(() => sequenceOf(templates ?? [], stage), [templates, stage]);
   const orgCount = useMemo(() => new Set((people ?? []).map((p) => p.org_id)).size, [people]);
   const invitedCount = (people ?? []).filter((p) => p.source === "invite").length;
 
@@ -228,7 +244,7 @@ export default function CommsBoard({ sb }: { sb: SupabaseClient | null }) {
         <div role="tablist" aria-label="Communication" className="inline-flex flex-wrap gap-1 rounded-xl bg-rule/70 p-1">
           {(
             [
-              ["board", "Sequence board"],
+              ["board", "Stages"],
               ["compose", "Compose"],
               ["templates", "Templates"],
               ["sent", "Sent"],
@@ -273,7 +289,34 @@ export default function CommsBoard({ sb }: { sb: SupabaseClient | null }) {
         </p>
       )}
 
-      {view === "board" && <Board people={people} steps={steps} onCompose={compose} />}
+      {view === "board" && (
+        <>
+          <div role="tablist" aria-label="Stage" className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {STAGES.map((st, n) => {
+              const count = sequenceOf(templates ?? [], st.key).length;
+              const on = stage === st.key;
+              return (
+                <button
+                  key={st.key}
+                  role="tab"
+                  aria-selected={on}
+                  onClick={() => setStage(st.key)}
+                  className={`flex flex-col gap-1 rounded-xl border px-4 py-3 text-left shadow-sm ${
+                    on ? "border-ink bg-plate" : "border-rule bg-plate/60 hover:border-ink"
+                  }`}
+                >
+                  <span className="figcap">
+                    Stage {n + 1} · {count} step{count === 1 ? "" : "s"}
+                  </span>
+                  <span className="text-[15px] font-semibold leading-snug text-ink">{st.label}</span>
+                  <span className="text-[12.5px] leading-snug text-ink-2">{st.blurb}</span>
+                </button>
+              );
+            })}
+          </div>
+          <Board people={people} steps={steps} onCompose={compose} />
+        </>
+      )}
       {view === "compose" && (
         <Composer
           draft={draft}
@@ -281,6 +324,7 @@ export default function CommsBoard({ sb }: { sb: SupabaseClient | null }) {
           templates={templates ?? []}
           people={people ?? []}
           sender={sender}
+          facts={facts}
           sending={sending}
           onSend={send}
           onSaveTemplate={async () => {
@@ -288,6 +332,7 @@ export default function CommsBoard({ sb }: { sb: SupabaseClient | null }) {
             if (!sb || !t) return;
             const { error } = await sb.rpc("admin_comms_save_template", {
               p_key: t.key, p_title: t.title, p_subject: draft.subject, p_body: draft.body, p_kind: t.kind, p_position: t.position,
+              p_stage: t.stage ?? null,
             });
             if (error) setErr(error.message);
             else {
@@ -315,11 +360,17 @@ function Board({
   onCompose: (t: CommsTemplate | null, who: CommsRecipient | "all" | "missing") => void;
 }) {
   if (people === null) return <p className="text-[14px] text-ink-2">Loading…</p>;
+  if (!steps.length)
+    return (
+      <p className="rounded-xl border border-rule bg-plate px-4 py-5 text-[14.5px] leading-relaxed text-ink-2 shadow-sm">
+        No steps in this stage yet. Migration 0063 adds them; until it is applied, every template is a Launch template.
+      </p>
+    );
   if (!people.length)
     return (
       <p className="rounded-xl border border-rule bg-plate px-4 py-5 text-[14.5px] leading-relaxed text-ink-2 shadow-sm">
         No Org Administrators yet. As soon as an organisation is created and its administrator invited — or someone claims an organisation —
-        they appear here, with step 1 waiting.
+        they appear here, with step 1 of each stage waiting.
       </p>
     );
 
@@ -421,6 +472,7 @@ function Composer({
   templates,
   people,
   sender,
+  facts,
   sending,
   onSend,
   onSaveTemplate,
@@ -430,6 +482,7 @@ function Composer({
   templates: CommsTemplate[];
   people: CommsRecipient[];
   sender: string;
+  facts: GlobalFacts | null;
   sending: boolean;
   onSend: () => void;
   onSaveTemplate: () => void;
@@ -459,7 +512,8 @@ function Composer({
       : people.filter((p) => !(draft.only_missing && draft.template_key && p.sent?.[draft.template_key]));
   const sample = draft.audience === "one" ? (target ? { ...target, name: draft.name || target.name } : null) : audience[0] ?? null;
   const site = typeof window !== "undefined" ? window.location.origin : "https://jfindx.org";
-  const preview = sample ? renderEmail({ subject: draft.subject, body: draft.body }, sample, site, sender) : null;
+  const preview = sample ? renderEmail({ subject: draft.subject, body: draft.body }, sample, site, sender, facts) : null;
+  const needsFacts = usesFacts(`${draft.subject}\n${draft.body}`);
   const unknown = unknownPlaceholders(`${draft.subject}\n${draft.body}`);
   const alreadyHad = draft.audience === "one" && target && draft.template_key ? target.sent?.[draft.template_key] : null;
 
@@ -502,13 +556,17 @@ function Composer({
             }}
           >
             <option value="">Blank — write a one-off</option>
-            <optgroup label="Onboarding sequence">
-              {sequenceOf(templates).map((t) => (
-                <option key={t.key} value={t.key}>
-                  {t.position}. {t.title}
-                </option>
-              ))}
-            </optgroup>
+            {STAGES.map((st) =>
+              sequenceOf(templates, st.key).length ? (
+                <optgroup key={st.key} label={st.label}>
+                  {sequenceOf(templates, st.key).map((t) => (
+                    <option key={t.key} value={t.key}>
+                      {t.position}. {t.title}
+                    </option>
+                  ))}
+                </optgroup>
+              ) : null,
+            )}
             {templates.some((t) => t.kind === "update") && (
               <optgroup label="Updates">
                 {templates
@@ -668,10 +726,17 @@ function Composer({
               Not a placeholder we can fill: {unknown.map((u) => `{{${u}}}`).join(", ")}
             </p>
           )}
+          {needsFacts && (
+            <p className="mt-2 text-[12.5px] leading-relaxed text-ink-2">
+              {facts
+                ? `Live figures, read from the database when you press Send: ${facts.org_count} organisations, ${new Set(facts.countries).size} countries, ${facts.completion_count} completed surveys. Organisations only — the sandbox is never counted.`
+                : "This message quotes live figures. They couldn't be loaded here (is migration 0063 applied?), so it can't be sent yet."}
+            </p>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Action primary disabled={sending || !audience.length || !draft.subject.trim() || unknown.length > 0} onClick={onSend}>
+          <Action primary disabled={sending || !audience.length || !draft.subject.trim() || unknown.length > 0 || (needsFacts && !facts)} onClick={onSend}>
             {sending ? "Sending…" : draft.audience === "one" ? "Send" : `Send to ${audience.length}`}
           </Action>
           {tpl && edited && <Action onClick={onSaveTemplate}>Save changes to “{tpl.title}”</Action>}
@@ -730,6 +795,7 @@ function Templates({
       p_body: editing.body,
       p_kind: editing.kind,
       p_position: editing.position,
+      p_stage: editing.stage ?? "launch",
     });
     if (error) setErr(error.message);
     else {
@@ -754,6 +820,20 @@ function Templates({
         <label className="flex flex-col gap-1">
           <span className="figcap">Title (only you see this)</span>
           <input className={input} value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="figcap">Stage</span>
+          <select
+            className={input}
+            value={editing.stage ?? "launch"}
+            onChange={(e) => setEditing({ ...editing, stage: e.target.value as Stage })}
+          >
+            {STAGES.map((st) => (
+              <option key={st.key} value={st.key}>
+                {st.label}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="flex flex-col gap-1">
           <span className="figcap">Subject</span>
@@ -792,7 +872,7 @@ function Templates({
                 <span className="block text-[13px] text-ink-2">{t.subject}</span>
               </>
             }
-            meta={t.kind === "sequence" ? "sequence" : "update"}
+            meta={`${stageLabel(t.stage)} · ${t.kind === "sequence" ? `step ${t.position}` : "update"}`}
           >
             <span className="flex gap-1.5">
               <SmallButton onClick={() => setEditing(t)}>Edit</SmallButton>
@@ -805,7 +885,7 @@ function Templates({
       <div>
         <Action
           onClick={() =>
-            setEditing({ key: "", title: "", subject: "", body: BLANK.body, kind: "update", position: null })
+            setEditing({ key: "", title: "", subject: "", body: BLANK.body, kind: "update", position: null, stage: "launch" })
           }
         >
           + New update template

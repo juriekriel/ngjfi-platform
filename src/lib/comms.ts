@@ -16,15 +16,49 @@
  * the organisation they run). Nothing touches respondents or their answers.
  */
 
+/**
+ * The stages of the relationship with an organisation (migration 0063). Each
+ * stage is its own sequence of steps on the board; one-off updates can sit in
+ * any stage. Order here is the order the board shows them.
+ */
+export const STAGES = [
+  { key: "launch", label: "Launch", blurb: "Set up, consent, the first survey — and the pitch documents to share." },
+  { key: "support", label: "Support and Encouragement", blurb: "Check in, and make it easy to ask for help." },
+  { key: "reading", label: "Reading your Data", blurb: "Read the results, compare with Collab Intelligence, ask for consulting." },
+  { key: "global", label: "Global Perspective", blurb: "Part of something bigger: the organisations and countries taking part." },
+] as const;
+
+export type Stage = (typeof STAGES)[number]["key"];
+
+export function stageLabel(stage: string | null | undefined): string {
+  return STAGES.find((s) => s.key === stage)?.label ?? "Launch";
+}
+
 export type CommsTemplate = {
   key: string;
   title: string;
   subject: string;
   body: string;
-  /** 'sequence' templates are the onboarding steps, in `position` order. 'update' is a one-off announcement. */
+  /** 'sequence' templates are the steps of a stage, in `position` order. 'update' is a one-off announcement. */
   kind: "sequence" | "update";
   position: number | null;
+  /** Which stage the template belongs to (0063). Older databases have none: treated as 'launch'. */
+  stage?: Stage | null;
   updated_at?: string | null;
+};
+
+/**
+ * Live, platform-wide figures for the Global Perspective emails, from
+ * admin_comms_global_facts() (0063). Live space only, never the sandbox.
+ * Deliberately coarse: organisations taking part, the countries those
+ * organisations are based in, and one global total of completed surveys. No
+ * per-country respondent count, so nothing here undercuts the critical-mass
+ * gates the map holds.
+ */
+export type GlobalFacts = {
+  org_count: number;
+  countries: string[];
+  completion_count: number;
 };
 
 export type CommsRecipient = {
@@ -53,8 +87,39 @@ export const PLACEHOLDERS: { key: string; label: string }[] = [
   { key: "consult_url", label: "“What does this mean?”" },
   { key: "consent_url", label: "Consent resource" },
   { key: "site_url", label: "jfindx.org" },
+  { key: "pitch_docs_url", label: "Pitch documents (PDFs)" },
+  { key: "pitch_url", label: "Leadership pitch page" },
+  { key: "demo_url", label: "See a Demo" },
+  { key: "intelligence_url", label: "Collab Intelligence" },
+  { key: "org_count", label: "Organisations taking part (live)" },
+  { key: "country_count", label: "Countries they're in (live)" },
+  { key: "country_list", label: "Those countries, by name (live)" },
+  { key: "completion_count", label: "Surveys completed, worldwide (live)" },
   { key: "sender_name", label: "Your name" },
 ];
+
+/** The placeholders that need live figures (GlobalFacts) to fill. */
+export const FACT_KEYS = ["org_count", "country_count", "country_list", "completion_count"] as const;
+
+/** "Argentina", "Argentina and Brazil", "Argentina, Brazil and Kenya". */
+export function listNames(names: string[]): string {
+  const n = [...new Set(names.map((x) => x.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  if (!n.length) return "no countries yet";
+  if (n.length === 1) return n[0];
+  return `${n.slice(0, -1).join(", ")} and ${n[n.length - 1]}`;
+}
+
+/** The fact placeholders' values, or nothing when the figures haven't loaded. */
+export function factVars(facts: GlobalFacts | null | undefined): Record<string, string> {
+  if (!facts) return {};
+  const countries = [...new Set(facts.countries.filter(Boolean))];
+  return {
+    org_count: facts.org_count.toLocaleString("en-US"),
+    country_count: countries.length.toLocaleString("en-US"),
+    country_list: listNames(countries),
+    completion_count: facts.completion_count.toLocaleString("en-US"),
+  };
+}
 
 /** Mailbox names that are not a person — never greet "Hi Admin". */
 const ROLE_WORDS = new Set([
@@ -91,6 +156,7 @@ export function varsFor(
   r: Pick<CommsRecipient, "email" | "name" | "org_name" | "org_slug">,
   siteUrl: string,
   senderName: string,
+  facts?: GlobalFacts | null,
 ): Record<string, string> {
   const site = trimSlash(siteUrl);
   const dash = `${site}/${r.org_slug}/dashboard`;
@@ -105,7 +171,14 @@ export function varsFor(
     consult_url: `${dash}?consult=1`,
     consent_url: `${site}/resources/consent`,
     site_url: site,
+    pitch_docs_url: `${site}/#pitch`,
+    pitch_url: `${site}/pitch`,
+    demo_url: `${site}/see-a-demo`,
+    intelligence_url: `${site}/intelligence`,
     sender_name: senderName || "The Jesus Index team",
+    // Live figures only when they were loaded; otherwise {{org_count}} etc. are
+    // reported as missing and nothing is sent with a blank where a number goes.
+    ...factVars(facts),
   };
 }
 
@@ -202,8 +275,9 @@ export function renderEmail(
   r: Pick<CommsRecipient, "email" | "name" | "org_name" | "org_slug">,
   siteUrl: string,
   senderName: string,
+  facts?: GlobalFacts | null,
 ): RenderedEmail {
-  const vars = varsFor(r, siteUrl, senderName);
+  const vars = varsFor(r, siteUrl, senderName, facts);
   const s = fill(t.subject, vars);
   const b = fill(t.body, vars);
   return {
@@ -214,16 +288,23 @@ export function renderEmail(
   };
 }
 
-/** The sequence templates, in order. */
-export function sequenceOf(templates: CommsTemplate[]): CommsTemplate[] {
+/** Does a text need the live figures? */
+export function usesFacts(text: string): boolean {
+  const keys = new Set<string>(FACT_KEYS);
+  for (const m of text.matchAll(/\{\{\s*([a-z_]+)\s*\}\}/g)) if (keys.has(m[1])) return true;
+  return false;
+}
+
+/** The sequence templates, in order — of one stage when a stage is given. */
+export function sequenceOf(templates: CommsTemplate[], stage?: Stage): CommsTemplate[] {
   return templates
-    .filter((t) => t.kind === "sequence")
+    .filter((t) => t.kind === "sequence" && (!stage || (t.stage ?? "launch") === stage))
     .sort((a, b) => (a.position ?? 999) - (b.position ?? 999) || a.key.localeCompare(b.key));
 }
 
-/** The first sequence step this person hasn't been sent for this organisation, or null when they've had them all. */
-export function nextStep(templates: CommsTemplate[], r: Pick<CommsRecipient, "sent">): CommsTemplate | null {
-  return sequenceOf(templates).find((t) => !r.sent?.[t.key]) ?? null;
+/** The first sequence step (of a stage, when given) this person hasn't been sent, or null when they've had them all. */
+export function nextStep(templates: CommsTemplate[], r: Pick<CommsRecipient, "sent">, stage?: Stage): CommsTemplate | null {
+  return sequenceOf(templates, stage).find((t) => !r.sent?.[t.key]) ?? null;
 }
 
 /** One row per person per organisation — the key the board and the send log agree on. */

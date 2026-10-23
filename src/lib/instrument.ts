@@ -1,4 +1,4 @@
-import instrumentV6 from "@/data/instrument.v6.json";
+import instrumentV7 from "@/data/instrument.v7.json";
 import {
   endsSurvey as endsRule,
   fieldable,
@@ -108,7 +108,7 @@ export interface Instrument {
   item_sets?: Record<string, ItemSetDef>;
 }
 
-export const instrument = instrumentV6 as unknown as Instrument;
+export const instrument = instrumentV7 as unknown as Instrument;
 
 /**
  * How many questions each item set actually asks.

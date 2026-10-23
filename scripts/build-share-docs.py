@@ -1,456 +1,521 @@
 """
 Builds the three shareable Jesus Index documents (front page "Pitch
 documents" and the dashboard's "Share about the Jesus Index"):
-  public/share/JesusIndex-leadership-pitch.pdf  (A4 landscape, 9 pages)
-  public/share/JesusIndex-two-pager.pdf         (A4 portrait, 2 pages)
-  public/share/JesusIndex-pitch-and-demo.pdf    (A4 landscape, 8 pages)
-Content is drawn only from what the platform actually does (CLAUDE.md,
-the live instrument v6 (locked 16 Oct 2026), the dashboards as built, the privacy notice and the
-consent resource) — no invented statistics. Re-run after any change to them:
+  public/share/JesusIndex-leadership-pitch.pdf  (16:9 deck)
+  public/share/JesusIndex-two-pager.pdf         (16:9, 2 pages)
+  public/share/JesusIndex-pitch-and-demo.pdf    (16:9 deck)
+
+Style: the DFW pilot deck (Oct 2026) — Inter Tight heavy headlines, dark cover
+and closing slides, coral → violet as the one gradient, rounded cards, tracked
+coral eyebrows, JetBrains Mono for figures, the serif lockup only for the name.
+
+Content is drawn only from what the platform actually does (CLAUDE.md, the
+live instrument, the dashboards as built, the privacy notice and the consent
+resource at jfindx.org/resources/consent) — no invented statistics. The one
+dashboard figure shown is labelled "Demo figures". The sample question and its
+answer labels are read from the LIVE instrument (src/lib/instrument.ts imports
+the same file) and the build fails if the survey length in the copy drifts
+from it ("About 8 minutes" today).
+
+The mark is public/icon-mark.svg itself, inlined (its own linearGradient), so
+the PDFs carry the real logo. Fonts are the brand fonts (OFL), committed under
+scripts/share/fonts so the build needs no network.
+
+Re-run after any change to the above:
+  pip install weasyprint==63.1     # once
   python3 scripts/build-share-docs.py
-The mark is drawn from public/icon-mark.svg's own geometry, so the PDFs
-carry the real logo, not an approximation.
 """
-from reportlab.lib.pagesizes import A4, landscape
-from reportlab.pdfgen import canvas
-from reportlab.lib.colors import HexColor, white
-from reportlab.platypus import Paragraph, Frame
-from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.utils import ImageReader
+import html, json, re
+from pathlib import Path
+from weasyprint import HTML
 
-INK = HexColor("#22252b"); INK2 = HexColor("#5b6270"); RULE = HexColor("#e2e5ea"); PAGE = HexColor("#f5f6f8")
-CORAL = HexColor("#FF7A47"); CORAL_D = HexColor("#E8551F"); CORAL_DD = HexColor("#A8360B")
-VIOLET = HexColor("#8B5CF6"); VIOLET_D = HexColor("#5B21B6")
-TIER = [HexColor("#FDE3D6"), HexColor("#FFB08A"), HexColor("#FF7A47"), HexColor("#C2410C")]
-TIER_FG = [INK, INK, white, white]
-# The 1200 px QR is for print downloads; the PDFs only need ~300 px of it.
-from PIL import Image as _Image
-QR = ImageReader(_Image.open("public/share/jfindx-qr.png").convert("L").resize((300, 300), _Image.NEAREST))
+ROOT = Path(__file__).resolve().parent.parent
+FONTS = ROOT / "scripts" / "share" / "fonts"
+OUT = ROOT / "public" / "share"
 
-def style(size, color=INK, lead=None, bold=False, align=0):
-    return ParagraphStyle("s", fontName="Helvetica-Bold" if bold else "Helvetica", fontSize=size,
-                          leading=lead or size * 1.38, textColor=color, alignment=align)
+# ── facts from the live instrument ────────────────────────────────────────────
+LIVE = re.search(r'from "@/data/instrument\.(v\d+)\.json"', (ROOT / "src/lib/instrument.ts").read_text()).group(1)
+INST = json.loads((ROOT / f"src/data/instrument.{LIVE}.json").read_text())
+FULL_MIN = INST["item_sets"]["full"].get("welcome_minutes", INST["welcome_minutes"])
+J12_MIN = INST["item_sets"]["j12"].get("welcome_minutes", FULL_MIN)
+LENGTH_COPY = "About 8 minutes"
+assert LENGTH_COPY == f"About {FULL_MIN} minutes", f"the instrument now says {FULL_MIN} minutes: update LENGTH_COPY and the copy that uses it"
+EN = json.loads((ROOT / "src/data/i18n/en.json").read_text())["ui"]
+LIKERT = [EN[f"likert_{n}"] for n in range(1, 6)]
+SAMPLE = next(i for i in INST["items"] if i["key"] == "follow_multiplication_external")["text"]["en"]
+AGES = [o["text"]["en"] for o in next(i for i in INST["items"] if i["key"] == "age_band")["options"]]
+assert AGES[0] == "12 or younger" and AGES[-1] == "31 or older", "the age exits changed: update the 'Who takes part' copy"
 
-def para(c, text, x, y_top, w, st, h=400):
-    """Draw a paragraph with its top at y_top; return the y of its bottom."""
-    p = Paragraph(text, st)
-    _, ph = p.wrap(w, h)
-    p.drawOn(c, x, y_top - ph)
-    return y_top - ph
+# The mark is public/icon-mark.svg: its disc is a linearGradient (#FF7A47 → #8B5CF6),
+# which WeasyPrint's SVG renderer drops, so the disc is drawn in CSS with the same
+# gradient and the SVG's own white line and cross are laid on top of it.
+_svg = (ROOT / "public/icon-mark.svg").read_text()
+_svg = _svg[_svg.index("<svg"):]
+_svg = re.sub(r"<defs>.*?</defs>", "", _svg, flags=re.S)
+_svg = re.sub(r'<circle[^>]*url\(#g1\)[^>]*/>', "", _svg)
+assert "url(#" not in _svg, "icon-mark.svg changed shape: update the mark here"
+MARK = f'<div class="mark">{_svg}</div>'
+QR = (ROOT / "public/share/jfindx-qr.png").as_uri()
 
-def mark(c, x, y, r=11):
-    """The Jesus Index mark (public/icon-mark.svg): a coral→violet disc, a dashed
-    white line that runs flat then rises, and the white cross at its peak.
-    SVG geometry is 120×120, y down; (x, y) here is the disc's centre."""
-    k = 2 * r / 120.0
-    X = lambda sx: x - r + sx * k
-    Y = lambda sy: y + r - sy * k
-    c.saveState()
-    p = c.beginPath(); p.circle(x, y, r * 58 / 60)
-    c.clipPath(p, stroke=0, fill=0)
-    c.linearGradient(X(0), Y(0), X(120), Y(120), (CORAL, VIOLET), extend=True)
-    c.restoreState()
-    c.saveState()
-    c.setStrokeColor(white); c.setLineWidth(5 * k); c.setLineCap(1); c.setDash([12 * k, 10 * k])
-    line = c.beginPath(); line.moveTo(X(15), Y(89)); line.lineTo(X(65), Y(89)); line.lineTo(X(92), Y(55))
-    c.drawPath(line, stroke=1, fill=0)
-    c.setDash([])
-    c.setFillColor(white)
-    c.roundRect(X(89.25), Y(31 + 28), 4.5 * k, 28 * k, 2.25 * k, stroke=0, fill=1)
-    c.roundRect(X(77), Y(43.25 + 4.5), 28 * k, 4.5 * k, 2.25 * k, stroke=0, fill=1)
-    c.restoreState()
-
-TAGLINE = "a global measure of Jesus-following"
-
-def wordmark(c, x, y, size=15, color=INK, tagline=True):
-    """The name, set as the lockup: The *Jesus* Index (serif, italic Jesus), with the tagline underneath."""
-    x0 = x
-    c.setFillColor(color)
-    c.setFont("Times-Roman", size); c.drawString(x, y, "The ")
-    x += c.stringWidth("The ", "Times-Roman", size)
-    c.setFont("Times-Italic", size); c.drawString(x, y, "Jesus")
-    x += c.stringWidth("Jesus ", "Times-Italic", size)
-    c.setFont("Times-Roman", size); c.drawString(x, y, "Index")
-    if tagline:
-        c.setFont("Helvetica", size * 0.52); c.drawString(x0, y - size * 0.78, TAGLINE)
-
-def kicker(c, x, y, text, color=INK2):
-    c.setFont("Helvetica", 8); c.setFillColor(color); c.drawString(x, y, text.upper())
-
-def j12(c, x, y_top, w, cell_h=34, phrases=True, font=7.5):
-    """The J12 model — rounded tiles, orange deepening left to right."""
-    rows = [("Follow", "personal faith"), ("Mission", "outward"), ("World", "lived impact")]
-    cols = ["Exposure", "Response", "Formation", "Multiplication"]
-    words = [["heard of Jesus", "believes in Jesus", "being shaped", "helps others believe"],
+# The J12 phrases (src/lib/model.ts MATRIX_PHRASE).
+J12_ROWS = [("Follow", "personal faith"), ("Mission", "outward"), ("World", "lived impact")]
+J12_COLS = ["Exposure", "Response", "Formation", "Multiplication"]
+J12_WORDS = [["heard of Jesus", "believes in Jesus", "being shaped", "helps others believe"],
              ["aware of the call", "convinced it's theirs", "practising witness", "mobilising others"],
              ["sees faith should matter", "believes faith matters", "choices reshaped", "changing their spheres"]]
-    label_w = w * 0.2; gap = 4; cw = (w - label_w - gap * 3) / 4
-    c.setFont("Helvetica", 6.8); c.setFillColor(INK2)
-    for j, col in enumerate(cols):
-        c.drawCentredString(x + label_w + j * (cw + gap) + cw / 2, y_top - 8, col.upper())
-    y = y_top - 14
-    for i, (r, g) in enumerate(rows):
-        y -= cell_h
-        c.setFillColor(INK); c.setFont("Helvetica-Bold", 9); c.drawString(x, y + cell_h / 2 + 1, r)
-        c.setFillColor(INK2); c.setFont("Helvetica", 7); c.drawString(x, y + cell_h / 2 - 8, g)
-        for j in range(4):
-            cx = x + label_w + j * (cw + gap)
-            c.setFillColor(TIER[j]); c.roundRect(cx, y, cw, cell_h - 3, 6, stroke=0, fill=1)
-            if phrases:
-                st = style(font, TIER_FG[j], lead=font * 1.15, align=1)
-                p = Paragraph(words[i][j], st); _, ph = p.wrap(cw - 8, cell_h)
-                p.drawOn(c, cx + 4, y + (cell_h - 3 - ph) / 2)
-        y -= 3
-    return y
 
-def footer(c, W, text, page=None):
-    c.setStrokeColor(RULE); c.line(40, 34, W - 40, 34)
-    c.setFont("Helvetica", 7.5); c.setFillColor(INK2)
-    c.drawString(40, 22, text)
-    if page: c.drawRightString(W - 40, 22, str(page))
+e = html.escape
 
-# ─────────────────────────────── two-pager ───────────────────────────────
-def two_pager(path):
-    W, H = A4; c = canvas.Canvas(path, pagesize=A4)
-    c.setTitle("The Jesus Index — what it is and how it works"); c.setAuthor("Next Gen Global Collab")
-    M = 46; TW = W - 2 * M
+# ── style ──────────────────────────────────────────────────────────────────────
+def font_faces():
+    out = []
+    for w in (400, 500, 600, 700, 800, 900):
+        out.append(f"@font-face{{font-family:'Inter Tight';font-weight:{w};src:url('{(FONTS/f'inter-tight-latin-{w}-normal.woff').as_uri()}')}}")
+    for w in (400, 500, 700):
+        out.append(f"@font-face{{font-family:'JetBrains Mono';font-weight:{w};src:url('{(FONTS/f'jetbrains-mono-latin-{w}-normal.woff').as_uri()}')}}")
+    out.append(f"@font-face{{font-family:'Newsreader';font-style:normal;src:url('{(FONTS/'newsreader-latin-400-normal.woff').as_uri()}')}}")
+    out.append(f"@font-face{{font-family:'Newsreader';font-style:italic;src:url('{(FONTS/'newsreader-latin-400-italic.woff').as_uri()}')}}")
+    return "\n".join(out)
 
-    # page 1
-    mark(c, M + 11, H - 54); wordmark(c, M + 30, H - 54, 17)
-    c.setFont("Helvetica", 8.5); c.setFillColor(INK2); c.drawRightString(W - M, H - 56, "jfindx.org")
-    kicker(c, M, H - 100, "A shared measure for the Next Gen Global Collab")
-    y = para(c, "How are young people following Jesus — and where do they stop moving?", M, H - 108, TW * 0.9, style(25, INK, 30, True))
-    y = para(c, "The Jesus Index, a global measure of Jesus-following, is one short, anonymous survey that any ministry can run with the young people it reaches, aged 13 to 30. "
-             "It's free for every ministry. Each one sees its own results live, as people answer. Together, the Collab sees a picture no single ministry could see alone.",
-             M, y - 12, TW * 0.92, style(11, INK2, 16))
+CSS = font_faces() + """
+@page { size: 1456px 819px; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter Tight', Arial, sans-serif; color: #22252b; }
+.s { width: 1456px; height: 819px; position: relative; overflow: hidden; background: #f5f6f8;
+     padding: 100px 97px 0; page-break-after: always; }
+.s:last-child { page-break-after: auto; }
+.dark { background: #22252b; color: #f5f6f8; }
+.bar { position: absolute; top: 0; left: 0; right: 0; height: 9px; background: linear-gradient(90deg, #ff7a47, #8b5cf6); }
+.eyebrow { font-weight: 700; font-size: 19px; letter-spacing: .14em; text-transform: uppercase; color: #c2410c; }
+.dark .eyebrow { color: #ffb48f; }
+h1 { font-weight: 800; font-size: 60px; line-height: 1.04; letter-spacing: -.035em; margin-top: 30px; max-width: 1180px; }
+h1.xl { font-size: 92px; line-height: 1.02; letter-spacing: -.04em; }
+h1.md { font-size: 52px; }
+.hl { color: #ff9466; }
+.lead { font-size: 25px; line-height: 1.38; color: #5b6270; margin-top: 22px; max-width: 1100px; }
+.dark .lead { color: #c9ced8; }
+.foot { position: absolute; left: 97px; bottom: 50px; font-size: 18px; color: #6b7280; }
+.dark .foot { color: #9aa1ad; }
+.pno { position: absolute; right: 97px; bottom: 50px; font-family: 'JetBrains Mono'; font-size: 15px; color: #9aa1ad; }
+.word { font-family: 'Newsreader', Georgia, serif; font-size: 44px; letter-spacing: -.01em; }
+.word i { font-style: italic; }
+.tag { font-weight: 700; font-size: 18px; letter-spacing: .16em; text-transform: uppercase; color: #9aa1ad; margin-top: 10px; }
+.lock { display: flex; align-items: center; }
+.mark { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 28px; margin-right: 18px;
+        background: linear-gradient(135deg, #ff7a47, #8b5cf6); }
+.mark svg { display: block; width: 56px; height: 56px; }
+.pill { display: inline-block; padding: 15px 22px; border-radius: 28px; font-weight: 800; font-size: 21px; color: #fff;
+        background: linear-gradient(90deg, #ff7a47, #8b5cf6); }
+.row { display: flex; gap: 24px; }
+/* Flex rows with explicit widths: WeasyPrint sizes these reliably (its grid
+   mis-measures rows whose text wraps). Gutters are margins, not gap. */
+/* The content box is a fixed 1262px (1456 - 2 × 97), so widths are exact pixels. */
+.grid4, .grid3, .grid2 { display: flex; flex-wrap: wrap; margin-top: 46px; }
+.grid3, .grid2 { margin-top: 40px; }
+.grid4 > * { flex: 0 0 297px; width: 297px; margin: 0 24px 24px 0; }
+.grid3 > * { flex: 0 0 404px; width: 404px; margin: 0 24px 24px 0; }
+.grid2 > * { flex: 0 0 619px; width: 619px; margin: 0 24px 24px 0; }
+.grid4 > *:nth-child(4n), .grid3 > *:nth-child(3n), .grid2 > *:nth-child(2n) { margin-right: 0; }
+.grid2.w458 > * { flex-basis: 217px; width: 217px; }
+.grid2.w612 > * { flex-basis: 294px; width: 294px; }
+.grid3.w760 > * { flex-basis: 237px; width: 237px; }
+.tight > * { margin-bottom: 12px; }
+.card { background: #fff; border: 1px solid #e2e5ea; border-radius: 20px; padding: 30px 30px; }
+.card.soft { background: #eceef2; border: 0; }
+.card.grad { background: linear-gradient(135deg, #ff7a47, #8b5cf6); color: #fff; border: 0; }
+.dark .card { background: #2e323a; border: 0; color: #f5f6f8; }
+.card .k { font-size: 20px; color: #5b6270; }
+.card.grad .k { color: #fff; }
+.card .t { font-weight: 800; font-size: 34px; letter-spacing: -.02em; margin-top: 8px; line-height: 1.08; }
+.card h3 { font-weight: 800; font-size: 26px; letter-spacing: -.015em; line-height: 1.15; }
+.card p { font-size: 19.5px; line-height: 1.4; color: #5b6270; margin-top: 10px; }
+.dark .card p { color: #b9bfca; }
+.card.grad p { color: #fff; }
+.edge-coral { border-color: #c2410c; } .edge-violet { border-color: #8b5cf6; } .edge-ink { border-color: #22252b; } .edge-peach { border-color: #ff9466; }
+.stat { border-top: 5px solid #ff7a47; padding-top: 26px; }
+.stat .n { font-family: 'JetBrains Mono'; font-size: 52px; font-weight: 500; }
+.stat .l { font-size: 21px; color: #5b6270; margin-top: 10px; }
+.chip { display: inline-block; background: #fff; border: 1px solid #e2e5ea; border-radius: 32px; padding: 15px 24px;
+        font-weight: 700; font-size: 22px; margin: 0 14px 14px 0; }
+.stage { border-radius: 20px; padding: 30px 28px; min-height: 240px; }
+.stage .k { font-family: 'JetBrains Mono'; font-size: 19px; }
+.stage .t { font-weight: 800; font-size: 36px; letter-spacing: -.025em; margin-top: 12px; }
+.stage p { font-size: 20px; line-height: 1.4; margin-top: 12px; color: #3a3f48; }
+.st1 { background: #fdeee5; } .st1 .k { color: #a8360b; }
+.st2 { background: #fddac8; } .st2 .k { color: #a8360b; }
+.st3 { background: #ece5fc; } .st3 .k { color: #5b21b6; }
+.st4 { background: linear-gradient(135deg, #ff7a47, #8b5cf6); color: #fff; } .st4 p { color: #fff; }
+.success { margin-top: 40px; font-weight: 700; font-size: 20px; letter-spacing: .14em; text-transform: uppercase; }
+.success span { color: #8b5cf6; }
+.ic { display: block; width: 30px; height: 30px; margin-bottom: 14px; }
+table.j12 { border-collapse: separate; border-spacing: 8px; margin-top: 26px; margin-left: -8px; }
+table.j12 th { font-weight: 700; font-size: 16px; letter-spacing: .12em; text-transform: uppercase; color: #5b6270; text-align: center; padding-bottom: 4px; }
+table.j12 td.rh { width: 210px; font-weight: 800; font-size: 26px; padding-right: 10px; }
+table.j12 td.rh span { display: block; font-weight: 400; font-size: 17px; color: #5b6270; }
+table.j12 td.c { width: 248px; height: 96px; border-radius: 16px; text-align: center; font-size: 20px; font-weight: 600; padding: 10px; }
+.c0 { background: #fdeee5; } .c1 { background: #fddac8; } .c2 { background: #ff9466; color: #fff; } .c3 { background: linear-gradient(135deg, #ff7a47, #8b5cf6); color: #fff; }
+.steps { margin-top: 36px; }
+.step { display: flex; gap: 22px; margin-bottom: 26px; }
+.step .num { flex: 0 0 auto; width: 46px; border-radius: 12px; background: linear-gradient(160deg, #ff7a47, #8b5cf6);
+             color: #fff; font-weight: 800; font-size: 24px; text-align: center; padding-top: 10px; min-height: 96px; }
+.step.compact .num { min-height: 46px; height: 46px; padding-top: 9px; }
+.step h3 { font-weight: 800; font-size: 28px; letter-spacing: -.015em; }
+.step p { font-size: 21px; line-height: 1.4; color: #5b6270; margin-top: 4px; }
+.dark .step h3 { color: #fff; } .dark .step p { color: #c9ced8; }
+.phone { width: 318px; min-width: 318px; height: 640px; border: 13px solid #22252b; border-radius: 44px; background: #fff; overflow: hidden; position: relative; }
+.phone .in { padding: 26px 24px; }
+.phone .top { background: #22252b; color: #fff; padding: 24px 24px 20px; }
+.phone .top b { font-size: 22px; font-weight: 800; display: block; }
+.phone .top span { font-size: 16px; color: #c9ced8; }
+.phone .lab { font-weight: 700; font-size: 16px; margin: 14px 0 6px; }
+.phone .field { border: 2px solid #d5d9e0; border-radius: 10px; padding: 11px 12px; font-size: 16px; color: #8a909b; }
+.phone .btn { border-radius: 12px; padding: 14px; text-align: center; font-weight: 800; font-size: 18px; margin-top: 12px; }
+.phone .btn.ink { background: #22252b; color: #fff; } .phone .btn.line { border: 2px solid #d5d9e0; }
+.phone .btn.grad { background: linear-gradient(90deg, #ff7a47, #8b5cf6); color: #fff; }
+.phone .opt { border: 2px solid #d5d9e0; border-radius: 10px; padding: 10px 12px; font-size: 15.5px; margin-top: 8px; }
+.phone .opt.on { background: #22252b; color: #fff; border-color: #22252b; }
+.phone .q { font-weight: 800; font-size: 20px; line-height: 1.28; margin-top: 10px; }
+.phone .sq { color: #6d28d9; font-weight: 700; font-size: 15px; margin-top: 4px; }
+.phone .gbar { height: 7px; border-radius: 4px; background: linear-gradient(90deg, #ff7a47, #8b5cf6); margin-top: 12px; }
+.phone .tile { background: #f5f6f8; border-radius: 14px; padding: 16px; margin-top: 12px; }
+.phone .tile .n { font-family: 'JetBrains Mono'; font-size: 38px; }
+.phone .tile small { font-size: 14.5px; color: #5b6270; display: block; }
+.phone .demo { font-size: 15px; color: #6b7280; margin-top: 12px; }
+.phone .url { font-family: 'JetBrains Mono'; background: #f1f2f5; border-radius: 10px; padding: 12px; font-size: 16px; margin-top: 12px; }
+.bars div { height: 13px; border-radius: 7px; background: linear-gradient(90deg, #ff7a47, #8b5cf6); margin-top: 8px; }
+.split { display: flex; }
+.split > .l { flex: 0 0 560px; width: 560px; margin-right: 60px; }
+.phones { display: flex; flex: 0 0 auto; margin-top: -20px; }
+.phones .phone { flex: 0 0 318px; margin-right: 30px; }
+.cols2 { display: flex; margin-top: 34px; }
+.cols2 > div { flex: 0 0 600px; width: 600px; margin-right: 62px; }
+.timeline { display: flex; margin-top: 60px; border-top: 3px solid; border-image: linear-gradient(90deg, #ff7a47, #8b5cf6) 1; }
+.timeline > div { flex: 1; padding: 22px 18px 0 0; position: relative; }
+.timeline > div:before { content: ''; position: absolute; top: -13px; left: 0; width: 22px; height: 22px; border-radius: 11px; background: #ff9466; }
+.timeline .d { font-family: 'JetBrains Mono'; font-size: 20px; color: #ffb48f; }
+.timeline .w { font-size: 21px; line-height: 1.35; margin-top: 8px; color: #e8eaee; }
+.timeline .m { font-family: 'JetBrains Mono'; font-size: 17px; color: #9aa1ad; margin-top: 6px; }
+.qr { width: 380px; background: #fff; border-radius: 26px; padding: 26px; text-align: center; border: 5px solid; border-image: none;
+      box-shadow: 0 0 0 5px #ff7a47; }
+.qr img { width: 280px; height: 280px; }
+.qr b { display: block; color: #22252b; font-weight: 800; font-size: 24px; margin-top: 10px; }
+.qr span { display: block; color: #5b6270; font-family: 'JetBrains Mono'; font-size: 17px; margin-top: 4px; }
+.people .card { padding: 20px 24px; }
+.goal { text-align: center; padding-top: 250px; }
+.goal .q { font-family: 'Newsreader', Georgia, serif; font-size: 66px; line-height: 1.22; max-width: 1150px; margin: 0 auto; }
+.goal .q i { font-style: italic; }
+.goal .rule { width: 180px; height: 6px; border-radius: 3px; margin: 44px auto 34px; background: linear-gradient(90deg, #ff7a47, #8b5cf6); }
+.goal .by { font-size: 22px; color: #6b7280; }
+.small { font-size: 18px; line-height: 1.45; color: #5b6270; }
+.note { margin-top: 26px; font-size: 19px; color: #5b6270; }
+"""
 
-    kicker(c, M, y - 30, "The model · three questions, four tiers")
-    y = para(c, "Every question in the survey belongs to one of <b>three questions</b> — what we measure — and one of <b>four tiers</b> — how deep it has gone. "
-             "That makes a grid of twelve cells, the <b>J12</b>. Reading across a row shows where young people stop moving: the columns narrow as faith goes from being heard of to being passed on.",
-             M, y - 38, TW, style(10, INK, 14.5))
-    y = j12(c, M, y - 12, TW, cell_h=40, font=8)
+ICON = {
+ "lock": '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.8"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+ "group": '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9" r="2.6"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 20c.2-2.6 1.6-4.6 4-4.6 1.4 0 2 .4 2 .4"/></svg>',
+ "home": '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.8"><path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+ "check": '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.8"><path d="M12 2.5l2.4 1.8 3 .1.9 2.9 2.4 1.8-.9 2.9.9 2.9-2.4 1.8-.9 2.9-3 .1L12 21.5l-2.4-1.8-3-.1-.9-2.9-2.4-1.8.9-2.9-.9-2.9 2.4-1.8.9-2.9 3-.1z"/><path d="m8.5 12 2.3 2.3 4.7-4.6"/></svg>',
+ "eye": '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.8"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+ "clock": '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+}
 
-    kicker(c, M, y - 26, "What it takes")
-    cols = [("About 8 minutes", "One question per screen on any phone. Choose the J12 (about 5 minutes) or the Full survey (about 8, every question for the young person's path)."),
-            ("Anonymous by design", "No names, emails, phone numbers or birthdays; IP addresses are never stored with answers. Age is a band."),
-            ("Works with no signal", "Once the survey has opened on a phone, it runs offline and sends answers when signal returns.")]
-    cw = (TW - 24) / 3; yy = y - 34
-    for i, (h, b) in enumerate(cols):
-        x = M + i * (cw + 12)
-        c.setFillColor(PAGE); c.roundRect(x, yy - 86, cw, 86, 8, stroke=0, fill=1)
-        para(c, f"<b>{h}</b>", x + 10, yy - 10, cw - 20, style(10.5, INK))
-        para(c, b, x + 10, yy - 28, cw - 20, style(8.8, INK2, 12.2))
-    footer(c, W, "The Jesus Index · built by and for the Next Gen Global Collab · jfindx.org", 1)
-    c.showPage()
+# ── building blocks ────────────────────────────────────────────────────────────
+class Deck:
+    def __init__(self, footer):
+        self.footer, self.slides = footer, []
+    def add(self, body, dark=False, bar=False, foot=True):
+        n = len(self.slides) + 1
+        f = f'<div class="foot">{e(self.footer)}</div><div class="pno">{n:02d}</div>' if foot else ""
+        self.slides.append(f'<section class="s{" dark" if dark else ""}">{"<div class=bar></div>" if bar else ""}{body}{f}</section>')
+    def write(self, name, title):
+        doc = f'<!doctype html><html><head><meta charset="utf-8"><title>{e(title)}</title><style>{CSS}</style></head><body>{"".join(self.slides)}</body></html>'
+        out = OUT / name
+        HTML(string=doc, base_url=str(ROOT)).write_pdf(out, metadata={"title": title})
+        print(f"{out.relative_to(ROOT)} · {len(self.slides)} pages")
+        return len(self.slides)
 
-    # page 2
-    kicker(c, M, H - 60, "How it works")
-    steps = [("1", "A ministry joins", "Join at jfindx.org, then sign in with your ministry email — no password. Your organisation gets its own branded survey and dashboard."),
-             ("2", "Consent comes first", "Confirm consent for your organisation, then for each survey you send — including how parental consent was gathered for 13–17s. No consent, no participation."),
-             ("3", "Start a survey for each group", "Choose the J12 or the Full survey, add your own welcome and closing, and set when it opens and closes. Each one has its own results, adding up into your whole organisation."),
-             ("4", "Young people answer", "They scan a QR code or tap a link, answer in about eight minutes, and are told plainly that only grouped results are ever seen. Those not yet following Jesus answer their own path."),
-             ("5", "You read the J12 — live", "Your dashboard shows the J12 matrix, the Unengaged matrix and a world heat map. Choose which views your team sees, export your results, and overlay the Collab's pooled picture."),
-             ("6", "Ask what it means", "“What does this mean?” sends your question — and the view you are looking at — to a Collab facilitator, who helps turn a score into a changed strategy.")]
-    y = H - 72
-    for n, h, b in steps:
-        c.setFillColor(CORAL); c.circle(M + 10, y - 12, 10, stroke=0, fill=1)
-        c.setFillColor(white); c.setFont("Helvetica-Bold", 10); c.drawCentredString(M + 10, y - 15.5, n)
-        yb = para(c, f"<b>{h}</b>", M + 30, y - 4, TW - 30, style(11, INK))
-        yb = para(c, b, M + 30, yb - 3, TW - 30, style(9.5, INK2, 13.5))
-        y = yb - 14
+def lockup(dark=True):
+    return f'<div class="lock">{MARK}<div><div class="word">The <i>Jesus</i> Index</div><div class="tag">A global measure of Jesus-following</div></div></div>'
 
-    kicker(c, M, y - 6, "The promises the platform keeps")
-    promises = ["<b>Only “those who have completed the Index.”</b> Results never claim to describe a whole population, and every score shows how many people it rests on.",
-                "<b>Nothing small enough to point at a person.</b> A score appears at 10 people; a city or area at 400; a country on the map at 2,000.",
-                "<b>Aggregates only.</b> No organisation ever sees an individual's answers — including its own young people's.",
-                "<b>Kept only as long as needed.</b> After 60 days the exact time, city, typed answers and survey link are removed; cleaned answers are kept up to 5 years, then only grouped totals. Under-13s are stopped at the first question and nothing is kept.",
-                "<b>Minors protected at the edge.</b> Consent, including parental consent, is gathered and held by each ministry — never by the Index.",
-                "<b>Your brand, not ours.</b> Respondents see your name, colour and logo; the Jesus Index sits quietly in the footer."]
-    y -= 16
-    for pr in promises:
-        c.setFillColor(VIOLET); c.circle(M + 4, y - 6, 2.4, stroke=0, fill=1)
-        y = para(c, pr, M + 14, y, TW - 14, style(9.5, INK, 13.5)) - 7
+def cover(d, headline, sub, pill, meta):
+    d.add(f'''{lockup()}
+      <h1 class="xl" style="margin-top:118px">{headline}</h1>
+      <p class="lead" style="margin-top:28px">{sub}</p>
+      <div style="position:absolute;left:97px;bottom:96px">
+        <span class="pill" style="margin-right:22px">{e(pill)}</span><span style="font-size:21px;color:#c9ced8">{e(meta)}</span></div>''',
+        dark=True, bar=True, foot=False)
 
-    box_h = 108; by = 50
-    c.setFillColor(INK); c.roundRect(M, by, TW, box_h, 10, stroke=0, fill=1)
-    c.drawImage(QR, W - M - box_h + 12, by + 12, box_h - 24, box_h - 24)
-    para(c, "Start at jfindx.org", M + 18, by + box_h - 18, TW - box_h - 30, style(17, white, 21, True))
-    para(c, "Join free, then sign in with your ministry email. Privacy notice: jfindx.org/privacy · Consent resource, parent letter and script: jfindx.org/resources/consent · Guided tour: jfindx.org/tour",
-         M + 18, by + box_h - 46, TW - box_h - 40, style(9.5, HexColor("#d7dbe2"), 13.5))
-    footer(c, W, "The Jesus Index · built by and for the Next Gen Global Collab · jfindx.org", 2)
-    c.showPage(); c.save()
+def opportunity(d, who="Thirty-plus ministries, and the churches around them, love young people"):
+    d.add(f'''<div class="eyebrow">The opportunity</div>
+      <h1>{e(who)}. We&rsquo;ve never had one shared way to see the fruit.</h1>
+      <div class="grid4">
+        <div class="card" style="min-height:230px"><div class="k">We tend to count</div><div class="t">Attendance</div></div>
+        <div class="card" style="min-height:230px"><div class="k">We tend to count</div><div class="t">Events</div></div>
+        <div class="card" style="min-height:230px"><div class="k">We tend to trust</div><div class="t">A gut feeling</div></div>
+        <div class="card grad" style="min-height:230px"><div class="k">We actually want to see:</div><div class="t">Are they following Jesus?</div></div>
+      </div>''')
 
-# ───────────────────────────── pitch & demo ──────────────────────────────
-def pitch(path):
-    W, H = landscape(A4); c = canvas.Canvas(path, pagesize=(W, H))
-    c.setTitle("The Jesus Index — pitch and demo guide"); c.setAuthor("Next Gen Global Collab")
-    M = 54; TW = W - 2 * M; n = [0]
+def what_is(d):
+    d.add(f'''<div class="eyebrow">What is the Jesus Index?</div>
+      <h1>A short, anonymous survey young people take on their own phones, and a dashboard that shows you what it means.</h1>
+      <div class="grid4" style="margin-top:52px">
+        <div class="stat"><div class="n">&asymp;{FULL_MIN} min</div><div class="l">the full survey &middot; &asymp;{J12_MIN} for the J12 only</div></div>
+        <div class="stat" style="border-color:#ff9466"><div class="n">13&ndash;30</div><div class="l">the ages it measures</div></div>
+        <div class="stat" style="border-color:#b98af7"><div class="n">100%</div><div class="l">anonymous &middot; no names, ever</div></div>
+        <div class="stat" style="border-color:#8b5cf6"><div class="n">$0</div><div class="l">to run it, for any ministry</div></div>
+      </div>
+      <div style="margin-top:44px"><span class="chip">Do they follow Jesus?</span><span class="chip">Do they join His mission?</span><span class="chip">Does their world look different because of Him?</span></div>''')
 
-    def slide(title, kick, dark=False):
-        n[0] += 1
-        if n[0] > 1: c.showPage()
-        c.setFillColor(INK if dark else white); c.rect(0, 0, W, H, stroke=0, fill=1)
-        c.setFillColor(CORAL); c.rect(0, H - 6, W * 0.34, 6, stroke=0, fill=1)
-        c.setFillColor(VIOLET); c.rect(W * 0.34, H - 6, W * 0.66, 6, stroke=0, fill=1)
-        mark(c, M + 9, H - 42, 9)
-        wordmark(c, M + 24, H - 42, 12.5, white if dark else INK)
-        kicker(c, M, H - 84, kick, HexColor("#b8bdc7") if dark else INK2)
-        y = para(c, title, M, H - 92, TW * 0.85, style(26, white if dark else INK, 31, True))
-        c.setStrokeColor(HexColor("#3a3e46") if dark else RULE); c.line(M, 30, W - M, 30)
-        c.setFont("Helvetica", 7.5); c.setFillColor(HexColor("#b8bdc7") if dark else INK2)
-        c.drawString(M, 18, "The Jesus Index · pitch and demo guide · jfindx.org"); c.drawRightString(W - M, 18, str(n[0]))
-        return y
+def stages(d):
+    d.add('''<div class="eyebrow">What we long to see</div>
+      <h1>Young people who follow Jesus, and help others do the same.</h1>
+      <div class="grid4">
+        <div class="stage st1"><div class="k">Stage 1</div><div class="t">Exposure</div><p>Hears of Jesus and senses faith should matter</p></div>
+        <div class="stage st2"><div class="k">Stage 2</div><div class="t">Response</div><p>Believes, and owns the call personally</p></div>
+        <div class="stage st3"><div class="k">Stage 3</div><div class="t">Formation</div><p>Is being shaped, practises witness, makes new choices</p></div>
+        <div class="stage st4"><div class="k">Stage 4 &middot; the goal</div><div class="t">Multiplication</div><p>Helps others believe and changes the world around them</p></div>
+      </div>
+      <div class="success">Our measure of success: <span>Jesus-following that multiplies.</span></div>''')
 
-    # 1 · cover
-    y = slide("A shared measure of how young people follow Jesus.", "Pitch and demo guide · for leaders, boards and partners", dark=True)
-    para(c, "One short, anonymous survey any ministry can run, free. Its own results live, as people answer. A Collab-wide picture no single ministry could see alone.",
-         M, y - 18, TW * 0.6, style(13.5, HexColor("#d7dbe2"), 19))
-    c.drawImage(QR, W - M - 150, 60, 150, 150)
-    c.setFont("Helvetica", 9); c.setFillColor(HexColor("#b8bdc7")); c.drawRightString(W - M, 48, "jfindx.org")
+def j12(d):
+    head = "".join(f"<th>{c}</th>" for c in J12_COLS)
+    rows = "".join(
+        f'<tr><td class="rh">{r}<span>{g}</span></td>' + "".join(f'<td class="c c{j}">{e(J12_WORDS[i][j])}</td>' for j in range(4)) + "</tr>"
+        for i, (r, g) in enumerate(J12_ROWS))
+    d.add(f'''<div class="eyebrow">The model &middot; the J12</div>
+      <h1 class="md">Three questions. Four stages. Twelve cells.</h1>
+      <p class="lead" style="font-size:22px;margin-top:14px">The three questions are <b>what</b> we measure; the four stages are <b>how deep</b> it has gone. Every scored question sits in one cell. Read across a row to see where young people stop moving.</p>
+      <table class="j12"><tr><th></th>{head}</tr>{rows}</table>''')
 
-    # 2 · why
-    y = slide("Thirty-plus ministries, each measuring differently — so no one can see the whole.", "Why it exists")
-    cols = [("The problem", "Every ministry asks its own questions, in its own way. Numbers can't be compared, and the most important question — where do young people stop moving? — goes unanswered."),
-            ("The answer", "One instrument, the same everywhere, translatable, that any ministry can run in minutes on any phone — even offline, at a camp."),
-            ("What changes", "A youth pastor sees where their people stall. The Collab sees patterns across countries. A facilitator helps turn a score into a changed strategy.")]
-    cw = (TW - 40) / 3
-    for i, (h, b) in enumerate(cols):
-        x = M + i * (cw + 20)
-        c.setFillColor(PAGE); c.roundRect(x, 70, cw, y - 100, 12, stroke=0, fill=1)
-        para(c, h, x + 18, y - 48, cw - 36, style(15, [CORAL_D, VIOLET_D, INK][i], 19, True))
-        para(c, b, x + 18, y - 78, cw - 36, style(11.5, INK, 16.5))
+def safe(d):
+    d.add(f'''<div class="eyebrow">Safe by design</div>
+      <h1>Your young people are protected. Your results stay yours.</h1>
+      <div class="grid4">
+        <div class="card soft">{ICON["lock"]}<h3>Fully anonymous</h3><p>No names, emails, phone numbers, birthdays or IP addresses stored with answers. Age is a band.</p></div>
+        <div class="card soft">{ICON["group"]}<h3>Groups only</h3><p>You never see one person&rsquo;s answers. No score shows under 10 people.</p></div>
+        <div class="card soft">{ICON["home"]}<h3>Your name on it</h3><p>Young people see your ministry&rsquo;s name, colour and logo, not ours.</p></div>
+        <div class="card soft">{ICON["check"]}<h3>Consent built in</h3><p>Confirmed for your ministry and for every survey. Parental consent for 13&ndash;17s is gathered and held by you.</p></div>
+      </div>
+      <p class="note">Under 13 or over 30? The survey thanks them at the first question and keeps nothing. Consent guide, parent letter and script: <b>jfindx.org/resources/consent</b></p>''')
 
-    # 3 · the model
-    y = slide("Three questions. Four tiers. Twelve cells.", "The model · the J12")
-    para(c, "Every question belongs to one question — <b>Follow</b> (personal faith), <b>Mission</b> (outward), <b>World</b> (lived impact) — and one tier — <b>Exposure → Response → Formation → Multiplication</b>. "
-         "Read across a row to see where people stop moving; read down a column to compare the three.", M, y - 14, TW * 0.36, style(11.5, INK, 16.5))
-    j12(c, M + TW * 0.4, y - 10, TW * 0.6, cell_h=58, font=9.5)
+def gives(d):
+    d.add('''<div class="eyebrow">What it gives your ministry</div>
+      <h1>Know your young people, not just your numbers.</h1>
+      <div class="grid3">
+        <div class="card edge-coral"><h3>See past attendance</h3><p>Are they believing, praying, reading Scripture and sharing their faith?</p></div>
+        <div class="card edge-ink"><h3>Spot where they&rsquo;re stuck</h3><p>Maybe they believe but never share. The journey view shows the gap.</p></div>
+        <div class="card edge-violet"><h3>A clear next step</h3><p>&ldquo;What does this mean?&rdquo; puts your question to a Collab facilitator.</p></div>
+        <div class="card edge-violet"><h3>Hear from the searching</h3><p>Those not yet following Jesus get their own questions, reported separately.</p></div>
+        <div class="card edge-peach"><h3>Watch growth over time</h3><p>Run it again next year and see what God is growing.</p></div>
+        <div class="card edge-ink"><h3>Learn with your peers</h3><p>Compare with the pooled picture as more ministries join, without exposing anyone.</p></div>
+      </div>''')
 
-    # 4 · what a young person does
-    y = slide("About six minutes, on any phone — with no signal if need be.", "The respondent")
-    items = [("Scan or tap", "A QR code on a poster, or a link in a group chat. Your welcome first, your thank-you last."), ("Choose a language", "English today, Spanish in review and more on the way — every word is translatable."),
-             ("One question per screen", "The J12 in about 5 minutes, the Full survey in about 8. Country from a list; no city, no free text."), ("Anonymous, and told so", "No names, emails or birthdays; age is a band. They're told only grouped results are ever seen."),
-             ("Offline-proof", "Answers are kept on the phone and sent automatically when signal returns."), ("Every path counts", "Those not yet following Jesus answer their own questions — counted, and scored apart.")]
-    cw = (TW - 36) / 3; ch = (y - 110) / 2
-    for i, (h, b) in enumerate(items):
-        x = M + (i % 3) * (cw + 18); yy = y - 24 - (i // 3) * (ch + 16)
-        c.setFillColor(PAGE); c.roundRect(x, yy - ch, cw, ch, 10, stroke=0, fill=1)
-        para(c, h, x + 16, yy - 16, cw - 32, style(13, INK, 17, True))
-        para(c, b, x + 16, yy - 40, cw - 32, style(11, INK2, 15.5))
+def phone_join():
+    return f'''<div class="phone"><div class="in"><div class="word" style="font-size:22px">The <i>Jesus</i> Index</div>
+      <div style="font-weight:800;font-size:28px;margin-top:18px">Join, free</div>
+      <div class="lab">Your ministry email</div><div class="field">you@church.org</div>
+      <div class="lab">Organisation</div><div class="field">e.g. Northside Church</div>
+      <div class="lab">Your role</div><div class="field">e.g. Youth pastor</div>
+      <div class="btn grad" style="margin-top:72px">Join &rarr;</div></div></div>'''
 
-    # 5 · what a ministry sees
-    y = slide("Your own dashboard — and the Collab's, side by side.", "The ministry")
-    rows = [("Two tabs, identical in shape", "Your organisation's dashboard and Collab Intelligence: the same figures, the same J12 matrix and heat map, in the same places."),
-            ("One survey per group", "Every survey you start — a camp, a partner, a youth night — has its own results, adding up into your whole organisation."),
-            ("Yours to arrange", "“Edit your dashboard” lets your admin choose which views and tools your team sees. A score never loses its sample size."),
-            ("A map that doesn't overclaim", "Countries light up only once 2,000 people there have answered; cities and areas at 400. Until then they stay grey — honestly."),
-            ("“What does this mean?”", "Ask a Collab facilitator about exactly the view you're looking at. That's the consulting layer: from a score to a strategy.")]
-    yy = y - 20
-    for h, b in rows:
-        c.setFillColor(VIOLET); c.roundRect(M, yy - 32, 5, 30, 2, stroke=0, fill=1)
-        para(c, h, M + 16, yy - 2, TW * 0.3, style(12.5, INK, 16, True))
-        para(c, b, M + 16 + TW * 0.31, yy - 2, TW * 0.66, style(11, INK2, 15.5))
-        yy -= 52
+def phone_page():
+    return f'''<div class="phone"><div class="top"><b>Northside Students</b><span>Your ministry, your brand</span></div>
+      <div class="in"><div style="font-weight:800;font-size:28px;line-height:1.1">Your page is ready</div>
+      <div class="url">jfindx.org/northside</div>
+      <div class="btn ink">Full survey &middot; &asymp;{FULL_MIN} min</div>
+      <div class="btn line">J12 only &middot; &asymp;{J12_MIN} min</div>
+      <div style="font-size:16px;margin-top:16px"><span style="color:#3f9d72">&#10003;</span> Consent confirmed by your ministry</div>
+      <div class="demo">Demo ministry</div></div></div>'''
 
-    # 6 · promises
-    y = slide("The promises the platform keeps.", "Privacy and honesty")
-    pr = [("Of those who completed it", "Results describe the people who answered — never a whole population. Every score shows its n."), ("Nothing that points at a person", "No score under 10 people. No city under 400, no country under 2,000."),
-          ("Aggregates only", "No organisation sees an individual answer — not even its own young people's."), ("Minors protected at the edge", "Consent is confirmed twice — for the organisation and for each survey — and parental consent is held by each ministry, never by the Index."),
-          ("Kept only as long as needed", "Identifying details removed after 60 days; cleaned answers kept up to 5 years. IPs never stored with answers."), ("Never locked", "Questions are researcher-owned and versioned; every answer stays tied to its version.")]
-    cw = (TW - 20) / 2
-    for i, (h, b) in enumerate(pr):
-        x = M + (i % 2) * (cw + 20); yy = y - 20 - (i // 2) * 72
-        para(c, h, x, yy, cw, style(12.5, CORAL_DD, 16, True))
-        para(c, b, x, yy - 20, cw, style(11, INK, 15.5))
+def phone_question():
+    opts = "".join(f'<div class="opt{" on" if n == 3 else ""}">{e(l)}</div>' for n, l in enumerate(LIKERT))
+    return f'''<div class="phone"><div class="in"><div style="font-weight:800;font-size:19px">Northside Students</div><div class="gbar"></div>
+      <div class="sq" style="margin-top:20px">A real question from the survey</div><div class="q">{e(SAMPLE)}</div>{opts}</div></div>'''
 
-    # 7 · demo, part 1
-    y = slide("Run the demo — part one: set up.", "Demo instructions · about 10 minutes")
-    steps = [("Before you start", "Have a laptop to present from and a phone to answer on. For a no-risk walkthrough with invented figures, open jfindx.org/see-a-demo."),
-             ("1 · Sign in", "On the laptop go to jfindx.org → “Sign in”. Enter your ministry email and open the link from the newest email — it works on any device."),
-             ("2 · Your dashboard", "Point out the figures and the J12 matrix. Say: the dashes mean there aren't enough answers yet — that's the privacy floor at work."),
-             ("3 · Start a test survey", "Click “+ Start a new survey”. Name it (“Demo”), tick Test link, choose J12 or Full survey (open “What each survey measures”), add a welcome, and save."),
-             ("4 · Show the QR", "On the new card click “QR” and hold it up. A test link works before consent and its answers are kept apart and deleted after 7 days.")]
-    yy = y - 18
-    for h, b in steps:
-        para(c, h, M, yy, TW * 0.24, style(12, INK, 16, True))
-        yb = para(c, b, M + TW * 0.26, yy, TW * 0.74, style(11, INK2, 15.5))
-        yy = min(yy - 36, yb - 12)
+def phone_dash():
+    return '''<div class="phone"><div class="in"><div style="font-weight:800;font-size:21px">Your dashboard</div>
+      <div class="tile"><small>J12 index</small><div class="n">3.4 <span style="color:#8a909b">/ 5</span></div><small>86 young people &middot; of those who completed it</small></div>
+      <div class="tile"><small>The journey</small><div class="bars"><div style="width:100%"></div><div style="width:86%"></div><div style="width:64%"></div><div style="width:42%"></div></div></div>
+      <div class="tile"><b style="color:#c2410c;font-size:16px">What does this mean?</b><small style="margin-top:4px;color:#22252b">Ask a Collab facilitator about the view you&rsquo;re on.</small></div>
+      <div class="demo">Demo figures</div></div></div>'''
 
-    # 8 · demo, part 2
-    y = slide("Run the demo — part two: answer, read, ask.", "Demo instructions · continued")
-    steps = [("5 · Answer on a phone", "Scan the QR. Point out your own colour, name and welcome, one question per screen, and the anonymity promise. For effect, switch to airplane mode halfway — it keeps working."),
-             ("6 · Watch it arrive", "Back on the laptop, reload. The test card's count goes up — test answers never reach a score. On a real survey a score appears once 10 people have answered."),
-             ("7 · Switch views", "Toggle the J12 matrix, Unengaged matrix and heat map; open “Edit your dashboard” to show how a team chooses what it sees; open Collab Intelligence for the pooled picture."),
-             ("8 · Ask what it means", "Click “What does this mean?” and pick a suggested question. It goes to a Collab facilitator with the view attached — that's where a score becomes a strategy."),
-             ("9 · Hand over", "At the bottom of the dashboard, “Share about the Jesus Index” has this guide, the two-pager and the QR code. Consent materials: jfindx.org/resources/consent.")]
-    yy = y - 18
-    for h, b in steps:
-        para(c, h, M, yy, TW * 0.24, style(12, INK, 16, True))
-        yb = para(c, b, M + TW * 0.26, yy, TW * 0.74, style(11, INK2, 15.5))
-        yy = min(yy - 36, yb - 12)
+def how1(d):
+    d.add(f'''<div class="split"><div class="l"><div class="eyebrow" style="margin-top:60px">How it works &middot; 1 of 2</div>
+      <h1 class="md">From &ldquo;I&rsquo;m interested&rdquo; to your own page.</h1>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div><h3>Join, free</h3><p>At jfindx.org/join: your ministry email, organisation and role. Sign in by email link, no password.</p></div></div>
+        <div class="step"><div class="num">2</div><div><h3>Set up, with help</h3><p>Your logo, colour and welcome. Confirm consent, then press &ldquo;+ Start a new survey&rdquo; for each group.</p></div></div>
+      </div></div><div class="phones">{phone_join()}{phone_page()}</div></div>''')
 
-    c.showPage(); c.save()
+def how2(d):
+    d.add(f'''<div class="split"><div class="l"><div class="eyebrow" style="margin-top:60px">How it works &middot; 2 of 2</div>
+      <h1 class="md">From one youth night to a clear next step.</h1>
+      <div class="steps">
+        <div class="step"><div class="num">3</div><div><h3>Your people take it</h3><p>One question per screen on their own phone. Anonymous, and it keeps working on a weak signal.</p></div></div>
+        <div class="step"><div class="num">4</div><div><h3>You see your dashboard</h3><p>Where they&rsquo;re strong, where they&rsquo;re stuck, and help turning it into a next step.</p></div></div>
+      </div></div><div class="phones">{phone_question()}{phone_dash()}</div></div>''')
 
-# ──────────────────────────── leadership pitch ───────────────────────────
-def leadership(path):
-    """The case for the Index, for leaders and funders — drawn from the
-    leadership briefing (the pitch), restated to match what is built. No
-    results anywhere: the only numbers are counts of the coalition, the
-    published comparison studies, the privacy thresholds and the indicative
-    budget already shared with funders."""
-    W, H = landscape(A4); c = canvas.Canvas(path, pagesize=(W, H))
-    c.setTitle("The Jesus Index — leadership pitch"); c.setAuthor("Next Gen Global Collab")
-    M = 54; TW = W - 2 * M; n = [0]
-    DIM = HexColor("#b8bdc7"); SOFT = HexColor("#d7dbe2")
+def walls(d):
+    d.add('''<div class="eyebrow">Why a shared measure</div>
+      <h1>Same mission. Same questions. A different way of measuring.</h1>
+      <p class="lead">A single central study across fifty countries hit three walls. A shared measure that every ministry runs for itself goes around all three.</p>
+      <div class="grid3">
+        <div class="card"><h3>The under-18 wall</h3><p>Most Collab ministries work with under-18s. Collecting minors&rsquo; data centrally across many countries needs ethics infrastructure we don&rsquo;t have. Run at the edge, consent stays with each ministry.</p></div>
+        <div class="card"><h3>The money wall</h3><p>The Global Flourishing Study covers 22 countries and cost about $43M. Our ~$1M would buy roughly one country for seven years, not fifty.</p></div>
+        <div class="card"><h3>The quality wall</h3><p>A global study on a small budget means ad-hoc sampling we can&rsquo;t compare year to year. One instrument, used the same way everywhere, can be.</p></div>
+      </div>''')
 
-    def slide(title, kick, dark=False):
-        n[0] += 1
-        if n[0] > 1: c.showPage()
-        c.setFillColor(INK if dark else white); c.rect(0, 0, W, H, stroke=0, fill=1)
-        c.setFillColor(CORAL); c.rect(0, H - 6, W * 0.34, 6, stroke=0, fill=1)
-        c.setFillColor(VIOLET); c.rect(W * 0.34, H - 6, W * 0.66, 6, stroke=0, fill=1)
-        mark(c, M + 9, H - 42, 9)
-        wordmark(c, M + 24, H - 42, 12.5, white if dark else INK)
-        kicker(c, M, H - 84, kick, DIM if dark else INK2)
-        y = para(c, title, M, H - 92, TW * 0.85, style(26, white if dark else INK, 31, True))
-        c.setStrokeColor(HexColor("#3a3e46") if dark else RULE); c.line(M, 30, W - M, 30)
-        c.setFont("Helvetica", 7.5); c.setFillColor(DIM if dark else INK2)
-        c.drawString(M, 18, "The Jesus Index · leadership pitch · a working proposal, not a finished plan · jfindx.org")
-        c.drawRightString(W - M, 18, str(n[0]))
-        return y
+def pattern(d):
+    d.add('''<div class="eyebrow">A proven pattern</div>
+      <h1>The missing leg of Collective Impact.</h1>
+      <p class="lead">Stanford&rsquo;s Collective Impact names five conditions a coalition needs. The Collab has four. The Index builds the fifth: <b>shared measurement</b>.</p>
+      <div class="grid3">
+        <div class="card"><h3>Gallup Q12</h3><p>Twelve questions in a four-level hierarchy, run by organisations across 50+ industries and benchmarked against a global database.</p></div>
+        <div class="card"><h3>Global Flourishing Study</h3><p>Harvard, Baylor and Gallup: a shared index across 22 countries. The model of a common measure, if not the budget.</p></div>
+        <div class="card"><h3>World Vision &middot; Hope &amp; Love</h3><p>A validated tool measuring how children experience God&rsquo;s love, released in 2025. The faith sector already does this.</p></div>
+      </div>''')
 
-    def cards(items, y, colours=None, top_pad=24, h=None):
-        cw = (TW - 20 * (len(items) - 1)) / len(items)
-        hh = h or (y - top_pad - 60)
-        for i, (hd, b) in enumerate(items):
-            x = M + i * (cw + 20)
-            c.setFillColor(PAGE); c.roundRect(x, y - top_pad - hh, cw, hh, 12, stroke=0, fill=1)
-            col = (colours or [INK] * len(items))[i]
-            yb = para(c, hd, x + 18, y - top_pad - 18, cw - 36, style(14, col, 18, True))
-            para(c, b, x + 18, yb - 8, cw - 36, style(10.8, INK, 15.5))
+def road(d):
+    phases = [("2026", "Build &amp; baseline", "$120K"), ("2027", "Prove the model", "$180K"), ("2028&ndash;29", "Scale", "$320K"),
+              ("2030&ndash;31", "Trend lines", "$240K"), ("2032&ndash;33", "The standard", "$140K")]
+    tl = "".join(f'<div><div class="d">{y}</div><div class="w">{w}</div><div class="m">{m}</div></div>' for y, w, m in phases)
+    d.add(f'''<div class="eyebrow">Who does what &middot; the road to 2033</div>
+      <h1 style="color:#fff">One measure, owned by everyone. About $1M through 2033.</h1>
+      <div class="grid4" style="margin-top:40px">
+        <div class="card"><h3>The Collab</h3><p>Owns the project, the relationships and the people.</p></div>
+        <div class="card"><h3>NXT Move</h3><p>The Collab&rsquo;s appointed backbone organisation; stewards the Index.</p></div>
+        <div class="card"><h3>Eido Research</h3><p>The survey and intelligence engine.</p></div>
+        <div class="card"><h3>Every ministry</h3><p>Runs it free, keeps its own results, adds to the shared picture.</p></div>
+      </div>
+      <div class="timeline">{tl}</div>''', dark=True)
 
-    # 1 · cover
-    y = slide("How will we know?", "Leadership pitch · Next Gen Global Collab · on the road to 2033", dark=True)
-    para(c, "Thirty-plus organisations. Dozens of countries. One goal — every young person with a real opportunity to follow Jesus by 2033 — "
-            "and, until now, no shared way to tell whether young people are actually following Him.",
-         M, y - 18, TW * 0.6, style(14, SOFT, 20))
-    para(c, "This is the proposal: one shared measure — the Jesus Index — owned by everyone, run by anyone, so the whole movement finally reads the same picture.",
-         M, y - 110, TW * 0.6, style(14, white, 20, True))
-    c.drawImage(QR, W - M - 150, 60, 150, 150)
-    c.setFont("Helvetica", 9); c.setFillColor(DIM); c.drawRightString(W - M, 48, "jfindx.org · see a demo at jfindx.org/see-a-demo")
+def invite(d, steps):
+    # No nested flex here: WeasyPrint drops content from a wrapping flex row
+    # inside a flex item. The QR sits absolutely; the link cards are inline blocks.
+    st = "".join(f'<div class="step compact"><div class="num">{n}</div><div><p style="color:#fff;font-size:23px;margin-top:8px"><b>{a}</b> {b}</p></div></div>' for n, (a, b) in enumerate(steps, 1))
+    links = [("Join", "jfindx.org/join"), ("See a Demo", "jfindx.org/see-a-demo"), ("Consent guide", "jfindx.org/resources/consent")]
+    lc = "".join(f'<div class="card" style="display:inline-block;vertical-align:top;width:236px;margin-right:16px;padding:18px 20px"><h3 style="font-size:21px">{a}</h3><p style="font-size:15.5px">{b}</p></div>' for a, b in links)
+    d.add(f'''<div style="width:780px;margin-top:40px">
+      <div class="eyebrow">An invitation, not an obligation</div>
+      <h1 style="color:#fff">Would you explore this with us?</h1>
+      <div class="steps">{st}</div>
+      <div style="margin-top:10px">{lc}</div></div>
+      <div class="qr" style="position:absolute;right:97px;top:170px"><img src="{QR}"><b>Scan: jfindx.org</b><span>free for every ministry</span></div>''',
+      dark=True, bar=True)
 
-    # 2 · the shift
-    y = slide("Same mission. Same questions. A different way of measuring.", "The shift")
-    cards([("What stays the same", "The 2033 goal. The three questions — do they follow Jesus, do they join His mission, does their world look different? And the collaboration: we still measure together."),
-           ("What changes", "From one centralised study the Collab runs, funds and owns — to a crowdsourced shared measure that hundreds of organisations, down to a single local church, run for themselves."),
-           ("Why it matters", "We stop carrying the measuring tape ourselves and hand it to everyone. Each organisation gets value back immediately; the Collab gets a pooled picture no study could afford.")],
-          y, [INK, CORAL_D, VIOLET_D], h=190)
+def goal(d):
+    d.add('''<div class="goal"><div class="q">To see every young person have a real opportunity to <i>follow Jesus</i> by 2033.</div>
+      <div class="rule"></div><div class="by">The Jesus Index &middot; stewarded by NXT Move for the Next Gen Global Collab &middot; jfindx.org</div></div>''', foot=False)
 
-    # 3 · why the change
-    y = slide("Three walls the original study couldn't get past.", "Why the change")
-    cards([("The under-18 wall", "Most Collab organisations work with under-18s. Centrally collecting minors' data across many countries needs ethics infrastructure we don't have. Run at the edge, consent stays with each organisation."),
-           ("The money wall", "The Global Flourishing Study covers 22 countries and cost about $43M. Our ~$1M would buy roughly one country for seven years — not fifty."),
-           ("The quality wall", "A global study on a small budget means ad-hoc sampling: data we can't compare year to year or region to region. A shared instrument used the same way everywhere can be.")],
-          y, [CORAL_DD, CORAL_DD, CORAL_DD], h=190)
+def demo1(d):
+    steps = [("Sign in", "On the laptop go to jfindx.org &rarr; &ldquo;Sign in&rdquo;. Enter your ministry email and open the link from the newest email; it works on any device."),
+             ("Show the dashboard", "Point out the figures and the J12 matrix. The dashes mean there aren&rsquo;t enough answers yet: that&rsquo;s the privacy floor at work."),
+             ("Start a survey", "Click &ldquo;+ Start a new survey&rdquo;. Name it (&ldquo;Demo&rdquo;), tick Test link, choose J12 or Full survey, add a welcome, and save."),
+             ("Hold up the QR", "On the new card click &ldquo;QR&rdquo;. A test link works before consent; its answers are kept apart and deleted after 7 days.")]
+    st = [f'<div class="step"><div class="num">{n}</div><div><h3>{a}</h3><p>{b}</p></div></div>' for n, (a, b) in enumerate(steps, 1)]
+    d.add(
+      f'''<div class="eyebrow">Run the demo &middot; part one, about 10 minutes</div>
+      <h1 class="md">Set up, live, in front of them.</h1>
+      <p class="lead" style="font-size:22px">Have a laptop to present from and a phone to answer on. For a no-risk walkthrough with invented figures, open jfindx.org/see-a-demo.</p>
+      <div class="cols2"><div>{st[0]}{st[1]}</div><div>{st[2]}{st[3]}</div></div>''')
 
-    # 4 · collective impact + proven pattern
-    y = slide("The missing leg of Collective Impact — and a proven pattern.", "The thinking behind it")
-    conds = [("Common agenda", "the 2033 vision"), ("Shared measurement", "the Jesus Index"), ("Reinforcing activities", "each partner"),
-             ("Continuous communication", "the gatherings"), ("Backbone support", "NXT Move")]
-    cw = (TW - 4 * 12) / 5
-    for i, (h, g) in enumerate(conds):
-        x = M + i * (cw + 12); miss = i == 1
-        c.setFillColor(CORAL if miss else PAGE); c.roundRect(x, y - 92, cw, 70, 10, stroke=0, fill=1)
-        para(c, h, x + 12, y - 32, cw - 24, style(11, white if miss else INK, 14, True))
-        para(c, ("" if miss else "✓ ") + g, x + 12, y - 64, cw - 24, style(9.5, white if miss else INK2, 12.5))
-    para(c, "Stanford's Collective Impact names five conditions a coalition needs. We have four. The Index builds the fifth.", M, y - 104, TW, style(11, INK2, 15))
-    cards([("Gallup Q12", "Twelve questions in a four-level hierarchy, run by organisations across 50+ industries and benchmarked against a global database."),
-           ("Global Flourishing Study", "Harvard, Baylor and Gallup. A shared index across 22 countries — the model of a common measure, if not the budget."),
-           ("World Vision · Hope & Love", "A validated tool measuring how children experience God's love, released in 2025. The faith sector already does this.")],
-          y - 132, [INK, INK, INK], top_pad=6, h=118)
+def demo2(d):
+    steps = [("Answer on the phone", "Scan the QR. Point out your colour, name and welcome, one question per screen, and the anonymity promise. Switch to airplane mode halfway: it keeps working."),
+             ("Reload the laptop", "The test card&rsquo;s count goes up. Test answers never reach a score; on a real survey a score appears once 10 people have answered."),
+             ("Show the views", "Toggle the J12 matrix, the Unengaged matrix and the heat map. Open &ldquo;Edit your dashboard&rdquo;, then Collab Intelligence for the pooled picture."),
+             ("Ask &ldquo;What does this mean?&rdquo;", "Pick a suggested question. It goes to a Collab facilitator with the view attached: that&rsquo;s where a score becomes a strategy.")]
+    st = [f'<div class="step"><div class="num">{n}</div><div><h3>{a}</h3><p>{b}</p></div></div>' for n, (a, b) in enumerate(steps, 5)]
+    d.add(f'''<div class="eyebrow">Run the demo &middot; part two</div>
+      <h1 class="md">Answer, read, ask.</h1>
+      <p class="lead" style="font-size:22px">At the bottom of the dashboard, &ldquo;Share about the Jesus Index&rdquo; has these documents and the QR code. Consent materials: jfindx.org/resources/consent.</p>
+      <div class="cols2"><div>{st[0]}{st[1]}</div><div>{st[2]}{st[3]}</div></div>''')
 
-    # 5 · the model
-    y = slide("Three questions. Four tiers. Twelve cells: the J12.", "The model")
-    para(c, "The <b>three questions</b> are <i>what</i> we measure. The <b>four tiers</b> are <i>how deep</i> it has gone — "
-            "<b>Exposure → Response → Formation → Multiplication</b>. Every question in the survey sits in one cell. "
-            "Read across a row to see where young people stop moving; read down a column to compare the three.<br/><br/>"
-            "The <b>J12</b> is the twelve core questions — one per cell — about five minutes on any phone. The full survey asks more in each cell.",
-         M, y - 14, TW * 0.36, style(11.5, INK, 16.5))
-    j12(c, M + TW * 0.4, y - 10, TW * 0.6, cell_h=58, font=9.5)
+def promises(d):
+    items = [("Of those who completed it", "Results describe the people who answered, never a whole population. Every score shows how many people it rests on."),
+             ("Nothing that points at a person", "No score under 10 people. No city or area under 400, no country under 2,000."),
+             ("Aggregates only", "No organisation sees an individual&rsquo;s answers, including its own young people&rsquo;s."),
+             ("Kept only as long as needed", "Identifying details removed after 60 days; cleaned answers kept up to 5 years, then only grouped totals."),
+             ("Consent before collection", "Confirmed for the organisation and for every survey. No consent, no participation."),
+             ("Never locked in code", "Questions are researcher-owned and versioned; every answer stays tied to the version it was given under.")]
+    cards = "".join(f'<div class="card"><h3>{a}</h3><p>{b}</p></div>' for a, b in items)
+    d.add(f'''<div class="eyebrow">The integrity line</div>
+      <h1 class="md">&ldquo;Of those who have completed the Index.&rdquo; We never claim to speak for a nation.</h1>
+      <div class="grid3" style="margin-top:34px">{cards}</div>''')
 
-    # 6 · three outcomes + how it works
-    y = slide("What we're building — and how the crowdsourced model works.", "Three outcomes")
-    cards([("1 · The shared metric", "One memorable, translatable instrument anyone can run. Free to every ministry, always."),
-           ("2 · The dashboard", "Each organisation sees its own results live, under its own name. The Collab sees the pooled picture."),
-           ("3 · The consulting", "“What does this mean?” — facilitators help turn a score into a changed strategy. The long game.")],
-          y, [CORAL_D, VIOLET_D, INK], h=120)
-    yy = y - 24 - 120 - 22
-    for h, b in [("White-labelled, theirs", "An organisation signs up and runs the Index under its own logo and colour; its data flows back to the shared picture."),
-                 ("Benchmarks earn their place", "Comparisons switch on for a place only once enough people there have completed the Index."),
-                 ("Risk moves to the edge", "Organisations gather data under their own consent; the Index never holds identifiable data about anyone, least of all minors.")]:
-        c.setFillColor(VIOLET); c.roundRect(M, yy - 26, 5, 24, 2, stroke=0, fill=1)
-        para(c, h, M + 16, yy - 2, TW * 0.27, style(12, INK, 15, True))
-        para(c, b, M + 16 + TW * 0.28, yy - 2, TW * 0.7, style(11, INK2, 15))
-        yy -= 40
+# ── the three documents ───────────────────────────────────────────────────────
+def leadership():
+    d = Deck("The Jesus Index · Leadership pitch")
+    cover(d, 'Let&rsquo;s see Jesus-following, <span class="hl">one ministry at a time.</span>',
+          "One shared, anonymous measure that any ministry, down to a single local church, can run for free, so the whole movement reads the same picture.",
+          "Leadership pitch", "Next Gen Global Collab · on the road to 2033")
+    opportunity(d); what_is(d); stages(d); j12(d); walls(d); pattern(d); safe(d); promises(d); gives(d); how1(d); how2(d); road(d)
+    invite(d, [("Join, free.", "One minute at jfindx.org/join: your ministry email, organisation, role."),
+               ("Set up your page.", "Your logo, colour and welcome; confirm consent."),
+               ("Send your first survey.", "A link or QR code for each group. Results appear as they answer.")])
+    goal(d)
+    return d.write("JesusIndex-leadership-pitch.pdf", "The Jesus Index — leadership pitch")
 
-    # 7 · promises
-    y = slide("The integrity line, and the promises behind it.", "Privacy and honesty")
-    para(c, "“Of those who have completed the Index — here are the results, and here's how you compare.” We never claim to speak for a nation.",
-         M, y - 10, TW * 0.85, style(15, CORAL_DD, 20, True))
-    pr = [("Every score shows its n", "Results describe the people who answered — never a whole population."),
-          ("Nothing that points at a person", "No score under 10 people; no city or area under 400; no country under 2,000."),
-          ("Aggregates only", "No organisation sees an individual answer — not even its own young people's."),
-          ("Anonymous by design", "No names, emails or birthdays; age is a band; IP addresses never stored with answers."),
-          ("Consent before collection", "Confirmed for the organisation and for every survey — no consent, no participation."),
-          ("Never locked", "Questions are researcher-owned and versioned; every answer stays tied to its version.")]
-    cw = (TW - 20) / 2
-    for i, (h, b) in enumerate(pr):
-        x = M + (i % 2) * (cw + 20); yy = y - 70 - (i // 2) * 64
-        para(c, h, x, yy, cw, style(12.5, INK, 16, True))
-        para(c, b, x, yy - 19, cw, style(11, INK2, 15))
+def demo_guide():
+    d = Deck("The Jesus Index · Pitch and demo guide")
+    cover(d, 'Walk someone through it, <span class="hl">in ten minutes.</span>',
+          "Why the Jesus Index exists, how a ministry uses it, and step-by-step notes for a leaders&rsquo; meeting or a call.",
+          "Pitch and demo guide", "For leaders, boards and partners · jfindx.org")
+    opportunity(d); what_is(d); j12(d); how2(d); safe(d); demo1(d); demo2(d)
+    invite(d, [("Join, free.", "jfindx.org/join, about a minute."),
+               ("Try it with a test link.", "Answers on a test link never count anywhere."),
+               ("Confirm consent and send it.", "For your ministry, then for each survey.")])
+    goal(d)
+    return d.write("JesusIndex-pitch-and-demo.pdf", "The Jesus Index — pitch and demo guide")
 
-    # 8 · who does what + the road
-    y = slide("Who does what, and the road to 2033.", "Partnership and horizon")
-    who = [("The Collab", "Owns the project, the relationships and the people."), ("NXT Move", "The Collab's appointed backbone organisation."),
-           ("Eido Research", "The survey and intelligence engine."), ("Shared IP", "Co-owned by NXT Move and Eido; anyone may publish results crediting both.")]
-    yy = y - 18
-    for h, b in who:
-        para(c, h, M, yy, TW * 0.16, style(11.5, INK, 15, True))
-        para(c, b, M + TW * 0.17, yy, TW * 0.3, style(10.5, INK2, 14.5))
-        yy -= 40
-    road = [("2026", "Build & baseline", "$120K"), ("2027", "Prove the model", "$180K"), ("2028–29", "Scale", "$320K"),
-            ("2030–31", "Trend lines", "$240K"), ("2032–33", "Standard, not survey", "$140K")]
-    x0 = M + TW * 0.52; rw = TW * 0.48; yy = y - 14
-    c.setFont("Helvetica", 7.5); c.setFillColor(INK2); c.drawString(x0, yy, "PHASE"); c.drawRightString(x0 + rw, yy, "INDICATIVE")
-    yy -= 8
-    for yr, h, amt in road:
-        c.setStrokeColor(RULE); c.line(x0, yy, x0 + rw, yy)
-        c.setFont("Helvetica-Bold", 11); c.setFillColor(CORAL_D); c.drawString(x0, yy - 20, yr)
-        c.setFont("Helvetica", 11); c.setFillColor(INK); c.drawString(x0 + 70, yy - 20, h)
-        c.drawRightString(x0 + rw, yy - 20, amt)
-        yy -= 32
-    c.setStrokeColor(INK); c.line(x0, yy, x0 + rw, yy)
-    c.setFont("Helvetica-Bold", 11.5); c.drawString(x0, yy - 20, "Through 2033"); c.drawRightString(x0 + rw, yy - 20, "~$1.0M")
-    para(c, "Early years are lean because data-gathering cost moves to the partners; free measures with paid advanced reports and consulting bend later years toward self-sustaining.",
-         x0, yy - 34, rw, style(9.5, INK2, 13))
+def two_pager():
+    d = Deck("The Jesus Index · Two-pager · jfindx.org")
+    head = "".join(f"<th>{c}</th>" for c in J12_COLS)
+    rows = "".join(f'<tr><td class="rh" style="font-size:20px;width:120px">{r}<span style="font-size:14px">{g}</span></td>' +
+                   "".join(f'<td class="c c{j}" style="height:64px;width:142px;font-size:15px">{e(J12_WORDS[i][j])}</td>' for j in range(4)) + "</tr>"
+                   for i, (r, g) in enumerate(J12_ROWS))
+    d.add(f'''<div class="bar"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:-40px"><div style="width:900px">{lockup().replace('class="word"','class="word" style="font-size:34px"')}</div>
+        <span class="pill" style="font-size:17px;padding:10px 18px">Two-pager &middot; for a board or partner</span></div>
+      <h1 class="md" style="margin-top:26px;max-width:1260px;font-size:46px">How are young people following Jesus, and where do they stop moving?</h1>
+      <p class="lead" style="font-size:20px;margin-top:12px;max-width:1260px">The Jesus Index is one short, anonymous survey any ministry can run with the young people it reaches, aged 13 to 30. It&rsquo;s free. Each ministry sees its own results live; together, the Collab sees a picture no single ministry could see alone.</p>
+      <div style="display:flex;margin-top:22px">
+        <div style="flex:0 0 760px;width:760px;margin-right:44px">
+          <div class="eyebrow" style="font-size:16px">The model &middot; the J12</div>
+          <table class="j12" style="margin-top:8px"><tr><th></th>{head}</tr>{rows}</table>
+        </div>
+        <div style="flex:1 1 auto">
+          <div class="eyebrow" style="font-size:16px">At a glance</div>
+          <div class="grid2 w458" style="margin-top:16px">
+            <div class="stat" style="padding-top:14px"><div class="n" style="font-size:36px">&asymp;{FULL_MIN} min</div><div class="l" style="font-size:17px">{LENGTH_COPY.lower()} for the full survey; &asymp;{J12_MIN} for the J12</div></div>
+            <div class="stat" style="padding-top:14px;border-color:#ff9466"><div class="n" style="font-size:36px">13&ndash;30</div><div class="l" style="font-size:17px">under 13 or over 30 leave at the first question</div></div>
+            <div class="stat" style="padding-top:14px;border-color:#b98af7"><div class="n" style="font-size:36px">100%</div><div class="l" style="font-size:17px">anonymous; no names, emails or birthdays</div></div>
+            <div class="stat" style="padding-top:14px;border-color:#8b5cf6"><div class="n" style="font-size:36px">$0</div><div class="l" style="font-size:17px">to run it, for any ministry</div></div>
+          </div>
+          <p class="small" style="margin-top:6px;font-size:16px">One question per screen on any phone; works offline once opened. Those not yet following Jesus answer their own questions, scored apart.</p>
+        </div></div>''', foot=True)
+    steps = [("Join and sign in", "Join at jfindx.org, then sign in with your ministry email: no password. You get your own branded survey and dashboard."),
+             ("Confirm consent", "For your organisation, then for each survey you send, including how parental consent was gathered for 13&ndash;17s. No consent, no participation."),
+             ("Start a survey for each group", "Choose the J12 or the Full survey, add your welcome, and set when it opens and closes. Each has its own results."),
+             ("Read it, and ask", "The J12 matrix, the Unengaged matrix and a heat map, live. &ldquo;What does this mean?&rdquo; sends your question to a Collab facilitator.")]
+    st = "".join(f'<div class="step compact" style="margin-bottom:16px"><div class="num">{n}</div><div><h3 style="font-size:22px">{a}</h3><p style="font-size:17.5px">{b}</p></div></div>' for n, (a, b) in enumerate(steps, 1))
+    pr = [("Of those who completed it", "Never a whole population; every score shows its n."),
+          ("Nothing that points at a person", "A score at 10 people; a city at 400; a country at 2,000."),
+          ("Aggregates only", "No organisation ever sees one person&rsquo;s answers."),
+          ("Kept only as long as needed", "Identifying details removed after 60 days; cleaned answers up to 5 years."),
+          ("Minors protected at the edge", "Consent, including parental, gathered and held by each ministry."),
+          ("Your brand, not ours", "Your name, colour and logo; the Index sits in the footer.")]
+    pc = "".join(f'<div class="card" style="padding:16px 18px"><h3 style="font-size:19px">{a}</h3><p style="font-size:16px;margin-top:4px">{b}</p></div>' for a, b in pr)
+    d.add(f'''<div style="display:flex;margin-top:-30px">
+        <div style="flex:0 0 600px;width:600px;margin-right:50px"><div class="eyebrow" style="font-size:16px">How it works</div>
+          <div class="steps" style="margin-top:20px">{st}</div></div>
+        <div style="flex:1 1 auto"><div class="eyebrow" style="font-size:16px">The promises the platform keeps</div>
+          <div class="grid2 w612 tight" style="margin-top:20px">{pc}</div>
+          <table style="margin-top:10px;border-collapse:collapse"><tr>
+            <td style="width:150px;vertical-align:middle"><img src="{QR}" style="width:130px;height:130px;border-radius:12px"></td>
+            <td style="vertical-align:middle"><p class="small"><b style="color:#22252b">Join free at jfindx.org.</b> Privacy notice: jfindx.org/privacy &middot; Consent guide, parent letter and script: jfindx.org/resources/consent &middot; Guided tour: jfindx.org/tour</p></td>
+          </tr></table></div></div>''')
+    return d.write("JesusIndex-two-pager.pdf", "The Jesus Index — what it is and how it works")
 
-    # 9 · the ask
-    y = slide("Run it. See it. Bring the organisations around you.", "What we're asking", dark=True)
-    asks = [("Join", "Sign up your ministry, organisation or church at jfindx.org — free, about two minutes."),
-            ("See a demo", "jfindx.org/see-a-demo walks a fictional ministry, organisation and church through a whole season — every figure invented."),
-            ("Bring others", "Comparisons open as an area grows. The fastest way to see how you compare is to invite the ministries you already work alongside.")]
-    cw = (TW - 200 - 40) / 3
-    for i, (h, b) in enumerate(asks):
-        x = M + i * (cw + 20)
-        para(c, h, x, y - 30, cw, style(16, [CORAL, HexColor("#b69cf9"), white][i], 20, True))
-        para(c, b, x, y - 56, cw, style(11.5, SOFT, 16.5))
-    c.drawImage(QR, W - M - 170, 70, 170, 170)
-    c.setFont("Helvetica", 9); c.setFillColor(DIM); c.drawRightString(W - M, 56, "jfindx.org")
-    para(c, "<i>Clay to be moulded — not a vase to be baked.</i> A working proposal, offered for shaping.", M, 92, TW * 0.6, style(11.5, DIM, 16))
-    c.showPage(); c.save()
-
-
-leadership("public/share/JesusIndex-leadership-pitch.pdf")
-two_pager("public/share/JesusIndex-two-pager.pdf")
-pitch("public/share/JesusIndex-pitch-and-demo.pdf")
-print("ok")
+if __name__ == "__main__":
+    counts = {"leadership": leadership(), "two_pager": two_pager(), "demo": demo_guide()}
+    print(counts)

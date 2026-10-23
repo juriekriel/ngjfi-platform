@@ -1,5 +1,5 @@
 // Builds the leadership pitch (public/pitch/index.html, served at /pitch) from
-// scripts/pitch/template.html and the LIVE instrument, src/data/instrument.v6.json.
+// scripts/pitch/template.html and the LIVE instrument, src/data/instrument.v7.json.
 //
 //   node scripts/build-pitch.mjs
 //
@@ -18,7 +18,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 const root = new URL("../", import.meta.url);
 const read = (p) => readFileSync(new URL(p, root), "utf8");
 
-export const LIVE = "v6";
+export const LIVE = "v7";
 
 const esc = (s) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

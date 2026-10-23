@@ -26,7 +26,7 @@ export const CONSENT_STATEMENT: string[] = [
  *
  * DRAFT — for review by counsel and the Collab before pilots.
  */
-export const SURVEY_CONSENT_STATEMENT_VERSION = "2026-10-v1";
+export const SURVEY_CONSENT_STATEMENT_VERSION = "2026-10-v2";
 
 export const PARENTAL_CONSENT_METHODS = [
   { value: "written_form", label: "Signed written form" },
@@ -55,7 +55,7 @@ export function surveyConsentStatement(d: SurveyConsentDetails): string[] {
     d.method === "not_applicable_adults_only"
       ? "This survey is for adults only; anyone who says they are under 18 is stopped and nothing is kept."
       : `For anyone under 18, we have the parent's or guardian's consent our context requires, gathered by ${method ? method.label.toLowerCase() : "[method]"}, before they take part.`,
-    "The young people will be told that taking part is voluntary and anonymous, and that they can skip any question or stop at any time.",
+    "The young people will be told that taking part is voluntary and anonymous, and that they can stop at any time.",
     "We have read “Why consent?” and the country reference for these countries, and have taken local advice where it is required.",
   ];
   if (d.ethicsReference) lines.push(`Ethics approval: ${d.ethicsReference}.`);

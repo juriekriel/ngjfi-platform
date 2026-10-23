@@ -2,9 +2,9 @@
 // API, using the same SUPABASE_ACCESS_TOKEN that scripts/apply-migrations.mjs
 // reads. No service-role key required.
 //
-//   node scripts/seed-instrument.mjs           seeds src/data/instrument.v6.json
+//   node scripts/seed-instrument.mjs           seeds src/data/instrument.v7.json
 //   node scripts/seed-instrument.mjs v0        seeds a specific version file
-//   node scripts/seed-instrument.mjs v6 --status draft
+//   node scripts/seed-instrument.mjs v7 --status draft
 //                                              loads a version WITHOUT activating it:
 //                                              the live version is untouched, so a
 //                                              researcher can review it in /build/instrument
@@ -22,7 +22,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const REF = "whtbfhbhkhwfmeekvmxq";
-const version = process.argv[2] ?? "v6";
+const version = process.argv[2] ?? "v7";
 const statusFlag = process.argv.indexOf("--status");
 const status = statusFlag > -1 ? process.argv[statusFlag + 1] : "active";
 if (!["active", "draft"].includes(status)) throw new Error(`--status must be "active" or "draft", not "${status}"`);

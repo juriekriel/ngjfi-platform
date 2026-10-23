@@ -9,6 +9,9 @@ declare
   v_room   uuid;
   r jsonb; e text; reg jsonb; o jsonb;
 begin
+  -- Written against survey statement 2026-10-v1; 0064 moved the platform to v2.
+  -- Pin v1 for this test (the transaction is rolled back afterwards).
+  update platform_settings set value = '"2026-10-v1"' where key = 'survey_consent_statement_version';
   perform test.unlock();
   update instrument_versions set status = 'archived' where status = 'active';
   perform test.make_instrument();
