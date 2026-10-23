@@ -17,23 +17,23 @@ const unescape = (s: string) => s.replace(/&amp;/g, "&").replace(/&quot;/g, '"')
 const text = unescape(pitch);
 
 test("the pitch is built from the live instrument and is up to date", () => {
-  assert.equal(LIVE, "v6");
+  assert.equal(LIVE, "v7");
   assert.match(read("src/lib/instrument.ts"), new RegExp(`instrument\\.${LIVE}\\.json`), "the pitch and the survey read the same version");
   assert.equal(pitch, build(), "public/pitch/index.html is stale: run node scripts/build-pitch.mjs");
 });
 
-test("every question a respondent can be asked in v6 is on the pitch, word for word", () => {
-  const items = fieldedItems(load("v6")) as Item[];
+test("every question a respondent can be asked in the live version is on the pitch, word for word", () => {
+  const items = fieldedItems(load(LIVE)) as Item[];
   assert.ok(items.length > 60);
   for (const i of items) assert.ok(text.includes(i.text.en), `${i.key} missing from the pitch`);
 });
 
 test("no question from an older version, or the old hand-typed pitch survey, appears on the pitch", () => {
-  const live = new Set((fieldedItems(load("v6")) as Item[]).map((i) => i.text.en));
+  const live = new Set((fieldedItems(load(LIVE)) as Item[]).map((i) => i.text.en));
   const retired = new Set<string>();
-  for (const v of ["v0", "v1", "v2", "v3", "v4", "v5"])
+  for (const v of ["v0", "v1", "v2", "v3", "v4", "v5", "v6"])
     for (const i of load(v).items) if (i.text.en.length > 24 && !live.has(i.text.en)) retired.add(i.text.en);
-  for (const i of load("v6").items) if (i.archived && !live.has(i.text.en)) retired.add(i.text.en);
+  for (const i of load(LIVE).items) if (i.archived && !live.has(i.text.en)) retired.add(i.text.en);
   // The 6.1 pitch's own illustrative questions, which were never an instrument version.
   for (const q of [
     "I am a follower of Jesus, whom I believe is God.",

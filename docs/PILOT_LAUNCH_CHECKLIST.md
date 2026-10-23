@@ -12,13 +12,13 @@ leadership / counsel · **O** = each pilot organisation.
 
 | # | Decision | Owner | Where it lands |
 |---|---|---|---|
-| 1 | Sign off instrument **v5** as fielded, including the 0042 amendments: the *12 or younger* age option that ends the survey, and `welcome_minutes: 6` | R | `src/data/instrument.v5.json` note |
-| 2 | Field the draft **Belong–Trust** module in pilots, or not? Default is **not** (`field_draft_items: false`). Flip to `true` only once the wording is agreed | R | same file |
-| 3 | Record the prayer / scripture decision (unscored frequencies, reported beside the Index) as the formal answer to non-negotiable #5 | R | instrument note + `CLAUDE.md` §3 |
-| 4 | Confirm the gates: `critical_mass_gate` 400, `country_critical_mass_gate` 2000, `min_group_n` 10 — or change them | R | `platform_settings` via a migration |
+| 1 | ~~Sign off instrument **v6** as fielded~~ **Done: v6 locked 16 Oct 2026.** It is fielded as **v7** = v6 + the *31 or older* exit (23 Oct 2026), next to the *12 or younger* exit. `welcome_minutes`: 8 (Full) / 5 (J12). Still to do once: lock v7 in the database (below, §3) | R | `src/data/instrument.v7.json` lock |
+| 2 | ~~Field the draft **Belong–Trust** module?~~ **Decided: not fielded** — archived inside v6/v7; bringing it back is a new version | R | same file |
+| 3 | ~~Record the prayer / scripture decision~~ **Recorded** in the v6/v7 lock: `pray_frequency` and `scripture_frequency`, "Weekly" or "Most days" counts (decision 5) | R | instrument note + `CLAUDE.md` §3 |
+| 4 | ~~Confirm the gates~~ **Confirmed (decision 9, migration 0064):** `min_group_n` 10, `room_min_n` 10, `critical_mass_gate` 400, `country_critical_mass_gate` 2000 | R | `platform_settings` via a migration |
 | 5 | ~~Decide the **retention period**~~ **Decided (Matthew, 7 Oct 2026):** pseudo-markers kept 60 days, de-identified answers up to 5 years (0050). Still open: free text *delete* vs *code then delete* (`deidentify_free_text`), month vs quarter (`deidentify_time_grain`), and counsel's view that de-identified answers are anonymous | R + C | `platform_settings` via a migration |
-| 6 | Approve the **consent statements** — organisation *and* per survey — and the **"Why consent?"** text and **country reference** (`src/lib/consent.ts`, `src/content/consent/why-consent.ts`, `src/data/consent-countries.json`, all `2026-10-v1`) | C | bump each version in the file *and* its setting together |
-| 7 | Counsel review of `/privacy`, `/terms` and who is controller of the pooled data (US, Argentina first; then South Africa/POPIA, Brazil/LGPD) | C | remove the draft banner in `src/components/site/LegalPage.tsx` |
+| 6 | Approve the **consent statements** — organisation (`2026-10-v1`) *and* per survey (now **`2026-10-v2`**, migration 0064: "can stop at any time"; v1 promised skipping any question, which the scored questions don't offer) — and the **"Why consent?"** text and **country reference**. **Launching with the draft wording** (decision of 23 Oct 2026); the draft banner stays on /privacy and /terms | C | bump each version in the file *and* its setting together |
+| 7 | Counsel review of `/privacy`, `/terms` and who is controller of the pooled data (US, Argentina first; then South Africa/POPIA, Brazil/LGPD). **Open — launching with the draft banner showing** | C | remove the draft banner in `src/components/site/LegalPage.tsx` |
 | 8 | Spanish sign-off, then `es` → `live` in `src/data/locales.json` (Buenos Aires can't record Spanish until then) | R | `docs/TRANSLATION.md` |
 
 ## 2. Platform settings (outside the repo)
@@ -32,8 +32,9 @@ leadership / counsel · **O** = each pilot organisation.
 
 ## 3. Database (the Pilot readiness band checks these)
 
-- [ ] Migration **0042** applied (`GET /api/migrations` on the publisher shows nothing waiting).
-- [ ] `npm run db:seed` run after the instrument change, and exactly one instrument version is active.
+- [ ] Migrations **through 0065** applied (`GET /api/migrations` on the publisher shows nothing waiting).
+- [ ] `node scripts/seed-instrument.mjs` (defaults to **v7**) run, and exactly one instrument version is active: `select * from instrument_status();`
+- [ ] v7 locked in the database — **permanent**, so only once the seed is checked: `select lock_instrument_version('v7', 'v6 + over-30 exit, launch 2026-10');`
 - [ ] `publish_global_view` is still `false`.
 - [ ] Consent is **per organisation, not a launch gate** (0049): the band lists who is collecting and who is waiting; each organisation's own links stay closed until it confirms.
 - [ ] Retention is set (0050: 60 days, then de-identified; 60 months) and nothing is past the de-identification window.
@@ -43,15 +44,16 @@ leadership / counsel · **O** = each pilot organisation.
 ## 4. Rehearsal (on a Deploy Preview, then on production with a test link)
 
 - [ ] Answer "12 or younger": the survey ends politely, and no session exists for it afterwards.
+- [ ] Answer "31 or older": the same — a polite close, nothing kept.
 - [ ] Go offline after opening the survey; answer everything; reconnect — the response arrives once.
 - [ ] Type an email address and phone number into the free-text question — they arrive as `[removed]`.
 - [ ] A real link for an organisation that hasn't confirmed consent says it isn't collecting yet; its **test** link still works.
 - [ ] With organisation consent but **no survey consent**, the link and QR are hidden on the dashboard, the printable cards refuse, and the real link says it isn't open yet (0053).
 - [ ] Consent a survey for **18+ only**; answer "13–17": the survey ends politely and nothing is kept.
-- [ ] While collection is locked (0048): a real link runs end to end, shows the *Preview — not collecting yet* notice, and leaves no session or response behind. Its **test** link still records to test tables.
-- [ ] Confirm consent; with collection unlocked on a Deploy Preview database, the real link now records.
+- [ ] ~~While collection is locked (0048)~~ — collection is unlocked by 0065; rehearse on a Deploy Preview database *before* applying 0065 to production if you want to see the locked state once more.
+- [ ] Confirm consent; with collection unlocked, the real link now records.
 - [ ] Keyboard only, and a phone screen reader (VoiceOver / TalkBack): every question and choice is announced and reachable.
-- [ ] Time three real 13–17-year-olds through the main set. If the median is far from the 6 minutes the welcome promises, change `welcome_minutes` (a test keeps it plausible).
+- [ ] Time three real 13–17-year-olds through the Full survey. If the median is far from the 8 minutes the welcome promises (5 for the J12), change `welcome_minutes` — the welcome screen, the consent resource, the parent letter, the script, /learn and /tour all read it from the instrument.
 - [ ] The organisation's dashboard shows sample size next to every score, and a room with fewer than `min_group_n` people from a place never names that place.
 
 ## 5. Per pilot organisation (the 30-minute onboarding call)
@@ -70,8 +72,9 @@ Real links run but collect nothing until this is done (migration 0048,
 `platform_settings.collection_locked`). Only when sections 1–5 are complete:
 
 - [ ] The Pilot readiness band is all green, and the items it can't check are ticked above.
-- [ ] Open a PR adding a new migration that sets `collection_locked` to `false` — **never** a toggle in the Supabase dashboard. The PR description names who signed off readiness.
+- [x] Migration **0065** sets `collection_locked` to `false` (launch-readiness PR, Oct 2026) — never a toggle in the Supabase dashboard. The PR description names who signed off readiness.
 - [ ] After it merges and the publisher applies it: one real completion appears on the pilot org's dashboard.
+- [ ] To pause collection again: a new migration setting it back to `true`.
 
 ## After the first wave
 

@@ -47,3 +47,4 @@ yarn-error.log*
 
 # Translation sheets are working files (scripts/translation-sheet.mjs); the imported result lives in src/data/i18n/
 translations/
+__pycache__/

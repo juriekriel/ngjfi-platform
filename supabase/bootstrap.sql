@@ -79,6 +79,11 @@
 --   0058_consent_reference_all_countries.sql
 --   0059_adopt_dropping_unscored.sql
 --   0060_admin_platform_controls.sql
+--   0061_reserve_pitch_short_name.sql
+--   0062_waitlist_notify_guard.sql
+--   0063_comms_stages.sql
+--   0064_launch_settings.sql
+--   0065_unlock_collection.sql
 -- ============================================================================
 
 
@@ -16053,4 +16058,448 @@ begin
 end;
 $$;
 grant execute on function public.admin_set_platform_setting(text, jsonb) to authenticated;
+
+
+-- ─── 0061_reserve_pitch_short_name.sql ─────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — reserve the /pitch short name (migration 0061, round 8)
+-- ============================================================================
+-- /pitch now serves the leadership pitch (public/pitch/index.html, built from
+-- the live instrument by scripts/build-pitch.mjs). Reserve the name so no
+-- organisation can claim it as its survey short name and collide with it.
+-- No data is touched.
+insert into public.reserved_short_names (name, reason) values
+  ('pitch', 'site: /pitch (leadership pitch, 0061)')
+on conflict (name) do nothing;
+
+
+-- ─── 0062_waitlist_notify_guard.sql ────────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — the waitlist emails only answer a real, fresh sign-up
+-- (migration 0062, launch readiness, Oct 2026)
+-- ============================================================================
+-- WHY
+-- /api/waitlist-notify was unauthenticated and sent its "You're in" email to
+-- whatever address was POSTed to it, with whatever organisation name came with
+-- it. Anyone could use the site's verified sending domain to email anyone,
+-- as often as they liked — burning the Resend quota and, worse, the domain's
+-- sender reputation, which the sign-in (magic-link) emails depend on.
+--
+-- WHAT
+-- waitlist_claim_notification(p_email, p_kind) — the route asks the database
+-- before it sends anything:
+--   * 'join': a waitlist row for that address created in the last
+--     10 minutes whose confirmation has NOT been sent yet. The row is marked
+--     sent in the same statement, so a second call (or a replay) gets nothing.
+--   * 'setup_call': the same address said yes / maybe to a setup call in the
+--     last 10 minutes, and the team hasn't been told yet. Marked the same way.
+-- It returns what the database holds (email, organisation, role …) — the route
+-- writes the email from THAT, never from the request body.
+--
+-- Residual: someone can still sign a stranger up once (exactly as before),
+-- and that stranger then gets exactly one confirmation. Never two, never a
+-- stream, and never text that wasn't saved as a sign-up first.
+-- Nothing about any respondent is read or written.
+-- ============================================================================
+
+alter table public.waitlist_contacts
+  add column if not exists confirmation_emailed_at timestamptz,
+  add column if not exists setup_call_notified_at  timestamptz;
+
+-- Rows that existed before this migration have already had (or missed) their
+-- email; never let them be claimed now.
+update public.waitlist_contacts
+   set confirmation_emailed_at = coalesce(confirmation_emailed_at, created_at)
+ where confirmation_emailed_at is null
+   and created_at < now() - interval '10 minutes';
+
+create or replace function public.waitlist_claim_notification(p_email text, p_kind text default 'join')
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare
+  v_email citext := lower(btrim(coalesce(p_email, '')))::citext;
+  v_row   jsonb;
+begin
+  if p_kind = 'join' then
+    update waitlist_contacts w
+       set confirmation_emailed_at = now()
+     where w.email = v_email
+       and w.created_at > now() - interval '10 minutes'
+       and w.confirmation_emailed_at is null
+    returning jsonb_build_object(
+      'email', w.email, 'org_name', w.org_name, 'role', w.role, 'referral_code', w.referral_code)
+      into v_row;
+  elsif p_kind = 'setup_call' then
+    update waitlist_contacts w
+       set setup_call_notified_at = now()
+     where w.email = v_email
+       and w.updated_at > now() - interval '10 minutes'
+       and w.setup_call in ('yes', 'maybe')
+       and w.setup_call_notified_at is null
+    returning jsonb_build_object(
+      'email', w.email, 'org_name', w.org_name, 'role', w.role, 'setup_call', w.setup_call,
+      'countries', array_to_string(w.countries, ', '), 'reach', w.reach_band)
+      into v_row;
+  else
+    raise exception 'kind must be join or setup_call';
+  end if;
+  return v_row;  -- null: nothing to send
+end;
+$$;
+
+revoke all on function public.waitlist_claim_notification(text, text) from public;
+grant execute on function public.waitlist_claim_notification(text, text) to anon, authenticated;
+
+
+-- ─── 0063_comms_stages.sql ─────────────────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — Communication in stages (migration 0063, launch readiness)
+-- ============================================================================
+-- WHY
+-- The Collab → Org Administrator emails (0056) were one sequence: setting up
+-- and launching a survey. The relationship goes on after that. The board now
+-- has four stages, each its own sequence of steps:
+--   launch   Launch                       — set up, consent, first survey, pitch documents
+--   support  Support and Encouragement    — check in; make asking for help easy
+--   reading  Reading your Data            — results, Collab Intelligence, consulting
+--   global   Global Perspective           — part of something bigger, with live figures
+--
+-- WHAT
+-- 1. comms_templates.stage (default 'launch' — every existing template is a
+--    Launch template). Positions number the steps WITHIN a stage.
+-- 2. admin_comms_templates() returns the stage; admin_comms_save_template()
+--    takes it. The old six-argument function is dropped first, so a call with
+--    named arguments can never be ambiguous (the 0027 overload lesson).
+-- 3. admin_comms_global_facts(): the live figures the Global Perspective
+--    emails may quote — organisations taking part, the countries THOSE
+--    ORGANISATIONS are based in, and one worldwide total of completed
+--    surveys. Live space only. No per-country respondent figure, so an email
+--    can never say more about a place than the map's critical-mass gate allows.
+-- 4. The new templates, seeded once (a re-run never overwrites an edit).
+-- 5. Launch step 2 said "about seven minutes"; the survey is about eight (five
+--    for the J12-only version). Corrected only where nobody has edited it.
+--
+-- Everything here is about ADULT STAFF of organisations. No respondent data
+-- is read except one count of completed surveys.
+-- ============================================================================
+
+alter table public.comms_templates
+  add column if not exists stage text not null default 'launch';
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'comms_templates_stage_check') then
+    alter table public.comms_templates
+      add constraint comms_templates_stage_check check (stage in ('launch', 'support', 'reading', 'global'));
+  end if;
+end $$;
+
+
+create or replace function public.admin_comms_templates()
+returns jsonb language plpgsql stable security definer set search_path = public as $$
+begin
+  perform _require_platform_admin();
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+             'key', t.key, 'title', t.title, 'subject', t.subject, 'body', t.body,
+             'kind', t.kind, 'position', t.position, 'stage', t.stage, 'updated_at', t.updated_at,
+             'updated_by', (select coalesce(u.full_name, u.email) from app_users u where u.id = t.updated_by))
+           order by array_position(array['launch','support','reading','global'], t.stage),
+                    (t.kind = 'update'), t.position nulls last, t.title)
+      from comms_templates t
+  ), '[]'::jsonb);
+end;
+$$;
+grant execute on function public.admin_comms_templates() to authenticated;
+
+
+drop function if exists public.admin_comms_save_template(text, text, text, text, text, int);
+
+create or replace function public.admin_comms_save_template(
+  p_key text, p_title text, p_subject text, p_body text,
+  p_kind text default 'update', p_position int default null, p_stage text default null
+)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_key text := lower(btrim(coalesce(p_key, '')));
+begin
+  perform _require_platform_admin();
+  if v_key = '' then
+    -- A new template: derive a key from its title.
+    v_key := left(regexp_replace(lower(btrim(coalesce(p_title, ''))), '[^a-z0-9]+', '_', 'g'), 50);
+    v_key := btrim(v_key, '_');
+    if length(v_key) < 2 then v_key := 'update'; end if;
+    if exists (select 1 from comms_templates where key = v_key) then
+      v_key := v_key || '_' || to_char(now(), 'YYYYMMDDHH24MISS');
+    end if;
+  end if;
+  if p_kind not in ('sequence', 'update') then raise exception 'kind must be sequence or update'; end if;
+  if p_stage is not null and p_stage not in ('launch', 'support', 'reading', 'global') then
+    raise exception 'stage must be launch, support, reading or global';
+  end if;
+
+  insert into comms_templates (key, title, subject, body, kind, position, stage, updated_at, updated_by)
+  values (v_key, btrim(p_title), btrim(p_subject), p_body, p_kind,
+          case when p_kind = 'sequence' then p_position end, coalesce(p_stage, 'launch'), now(), auth.uid())
+  on conflict (key) do update
+     set title = excluded.title, subject = excluded.subject, body = excluded.body,
+         kind = excluded.kind, position = excluded.position,
+         -- Saving without a stage keeps the template where it is.
+         stage = coalesce(p_stage, comms_templates.stage),
+         updated_at = now(), updated_by = auth.uid();
+  return jsonb_build_object('ok', true, 'key', v_key);
+end;
+$$;
+grant execute on function public.admin_comms_save_template(text, text, text, text, text, int, text) to authenticated;
+
+
+create or replace function public.admin_comms_global_facts()
+returns jsonb language plpgsql stable security definer set search_path = public as $$
+begin
+  perform _require_platform_admin();
+  return jsonb_build_object(
+    'org_count', (select count(*) from organisations o where not o.is_demo and o.status = 'active'),
+    'countries', coalesce((
+       select jsonb_agg(c order by c)
+         from (select distinct btrim(o.country) c
+                 from organisations o
+                where not o.is_demo and o.status = 'active' and nullif(btrim(o.country), '') is not null) x
+     ), '[]'::jsonb),
+    'completion_count', (
+       select count(*)
+         from sessions s
+         join campaigns c on c.id = s.campaign_id
+         join organisations o on o.id = c.org_id
+        where not o.is_demo and s.completed),
+    'checked_at', now()
+  );
+end;
+$$;
+revoke all on function public.admin_comms_global_facts() from public;
+grant execute on function public.admin_comms_global_facts() to authenticated;
+
+
+-- Launch step 2: the survey length, where nobody has edited the seeded text.
+update public.comms_templates
+   set body = replace(body, 'It takes about seven minutes on a phone',
+                      'It takes about eight minutes on a phone (about five for the J12-only version)')
+ where key = 'step_2_first_survey' and updated_by is null
+   and body like '%It takes about seven minutes on a phone%';
+
+
+insert into public.comms_templates (key, title, subject, body, kind, position, stage) values
+
+-- ── Launch ──────────────────────────────────────────────────────────────────
+('launch_pitch_docs', 'Share it with your team: the pitch documents',
+ 'Bring your team along — the Jesus Index in three documents',
+$t$Hi {{first_name}},
+
+Most ministries don't run the Index alone. A pastor, a board, volunteers or a partner usually want to understand it first. We've made that easy.
+
+Three documents, ready to download, print or forward: {{pitch_docs_url}}
+
+- **The leadership pitch** — why a shared measure, how it works, and the promises it keeps. For your senior leaders or board.
+- **The two-pager** — what the Index is and what a young person answers. For anyone who asks "what is this?"
+- **The pitch and demo guide** — how to walk someone through it in ten minutes, step by step.
+
+Two more places that help people see it for themselves:
+
+- The full pitch, online: {{pitch_url}}
+- See a Demo, with a fictional ministry, organisation and church and every figure invented: {{demo_url}}
+
+If someone on your team has a question we haven't answered, just reply. We'd love to help.
+
+{{sender_name}}
+The Jesus Index · jfindx.org$t$,
+ 'sequence', 7, 'launch'),
+
+-- ── Support and Encouragement ──────────────────────────────────────────────
+('support_check_in', 'Checking in — how is it going?',
+ 'How is the Jesus Index going for {{org_name}}?',
+$t$Hi {{first_name}},
+
+A quick check-in from the Jesus Index team. How is it going for {{org_name}}?
+
+Whatever stage you're at, if anything is unclear or stuck, we'd genuinely like to help. Just reply to this email — a real person reads it. People most often ask us about:
+
+- **Getting set up** — your logo, colour and welcome message, or adding a colleague: {{team_url}}
+- **Consent** — what to gather, especially for 13–17s, and how to confirm it: {{consent_url}}
+- **Sending a survey** — test links, a link for each camp or group, printing a QR code: {{dashboard_url}}
+- **Reading results** — what a number means and what to do about it: {{consult_url}}
+
+A two-minute walkthrough of your dashboard is here any time: {{tour_url}}
+
+No question is too small. Asking early saves a lot of time later.
+
+{{sender_name}}
+The Jesus Index · jfindx.org$t$,
+ 'sequence', 1, 'support'),
+
+('support_encouragement', 'Keep going — what you are doing matters',
+ 'Keep going, {{first_name}} — this matters',
+$t$Hi {{first_name}},
+
+We wanted to say thank you. Taking time to ask young people how they are really following Jesus — not just whether they turned up — is not a small thing. You're helping {{org_name}} see what God is doing, and where the next step is.
+
+A few things that help other ministries get more young people through the survey:
+
+- **Give it time in the room.** Ten minutes at the start of a youth night beats "do it later" every time.
+- **Say why.** Tell them it's anonymous, that nobody sees their answers, and that it helps you serve them better.
+- **One link per moment.** A camp, a youth night and a small group each get their own link, so you can see each one: {{dashboard_url}}
+- **Let them skip.** Every young person can skip a question or stop; that's part of what makes the answers honest.
+
+If response is slower than you hoped, or something isn't working the way you expected, reply and tell us. We'll think it through with you.
+
+{{sender_name}}
+The Jesus Index · jfindx.org$t$,
+ 'sequence', 2, 'support'),
+
+-- ── Reading your Data ──────────────────────────────────────────────────────
+('reading_your_results', 'Reading your data',
+ 'Reading the {{org_name}} results',
+$t$Hi {{first_name}},
+
+Your dashboard is where {{org_name}}'s results live: {{dashboard_url}}
+
+A few things to know as you read it:
+
+- **Every number is about those who have completed the Index** — never your whole ministry or community. The number of people behind each score sits right beside it.
+- **Small groups stay private.** A score appears once 10 people have completed the Index, so no number can point back to one young person.
+- **Read the matrix as a journey.** Left to right is depth — Exposure, Response, Formation, Multiplication. Where a row narrows is where young people are getting stuck.
+- **Two pictures, never mixed.** Those following Jesus feed the J12; those not yet following answer their own questions, shown separately.
+
+Then look wider. **Collab Intelligence** shows the pooled picture across every ministry taking part, so you can see where {{org_name}} is like everyone else and where it's different: {{intelligence_url}}
+
+Comparisons for a place open only once enough people there have completed the Index, so some views stay grey for a while. That's the Index being honest, not empty.
+
+{{sender_name}}
+The Jesus Index · jfindx.org$t$,
+ 'sequence', 1, 'reading'),
+
+('reading_consulting', 'From a score to a strategy — consulting',
+ 'What should {{org_name}} do with these results?',
+$t$Hi {{first_name}},
+
+A score is only useful if it changes what you do next.
+
+That's what the **"What does this mean?"** button on your dashboard is for. Ask anything about the view you're looking at — "why is Mission lower than Follow?", "what do we do about Formation?", "is this normal for a church our size?" — and it goes to a Collab facilitator with that view attached:
+
+{{consult_url}}
+
+A facilitator will come back to you to help turn what you see into a plan: one or two things to change this season, and how you'll know next year whether they worked.
+
+Before you ask, it can help to look at Collab Intelligence, so you know how {{org_name}} compares with the pooled picture: {{intelligence_url}}
+
+{{sender_name}}
+The Jesus Index · jfindx.org$t$,
+ 'sequence', 2, 'reading'),
+
+-- ── Global Perspective ─────────────────────────────────────────────────────
+('global_something_bigger', 'You are part of something bigger',
+ '{{org_name}} is one of {{org_count}} organisations in the Jesus Index',
+$t$Hi {{first_name}},
+
+When {{org_name}} runs the Jesus Index, you're not doing it alone.
+
+Right now **{{org_count}} organisations** in **{{country_count}} countries** are taking part: {{country_list}}.
+
+Together, young people have completed the Index **{{completion_count}} times** so far. Every one of those answers stays anonymous, and every finding is about those who have completed the Index — never a whole country or community.
+
+That's the point of a shared measure. Each ministry sees its own young people clearly. Together, we start to see what none of us could see alone: where young people are meeting Jesus, where the journey narrows, and what helps them go deeper — on the road to every young person having a real opportunity to follow Jesus by 2033.
+
+The pooled picture grows here: {{intelligence_url}}
+
+Thank you for being part of it.
+
+{{sender_name}}
+The Jesus Index · jfindx.org$t$,
+ 'sequence', 1, 'global'),
+
+('global_invite_peers', 'Bring the ministries around you',
+ 'Who else should be in the picture with {{org_name}}?',
+$t$Hi {{first_name}},
+
+Comparisons for a place switch on only once enough young people there have completed the Index — 400 for a city or area, 2,000 for a country. Until then, the map stays grey. Honestly.
+
+The fastest way to get there is the ministries you already know. Today **{{org_count}} organisations** in **{{country_count}} countries** are taking part. Every church, school ministry or network that joins near you brings your area closer to comparisons you can all use.
+
+It's free for every ministry, and it stays free. If you know someone who should be in the picture, send them here: {{site_url}}/join
+
+And if you'd like to share why you're doing it, the pitch documents are ready to forward: {{pitch_docs_url}}
+
+{{sender_name}}
+The Jesus Index · jfindx.org$t$,
+ 'sequence', 2, 'global')
+
+on conflict (key) do nothing;
+
+
+-- ─── 0064_launch_settings.sql ──────────────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — launch settings (migration 0064, launch readiness)
+-- ============================================================================
+-- 1. REPORTING GATES CONFIRMED (decision 9). The working values become the
+--    launch values, written explicitly so the database states them rather
+--    than relying on earlier defaults:
+--      min_group_n                 10    no score for fewer than 10 people
+--      room_min_n                  10    the same floor for one survey link
+--      critical_mass_gate         400    a city or area (none collected in v7)
+--      country_critical_mass_gate 2000   a country
+--    Still versioned config: a later migration can change any of them.
+--
+-- 2. THE SURVEY CONSENT STATEMENT, version 2026-10-v2. v1 had organisations
+--    confirm that young people would be told "they can skip any question".
+--    The 50 scored questions have no Skip, so that sentence was not true.
+--    v2 says they can stop at any time (src/lib/consent.ts; same version
+--    there). Survey consents given under v1 keep collecting for the
+--    survey_consent_grace_days (14) after survey_consent_statement_since, then
+--    ask to be reconfirmed — the mechanism migration 0053 built for exactly this.
+--
+-- Nothing about any respondent is read or changed.
+-- ============================================================================
+
+insert into public.platform_settings (key, value, note, updated_at) values
+  ('min_group_n',                '10'::jsonb,   'Confirmed for launch (decision 9, migration 0064): no score for fewer than 10 people.', now()),
+  ('room_min_n',                 '10'::jsonb,   'Confirmed for launch (decision 9, migration 0064): the same floor for a single survey link.', now()),
+  ('critical_mass_gate',         '400'::jsonb,  'Confirmed for launch (decision 9, migration 0064): a city or area needs 400 completions.', now()),
+  ('country_critical_mass_gate', '2000'::jsonb, 'Confirmed for launch (decision 9, migration 0064): a country needs 2,000 completions.', now())
+on conflict (key) do update set value = excluded.value, note = excluded.note, updated_at = now();
+
+update public.platform_settings
+   set value = '"2026-10-v2"'::jsonb, updated_at = now(),
+       note = 'Version of the per-survey consent statement (src/lib/consent.ts SURVEY_CONSENT_STATEMENT_VERSION). Bump both together. v2 (0064): "can stop at any time", no promise of skipping any question.'
+ where key = 'survey_consent_statement_version';
+
+update public.platform_settings
+   set value = to_jsonb(now()), updated_at = now()
+ where key = 'survey_consent_statement_since';
+
+
+-- ─── 0065_unlock_collection.sql ────────────────────────────────────────
+
+-- ============================================================================
+-- The Jesus Index — UNLOCK COLLECTION (migration 0065)
+-- ============================================================================
+-- Migration 0048 locked collection: real links ran end to end but stored
+-- nothing until pilot readiness was signed off. Readiness has been signed off
+-- (who signed off and when is recorded in the pull request that adds this
+-- file, as docs/PILOT_LAUNCH_CHECKLIST.md §6 requires).
+--
+-- From the moment this runs, a REAL link stores answers — for an organisation
+-- whose organisation consent AND survey consent are both confirmed (0042,
+-- 0053), within the age groups that survey was consented for. Every other
+-- guard stays exactly as it was: no consent, no participation; under-13s and
+-- over-30s leave at the first question with nothing kept; small groups stay
+-- suppressed; the sandbox never mixes with the live space.
+--
+-- To lock again: a new migration setting it back to true. Never a toggle in
+-- the Supabase dashboard. collection_locked() still FAILS CLOSED if this
+-- setting is ever missing.
+-- ============================================================================
+
+update public.platform_settings
+   set value = 'false'::jsonb, updated_at = now(),
+       note = 'Unlocked for launch by migration 0065 after pilot readiness sign-off. Set back to true only by a new migration.'
+ where key = 'collection_locked';
 

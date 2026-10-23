@@ -19,7 +19,7 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { recipientKey, renderEmail, type CommsRecipient } from "@/lib/comms";
+import { recipientKey, renderEmail, usesFacts, type CommsRecipient, type GlobalFacts } from "@/lib/comms";
 
 export const dynamic = "force-dynamic";
 
@@ -108,8 +108,17 @@ export async function POST(req: Request) {
   if (audience.length > MAX_RECIPIENTS)
     return NextResponse.json({ error: `That's ${audience.length} people — more than ${MAX_RECIPIENTS} at once. Narrow it first.` }, { status: 400 });
 
+  // Global Perspective emails quote live figures (0063). Fetched fresh, as the
+  // database sees them now — never typed by hand, never from the request.
+  let facts: GlobalFacts | null = null;
+  if (usesFacts(`${p.subject}\n${p.body}`)) {
+    const { data: f, error: fErr } = await sb.rpc("admin_comms_global_facts");
+    if (fErr) return NextResponse.json({ error: `Couldn't load the live figures: ${fErr.message}` }, { status: 500 });
+    facts = f as GlobalFacts;
+  }
+
   const site = siteUrl(req);
-  const rendered = audience.map((r) => ({ r, e: renderEmail({ subject: p.subject, body: p.body }, r, site, senderName) }));
+  const rendered = audience.map((r) => ({ r, e: renderEmail({ subject: p.subject, body: p.body }, r, site, senderName, facts) }));
   const missing = [...new Set(rendered.flatMap((x) => x.e.missing))];
   if (missing.length)
     return NextResponse.json({ error: `Unknown placeholder${missing.length > 1 ? "s" : ""}: ${missing.map((m) => `{{${m}}}`).join(", ")}` }, { status: 400 });

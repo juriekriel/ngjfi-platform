@@ -3,7 +3,7 @@ import { GradientRule } from "@/components/site/Chrome";
 /**
  * The front page's pitch documents (Oct 2026: "create pitch docs/PDFs on the
  * homepage"). Static files in public/share/, built by
- * scripts/build-share-docs.py from what the platform actually does — no
+ * scripts/build-share-docs.py (WeasyPrint, in the DFW pilot deck's style) from what the platform actually does — no
  * invented statistics — so they download instantly, work offline once cached
  * and never depend on the database. The dashboard's "Share about the Jesus
  * Index" panel offers the same files (src/components/index/ShareJfindx.tsx).
@@ -11,20 +11,20 @@ import { GradientRule } from "@/components/site/Chrome";
 export const PITCH_DOCS = [
   {
     href: "/share/JesusIndex-leadership-pitch.pdf",
-    kicker: "Leadership pitch · 9 pages · PDF",
+    kicker: "Leadership pitch · 15 slides · PDF",
     title: "Why a shared measure, and why this matters now.",
     body: "The case for the Index: why measuring Jesus-following matters, how it works, who does what, and what this means for the future.",
     lead: true,
   },
   {
     href: "/share/JesusIndex-two-pager.pdf",
-    kicker: "Two-pager · PDF",
+    kicker: "Two-pager · 2 slides · PDF",
     title: "What the Jesus Index is, and how it works",
     body: "The three questions and four tiers, what a young person answers, what your ministry sees, and how answers stay anonymous. Specifically written for a board or partner.",
   },
   {
     href: "/share/JesusIndex-pitch-and-demo.pdf",
-    kicker: "Pitch & demo guide · 8 pages · PDF",
+    kicker: "Pitch & demo guide · 10 slides · PDF",
     title: "Walk someone through it",
     body: "Why it exists, how to use it, and step-by-step notes for a leaders' meeting or a call.",
   },

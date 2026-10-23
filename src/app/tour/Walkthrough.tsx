@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { itemSetMinutes } from "@/lib/instrument";
 import Link from "next/link";
 import { GradientRule } from "@/components/site/Chrome";
 import SurveyDemo from "@/components/survey/SurveyDemo";
@@ -73,7 +74,7 @@ const LINK_STATUS_STYLE: Record<"active" | "scheduled", string> = {
 
 const BEATS = [
   { id: "model", kicker: "The model", title: "One grid, two lenses" },
-  { id: "phone", kicker: "The respondent", title: "About six minutes, on any phone" },
+  { id: "phone", kicker: "The respondent", title: `About ${itemSetMinutes("full")} minutes, on any phone` },
   { id: "adapt", kicker: "The instrument", title: "It stops asking what it shouldn't" },
   { id: "org", kicker: "The ministry", title: "What lands on your dashboard" },
   { id: "collab", kicker: "The coalition", title: "What the whole movement sees" },
@@ -187,7 +188,7 @@ function BeatModel() {
         </p>
         <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
           Every item in the survey carries exactly one question and one tier. That single tagging
-          decision is what lets a six-minute survey be read two completely different ways — by what
+          decision is what lets one short survey be read two completely different ways — by what
           you are asking about, or by how far it has travelled.
         </p>
         <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">

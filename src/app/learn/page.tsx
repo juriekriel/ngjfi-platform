@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Footer, GradientRule, Masthead } from "@/components/site/Chrome";
 import Guarantees from "./Guarantees";
+import { itemSetMinutes } from "@/lib/instrument";
 import { BranchDiagram, Matrix, Plate } from "@/components/index/Figures";
 
 export const metadata = {
@@ -23,7 +24,7 @@ export default function LearnPage() {
               A shared instrument for measuring Jesus-following.
             </h1>
             <p className="mt-6 max-w-measure text-[18px] leading-relaxed text-ink-2">
-              Your young people answer about 6 minutes of questions, under your ministry&apos;s name. You see where they are, from first hearing about Jesus to helping others follow Him. Because every ministry asks the same questions, comparisons with your country open as more join.
+              Your young people answer about {itemSetMinutes("full")} minutes of questions ({itemSetMinutes("j12")} for the J12-only version), under your ministry&apos;s name. You see where they are, from first hearing about Jesus to helping others follow Him. Because every ministry asks the same questions, comparisons with your country open as more join.
             </p>
           </div>
           <aside className="self-end">

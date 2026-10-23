@@ -33,7 +33,7 @@ const ui = Inter_Tight({
 });
 
 export const metadata: Metadata = {
-  title: "The Jesus Index · a shared measure of Jesus-following",
+  title: "The Jesus Index · a global measure of Jesus-following",
   description:
     "One instrument any organisation can run as their own, so the whole movement finally reads the same scoreboard. Built by the Next Gen Global Collab on the road to 2033.",
 };

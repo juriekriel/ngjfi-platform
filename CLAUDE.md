@@ -1,6 +1,6 @@
 # Project Instructions — The Jesus Index (jfindx.org)
 
-> Last updated 16 Oct 2026 (instrument v6 locked; round 8 brand). The same text sits in the
+> Last updated 23 Oct 2026 (launch readiness: instrument v7 = v6 + over-30 exit; gates confirmed; collection unlocked by 0065). Previously 16 Oct 2026 (instrument v6 locked; round 8 brand). The same text sits in the
 > Claude project instructions. It is the standing brief for anyone, human or agent, working on
 > this project. Sections 1–10 are the brief; the appendix holds repo operating notes.
 
@@ -32,7 +32,7 @@ Three outcomes, in order:
 2. **The dashboard**: each organisation sees its own results instantly, benchmarked; the Collab sees aggregate intelligence.
 3. **The consulting layer**: turning a score into changed strategy.
 
-**Sources of truth.** `src/data/instrument.v6.json` is the only source for what a respondent is asked, on every surface: the survey, `/survey`, the pitch at `/pitch`, the share PDFs and the admin console. `docs/BUILD_BRIEF.md` is the requirements source. The pitch sets tone and visual language; when the brief and the pitch conflict, the brief wins on substance and the pitch on presentation.
+**Sources of truth.** `src/data/instrument.v7.json` is the only source for what a respondent is asked, on every surface: the survey, `/survey`, the pitch at `/pitch`, the share PDFs and the admin console. `docs/BUILD_BRIEF.md` is the requirements source. The pitch sets tone and visual language; when the brief and the pitch conflict, the brief wins on substance and the pitch on presentation.
 
 ## 2. The core model
 
@@ -50,9 +50,9 @@ Every scored item carries one question domain and one tier, making a **3 × 4 gr
 
 ## 3. Non-negotiables
 
-1. **Never overclaim.** Report only on "those who have completed the Index", never a whole population. Show the sample size wherever a score appears. Benchmarks stay hidden below a critical-mass gate, checked independently at each geography level. Working values today: no score under 10 people, no city or area under 400, no country under 2,000. All three are versioned platform config, not code. v6 collects no city; the city gate stays in place for any future version that does. The reporting gates are still pending Dr. Matthew Niermann's confirmation against the MoU (decision 9).
-2. **Privacy is a feature, not a setting.** Respondents are anonymous: no names, emails, precise location or IP stored with answers. Age is a band, never a birthdate; an under-13 is stopped at the first question and nothing is kept. Consent, including parental consent for every 13–17-year-old, is handled by each organisation, per organisation and per survey. Never design anything that centrally holds identifiable data about under-18s. The screener's faith-status answer gets the same anonymity as every Index answer.
-3. **Never lock the model in code.** Items, scales, tags, translations, scoring, routing and section type are versioned config. Responses bind to the instrument and scoring version they were captured under, so re-scoring is always possible. A **locked version is never edited**: any change to what is asked or how it is scored is a new version (next: v7). Old version files stay in the repo as the record and are never shown on a public surface.
+1. **Never overclaim.** Report only on "those who have completed the Index", never a whole population. Show the sample size wherever a score appears. Benchmarks stay hidden below a critical-mass gate, checked independently at each geography level. Confirmed for launch (decision 9, migration 0064): no score under 10 people, no city or area under 400, no country under 2,000. All three are versioned platform config, not code. v6/v7 collect no city; the city gate stays in place for any future version that does.
+2. **Privacy is a feature, not a setting.** Respondents are anonymous: no names, emails, precise location or IP stored with answers. Age is a band, never a birthdate; anyone who answers "12 or younger" or "31 or older" is stopped at the first question and nothing is kept. Consent, including parental consent for every 13–17-year-old, is handled by each organisation, per organisation and per survey. Never design anything that centrally holds identifiable data about under-18s. The screener's faith-status answer gets the same anonymity as every Index answer.
+3. **Never lock the model in code.** Items, scales, tags, translations, scoring, routing and section type are versioned config. Responses bind to the instrument and scoring version they were captured under, so re-scoring is always possible. A **locked version is never edited**: any change to what is asked or how it is scored is a new version (next: v8). Old version files stay in the repo as the record and are never shown on a public surface.
 4. **White-label means theirs.** Organisation-facing surfaces carry the organisation's brand; the Jesus Index sits in the footer.
 5. **Weekly prayer and scripture are always measurable.** Met in v6 by the unscored frequency items `pray_frequency` and `scripture_frequency` (Route A, full survey). "Weekly" or "Most days" counts. They are reported as their own figure, not folded into the Index (decision 5).
 6. **Organisations see aggregates only.** No individual response is ever exposed to an organisation. This covers Drivers and Journey answers: report them only as grouped option shares, behind the same critical-mass gate as scores.
@@ -61,7 +61,10 @@ Every scored item carries one question domain and one tier, making a **3 × 4 gr
 9. **Insight layers never silently become score.** Drivers, Journey and the prayer and scripture frequencies are never blended into a dimension, tier or cell score without an explicit, versioned scoring decision.
 10. **Every route gets the same privacy bar.** Route B respondents receive exactly the same anonymity, consent and no-identifiable-data guarantees as Route A.
 
-## 4. The instrument: v6, locked
+## 4. The instrument: v7 (v6 + the over-30 exit), locked
+
+**v7 (23 Oct 2026)** is v6 with one change: the age question gains a last option, "31 or older" (`over_30`), which ends the survey exactly as "12 or younger" does. Nothing else that is frozen changed, and the scoring version is the same, so a v6 campaign moves to v7 dropping nothing (`adopts_from.v6`). It is fingerprint-locked in the repo (`tests/instrumentV7.test.ts`); lock it in the database once seeded (`docs/PILOT_LAUNCH_CHECKLIST.md` §3). Everything below describes v6 and holds for v7.
+
 
 v6 is the pilot instrument agreed by the Collab on 14 October 2026 and **locked on 16 October 2026**. v5 stays locked as the record of what was fielded before it. Both locks are enforced by `tests/instrumentLock.test.ts` (fingerprints in `src/data/instrument.locks.json`) and, in the database, by migration 0045.
 
@@ -78,8 +81,8 @@ v6 is the pilot instrument agreed by the Collab on 14 October 2026 and **locked 
 - **Survey versions.** Full survey: about 8 minutes, 39 screens on the reference follower path. J12 only: about 5 minutes; screener, scored items and demographics, no Drivers, Journey or frequencies.
 - **Dropped in v6, kept in v0–v5:** the open "Who is Jesus?" question, the extras opt-out screen, and city. The Belong–Trust module is archived inside v6 and can't be fielded from it.
 - **Intentional anchors.** Two Route A and Route B items share identical wording on purpose, to compare the routes. They are still scored separately.
-- **Still open, platform config rather than instrument:** reporting gates (decision 9), retention (decision 10), Spanish going live (decision 11; it previews but never records).
-- **Changing the instrument** means writing `instrument.v7.json`, never editing v6. Wording and scoring are researcher-owned: ask first.
+- **Still open, platform config rather than instrument:** retention (decision 10), Spanish going live (decision 11; it previews but never records). Reporting gates (decision 9) are confirmed (0064).
+- **Changing the instrument** means writing `instrument.v8.json`, never editing v7 or v6. Wording and scoring are researcher-owned: ask first.
 
 ## 5. Build it as a PWA
 
@@ -107,7 +110,7 @@ When in doubt, ask: would this still work if we added a 45–65 cohort tomorrow?
 
 ## 7. Current state (October 2026)
 
-The platform is live at **jfindx.org** with v6 as the live instrument. Collection is still locked (migration 0048): real links run end to end but nothing is stored or pooled until pilot readiness is signed off. Repo: `github.com/juriekriel/ngjfi-platform`. Stack: Next.js (App Router) + TypeScript + Tailwind, Supabase (Postgres + RLS + Auth), Netlify.
+The platform is live at **jfindx.org** with v7 as the live instrument. Collection is **unlocked** by migration 0065 (pilot readiness signed off, Oct 2026): a real link stores answers once its organisation and survey consents are confirmed. Repo: `github.com/juriekriel/ngjfi-platform`. Stack: Next.js (App Router) + TypeScript + Tailwind, Supabase (Postgres + RLS + Auth), Netlify.
 
 | Route | What it is |
 | --- | --- |
@@ -125,9 +128,11 @@ Built: multi-tenant schema and RLS, anonymous-write RPCs, tested scoring engine 
 
 **Open:**
 
-- [ ] Apply migration 0061 and run `npm run db:seed` so the database holds v6's lock (needs a valid Supabase access token)
-- [ ] Replace or redirect the standalone pitch site `ngjfi-pitch-6-1.netlify.app` to jfindx.org/pitch
-- [ ] Decisions 9, 10, 11: reporting gates, retention, Spanish going live
+- [ ] Apply migrations through 0065, run `node scripts/seed-instrument.mjs` (v7), then lock v7 in the database (needs a valid Supabase access token)
+- [ ] Redirect the standalone pitch site `ngjfi-pitch-6-1.netlify.app` to jfindx.org/pitch (deploy `ops/pitch-redirect/` to that Netlify site)
+- [ ] Decisions 10, 11: retention, Spanish going live (decision 9 confirmed in 0064)
+- [ ] Upgrade Next.js to 15.5+/16 after launch: 14.2.35 is the last 14.x, and the advisories left on it need a major version (the Image Optimization endpoint is switched off meanwhile)
+- [ ] Counsel review of /privacy, /terms and the consent statements (launching with the draft banner)
 - [ ] Pilot timing with three 13–17-year-olds to replace the 8-minute estimate (`docs/PILOT_LAUNCH_CHECKLIST.md`)
 - [ ] Translate the shorter brand name into the 22 locales' "Powered by" line (translation review)
 - [ ] Delete any remaining demo data before official testing (`supabase/delete_demo_data.sql`)
@@ -137,8 +142,8 @@ Built: multi-tenant schema and RLS, anonymous-write RPCs, tested scoring engine 
 Several people build here. The repo is the single source of truth.
 
 - **Never push to `main`.** Branch (`feat/…`, `fix/…`, `db/…`), open a PR, review the Netlify Deploy Preview, keep CI green, squash-merge.
-- **Database changes are always migrations**: a new numbered file in `supabase/migrations/` (next: 0062). Never hand-edit tables in the Supabase dashboard.
-- **Instrument changes are a new version file**, `src/data/instrument.v7.json`, never an edit to v6. Then point `src/lib/instrument.ts` and the seed default at it, run `npm run db:seed`, and lock it when the Collab confirms. If scoring changes, update both `src/lib/scoring.ts` and the SQL functions, and add a test.
+- **Database changes are always migrations**: a new numbered file in `supabase/migrations/` (next: 0066). Never hand-edit tables in the Supabase dashboard.
+- **Instrument changes are a new version file**, `src/data/instrument.v8.json`, never an edit to v7. Then point `src/lib/instrument.ts` and the seed default at it, run `npm run db:seed`, and lock it when the Collab confirms. If scoring changes, update both `src/lib/scoring.ts` and the SQL functions, and add a test.
 - **Anything that shows the survey is generated from the live instrument.** After an instrument change, run `npm run pitch:build` and `python3 scripts/build-share-docs.py`; `tests/pitch.test.ts` fails if the pitch is stale or shows a retired question.
 - **Verify before claiming done:** `npm run typecheck`, `npm test`, `npm run build`, then check the Deploy Preview.
 - **Secrets:** only `NEXT_PUBLIC_*` values may reach the browser. Never commit the service-role key, database password or access tokens; never paste them into chat.
@@ -181,7 +186,9 @@ Carried over from the previous `CLAUDE.md`. Where these and sections 1–10 diff
 - **Org dashboard has a season picker** (`org_seasons()`/`org_dashboard_season()`, migration `0030`) — the season boundary (default: 1 Jun) is versioned config in `platform_settings`, not hardcoded — plus CSV exports and a PDF-oriented print view, and a "what do we do with this?" consulting-question button feeding a Collab-facing repository (`consulting_questions`, reviewed from the Collab console).
 - **View-only share links (migration 0046).** An Org Administrator or Coordinator makes a read-only link (`/view/<token>`) from the dashboard's *Team & access* view (below the team), for the whole house or one room, with an expiry (≤ `share_link_max_days`), an optional passcode, and map/detail switches. Tokens are stored only as sha256; views are counted, never attributed. A shared view reads the SAME cores as the dashboard (`_org_dashboard_core`, `_link_dashboard_core`) and holds the SAME minimums — there is no share-specific threshold, and there must never be one. The org's matrices carry no Collab overlay or benchmark; the heat map is the dashboard's own (`collab_intelligence()` countries — all data per country — plus the scope's reach outlines). `/view` is a reserved short name. See `docs/RELEASE_0046_0047.md`.
 - **Non-followers: counted in completions, scored apart (migration 0047).** Every completion counts — the dashboard's *Completed the Index* is a total segmented into following / not yet following (`completions`), while `n` stays the J12's own n. Non-followers' answers never enter the J12, its trend, any benchmark or the Collab console (one branch condition added to each); they're scored only in the **Unengaged matrix** (the Exploration Index), a view beside the J12 that unlocks in any space — house, season or room — at the same floor the J12 holds there (`min_group_n` / `room_min_n`). `retained_aggregates` is keyed by branch. The demo preview (`org_dashboard_demo`) now reads the same core as the product.
-- **Collection lock (migration 0048).** Until pilot readiness is signed off, real links run end to end but nothing is stored or pooled: the anonymous write RPCs no-op after their test-link branch, and triggers refuse any live session/response for a non-demo org. `platform_settings.collection_locked` fails closed (missing = locked); the survey shows a *not collecting yet* notice. Test links and `discard_session` are unaffected. Unlock only by a migration — see `docs/PILOT_LAUNCH_CHECKLIST.md` §6.
+- **Communication in stages (migration 0063).** The administrator's Communication board has four stages, each its own sequence: Launch (setup, consent, first survey, the pitch documents), Support and Encouragement, Reading your Data (Collab Intelligence and consulting) and Global Perspective. Global Perspective emails quote live figures (`{{org_count}}`, `{{country_count}}`, `{{country_list}}`, `{{completion_count}}`) from `admin_comms_global_facts()` at send time: organisations taking part, the countries they're based in, and one worldwide total — never a per-country count of young people.
+- **Waitlist emails (migration 0062).** `/api/waitlist-notify` sends only for a sign-up saved in the last 10 minutes, once, written from the database row (`waitlist_claim_notification`), never from the request.
+- **Collection lock (migration 0048; unlocked by 0065).** Until pilot readiness is signed off, real links run end to end but nothing is stored or pooled: the anonymous write RPCs no-op after their test-link branch, and triggers refuse any live session/response for a non-demo org. `platform_settings.collection_locked` fails closed (missing = locked); the survey shows a *not collecting yet* notice. Test links and `discard_session` are unaffected. Unlock only by a migration — see `docs/PILOT_LAUNCH_CHECKLIST.md` §6.
 - **Pilot safeguards (migration 0042):** edge-consent confirmation gates collection; under-13 exit (`discard_session`); free-text redaction; retention must be decided before any purge; rooms never name a place below `min_group_n`; `pilot_readiness()` behind the admin console's *Pilot readiness* band. See `docs/PILOT_LAUNCH_CHECKLIST.md`.
 - **Pilot round (migrations 0049–0053, Oct 2026).** Readiness reports org consent per organisation, not as a launch gate (0049). **Two-stage retention** (0050): at `respondent_deidentify_after_days` (60) `deidentify_stale_sessions()` truncates time to the month, deletes city and free text, folds room links; de-identified rows kept `respondent_retention_months` (60), purge refuses anything still identifiable; pg_cron daily. Readiness hand sign-offs with who/when/note (0051). **Who answered** breakdowns and **survey completion** (0052) — one whitelisted dimension at a time, floors + complementary suppression, labels from the instrument. **Two-level consent** (0053): per organisation and per survey sent (`survey_consents`, append-only), no consent no participation, age bands enforced, 21-country `consent_country_rules` from `src/data/consent-countries.json`, admin *Consent register*. One consent resource at `/resources/consent` (and `/[org]/consent`). DB tests: `scripts/test-db.sh` + `tests/db/*.sql`, run in CI on postgres:17.
 

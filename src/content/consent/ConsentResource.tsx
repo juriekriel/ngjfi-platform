@@ -1,6 +1,6 @@
 /**
  * "Consent: why it matters and how it works" — the single consent resource
- * (version 2026-10-v1). Rendered at /resources/consent and, in the
+ * (version 2026-10-v2: lengths from the instrument, the over-30 exit, no "skip any question"). Rendered at /resources/consent and, in the
  * organisation's own branding, at /<org>/consent.
  *
  * Never a copy of anything that lives elsewhere:
@@ -18,9 +18,17 @@
 import { CONSENT_STATEMENT, CONSENT_STATEMENT_VERSION, SURVEY_CONSENT_STATEMENT_VERSION, surveyConsentStatement } from "@/lib/consent";
 import { CONSENT_COUNTRIES, CONSENT_PAST_17, CONSENT_REFERENCE_VERSION, FIRST_PASS_NOTE, isFirstPass } from "@/lib/consentCountries";
 import CountryReference from "@/content/consent/CountryReference";
+import { itemSetMinutes } from "@/lib/instrument";
 import { CONSENT_DISCLAIMER, WHY_CONSENT, WHY_CONSENT_VERSION } from "@/content/consent/why-consent";
 
-export const CONSENT_RESOURCE_VERSION = "2026-10-v1";
+export const CONSENT_RESOURCE_VERSION = "2026-10-v2";
+
+/**
+ * How long the survey takes, from the live instrument — never typed into the
+ * copy, so the parent letter and the script can't drift from the survey again.
+ */
+const FULL_MIN = itemSetMinutes("full");
+const J12_MIN = itemSetMinutes("j12");
 
 /** Who answers questions about consent, the Index or a respondent's data. */
 export const PRIVACY_CONTACT_EMAIL = "ulrich@nxtmove.global";
@@ -98,7 +106,7 @@ function PrintBrand({ org }: { org?: string }) {
           </span>
         )}
         <span className="print-brand-meta">
-          {org ? "Jesus-Following Index · jfindx.org" : "A global measure of Jesus-following · jfindx.org"}
+          {org ? "Powered by the Jesus Index · jfindx.org" : "A global measure of Jesus-following · jfindx.org"}
         </span>
       </div>
     </div>
@@ -142,7 +150,7 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
     <div className="consent-resource" style={{ ["--print-accent" as string]: accent } as React.CSSProperties}>
       <PrintBrand org={orgName} />
       <p className="text-[16px] leading-relaxed text-ink-2">
-        <b className="text-ink">For organisations running the Jesus-Following Index with young people aged 13–30.</b>{" "}
+        <b className="text-ink">For organisations running the Jesus Index with young people aged 13–30.</b>{" "}
         No young person answers the Index unless someone responsible has said yes first. This resource explains why, how
         consent works on the platform, what the rules look like in {CONSENT_COUNTRIES.length} countries, and gives you
         the materials to do it well.
@@ -158,11 +166,11 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
 
       <Sec id="glance" title="1 · At a glance">
         <T head={["", ""]} rows={[
-          [<b key="a">Who takes part</b>, "Young people aged 13–30. Under-13s are stopped at the first question and nothing is kept. A survey consented for 18+ only also stops anyone who picks 13–17."],
-          [<b key="b">How long it takes</b>, "About 6 minutes (5 for the J12-only version), plus about 2 optional minutes."],
-          [<b key="c">What's collected</b>, "Answers, age group, gender (optional), country, language, and when they answered. Never names, emails, phone numbers, birthdays or IP addresses."],
+          [<b key="a">Who takes part</b>, "Young people aged 13–30. Anyone who picks “12 or younger” or “31 or older” is stopped at the first question and nothing is kept. A survey consented for 18+ only also stops anyone who picks 13–17."],
+          [<b key="b">How long it takes</b>, `About ${FULL_MIN} minutes for the full survey, or about ${J12_MIN} for the J12-only version. Everyone answers the questions for their own path; there is no optional extra section.`],
+          [<b key="c">What's collected</b>, "Answers, age group, gender (optional), country (chosen from a list), language, and when they answered. No free-text answers and no city. Never names, emails, phone numbers, birthdays or IP addresses."],
           [<b key="d">Who sees what</b>, "You see grouped results only, never one person's answers. Groups smaller than 10 show a count but no score."],
-          [<b key="e">How long answers are kept</b>, "Full answers for 60 days, for quality checks. After that the exact time, the city, typed answers and the individual survey link are removed. The cleaned answers are kept for up to 5 years, then only grouped totals remain."],
+          [<b key="e">How long answers are kept</b>, "Full answers for 60 days, for quality checks. After that the exact time and the individual survey link are removed. The cleaned answers are kept for up to 5 years, then only grouped totals remain."],
           [<b key="f">Who holds consent records</b>, "You do. Keep them yourself and never send them to the Index."],
         ]} />
       </Sec>
@@ -199,7 +207,7 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
         <ol className="list-decimal pl-5">
           <li><b>Checked what your context requires</b>: your country&apos;s law (section 6), your denomination&apos;s policy and your own safeguarding policy. Where any of them requires a parent&apos;s or guardian&apos;s consent for 13–17-year-olds, you have it before they take part.</li>
           <li><b>Shared links only with the age groups you confirmed</b>, and never with anyone under 13.</li>
-          <li><b>Made taking part voluntary.</b> No one is rewarded for taking part or penalised for not taking part. Anyone can skip questions or stop at any time.</li>
+          <li><b>Made taking part voluntary.</b> No one is rewarded for taking part or penalised for not taking part. Anyone can stop at any time, and the personal questions about faith and gender offer “Prefer not to say”.</li>
           <li><b>Given people privacy while they answer.</b> Let them use their own phone, or a space where no one can see their screen. Leaders don&apos;t look over shoulders or ask anyone what they answered.</li>
           <li><b>Kept your own records.</b> Store consent forms and attendance lists securely, in line with your safeguarding policy. Never upload them to the Index or link them to survey answers.</li>
           <li><b>Prepared for disclosures.</b> If a young person raises something that concerns you, follow your safeguarding policy as you would anywhere else. The survey itself is anonymous and can&apos;t be used to follow anyone up.</li>
@@ -233,26 +241,26 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
       <Sec id="young-people" org={orgName} title="7 · Information for young people" print="young-people">
         <p className="text-[13.5px] italic">You can hand this out, project it, or read it aloud.</p>
         <p><b className="text-ink">What is this?</b><br />It&apos;s a short survey about faith: what you believe, how you live it out, and what helps or gets in the way. {org} is one of many churches and ministries around the world using it to understand how they can serve young people better.</p>
-        <p><b className="text-ink">Do I have to do it?</b><br />No. It&apos;s your choice. You can skip any question, choose “Prefer not to say”, or stop at any time. Nothing happens if you don&apos;t take part.</p>
+        <p><b className="text-ink">Do I have to do it?</b><br />No. It&apos;s your choice. You can stop at any time, just by closing the page, and some questions let you choose “Prefer not to say”. Nothing happens if you don&apos;t take part.</p>
         <p><b className="text-ink">Is it anonymous?</b><br />Yes. We never ask for your name, email, phone number or birthday. Nobody at {org}, including your leaders, can see your answers. They only see results grouped across many people.</p>
-        <p><b className="text-ink">What happens to my answers?</b><br />They&apos;re stored securely. After 60 days, anything that could help point to you is removed, such as the exact time you answered or the words you typed yourself. The rest is kept for up to 5 years to improve the survey, then only group totals are kept.</p>
-        <p><b className="text-ink">What if a question is hard?</b><br />Some questions are personal. Answer honestly if you can, or skip it. If anything brings up something you&apos;d like to talk about, [named leader / safeguarding contact] is available.</p>
+        <p><b className="text-ink">What happens to my answers?</b><br />They&apos;re stored securely. After 60 days, anything that could help point to you is removed, such as the exact time you answered. The rest is kept for up to 5 years to improve the survey, then only group totals are kept. If you stop part-way, the answers you&apos;ve already given are kept the same way, anonymously.</p>
+        <p><b className="text-ink">What if a question is hard?</b><br />Some questions are personal. Answer as honestly as you can. If you&apos;d rather not go on, you can stop. If anything brings up something you&apos;d like to talk about, [named leader / safeguarding contact] is available.</p>
         <p><b className="text-ink">Questions?</b><br />Ask [named leader], or read the full privacy notice at jfindx.org/privacy.</p>
       </Sec>
 
       <Sec id="parents" org={orgName} title="8 · Information and consent form for parents and guardians" print="parents">
         <p className="text-[13.5px] italic">For 13–17-year-olds wherever your law, denomination or safeguarding policy requires a parent&apos;s or guardian&apos;s consent. Print it on your own letterhead. Keep signed forms yourself. Do not send them to the Index.</p>
         <p><b className="text-ink">Dear parent or guardian,</b></p>
-        <p>On <b>[date]</b> at <b>[event / group]</b>, {org} will invite young people to take part in the <b>Jesus-Following Index</b>. It&apos;s a short anonymous survey, about 6 minutes, used by churches and ministries around the world to understand young people&apos;s faith and what helps it grow.</p>
-        <p><b className="text-ink">What your child will be asked:</b> questions about what they believe, how they practise their faith, how they relate to others, and what has shaped them. A few questions ask about their age group, gender, and country and city. All of these can be skipped.</p>
+        <p>On <b>[date]</b> at <b>[event / group]</b>, {org} will invite young people to take part in the <b>Jesus Index</b>. It&apos;s a short anonymous survey, about {FULL_MIN} minutes on their own phone, used by churches and ministries around the world to understand young people&apos;s faith and what helps it grow.</p>
+        <p><b className="text-ink">What your child will be asked:</b> questions about what they believe, how they practise their faith, how they relate to others, and what has shaped them. A few questions ask about their age group, gender (optional) and country. No question asks for anything that identifies them, and no question asks them to type their own words.</p>
         <p><b className="text-ink">What is not collected:</b> their name, email, phone number, date of birth, photo or IP address. Answers can&apos;t be traced back to your child, and {org} sees grouped results only.</p>
         <p><b className="text-ink">How long answers are kept:</b> full answers for 60 days. After that, details that could point to a person are removed, and the cleaned answers are kept for up to 5 years for research. After that, only grouped totals remain.</p>
-        <p><b className="text-ink">Taking part is voluntary.</b> Your child can skip any question or stop at any time, and saying no has no consequences.</p>
+        <p><b className="text-ink">Taking part is voluntary.</b> Your child can stop at any time, and saying no has no consequences. The personal questions about faith and gender offer “Prefer not to say”.</p>
         <p>Questions? Contact <b>[name, role, phone/email]</b>. The full privacy notice is at jfindx.org/privacy.</p>
         <div className="mt-2 rounded-lg border-2 border-dashed border-rule-2 p-4 text-ink">
           <p className="font-semibold">Consent <span className="font-normal italic text-ink-2">(return to {org}; kept by us, never shared with the Index)</span></p>
           <p className="mt-3">Young person&apos;s first name: ______________________ &nbsp; Group: ______________________</p>
-          <p className="mt-3">☐ I agree to my child taking part in the Jesus-Following Index survey.<br />☐ I do not agree to my child taking part.</p>
+          <p className="mt-3">☐ I agree to my child taking part in the Jesus Index survey.<br />☐ I do not agree to my child taking part.</p>
           <p className="mt-3">Parent/guardian name: ______________________</p>
           <p className="mt-3">Signature: ______________________ &nbsp; Date: ____________</p>
         </div>
@@ -261,8 +269,8 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
       <Sec id="script" org={orgName} title="9 · Script to read before the survey" print="script">
         <p className="text-[13.5px] italic">About 60 seconds. Read it, or say it in your own words, before sharing the link or QR code.</p>
         <blockquote className="border-l-2 border-emerald pl-4 text-ink">
-          <p>“We&apos;re going to give you the chance to take a short survey. It takes about six minutes, and it&apos;s about faith: what you believe and how you live it out. It&apos;s anonymous. There are no names, and none of us will ever see your answers. We only see results grouped across lots of people.</p>
-          <p className="mt-2">It&apos;s completely your choice. You can skip any question or stop at any time, and that&apos;s fine. If you&apos;re under 13, please don&apos;t take it.</p>
+          <p>“We&apos;re going to give you the chance to take a short survey. It takes about {FULL_MIN} minutes, and it&apos;s about faith: what you believe and how you live it out. It&apos;s anonymous. There are no names, and none of us will ever see your answers. We only see results grouped across lots of people.</p>
+          <p className="mt-2">It&apos;s completely your choice. You can stop at any time, and that&apos;s fine. Some questions let you choose “Prefer not to say”. It&apos;s for ages 13 to 30, so if you&apos;re 12 or younger, please don&apos;t take it.</p>
           <p className="mt-2">Find a spot where no one can see your screen. If anything in it brings something up for you, come and find [name] afterwards.</p>
           <p className="mt-2">Thank you. Your honest answers help us, and churches around the world, serve young people better.”</p>
         </blockquote>

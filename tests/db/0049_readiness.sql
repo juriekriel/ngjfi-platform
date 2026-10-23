@@ -5,6 +5,9 @@ declare
   r jsonb;
   c jsonb;
 begin
+  -- Written while collection was locked (0048); 0065 unlocks it for launch.
+  -- Pin the locked state for this test (rolled back afterwards).
+  update platform_settings set value = 'true'::jsonb where key = 'collection_locked';
   perform test.make_org('waiting-org', false);
   perform test.make_org('ready-org', true);
   update platform_settings set value = '60'::jsonb where key = 'respondent_retention_months';

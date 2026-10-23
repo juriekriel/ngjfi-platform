@@ -1,6 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Launch readiness (Oct 2026): the site uses no next/image, so the Image
+  // Optimization endpoint (/_next/image) is switched off entirely. Several
+  // Next.js advisories, including critical ones, live in that endpoint and have
+  // no fix on the 14.x line; with it off, there is nothing there to reach.
+  // Upgrading to Next 15.5+/16 is the real fix — a post-launch task.
+  images: { unoptimized: true },
   // /organization -> /organisation: the route was renamed to match the site's
   // British spelling everywhere else. Keep the old path resolving in case
   // anyone bookmarked or shared it before the rename.
