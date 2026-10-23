@@ -1,5 +1,7 @@
 "use client";
 
+import VersionHistory from "@/components/console/VersionHistory";
+import { instrument } from "@/lib/instrument";
 import { TEAM_ROLE_LABEL, normaliseRole } from "@/lib/team";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -1192,6 +1194,14 @@ function AdminConsole() {
             figure={wl?.instrument ? `instrument ${wl.instrument.version}` : "instrument not loaded"}
           >
             <PlatformControls wl={wl} onChanged={load} />
+          </Band>
+
+          <Band
+            title="Instrument versions"
+            gloss="Every version from v1 to the live one, a tab each: what changed from the version before, and the decisions recorded with each lock. Older versions are shown only here, never to respondents."
+            figure={`live ${instrument.version}${wl?.instrument && wl.instrument.version !== instrument.version ? ` · database ${wl.instrument.version}` : ""}`}
+          >
+            <VersionHistory activeInDatabase={wl?.instrument?.version ?? null} />
           </Band>
 
           <Band title="Pilot readiness" gloss="Run this before any organisation hands out a real link." figure="pre-flight">

@@ -1,5 +1,6 @@
 "use client";
 
+import { instrument as liveInstrument } from "@/lib/instrument";
 import Link from "next/link";
 import { GRADIENT_EDGE, GradientRule, PLAIN_EDGE } from "@/components/site/Chrome";
 
@@ -316,8 +317,14 @@ export function HouseFigures({ house }: { house: HouseSettings | null; selected?
     <ul className="space-y-0.5 text-[12.5px] leading-snug">
       <Line
         k="Instrument"
-        v={house.instrument ? `${house.instrument.version} · ${house.instrument.items} items` : "not loaded"}
-        warn={!house.instrument}
+        v={
+          !house.instrument
+            ? "not loaded"
+            : house.instrument.version === liveInstrument.version
+              ? `${house.instrument.version} · ${house.instrument.items} items`
+              : `${house.instrument.version} in DB · app ${liveInstrument.version}`
+        }
+        warn={!house.instrument || house.instrument.version !== liveInstrument.version}
       />
       <Line k="Gate · org / region" v={house.gate.toLocaleString()} />
       <Line k="Gate · country" v={house.country_gate.toLocaleString()} />
