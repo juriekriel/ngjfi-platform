@@ -137,6 +137,20 @@ export function endsSurvey(item: InstrumentItem, value: AnswerValue): boolean {
   return endsRule(item, value);
 }
 
+/**
+ * The age range the live instrument takes part in, e.g. "13–30", read from
+ * the age question's options that do NOT end the survey. Copy uses this
+ * instead of typing an age range, so a new cohort changes it with no code.
+ * Null if the instrument has no age question or its labels carry no numbers.
+ */
+export const AGE_RANGE: string | null = (() => {
+  const age = instrument.items.find((i) => i.session_field === "age_band");
+  const eligible = (age?.options ?? []).filter((o) => !o.ends_survey);
+  const nums = eligible.flatMap((o) => (t(o.text).match(/\d+/g) ?? []).map(Number));
+  if (!nums.length) return null;
+  return `${Math.min(...nums)}–${Math.max(...nums)}`;
+})();
+
 /** Minutes promised on the welcome screen. */
 export const WELCOME_MINUTES = instrument.welcome_minutes ?? 7;
 
