@@ -72,7 +72,7 @@ export default function J12Journey() {
       <GradientRule className="mb-10" />
       <p className="figcap">The J12</p>
       <h2 id="j12-journey" className="mt-2 text-[28px] font-bold leading-tight tracking-tight sm:text-[32px]">
-        {total} unique items. One shared measure of Jesus-following.
+        {total} core questions. One shared measure of Jesus-following.
       </h2>
       <p className="mt-3 max-w-measure text-[16.5px] leading-relaxed text-ink-2">
         Do they follow Jesus? Do they participate in His mission? Does their world look different? We ask each question at four depths, from first hearing about Jesus to helping someone else follow Him.

@@ -5,14 +5,15 @@ import SeeADemoCard from "@/components/site/SeeADemoCard";
 import HeroBenefits from "@/components/site/HeroBenefits";
 import J12Journey from "@/components/index/J12Journey";
 import { LazySurveyDemo } from "@/components/site/HomeLazy";
-import { WELCOME_MINUTES } from "@/lib/instrument";
+import { AGE_RANGE, WELCOME_MINUTES } from "@/lib/instrument";
+import { CaveatMark, CountryCaveat } from "@/components/site/CountryCaveat";
 
 /**
  * jfindx.org — the front page. One scroll, top to bottom (Oct 2026):
  *
  *   A  Hero — what it is, that it's free and available now (said in the
  *      text, not as a benefit tile), the benefits,
- *      and two doors: start your journey, or try the survey yourself.
+ *      and two doors: set up your survey, or try the survey yourself.
  *   B  The J12 journey — the model as an interactive picture.
  *   C  Try it yourself — the real survey in a phone, beside five steps.
  *   D  Pitch documents — the PDFs to take to leaders.
@@ -36,7 +37,7 @@ const BENEFITS: { t: string; d: string }[] = [
   { t: "Anonymous", d: "no one, including you, sees an individual's answers" },
   { t: "Your brand", d: "your logo, your colour, your words" },
   { t: "Live results", d: "your dashboard updates with every response, and the data belongs to your ministry." },
-  { t: "Compare your results", d: "Country comparisons allow you to see your results in context." },
+  { t: "Compare your results", d: "Once enough people in your country take part, see your results beside theirs. Never a verdict on the country." },
   { t: "See Jesus-following in the next generation", d: "both locally and globally." },
 ];
 
@@ -44,8 +45,8 @@ const STEPS: { t: string; d: string }[] = [
   { t: "Join", d: "It takes just two minutes." },
   { t: "Make it yours", d: "Add your own logo and colour, and create your first survey link." },
   { t: "Share it with your young people", d: "Use the link or QR code to share it with your youth group, camp, or even in a group chat." },
-  { t: "See your results", d: `In about ${WELCOME_MINUTES} minutes, your dashboard will fill in as answers arrive, anonymously.` },
-  { t: "Compare and plan", d: "Once enough ministries near you take part, see how you compare at a country-level." },
+  { t: "See your results", d: "Your dashboard fills in as answers arrive, showing group results only, never one person's answers." },
+  { t: "Compare and plan", d: "Once enough people in your country have taken part, see your results beside theirs." },
 ];
 
 export default function Home() {
@@ -70,8 +71,9 @@ export default function Home() {
             </p>
             <p className="mt-3 max-w-measure text-[18px] leading-relaxed text-ink-2">
               Most of us count who turns up. The Jesus Index shows what&apos;s underneath: who believes, who&apos;s growing,
-              and who&apos;s helping someone else follow Jesus. Your young people answer anonymously, on any phone, in
-              about {WELCOME_MINUTES} minutes. Free to join and free to run, permanently.
+              and who&apos;s helping someone else follow Jesus. Your young people{AGE_RANGE ? <> (aged {AGE_RANGE})</> : null} answer
+              anonymously, on any phone, in about {WELCOME_MINUTES} minutes. You set it up, share a link, and see the results.
+              Free to join and free to run, permanently.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-3">
@@ -79,7 +81,7 @@ export default function Home() {
                 href="/join"
                 className="rounded-lg border-2 border-emerald bg-emerald px-5 py-3 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
               >
-                Start your journey →
+                Set up your survey →
               </Link>
               <a
                 href="#try"
@@ -104,8 +106,11 @@ export default function Home() {
         {/* ── C · try it yourself ─────────────────────────────────── */}
         <section id="try" aria-labelledby="try-heading" className="scroll-mt-6 py-12">
           <GradientRule className="mb-10" />
-          <p className="figcap">Try it yourself</p>
-          <h2 id="try-heading" className="mt-2 text-[28px] font-bold leading-tight tracking-tight sm:text-[32px]">What your young people see</h2>
+          <p className="figcap">How it works</p>
+          <h2 id="try-heading" className="mt-2 text-[28px] font-bold leading-tight tracking-tight sm:text-[32px]">Five steps for you. One survey for them.</h2>
+          <p className="mt-3 max-w-measure text-[16.5px] leading-relaxed text-ink-2">
+            The steps are what you do. The phone is the real survey your young people answer: try it yourself, nothing you tap is saved.
+          </p>
           <div className="mt-8 grid items-center gap-10 md:grid-cols-[1fr_400px] md:gap-14">
             <div>
               <ol className="flex flex-col gap-5">
@@ -115,12 +120,16 @@ export default function Home() {
                       {i + 1}
                     </span>
                     <span>
-                      <span className="block text-[17px] font-bold text-ink">{s.t}</span>
+                      <span className="block text-[17px] font-bold text-ink">
+                        {s.t}
+                        {s.t === "Compare and plan" && <CaveatMark />}
+                      </span>
                       <span className="block text-[15px] leading-relaxed text-ink-2">{s.d}</span>
                     </span>
                   </li>
                 ))}
               </ol>
+              <CountryCaveat className="mt-6" />
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/join"
@@ -133,7 +142,8 @@ export default function Home() {
                 </Link>
               </div>
             </div>
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center">
+              <p className="figcap mb-3">What your young people see</p>
               <LazySurveyDemo large />
             </div>
           </div>
