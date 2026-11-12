@@ -229,3 +229,35 @@ export function surveyText(opts: {
 /** A safe download name: jfindx-survey-fr-v7.csv */
 export const fileName = (code: string, version: string, ext: "csv" | "txt", starter = false) =>
   `jfindx-survey-${code}-${version}${starter ? "-starter" : ""}.${ext}`;
+
+/* ── reach: young people per language, and how accessible they are ───── */
+
+/** One language's row in src/data/languages.reach.json (scripts/language-reach.mjs). */
+export type Reach = {
+  u30: number;
+  u30_readers: number;
+  online: number;
+  open: number;
+  access: number;
+  reach: number;
+  countries: number;
+  imputed_online?: number;
+  top: { iso2: string; name: string; u30: number }[];
+};
+
+/** Codes in priority order: most young people a translation could actually reach first. Unknown codes go last, in their given order. */
+export function byPriority<T extends { code: string }>(rows: T[], reach: Record<string, Reach | undefined>): T[] {
+  return rows
+    .map((r, i) => ({ r, i, n: reach[r.code]?.reach ?? -1 }))
+    .sort((a, b) => b.n - a.n || a.i - b.i)
+    .map((x) => x.r);
+}
+
+/** 866M · 4.2M · 950K — people, rounded for reading, never more precise than the data. */
+export function people(n: number): string {
+  if (n >= 1e9) return `${(n / 1e9).toFixed(1)}B`;
+  if (n >= 1e7) return `${Math.round(n / 1e6)}M`;
+  if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+  if (n >= 1e3) return `${Math.round(n / 1e3)}K`;
+  return String(Math.round(n));
+}

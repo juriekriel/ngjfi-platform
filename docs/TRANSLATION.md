@@ -42,6 +42,26 @@ straight back. An aspirational language gets a starter sheet; add it to
 `locales.json` (status `requested`) and give it an `i18n/<code>.json` file
 before importing.
 
+### Priority: which language next
+
+The tile ranks the world's main languages by **how many young people a
+translation could actually reach**, and shows two figures beside every
+language:
+
+- **Under 30** — UN World Population Prospects 2024 (2025 estimate, ages
+  0–29, built from national censuses) × the share of each country that
+  speaks the language (Unicode CLDR), summed across countries.
+- **Accessible** — of those who can read it, the share who are online
+  (ITU, via the World Bank) weighted by how open the country is to a faith
+  survey (Open Doors World Watch List bands, in `src/data/wwl.json`).
+
+Priority = under 30 × can read it × accessible. Regenerate with
+`node scripts/language-reach.mjs` (it downloads the UN file, ≈30 MB) when a
+new UN, ITU or World Watch List edition is out; it writes
+`src/data/languages.reach.json`. The open-band factors are a judgement for
+researchers — change them in the script's `OPEN` table. These are
+estimates for ordering work, never a count of anyone.
+
 **Preview:** add `?preview=1` to any survey link to choose non-live languages
 (add `&lang=fr` to jump straight to one). A preview in a language that isn't
 live **never records an answer** — a yellow banner says so.
