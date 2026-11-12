@@ -9,7 +9,7 @@
  */
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ENGLISH } from "@/lib/i18n";
+import { ENGLISH, highlightParts, type Lang } from "@/lib/i18n";
 import { Question } from "@/components/survey/QuestionCard";
 import {
   nextVisibleIndex,
@@ -73,7 +73,16 @@ export default function SurveyDemo({
   caption = true,
   large = false,
   org = SAMPLE_ORG,
-}: { caption?: boolean; large?: boolean; org?: SampleOrg } = {}) {
+  lang,
+}: {
+  caption?: boolean;
+  large?: boolean;
+  org?: SampleOrg;
+  /** Walk the survey in another language (admin Translations tile). Omitted = the
+   * front page's English copy, unchanged. Still in memory only — never written. */
+  lang?: Lang;
+} = {}) {
+  const L = lang ?? ENGLISH;
   const items = useMemo(() => fieldedItems(), []);
   const steps = items.length;
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
@@ -130,22 +139,31 @@ export default function SurveyDemo({
           </div>
         </div>
 
-        <div className={`${large ? "min-h-0 flex-1" : "max-h-[420px]"} overflow-y-auto bg-plate p-6`}>
+        <div dir={L.dir} lang={L.code} className={`${large ? "min-h-0 flex-1" : "max-h-[420px]"} overflow-y-auto bg-plate p-6`}>
           {i < 0 && (
             <div>
               <h1 className="text-xl font-bold leading-tight text-ink">
-                You&apos;re invited to share{" "}
-                <span style={{ color: org.brand }}>where you&apos;re at</span>.
+                {lang ? (
+                  (() => {
+                    const [a, b, c] = highlightParts(L.ui("welcome_title"));
+                    return (<>{a}<span style={{ color: org.brand }}>{b}</span>{c}</>);
+                  })()
+                ) : (
+                  <>
+                    You&apos;re invited to share{" "}
+                    <span style={{ color: org.brand }}>where you&apos;re at</span>.
+                  </>
+                )}
               </h1>
               <p className="mt-3 text-sm leading-relaxed text-ink-2">
-                {ENGLISH.ui("welcome_body", { org: org.name, minutes: WELCOME_MINUTES })}
+                {L.ui("welcome_body", { org: org.name, minutes: WELCOME_MINUTES })}
               </p>
               <button
                 onClick={() => setI(0)}
                 className="mt-6 rounded-lg px-6 py-3 font-semibold text-white"
                 style={{ background: org.brand }}
               >
-                Begin →
+                {lang ? L.ui("begin") : "Begin →"}
               </button>
             </div>
           )}
@@ -153,21 +171,21 @@ export default function SurveyDemo({
           {i >= 0 && i < steps && (
             <Question
               item={items[i]}
-              lang={ENGLISH}
+              lang={L}
               brand={org.brand}
               busy={false}
               selected={answers[items[i].key]}
               onChoose={choose}
               onBack={hasEarlier ? back : undefined}
-              stepLabel={`Question ${stepNumber} of ${pathLength}`}
+              stepLabel={lang ? L.ui("question_of", { n: stepNumber, total: pathLength }) : `Question ${stepNumber} of ${pathLength}`}
               moveFocus={false}
             />
           )}
 
           {i >= steps && ended && (
             <div className="py-6 text-center">
-              <h2 className="text-xl font-bold text-ink">{ENGLISH.ui("ended_title")}</h2>
-              <p className="mx-auto mt-2 max-w-sm text-sm text-ink-2">{ENGLISH.ui("ended_body")}</p>
+              <h2 className="text-xl font-bold text-ink">{L.ui("ended_title")}</h2>
+              <p className="mx-auto mt-2 max-w-sm text-sm text-ink-2">{L.ui("ended_body")}</p>
               <button
                 type="button"
                 onClick={reset}
@@ -186,11 +204,17 @@ export default function SurveyDemo({
               >
                 ✓
               </div>
-              <h2 className="text-xl font-bold text-ink">Thank you!</h2>
+              <h2 className="text-xl font-bold text-ink">{lang ? L.ui("thanks") : "Thank you!"}</h2>
               <p className="mx-auto mt-2 max-w-sm text-sm text-ink-2">
-                Their answer joins {org.name}&apos;s picture of how their community is
-                following Jesus. Nobody — not even their own youth leader — will ever see this
-                individual response.
+                {lang ? (
+                  <>{L.ui("done_saved", { org: org.name })} {L.ui("done_private")}</>
+                ) : (
+                  <>
+                    Their answer joins {org.name}&apos;s picture of how their community is
+                    following Jesus. Nobody — not even their own youth leader — will ever see this
+                    individual response.
+                  </>
+                )}
               </p>
               <button
                 type="button"
