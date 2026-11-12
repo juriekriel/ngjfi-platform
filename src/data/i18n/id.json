@@ -1,6 +1,6 @@
 {
- "$comment": "Indonesian — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; empty means the language has no question translations yet. Edit via the translation sheet (docs/TRANSLATION.md).",
- "ui_status": "draft",
+ "$comment": "Indonesian — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; Edit via the translation sheet (docs/TRANSLATION.md).",
+ "ui_status": "machine-draft — complete; needs a fluent reviewer and researcher sign-off (docs/TRANSLATION.md)",
  "ui": {
   "back": "← Kembali",
   "begin": "Mulai →",
@@ -44,7 +44,490 @@
   "type_here": "Tulis sebanyak atau sesedikit yang kamu mau…",
   "waiting_signal": "Menunggu sinyal",
   "welcome_body": "{org} ingin belajar mendampingi anak muda yang mengikut Yesus. Jawaban jujurmu sangat membantu. Butuh sekitar {minutes} menit dan sepenuhnya anonim.",
-  "welcome_title": "Kamu diundang untuk berbagi [di mana kamu sekarang]."
+  "welcome_title": "Kamu diundang untuk berbagi [di mana kamu sekarang].",
+  "about_body": "Kami tidak menanyakan nama, email, atau nomor teleponmu, dan kami tidak menyimpan alamat internetmu bersama jawabanmu. Kami hanya menanyakan kelompok usiamu dan kira-kira di mana kamu tinggal. {org} hanya melihat hasil gabungan dari banyak orang — tidak pernah jawabanmu sendiri. Kamu bisa berhenti kapan saja dengan menutup halaman ini.",
+  "about_title": "Apa yang terjadi dengan jawabanmu",
+  "chars_left": "Tersisa {n} karakter",
+  "choose_country": "Pilih negaramu",
+  "ended_body": "Survei ini untuk orang berusia 13 sampai 30 tahun, jadi tidak ada lagi yang perlu dijawab. Terima kasih sudah mampir — tidak ada pilihanmu yang disimpan.",
+  "ended_title": "Terima kasih sudah mampir!",
+  "no": "Tidak",
+  "collection_locked_banner": "Pratinjau — Indeks belum mengumpulkan jawaban, jadi jawabanmu tidak disimpan.",
+  "privacy_link": "Baca pemberitahuan privasi lengkap",
+  "yes": "Ya"
  },
- "items": {}
+ "items": {
+  "age_band": {
+   "text": "Berapa usiamu?",
+   "options": {
+    "under_13": "12 tahun atau kurang",
+    "13_17": "13–17",
+    "18_22": "18–22",
+    "23_30": "23–30",
+    "over_30": "31 tahun atau lebih"
+   }
+  },
+  "orientation": {
+   "text": "Mana yang paling menggambarkan dirimu saat ini?",
+   "options": {
+    "confident_no_god": "Yakin bahwa Tuhan tidak ada",
+    "open_not_exploring": "Terbuka, tetapi tidak sedang mencari",
+    "open_exploring": "Terbuka, dan aktif mencari",
+    "other_religion": "Tuhan ada, tetapi aku mengikuti agama lain",
+    "interested_jesus": "Tertarik pada Yesus, ingin tahu lebih banyak",
+    "new_follower": "Baru mulai mengikut Yesus",
+    "committed_growing": "Berkomitmen, aktif bertumbuh",
+    "none_of_these": "Tidak ada yang menggambarkan diriku",
+    "prefer_not_say": "Lebih suka tidak menjawab"
+   }
+  },
+  "follower_check": {
+   "text": "Apakah saat ini kamu menganggap dirimu seorang pengikut Yesus?",
+   "options": {
+    "yes": "Ya",
+    "no": "Tidak",
+    "not_sure": "Tidak yakin",
+    "prefer_not_say": "Lebih suka tidak menjawab"
+   }
+  },
+  "follow_exposure_internal": {
+   "text": "Aku ingin terus belajar lebih banyak tentang siapa Yesus dan apa yang Ia ajarkan."
+  },
+  "follow_exposure_external": {
+   "text": "Aku pernah mendapat kesempatan untuk belajar apa yang Yesus ajarkan dan mengapa itu penting."
+  },
+  "follow_response_internal": {
+   "text": "Aku percaya pengampunan dosa hanya mungkin melalui iman kepada Yesus."
+  },
+  "follow_response_external": {
+   "text": "Aku telah memilih untuk mengikut Yesus, yang aku percaya adalah Allah."
+  },
+  "follow_formation_internal": {
+   "text": "Alkitab menantangku untuk memikirkan ulang pilihan dan perilakuku."
+  },
+  "follow_formation_external": {
+   "text": "Aku berdoa dengan cara-cara yang membawaku ke dalam hubungan pribadi dengan Allah."
+  },
+  "follow_multiplication_internal": {
+   "text": "Aku percaya Injil adalah kabar baik dalam hidupku dan layak dibagikan kepada orang yang bukan Kristen."
+  },
+  "follow_multiplication_external": {
+   "text": "Dalam enam bulan terakhir, aku pernah membagikan sesuatu tentang Yesus kepada seseorang yang tidak mengikut Dia."
+  },
+  "mission_exposure_internal": {
+   "text": "Aku mengerti apa artinya ikut ambil bagian dalam misi Yesus."
+  },
+  "mission_exposure_external": {
+   "text": "Saat ini ada seseorang yang membantuku mengikut Yesus."
+  },
+  "mission_response_internal": {
+   "text": "Aku percaya membagikan pesan Yesus adalah bagian dari mengikut Dia."
+  },
+  "mission_response_external": {
+   "text": "Aku telah menerima keikutsertaan dalam misi Yesus sebagai tanggung jawabku sebagai pengikut Yesus."
+  },
+  "attention_check": {
+   "text": "Supaya kami tahu kamu membaca dengan teliti, pilih “Sedikit sesuai denganku” untuk pertanyaan ini."
+  },
+  "mission_formation_internal": {
+   "text": "Melayani orang lain sebagai bagian dari komunitas Kristen adalah bagian penting dari caraku mengikut Yesus."
+  },
+  "mission_formation_external": {
+   "text": "Aku berusaha menunjukkan kepada orang yang bukan Kristen bagaimana mengikut Yesus membentuk kehidupanku sehari-hari."
+  },
+  "mission_multiplication_internal": {
+   "text": "Aku ingin mengajak orang lain bergabung denganku dalam kegiatan yang berkaitan dengan misi Yesus."
+  },
+  "mission_multiplication_external": {
+   "text": "Aku pernah membantu orang lain bertumbuh dalam mengikut Yesus."
+  },
+  "world_exposure_internal": {
+   "text": "Aku percaya mengikut Yesus membawa kebaikan nyata bagi orang-orang dan dunia."
+  },
+  "world_exposure_external": {
+   "text": "Aku membuat pilihan-pilihan yang mengarahkan hidupku pada sesuatu yang lebih besar daripada diriku sendiri."
+  },
+  "world_response_internal": {
+   "text": "Aku percaya imanku lebih dari sekadar kehidupan pribadiku. Iman itu seharusnya membawa perubahan di dunia."
+  },
+  "world_response_external": {
+   "text": "Mengikut Yesus membuat perbedaan nyata dalam caraku memperlakukan orang dan menanggapi kebutuhan di sekitarku."
+  },
+  "world_formation_internal": {
+   "text": "Aku berusaha melakukan kehendak Allah dalam kehidupan sehari-hari, bahkan ketika kehendak-Nya berbeda dengan kehendakku."
+  },
+  "world_formation_external": {
+   "text": "Menjadi pribadi yang lebih mengasihi semua orang di sekitarku adalah hal yang kuusahakan setiap hari."
+  },
+  "world_multiplication_internal": {
+   "text": "Aku percaya para pengikut Yesus harus bekerja sama untuk membawa perubahan positif di komunitas mereka."
+  },
+  "world_multiplication_external": {
+   "text": "Aku mendorong orang Kristen lain untuk menghubungkan iman mereka dengan cara mereka hidup dan melayani."
+  },
+  "pray_frequency": {
+   "text": "Aku berdoa kepada Allah.",
+   "options": {
+    "0": "Jarang atau tidak pernah",
+    "1": "Sebulan sekali",
+    "2": "Seminggu sekali",
+    "3": "Hampir setiap hari"
+   }
+  },
+  "scripture_frequency": {
+   "text": "Aku membaca atau mendengarkan Kitab Suci.",
+   "options": {
+    "0": "Jarang atau tidak pernah",
+    "1": "Sebulan sekali",
+    "2": "Seminggu sekali",
+    "3": "Hampir setiap hari"
+   }
+  },
+  "follow_exposure_internal_unengaged": {
+   "text": "Aku tertarik mendengar berbagai pandangan tentang Tuhan atau spiritualitas."
+  },
+  "follow_exposure_external_unengaged": {
+   "text": "Aku pernah mendapat kesempatan mendengar apa yang dipercayai orang Kristen tentang Yesus."
+  },
+  "follow_response_internal_unengaged": {
+   "text": "Menurutku ada sesuatu dalam sifat manusia yang perlu dipulihkan, melebihi apa yang bisa kita lakukan sendiri."
+  },
+  "follow_response_external_unengaged": {
+   "text": "Aku pernah mempertimbangkan alasan untuk percaya dan tidak percaya kepada Tuhan."
+  },
+  "follow_formation_internal_unengaged": {
+   "text": "Menurutku Alkitab menawarkan sesuatu yang layak dipertimbangkan tentang cara hidup."
+  },
+  "follow_formation_external_unengaged": {
+   "text": "Aku meluangkan waktu untuk merenungkan pertanyaan tentang Tuhan, spiritualitas, atau makna hidup."
+  },
+  "follow_multiplication_internal_unengaged": {
+   "text": "Menurutku membicarakan pertanyaan tentang kepercayaan bisa berharga, bahkan ketika orang sampai pada kesimpulan yang berbeda."
+  },
+  "follow_multiplication_external_unengaged": {
+   "text": "Dalam enam bulan terakhir, aku pernah berbicara dengan seseorang tentang pandangan atau pertanyaanku tentang Tuhan atau spiritualitas."
+  },
+  "mission_exposure_internal_unengaged": {
+   "text": "Aku mengerti mengapa orang Kristen ingin membagikan iman mereka kepada orang lain."
+  },
+  "mission_exposure_external_unengaged": {
+   "text": "Aku mengenal seseorang yang bisa kuajak bicara dengan jujur tentang Tuhan atau spiritualitas."
+  },
+  "mission_response_internal_unengaged": {
+   "text": "Aku telah memilih untuk bertanggung jawab membawa perubahan positif bagi dunia di sekitarku."
+  },
+  "mission_response_external_unengaged": {
+   "text": "Aku percaya aku punya peran dalam membuat dunia menjadi tempat yang lebih baik."
+  },
+  "attention_check_unengaged": {
+   "text": "Supaya kami tahu kamu membaca dengan teliti, pilih “Sedikit sesuai denganku” untuk pertanyaan ini."
+  },
+  "mission_formation_internal_unengaged": {
+   "text": "Menjadi bagian dari komunitas yang menolong orang lain penting bagiku."
+  },
+  "mission_formation_external_unengaged": {
+   "text": "Aku ikut serta dalam kegiatan bersama orang lain yang mewujudkan keyakinan dan nilai-nilaiku."
+  },
+  "mission_multiplication_internal_unengaged": {
+   "text": "Aku ingin mengajak orang lain ikut kegiatan yang mencerminkan apa yang menurutku penting."
+  },
+  "mission_multiplication_external_unengaged": {
+   "text": "Aku pernah membantu seseorang memikirkan keyakinannya sendiri atau pertanyaannya tentang iman."
+  },
+  "world_exposure_internal_unengaged": {
+   "text": "Menurutku iman atau spiritualitas bisa mendorong orang untuk membawa perubahan positif di dunia."
+  },
+  "world_exposure_external_unengaged": {
+   "text": "Aku membuat pilihan-pilihan yang mengarahkan hidupku pada sesuatu yang lebih besar daripada diriku sendiri."
+  },
+  "world_response_internal_unengaged": {
+   "text": "Aku percaya nilai-nilaiku seharusnya membuat perbedaan di luar kehidupan pribadiku."
+  },
+  "world_response_external_unengaged": {
+   "text": "Keyakinan dan nilai-nilaiku membuat perbedaan nyata dalam caraku memperlakukan orang dan menanggapi kebutuhan di sekitarku."
+  },
+  "world_formation_internal_unengaged": {
+   "text": "Aku berusaha melakukan apa yang kuyakini benar, bahkan ketika itu bertentangan dengan keinginanku."
+  },
+  "world_formation_external_unengaged": {
+   "text": "Menjadi pribadi yang lebih mengasihi semua orang di sekitarku adalah hal yang kuusahakan setiap hari."
+  },
+  "world_multiplication_internal_unengaged": {
+   "text": "Aku percaya orang dengan pandangan agama atau non-agama yang berbeda bisa bekerja sama untuk memperbaiki komunitas mereka."
+  },
+  "world_multiplication_external_unengaged": {
+   "text": "Aku mendorong orang-orang di sekitarku untuk mewujudkan nilai-nilai mereka dalam cara mereka hidup dan menolong orang lain."
+  },
+  "driver_sources_of_belief_engaged": {
+   "text": "Mana yang paling membentuk apa yang kamu percayai tentang Yesus dan iman? Pilih paling banyak tiga.",
+   "options": {
+    "own_judgment": "Penilaianku sendiri",
+    "bible": "Alkitab",
+    "family": "Keluarga",
+    "friends": "Teman atau orang lain yang kupercaya",
+    "church_leaders": "Gereja atau pemimpin Kristen",
+    "peers": "Orang Kristen lain seusiaku",
+    "personal_experiences": "Pengalaman pribadi",
+    "social_media": "Media sosial, podcast, atau konten online lainnya",
+    "not_sure": "Aku tidak yakin",
+    "other": "Lainnya"
+   }
+  },
+  "driver_conditions_for_growth_engaged": {
+   "text": "Mana yang benar tentang dirimu saat ini? Centang semua yang sesuai.",
+   "options": {
+    "asked_for_help": "Aku pernah meminta seseorang membantuku bertumbuh dalam iman.",
+    "time_for_practices": "Aku bisa meluangkan waktu untuk berdoa, membaca Alkitab, atau belajar tentang Yesus.",
+    "safe_place": "Aku punya tempat yang aman untuk jujur tentang pergumulanku dalam mengikut Yesus.",
+    "community_influence": "Aku menghabiskan waktu dengan orang-orang yang membantuku menjadi lebih serupa dengan Yesus.",
+    "ask_questions": "Aku punya kesempatan untuk mengajukan pertanyaan jujur tentang imanku.",
+    "feel_connected": "Aku merasa terhubung dengan komunitas Kristen.",
+    "none": "Tidak ada yang benar tentang diriku saat ini."
+   }
+  },
+  "driver_confidence_and_agency_engaged": {
+   "text": "Apa yang memengaruhi kesediaanmu untuk membagikan imanmu? Centang semua yang sesuai.",
+   "options": {
+    "confidence": "Keyakinan pada apa yang kupercayai",
+    "fear_of_response": "Rasa takut akan tanggapan orang lain",
+    "feeling_equipped": "Apakah aku merasa siap",
+    "seeing_others": "Melihat orang lain membagikan iman mereka",
+    "relationships": "Hubunganku dengan orang yang bukan Kristen",
+    "responsibility": "Apakah aku percaya membagikan imanku adalah tanggung jawabku",
+    "opportunity": "Adanya kesempatan untuk berbagi",
+    "invited_alongside": "Diajak berbagi bersama orang lain",
+    "other": "Lainnya"
+   }
+  },
+  "driver_relational_risk_engaged": {
+   "text": "Mana yang menggambarkan perasaanmu saat berbicara tentang iman dengan orang yang bukan Kristen? Centang semua yang sesuai.",
+   "options": {
+    "naturally": "Aku membicarakannya dengan wajar.",
+    "close_people_only": "Aku membicarakannya terutama dengan orang-orang yang dekat denganku.",
+    "when_relevant": "Aku terbuka membicarakannya ketika terasa tulus atau relevan.",
+    "wait_to_be_asked": "Biasanya aku menunggu sampai ditanya.",
+    "avoid_it": "Aku menghindarinya karena ingin menjaga hubungan tetap nyaman.",
+    "worry_offending": "Aku khawatir menyinggung orang.",
+    "unsure_how": "Aku tidak yakin bagaimana memulai pembicaraan itu.",
+    "other": "Lainnya"
+   }
+  },
+  "journey_encounter_and_response_engaged": {
+   "text": "Orang atau pengalaman apa yang paling penting dalam membantumu mengenal, memahami, dan menanggapi Yesus? Centang semua yang sesuai.",
+   "options": {
+    "friend_peer": "Seorang teman atau sebaya",
+    "family_member": "Anggota keluarga",
+    "church_gathering": "Pertemuan gereja",
+    "ministry_leader": "Pemimpin gereja atau pelayanan",
+    "school_campus": "Pengalaman di sekolah atau kampus",
+    "online_social": "Konten online atau media sosial",
+    "outreach_service": "Pengalaman penginjilan atau pelayanan",
+    "clear_talk": "Khotbah atau presentasi yang jelas",
+    "personal_conversation": "Percakapan pribadi",
+    "course_discussion": "Kursus atau diskusi yang dipandu",
+    "reading_bible": "Membaca Alkitab sendiri",
+    "significant_moment": "Pengalaman atau momen penting dalam hidupku",
+    "other": "Lainnya"
+   }
+  },
+  "journey_continued_formation_engaged": {
+   "text": "Apa yang telah membantumu bertumbuh menjadi lebih serupa dengan Yesus dalam caramu hidup? Centang semua yang sesuai.",
+   "options": {
+    "mentoring": "Pendampingan pribadi (mentoring)",
+    "christian_friends": "Percakapan dengan teman-teman Kristen",
+    "challenged_encouraged": "Ditantang atau didorong",
+    "group_learning": "Belajar dalam kelompok",
+    "welcomed_community": "Diterima dalam komunitas Kristen",
+    "shared_practices": "Kebiasaan bersama seperti doa, penyembahan, atau makan bersama",
+    "studying_bible": "Membaca atau mempelajari Alkitab",
+    "observing": "Melihat bagaimana orang Kristen lain hidup",
+    "teaching_preaching": "Pengajaran atau khotbah",
+    "serving_alongside": "Melayani bersama orang lain",
+    "local_church": "Gereja lokal",
+    "online_community": "Komunitas Kristen online",
+    "other": "Lainnya"
+   }
+  },
+  "journey_participation_in_mission_engaged": {
+   "text": "Apa yang telah membantumu mulai menghidupi atau membagikan imanmu kepada Yesus? Centang semua yang sesuai.",
+   "options": {
+    "encouraged_invited": "Seseorang mendorong atau mengajakku.",
+    "opportunity_to_serve": "Aku mendapat kesempatan untuk melayani.",
+    "trained_shown": "Aku dilatih atau ditunjukkan caranya.",
+    "did_it_alongside": "Aku melakukannya bersama orang lain.",
+    "personal_conviction": "Aku mengembangkan keyakinan pribadi.",
+    "saw_model": "Aku melihat orang lain memberi teladan.",
+    "church_provided": "Gereja atau pelayanan menyediakan kesempatan.",
+    "other": "Lainnya"
+   }
+  },
+  "journey_multiplication_engaged": {
+   "text": "Apa yang akan membantumu mengambil langkah berikutnya dalam menolong orang lain mengikut Yesus? Centang semua yang sesuai.",
+   "options": {
+    "someone_to_guide": "Seseorang yang membimbingku",
+    "clear_next_steps": "Langkah berikutnya yang jelas",
+    "training_tools": "Pelatihan atau alat praktis",
+    "opportunity_to_try": "Kesempatan untuk mencoba",
+    "encouragement": "Dorongan semangat",
+    "others_to_do_it_with": "Orang lain untuk melakukannya bersama",
+    "greater_confidence": "Keyakinan yang lebih besar pada apa yang kupercayai",
+    "already_equipped": "Tidak ada; aku sudah merasa siap mengambil langkah ini",
+    "not_interested": "Aku tidak tertarik mengambil langkah ini",
+    "other": "Lainnya"
+   }
+  },
+  "driver_sources_of_belief_unengaged": {
+   "text": "Mana yang paling membentuk pandanganmu tentang Tuhan, agama, atau spiritualitas? Pilih paling banyak tiga.",
+   "options": {
+    "own_judgment": "Penilaianku sendiri",
+    "family": "Keluarga",
+    "friends": "Teman atau orang lain yang kupercaya",
+    "church_leaders": "Gereja atau pemimpin Kristen",
+    "peers": "Orang Kristen seusiaku",
+    "personal_experiences": "Pengalaman pribadi",
+    "social_media": "Media sosial, podcast, atau konten online lainnya",
+    "science": "Sains atau bukti",
+    "teachers": "Guru atau pendidikan",
+    "bible": "Alkitab",
+    "other_books": "Buku atau gagasan di luar kekristenan",
+    "other_communities": "Komunitas agama atau non-agama lainnya",
+    "not_sure": "Aku tidak yakin",
+    "other": "Lainnya",
+    "none": "Tidak satu pun"
+   }
+  },
+  "driver_conditions_for_growth_unengaged": {
+   "text": "Mana yang benar tentang dirimu saat ini? Centang semua yang sesuai.",
+   "options": {
+    "asked_for_help": "Aku pernah meminta seseorang membantuku memikirkan pertanyaan tentang kepercayaan atau makna hidup.",
+    "time_for_practices": "Aku meluangkan waktu untuk memikirkan pertanyaan tentang kepercayaan atau makna hidup.",
+    "safe_place": "Aku punya tempat yang aman untuk jujur tentang keyakinan, keraguan, atau ketidakpercayaanku.",
+    "community_influence": "Aku menghabiskan waktu dengan orang-orang yang membantuku memikirkan akan menjadi pribadi seperti apa aku nanti.",
+    "ask_questions": "Aku punya kesempatan untuk mengajukan pertanyaan jujur tentang agama atau spiritualitas.",
+    "feel_connected": "Aku merasa diterima oleh orang Kristen yang kukenal, entah kami sepakat soal iman atau tidak.",
+    "none": "Tidak ada yang benar tentang diriku saat ini."
+   }
+  },
+  "driver_confidence_and_agency_unengaged": {
+   "text": "Apa yang memengaruhi kesediaanmu untuk membicarakan keyakinan, keraguan, atau ketidakpercayaanmu? Centang semua yang sesuai.",
+   "options": {
+    "confidence": "Keyakinan pada pandanganku sendiri",
+    "fear_of_response": "Tanggapan yang kuperkirakan dari orang lain",
+    "feeling_equipped": "Apakah aku bisa menjelaskan pandanganku",
+    "seeing_others": "Melihat orang lain berbicara terbuka tentang keyakinan mereka",
+    "relationships": "Hubunganku dengan orang yang keyakinannya berbeda denganku",
+    "worthwhile": "Apakah menurutku percakapan itu akan bermanfaat",
+    "opportunity": "Adanya kesempatan untuk berbicara",
+    "invited_alongside": "Diajak ke dalam sebuah percakapan",
+    "taken_seriously": "Apakah pertanyaanku akan ditanggapi dengan serius",
+    "pressure_to_change": "Apakah aku akan merasa ditekan untuk mengubah keyakinanku",
+    "interest": "Apakah topiknya menarik bagiku",
+    "other": "Lainnya",
+    "none": "Tidak satu pun",
+    "not_sure": "Aku tidak yakin"
+   }
+  },
+  "driver_relational_risk_unengaged": {
+   "text": "Bagaimana perasaanmu saat berbicara dengan orang Kristen tentang agama atau kepercayaan? Centang semua yang sesuai.",
+   "options": {
+    "naturally": "Aku membicarakannya dengan wajar.",
+    "close_people_only": "Aku membicarakannya terutama dengan orang-orang yang dekat denganku.",
+    "when_relevant": "Aku terbuka membicarakannya ketika terasa relevan dengan hidupku.",
+    "wait_to_be_asked": "Biasanya aku menunggu sampai ditanya.",
+    "avoid_it": "Aku menghindarinya karena ingin menjaga hubungan tetap nyaman.",
+    "worry_offending": "Aku khawatir menyinggung orang.",
+    "unsure_how": "Aku tidak yakin bagaimana memulai pembicaraan itu.",
+    "worry_judged": "Aku khawatir pandanganku akan dihakimi atau diabaikan.",
+    "worry_pressured": "Aku khawatir akan ditekan untuk menjadi Kristen.",
+    "not_interested": "Aku tidak tertarik dengan percakapan seperti ini.",
+    "no_christians": "Aku tidak mengenal orang Kristen yang bisa kuajak bicara.",
+    "other": "Lainnya",
+    "not_sure": "Aku tidak yakin"
+   }
+  },
+  "journey_encounter_and_response_unengaged": {
+   "text": "Orang atau pengalaman apa yang paling membentuk pandanganmu tentang Yesus atau kekristenan? Centang semua yang sesuai.",
+   "options": {
+    "friend_peer": "Seorang teman atau sebaya",
+    "family_member": "Anggota keluarga",
+    "church_gathering": "Pertemuan gereja Kristen",
+    "ministry_leader": "Pemimpin gereja atau pelayanan Kristen",
+    "school_campus": "Pengalaman di sekolah atau kampus",
+    "online_social": "Konten online atau media sosial",
+    "clear_talk": "Khotbah atau presentasi",
+    "personal_conversation": "Percakapan pribadi",
+    "course_discussion": "Kursus atau diskusi yang dipandu",
+    "reading_bible": "Membaca Alkitab sendiri",
+    "significant_moment": "Pengalaman atau momen penting dalam hidupku",
+    "other_books": "Buku atau gagasan di luar kekristenan",
+    "other": "Lainnya",
+    "none": "Tidak satu pun",
+    "not_sure": "Aku tidak yakin"
+   }
+  },
+  "journey_continued_formation_unengaged": {
+   "text": "Apa yang telah membantumu membentuk pandangan tentang pribadi seperti apa yang ingin kamu jadi? Centang semua yang sesuai.",
+   "options": {
+    "mentoring": "Pendampingan pribadi (mentoring)",
+    "friends": "Percakapan dengan teman",
+    "challenged_encouraged": "Ditantang atau didorong",
+    "group_learning": "Belajar dalam kelompok",
+    "welcomed_community": "Diterima dalam sebuah komunitas",
+    "shared_activities": "Kegiatan bersama seperti makan, refleksi, atau diskusi",
+    "studying_ideas": "Membaca atau mempelajari gagasan yang penting bagiku",
+    "observing": "Melihat bagaimana orang lain hidup",
+    "teaching_talks": "Pengajaran atau ceramah",
+    "serving_alongside": "Melayani bersama orang lain",
+    "online_community": "Komunitas online",
+    "time_alone": "Waktu untuk berpikir sendiri",
+    "other": "Lainnya",
+    "nothing": "Tidak ada yang membantuku dengan cara ini",
+    "not_sure": "Aku tidak yakin"
+   }
+  },
+  "journey_participation_in_mission_unengaged": {
+   "text": "Kalau ada, apa yang akan membuatmu ragu untuk ikut kegiatan yang diadakan oleh kelompok Kristen? Centang semua yang sesuai.",
+   "options": {
+    "not_interested": "Aku tidak tertarik dengan kegiatan yang mereka tawarkan.",
+    "would_not_know_anyone": "Aku tidak akan mengenal siapa pun di sana.",
+    "unsure_what_to_expect": "Aku tidak akan tahu apa yang diharapkan.",
+    "worry_pressured": "Aku akan khawatir ditekan untuk menganut keyakinan Kristen.",
+    "worry_judged": "Aku akan khawatir dihakimi atau tidak diterima.",
+    "conflicting_values": "Sebagian keyakinan atau nilai mereka bertentangan dengan milikku.",
+    "negative_experience": "Aku pernah punya pengalaman buruk dengan kelompok Kristen.",
+    "practical_issues": "Masalah praktis, seperti waktu, transportasi, atau biaya.",
+    "nothing": "Tidak ada yang akan membuatku ragu.",
+    "not_sure": "Aku tidak yakin."
+   }
+  },
+  "journey_multiplication_unengaged": {
+   "text": "Kalau ada, apa yang membuatmu sulit mempertimbangkan untuk mengikut Yesus? Centang semua yang sesuai.",
+   "options": {
+    "dont_know_enough": "Aku belum cukup tahu tentang Yesus atau kekristenan.",
+    "not_convinced": "Aku tidak yakin bahwa keyakinan Kristen itu benar.",
+    "unanswered_questions": "Aku punya pertanyaan yang belum menemukan jawaban yang memuaskan.",
+    "conflicting_teachings": "Beberapa ajaran Kristen bertentangan dengan pandangan atau nilai-nilaiku.",
+    "suffering_injustice": "Penderitaan dan ketidakadilan membuatku sulit percaya kepada Tuhan.",
+    "bad_experiences": "Pengalamanku dengan orang Kristen atau gereja membuatku menjauh.",
+    "worry_response": "Aku akan khawatir tentang tanggapan orang-orang terdekatku.",
+    "worry_change": "Aku akan khawatir tentang apa yang mungkin diharapkan untuk kuubah.",
+    "satisfied": "Aku puas dengan keyakinan atau pandangan hidupku saat ini.",
+    "not_thought_about": "Mengikut Yesus bukan sesuatu yang pernah kupikirkan.",
+    "other": "Lainnya",
+    "not_sure": "Aku tidak yakin."
+   }
+  },
+  "gender": {
+   "text": "Mana yang paling menggambarkan jenis kelaminmu?",
+   "options": {
+    "male": "Laki-laki",
+    "female": "Perempuan",
+    "other": "Lainnya",
+    "prefer_not_say": "Lebih suka tidak menjawab"
+   }
+  },
+  "country": {
+   "text": "Di negara mana kamu tinggal?"
+  }
+ }
 }

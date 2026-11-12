@@ -1,6 +1,6 @@
 {
- "$comment": "Swahili — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; empty means the language has no question translations yet. Edit via the translation sheet (docs/TRANSLATION.md).",
- "ui_status": "draft",
+ "$comment": "Swahili — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; Edit via the translation sheet (docs/TRANSLATION.md).",
+ "ui_status": "machine-draft — complete; needs a fluent reviewer and researcher sign-off (docs/TRANSLATION.md)",
  "ui": {
   "back": "← Rudi",
   "begin": "Anza →",
@@ -44,7 +44,490 @@
   "type_here": "Andika kadiri unavyotaka…",
   "waiting_signal": "Inasubiri mtandao",
   "welcome_body": "{org} inataka kujifunza jinsi ya kutembea na vijana wanapomfuata Yesu. Majibu yako ya kweli yanasaidia. Inachukua takriban dakika {minutes} na haikutambulishi kabisa.",
-  "welcome_title": "Unakaribishwa kueleza [ulipo sasa]."
+  "welcome_title": "Unakaribishwa kueleza [ulipo sasa].",
+  "about_body": "Hatuulizi jina lako, barua pepe wala namba ya simu, na hatuhifadhi anwani yako ya intaneti pamoja na majibu yako. Tunauliza tu kundi lako la umri na takriban mahali unapoishi. {org} huona tu matokeo yaliyokusanywa kutoka kwa watu wengi — kamwe si majibu yako peke yake. Unaweza kuacha wakati wowote kwa kufunga ukurasa huu.",
+  "about_title": "Kinachotokea kwa majibu yako",
+  "chars_left": "Herufi {n} zimebaki",
+  "choose_country": "Chagua nchi yako",
+  "ended_body": "Utafiti huu ni kwa watu wenye umri wa miaka 13 hadi 30, kwa hiyo hakuna zaidi cha kujibu. Asante kwa kupita — hakuna ulichochagua kilichohifadhiwa.",
+  "ended_title": "Asante kwa kupita!",
+  "no": "Hapana",
+  "collection_locked_banner": "Hakikisho — Kielezo bado hakikusanyi majibu, kwa hiyo majibu yako hayahifadhiwi.",
+  "privacy_link": "Soma taarifa kamili ya faragha",
+  "yes": "Ndiyo"
  },
- "items": {}
+ "items": {
+  "age_band": {
+   "text": "Una umri gani?",
+   "options": {
+    "under_13": "12 au chini",
+    "13_17": "13–17",
+    "18_22": "18–22",
+    "23_30": "23–30",
+    "over_30": "31 au zaidi"
+   }
+  },
+  "orientation": {
+   "text": "Ni kipi kati ya hivi kinachokufanana zaidi sasa hivi?",
+   "options": {
+    "confident_no_god": "Nina uhakika kwamba Mungu hayupo",
+    "open_not_exploring": "Niko wazi, lakini sichunguzi",
+    "open_exploring": "Niko wazi, na ninachunguza kwa bidii",
+    "other_religion": "Mungu yupo, lakini ninafuata dini nyingine",
+    "interested_jesus": "Ninavutiwa na Yesu, nataka kujua zaidi",
+    "new_follower": "Mfuasi mpya wa Yesu",
+    "committed_growing": "Nimejitoa, ninakua kwa bidii",
+    "none_of_these": "Hakuna kati ya hivi kinachonieleza",
+    "prefer_not_say": "Ningependa kutosema"
+   }
+  },
+  "follower_check": {
+   "text": "Je, kwa sasa unajiona kuwa mfuasi wa Yesu?",
+   "options": {
+    "yes": "Ndiyo",
+    "no": "Hapana",
+    "not_sure": "Sina uhakika",
+    "prefer_not_say": "Ningependa kutosema"
+   }
+  },
+  "follow_exposure_internal": {
+   "text": "Ninataka kuendelea kujifunza zaidi kuhusu Yesu ni nani na alifundisha nini."
+  },
+  "follow_exposure_external": {
+   "text": "Nimepata nafasi za kujifunza kile Yesu alichofundisha na kwa nini ni muhimu."
+  },
+  "follow_response_internal": {
+   "text": "Ninaamini msamaha wa dhambi unawezekana tu kwa imani katika Yesu."
+  },
+  "follow_response_external": {
+   "text": "Nimechagua kumfuata Yesu, ambaye ninaamini ni Mungu."
+  },
+  "follow_formation_internal": {
+   "text": "Biblia inanipa changamoto ya kufikiria upya maamuzi na tabia yangu."
+  },
+  "follow_formation_external": {
+   "text": "Ninaomba kwa njia zinazoniingiza katika uhusiano wa kibinafsi na Mungu."
+  },
+  "follow_multiplication_internal": {
+   "text": "Ninaamini injili ni habari njema maishani mwangu na inafaa kushirikiwa na watu ambao si Wakristo."
+  },
+  "follow_multiplication_external": {
+   "text": "Katika miezi sita iliyopita, nimemweleza mtu asiyemfuata Yesu jambo fulani kuhusu Yesu."
+  },
+  "mission_exposure_internal": {
+   "text": "Ninaelewa maana ya kushiriki katika utume wa Yesu."
+  },
+  "mission_exposure_external": {
+   "text": "Kwa sasa nina mtu anayenisaidia kumfuata Yesu."
+  },
+  "mission_response_internal": {
+   "text": "Ninaamini kushiriki ujumbe wa Yesu ni sehemu ya kumfuata."
+  },
+  "mission_response_external": {
+   "text": "Nimekubali kushiriki katika utume wa Yesu kama jukumu langu kama mfuasi wa Yesu."
+  },
+  "attention_check": {
+   "text": "Ili tujue kwamba unasoma kwa makini, tafadhali chagua “Ni kweli kwangu kidogo” kwa swali hili."
+  },
+  "mission_formation_internal": {
+   "text": "Kuwahudumia wengine kama sehemu ya jumuiya ya Kikristo ni sehemu muhimu ya jinsi ninavyomfuata Yesu."
+  },
+  "mission_formation_external": {
+   "text": "Ninajaribu kuwaonyesha watu ambao si Wakristo jinsi kumfuata Yesu kunavyounda maisha yangu ya kila siku."
+  },
+  "mission_multiplication_internal": {
+   "text": "Ninataka kuwaalika watu wengine wajiunge nami katika shughuli zinazohusiana na utume wa Yesu."
+  },
+  "mission_multiplication_external": {
+   "text": "Nimemsaidia mtu mwingine kukua katika kumfuata Yesu."
+  },
+  "world_exposure_internal": {
+   "text": "Ninaamini kumfuata Yesu huleta wema wa kweli kwa watu na kwa ulimwengu."
+  },
+  "world_exposure_external": {
+   "text": "Ninafanya maamuzi yanayoelekeza maisha yangu kwenye jambo kubwa kuliko mimi mwenyewe."
+  },
+  "world_response_internal": {
+   "text": "Ninaamini imani yangu ni zaidi ya maisha yangu binafsi. Inapaswa kuleta mabadiliko ulimwenguni."
+  },
+  "world_response_external": {
+   "text": "Kumfuata Yesu kunaleta tofauti ya kweli katika jinsi ninavyowatendea watu na kujibu mahitaji yanayonizunguka."
+  },
+  "world_formation_internal": {
+   "text": "Ninatafuta kufanya mapenzi ya Mungu katika maisha yangu ya kila siku, hata yanapotofautiana na yangu."
+  },
+  "world_formation_external": {
+   "text": "Kuwa mtu mwenye upendo zaidi kwa kila mtu anayenizunguka ni jambo ninalolifanyia kazi kila siku."
+  },
+  "world_multiplication_internal": {
+   "text": "Ninaamini wafuasi wa Yesu wanapaswa kufanya kazi pamoja kuleta mabadiliko mazuri katika jamii zao."
+  },
+  "world_multiplication_external": {
+   "text": "Ninawatia moyo Wakristo wengine kuunganisha imani yao na jinsi wanavyoishi na kuhudumu."
+  },
+  "pray_frequency": {
+   "text": "Ninaomba kwa Mungu.",
+   "options": {
+    "0": "Mara chache au kamwe",
+    "1": "Kila mwezi",
+    "2": "Kila wiki",
+    "3": "Siku nyingi"
+   }
+  },
+  "scripture_frequency": {
+   "text": "Ninasoma au kusikiliza Maandiko.",
+   "options": {
+    "0": "Mara chache au kamwe",
+    "1": "Kila mwezi",
+    "2": "Kila wiki",
+    "3": "Siku nyingi"
+   }
+  },
+  "follow_exposure_internal_unengaged": {
+   "text": "Ninavutiwa kusikia mitazamo tofauti kuhusu Mungu au mambo ya kiroho."
+  },
+  "follow_exposure_external_unengaged": {
+   "text": "Nimepata nafasi za kusikia kile Wakristo wanachoamini kuhusu Yesu."
+  },
+  "follow_response_internal_unengaged": {
+   "text": "Nadhani kuna kitu katika asili ya binadamu kinachohitaji kurekebishwa, zaidi ya kile tunachoweza kufanya wenyewe."
+  },
+  "follow_response_external_unengaged": {
+   "text": "Nimefikiria sababu za kuamini na za kutoamini katika Mungu."
+  },
+  "follow_formation_internal_unengaged": {
+   "text": "Nadhani Biblia inatoa kitu kinachostahili kufikiriwa kuhusu jinsi ya kuishi."
+  },
+  "follow_formation_external_unengaged": {
+   "text": "Ninatenga muda wa kutafakari maswali kuhusu Mungu, mambo ya kiroho, au maana ya maisha."
+  },
+  "follow_multiplication_internal_unengaged": {
+   "text": "Nadhani kuzungumza kuhusu maswali ya imani kunaweza kuwa na thamani, hata watu wanapofikia hitimisho tofauti."
+  },
+  "follow_multiplication_external_unengaged": {
+   "text": "Katika miezi sita iliyopita, nimezungumza na mtu kuhusu mitazamo au maswali yangu kuhusu Mungu au mambo ya kiroho."
+  },
+  "mission_exposure_internal_unengaged": {
+   "text": "Ninaelewa kwa nini Wakristo wanataka kushiriki imani yao na wengine."
+  },
+  "mission_exposure_external_unengaged": {
+   "text": "Ninamjua mtu ambaye ninaweza kuzungumza naye kwa uaminifu kuhusu Mungu au mambo ya kiroho."
+  },
+  "mission_response_internal_unengaged": {
+   "text": "Nimechagua kuwajibika kuleta tofauti nzuri katika ulimwengu unaonizunguka."
+  },
+  "mission_response_external_unengaged": {
+   "text": "Ninaamini nina sehemu ya kufanya katika kuufanya ulimwengu kuwa mahali bora zaidi."
+  },
+  "attention_check_unengaged": {
+   "text": "Ili tujue kwamba unasoma kwa makini, tafadhali chagua “Ni kweli kwangu kidogo” kwa swali hili."
+  },
+  "mission_formation_internal_unengaged": {
+   "text": "Kuwa sehemu ya jumuiya inayowasaidia wengine ni muhimu kwangu."
+  },
+  "mission_formation_external_unengaged": {
+   "text": "Ninashiriki katika shughuli pamoja na watu wengine zinazotekeleza imani na maadili yangu."
+  },
+  "mission_multiplication_internal_unengaged": {
+   "text": "Ninataka kuwaalika wengine kwenye shughuli zinazoakisi kile ninachoamini kuwa muhimu."
+  },
+  "mission_multiplication_external_unengaged": {
+   "text": "Nimemsaidia mtu kufikiria imani yake mwenyewe au maswali yake kuhusu imani."
+  },
+  "world_exposure_internal_unengaged": {
+   "text": "Nadhani imani au mambo ya kiroho yanaweza kuwahamasisha watu kuleta tofauti nzuri ulimwenguni."
+  },
+  "world_exposure_external_unengaged": {
+   "text": "Ninafanya maamuzi yanayoelekeza maisha yangu kwenye jambo kubwa kuliko mimi mwenyewe."
+  },
+  "world_response_internal_unengaged": {
+   "text": "Ninaamini maadili yangu yanapaswa kuleta tofauti zaidi ya maisha yangu binafsi."
+  },
+  "world_response_external_unengaged": {
+   "text": "Imani na maadili yangu yanaleta tofauti ya kweli katika jinsi ninavyowatendea watu na kujibu mahitaji yanayonizunguka."
+  },
+  "world_formation_internal_unengaged": {
+   "text": "Ninajaribu kufanya kile ninachoamini ni sahihi, hata kinapopingana na kile ninachotaka."
+  },
+  "world_formation_external_unengaged": {
+   "text": "Kuwa mtu mwenye upendo zaidi kwa kila mtu anayenizunguka ni jambo ninalolifanyia kazi kila siku."
+  },
+  "world_multiplication_internal_unengaged": {
+   "text": "Ninaamini watu wenye mitazamo tofauti ya kidini au isiyo ya kidini wanaweza kufanya kazi pamoja kuboresha jamii zao."
+  },
+  "world_multiplication_external_unengaged": {
+   "text": "Ninawatia moyo watu wanaonizunguka kutekeleza maadili yao katika jinsi wanavyoishi na kuwasaidia wengine."
+  },
+  "driver_sources_of_belief_engaged": {
+   "text": "Ni vipi kati ya hivi vinavyounda zaidi kile unachoamini kuhusu Yesu na imani? Chagua hadi vitatu.",
+   "options": {
+    "own_judgment": "Uamuzi wangu mwenyewe",
+    "bible": "Biblia",
+    "family": "Familia",
+    "friends": "Marafiki au watu wengine ninaowaamini",
+    "church_leaders": "Kanisa au viongozi wa Kikristo",
+    "peers": "Wakristo wengine wa rika langu",
+    "personal_experiences": "Uzoefu binafsi",
+    "social_media": "Mitandao ya kijamii, podikasti, au maudhui mengine ya mtandaoni",
+    "not_sure": "Sina uhakika",
+    "other": "Nyingine"
+   }
+  },
+  "driver_conditions_for_growth_engaged": {
+   "text": "Ni yapi kati ya haya yaliyo kweli kwako sasa hivi? Chagua yote yanayohusika.",
+   "options": {
+    "asked_for_help": "Nimemwomba mtu anisaidie kukua katika imani yangu.",
+    "time_for_practices": "Ninaweza kutenga muda wa kuomba, kusoma Biblia, au kujifunza kuhusu Yesu.",
+    "safe_place": "Nina mahali salama pa kuwa mkweli kuhusu changamoto zangu katika kumfuata Yesu.",
+    "community_influence": "Ninatumia muda na watu wanaonisaidia kufanana zaidi na Yesu.",
+    "ask_questions": "Nina nafasi za kuuliza maswali ya kweli kuhusu imani yangu.",
+    "feel_connected": "Ninahisi kuunganishwa na jumuiya ya Kikristo.",
+    "none": "Hakuna kati ya haya kilicho kweli kwangu sasa hivi."
+   }
+  },
+  "driver_confidence_and_agency_engaged": {
+   "text": "Ni nini kinachoathiri utayari wako wa kushiriki imani yako? Chagua yote yanayohusika.",
+   "options": {
+    "confidence": "Uhakika katika kile ninachoamini",
+    "fear_of_response": "Hofu ya jinsi watu wengine wanavyoweza kujibu",
+    "feeling_equipped": "Kama ninahisi nimeandaliwa",
+    "seeing_others": "Kuona watu wengine wakishiriki imani yao",
+    "relationships": "Mahusiano yangu na watu ambao si Wakristo",
+    "responsibility": "Kama ninaamini kushiriki imani yangu ni jukumu langu",
+    "opportunity": "Kupata nafasi ya kushiriki",
+    "invited_alongside": "Kualikwa kushiriki pamoja na watu wengine",
+    "other": "Nyingine"
+   }
+  },
+  "driver_relational_risk_engaged": {
+   "text": "Ni yapi kati ya haya yanayoeleza jinsi unavyojisikia kuhusu kuzungumza kuhusu imani na watu ambao si Wakristo? Chagua yote yanayohusika.",
+   "options": {
+    "naturally": "Ninazungumza kuhusu hilo kwa kawaida.",
+    "close_people_only": "Ninazungumza kuhusu hilo hasa na watu walio karibu nami.",
+    "when_relevant": "Niko tayari kuzungumza kuhusu hilo linapoonekana kuwa la kweli au linalohusika.",
+    "wait_to_be_asked": "Kwa kawaida ninasubiri niulizwe.",
+    "avoid_it": "Ninaliepuka kwa sababu nataka mahusiano yabaki ya amani.",
+    "worry_offending": "Ninaogopa kuwaudhi watu.",
+    "unsure_how": "Sina uhakika jinsi ya kulianzisha.",
+    "other": "Nyingine"
+   }
+  },
+  "journey_encounter_and_response_engaged": {
+   "text": "Ni watu au uzoefu gani uliokuwa muhimu zaidi kukusaidia kukutana na Yesu, kumwelewa, na kumwitikia? Chagua yote yanayohusika.",
+   "options": {
+    "friend_peer": "Rafiki au mwenzangu wa rika",
+    "family_member": "Mwanafamilia",
+    "church_gathering": "Mkutano wa kanisa",
+    "ministry_leader": "Kiongozi wa kanisa au huduma",
+    "school_campus": "Uzoefu shuleni au chuoni",
+    "online_social": "Maudhui ya mtandaoni au mitandao ya kijamii",
+    "outreach_service": "Uzoefu wa uinjilisti au huduma",
+    "clear_talk": "Hotuba au wasilisho lililo wazi",
+    "personal_conversation": "Mazungumzo ya kibinafsi",
+    "course_discussion": "Kozi au majadiliano yanayoongozwa",
+    "reading_bible": "Kusoma Biblia mwenyewe",
+    "significant_moment": "Uzoefu au wakati muhimu maishani mwangu",
+    "other": "Nyingine"
+   }
+  },
+  "journey_continued_formation_engaged": {
+   "text": "Ni nini kimekusaidia kukua ili ufanane zaidi na Yesu katika jinsi unavyoishi? Chagua yote yanayohusika.",
+   "options": {
+    "mentoring": "Ulezi wa mtu mmoja kwa mmoja",
+    "christian_friends": "Mazungumzo na marafiki Wakristo",
+    "challenged_encouraged": "Kupewa changamoto au kutiwa moyo",
+    "group_learning": "Kujifunza katika kikundi",
+    "welcomed_community": "Kukaribishwa katika jumuiya ya Kikristo",
+    "shared_practices": "Desturi za pamoja kama maombi, ibada, au milo",
+    "studying_bible": "Kusoma au kujifunza Biblia",
+    "observing": "Kuangalia jinsi Mkristo mwingine anavyoishi",
+    "teaching_preaching": "Mafundisho au mahubiri",
+    "serving_alongside": "Kuhudumu pamoja na watu wengine",
+    "local_church": "Kanisa la mahali",
+    "online_community": "Jumuiya ya Kikristo ya mtandaoni",
+    "other": "Nyingine"
+   }
+  },
+  "journey_participation_in_mission_engaged": {
+   "text": "Ni nini kimekusaidia kuanza kuishi au kushiriki imani yako katika Yesu? Chagua yote yanayohusika.",
+   "options": {
+    "encouraged_invited": "Mtu alinitia moyo au kunialika.",
+    "opportunity_to_serve": "Nilipata nafasi ya kuhudumu.",
+    "trained_shown": "Nilifundishwa au nilionyeshwa jinsi ya kufanya.",
+    "did_it_alongside": "Nilifanya pamoja na watu wengine.",
+    "personal_conviction": "Nilijenga msimamo wangu binafsi.",
+    "saw_model": "Nilimwona mtu mwingine akiwa mfano.",
+    "church_provided": "Kanisa au huduma ilitoa nafasi.",
+    "other": "Nyingine"
+   }
+  },
+  "journey_multiplication_engaged": {
+   "text": "Ni nini kingekusaidia kuchukua hatua inayofuata katika kuwasaidia wengine kumfuata Yesu? Chagua yote yanayohusika.",
+   "options": {
+    "someone_to_guide": "Mtu wa kuniongoza",
+    "clear_next_steps": "Hatua zinazofuata zilizo wazi",
+    "training_tools": "Mafunzo au zana za vitendo",
+    "opportunity_to_try": "Nafasi ya kujaribu",
+    "encouragement": "Kutiwa moyo",
+    "others_to_do_it_with": "Watu wengine wa kufanya nao",
+    "greater_confidence": "Uhakika zaidi katika kile ninachoamini",
+    "already_equipped": "Hakuna; tayari ninahisi niko tayari kuchukua hatua hii",
+    "not_interested": "Sivutiwi kuchukua hatua hii",
+    "other": "Nyingine"
+   }
+  },
+  "driver_sources_of_belief_unengaged": {
+   "text": "Ni vipi kati ya hivi vinavyounda zaidi mitazamo yako kuhusu Mungu, dini, au mambo ya kiroho? Chagua hadi vitatu.",
+   "options": {
+    "own_judgment": "Uamuzi wangu mwenyewe",
+    "family": "Familia",
+    "friends": "Marafiki au watu wengine ninaowaamini",
+    "church_leaders": "Kanisa au viongozi wa Kikristo",
+    "peers": "Wakristo wa rika langu",
+    "personal_experiences": "Uzoefu binafsi",
+    "social_media": "Mitandao ya kijamii, podikasti, au maudhui mengine ya mtandaoni",
+    "science": "Sayansi au ushahidi",
+    "teachers": "Walimu au elimu",
+    "bible": "Biblia",
+    "other_books": "Vitabu au mawazo nje ya Ukristo",
+    "other_communities": "Jumuiya nyingine za kidini au zisizo za kidini",
+    "not_sure": "Sina uhakika",
+    "other": "Nyingine",
+    "none": "Hakuna kati ya hivi"
+   }
+  },
+  "driver_conditions_for_growth_unengaged": {
+   "text": "Ni yapi kati ya haya yaliyo kweli kwako sasa hivi? Chagua yote yanayohusika.",
+   "options": {
+    "asked_for_help": "Nimemwomba mtu anisaidie kufikiria maswali kuhusu imani au maana ya maisha.",
+    "time_for_practices": "Ninatenga muda wa kufikiria maswali kuhusu imani au maana ya maisha.",
+    "safe_place": "Nina mahali salama pa kuwa mkweli kuhusu imani yangu, mashaka yangu, au kutoamini kwangu.",
+    "community_influence": "Ninatumia muda na watu wanaonisaidia kufikiria aina ya mtu ninayetaka kuwa.",
+    "ask_questions": "Nina nafasi za kuuliza maswali ya kweli kuhusu dini au mambo ya kiroho.",
+    "feel_connected": "Ninahisi kukubaliwa na Wakristo ninaowajua, iwe tunakubaliana kuhusu imani au la.",
+    "none": "Hakuna kati ya haya kilicho kweli kwangu sasa hivi."
+   }
+  },
+  "driver_confidence_and_agency_unengaged": {
+   "text": "Ni nini kinachoathiri utayari wako wa kuzungumza kuhusu imani yako, mashaka yako, au kutoamini kwako? Chagua yote yanayohusika.",
+   "options": {
+    "confidence": "Uhakika katika mitazamo yangu mwenyewe",
+    "fear_of_response": "Jinsi ninavyotarajia watu wengine kujibu",
+    "feeling_equipped": "Kama ninaweza kueleza mitazamo yangu",
+    "seeing_others": "Kuona watu wengine wakizungumza waziwazi kuhusu imani yao",
+    "relationships": "Mahusiano yangu na watu ambao imani yao ni tofauti na yangu",
+    "worthwhile": "Kama nadhani mazungumzo yangekuwa na faida",
+    "opportunity": "Kupata nafasi ya kuzungumza",
+    "invited_alongside": "Kualikwa katika mazungumzo",
+    "taken_seriously": "Kama maswali yangu yangechukuliwa kwa uzito",
+    "pressure_to_change": "Kama ningehisi kushinikizwa kubadilisha imani yangu",
+    "interest": "Kama mada inanivutia",
+    "other": "Nyingine",
+    "none": "Hakuna kati ya hivi",
+    "not_sure": "Sina uhakika"
+   }
+  },
+  "driver_relational_risk_unengaged": {
+   "text": "Unajisikiaje kuhusu kuzungumza na Wakristo kuhusu dini au imani? Chagua yote yanayohusika.",
+   "options": {
+    "naturally": "Ninazungumza kuhusu hilo kwa kawaida.",
+    "close_people_only": "Ninazungumza kuhusu hilo hasa na watu walio karibu nami.",
+    "when_relevant": "Niko tayari kuzungumza kuhusu hilo linapoonekana kuhusika na maisha yangu.",
+    "wait_to_be_asked": "Kwa kawaida ninasubiri niulizwe.",
+    "avoid_it": "Ninaliepuka kwa sababu nataka mahusiano yabaki ya amani.",
+    "worry_offending": "Ninaogopa kuwaudhi watu.",
+    "unsure_how": "Sina uhakika jinsi ya kulianzisha.",
+    "worry_judged": "Ninaogopa kwamba mitazamo yangu ingehukumiwa au kupuuzwa.",
+    "worry_pressured": "Ninaogopa kwamba ningeshinikizwa kuwa Mkristo.",
+    "not_interested": "Sivutiwi na mazungumzo haya.",
+    "no_christians": "Simjui Mkristo yeyote ambaye ningeweza kuzungumza naye.",
+    "other": "Nyingine",
+    "not_sure": "Sina uhakika"
+   }
+  },
+  "journey_encounter_and_response_unengaged": {
+   "text": "Ni watu au uzoefu gani ulioathiri zaidi mitazamo yako kuhusu Yesu au Ukristo? Chagua yote yanayohusika.",
+   "options": {
+    "friend_peer": "Rafiki au mwenzangu wa rika",
+    "family_member": "Mwanafamilia",
+    "church_gathering": "Mkutano wa kanisa la Kikristo",
+    "ministry_leader": "Kiongozi wa kanisa au huduma ya Kikristo",
+    "school_campus": "Uzoefu shuleni au chuoni",
+    "online_social": "Maudhui ya mtandaoni au mitandao ya kijamii",
+    "clear_talk": "Hotuba au wasilisho",
+    "personal_conversation": "Mazungumzo ya kibinafsi",
+    "course_discussion": "Kozi au majadiliano yanayoongozwa",
+    "reading_bible": "Kusoma Biblia mwenyewe",
+    "significant_moment": "Uzoefu au wakati muhimu maishani mwangu",
+    "other_books": "Vitabu au mawazo nje ya Ukristo",
+    "other": "Nyingine",
+    "none": "Hakuna kati ya hivi",
+    "not_sure": "Sina uhakika"
+   }
+  },
+  "journey_continued_formation_unengaged": {
+   "text": "Ni nini kimekusaidia kujenga mitazamo yako kuhusu aina ya mtu unayetaka kuwa? Chagua yote yanayohusika.",
+   "options": {
+    "mentoring": "Ulezi wa mtu mmoja kwa mmoja",
+    "friends": "Mazungumzo na marafiki",
+    "challenged_encouraged": "Kupewa changamoto au kutiwa moyo",
+    "group_learning": "Kujifunza katika kikundi",
+    "welcomed_community": "Kukaribishwa katika jumuiya",
+    "shared_activities": "Shughuli za pamoja kama milo, tafakari, au majadiliano",
+    "studying_ideas": "Kusoma au kujifunza mawazo yaliyo muhimu kwangu",
+    "observing": "Kuangalia jinsi mtu mwingine anavyoishi",
+    "teaching_talks": "Mafundisho au mihadhara",
+    "serving_alongside": "Kuhudumu pamoja na watu wengine",
+    "online_community": "Jumuiya ya mtandaoni",
+    "time_alone": "Muda wa kufikiri peke yangu",
+    "other": "Nyingine",
+    "nothing": "Hakuna kilichonisaidia kwa njia hii",
+    "not_sure": "Sina uhakika"
+   }
+  },
+  "journey_participation_in_mission_unengaged": {
+   "text": "Kama kipo, ni nini kingekufanya usite kujiunga na shughuli iliyoandaliwa na kikundi cha Kikristo? Chagua yote yanayohusika.",
+   "options": {
+    "not_interested": "Sivutiwi na shughuli wanazotoa.",
+    "would_not_know_anyone": "Nisingemjua mtu yeyote huko.",
+    "unsure_what_to_expect": "Nisingejua nitarajie nini.",
+    "worry_pressured": "Ningeogopa kushinikizwa kukubali imani ya Kikristo.",
+    "worry_judged": "Ningeogopa kuhukumiwa au kutokubaliwa.",
+    "conflicting_values": "Baadhi ya imani au maadili yao yanapingana na yangu.",
+    "negative_experience": "Nimewahi kupata uzoefu mbaya na kikundi cha Kikristo.",
+    "practical_issues": "Masuala ya kivitendo, kama muda, usafiri, au gharama.",
+    "nothing": "Hakuna kingenifanya nisite.",
+    "not_sure": "Sina uhakika."
+   }
+  },
+  "journey_multiplication_unengaged": {
+   "text": "Kama kipo, ni nini kinachokufanya iwe vigumu kufikiria kumfuata Yesu? Chagua yote yanayohusika.",
+   "options": {
+    "dont_know_enough": "Sijui vya kutosha kuhusu Yesu au Ukristo.",
+    "not_convinced": "Sijashawishika kwamba imani za Kikristo ni za kweli.",
+    "unanswered_questions": "Nina maswali ambayo sijapata majibu ya kuridhisha.",
+    "conflicting_teachings": "Baadhi ya mafundisho ya Kikristo yanapingana na mitazamo au maadili yangu.",
+    "suffering_injustice": "Mateso na dhuluma hufanya kumwamini Mungu kuwa vigumu kwangu.",
+    "bad_experiences": "Uzoefu wangu na Wakristo au makanisa umenikatisha tamaa.",
+    "worry_response": "Ningeogopa jinsi watu walio karibu nami wangejibu.",
+    "worry_change": "Ningeogopa kile ambacho ningetarajiwa kubadilisha.",
+    "satisfied": "Nimeridhika na imani yangu ya sasa au mtazamo wangu wa maisha.",
+    "not_thought_about": "Kumfuata Yesu si jambo nililowahi kulifikiria.",
+    "other": "Nyingine",
+    "not_sure": "Sina uhakika."
+   }
+  },
+  "gender": {
+   "text": "Ni kipi kinachoelezea vizuri jinsia yako?",
+   "options": {
+    "male": "Mwanaume",
+    "female": "Mwanamke",
+    "other": "Nyingine",
+    "prefer_not_say": "Ningependa kutosema"
+   }
+  },
+  "country": {
+   "text": "Unaishi nchi gani?"
+  }
+ }
 }
