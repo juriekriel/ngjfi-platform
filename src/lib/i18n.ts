@@ -50,6 +50,16 @@ const LOADERS: Record<string, () => Promise<LangFile>> = {
   af: () => import("@/data/i18n/af.json").then((m) => m.default as LangFile),
 };
 
+/**
+ * One language's own file, raw — for the admin Translations tile, which
+ * measures coverage and builds downloads. English is already bundled; an
+ * unknown code (or one with no file yet) gives an empty file.
+ */
+export async function loadLangFile(code: string): Promise<LangFile> {
+  if (code === "en") return enFile as LangFile;
+  return LOADERS[code] ? LOADERS[code]() : { ui: {}, items: {} };
+}
+
 /** A loaded language: its direction, and text lookups that walk its fallback chain. */
 export type Lang = {
   code: string;

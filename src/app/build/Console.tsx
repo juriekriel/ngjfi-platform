@@ -31,6 +31,8 @@ import { ConsultingRequestsBand, useConsultingRequests } from "@/components/cons
 import { linkError } from "@/lib/authLinks";
 import { ApplicationsBand, NoHouse, OrgManagePanel, useApplications } from "@/components/console/Onboarding";
 import CommsBoard, { useCommsCount } from "@/components/console/CommsBoard";
+import Translations from "@/components/console/Translations";
+import { LANGUAGE_FIGURES } from "@/lib/translationFigures";
 
 /**
  * The Index — the authenticated engine, at every tier.
@@ -1019,7 +1021,7 @@ function AdminConsole() {
   const [wizard, setWizard] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
-  const [section, setSection] = useState<"applications" | "surveys" | "console" | "comms">("surveys");
+  const [section, setSection] = useState<"applications" | "surveys" | "console" | "comms" | "translations">("surveys");
   const applications = useApplications();
   const commsCount = useCommsCount(sb);
 
@@ -1072,12 +1074,12 @@ function AdminConsole() {
     <div className="space-y-10">
       {err && <Trouble message={err} />}
 
-      {/* Five tiles, one entry point each (E · Communication, 0056). Tile A is the worklist itself —
+      {/* Six tiles, one entry point each (E · Communication, 0056; F · Translations, Nov 2026). Tile A is the worklist itself —
           "Waiting on you" merged into it, so the queue is visible without a
           click — and it is a plain container rather than a switch, because
           its Approve / Decline buttons cannot live inside a <button>. B and D
           swap which band renders below; C links to the public view. */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <Tile
           letter="A"
           figure={applications.count == null ? "…" : `${applications.count} waiting`}
@@ -1134,7 +1136,27 @@ function AdminConsole() {
           selected={section === "comms"}
           onClick={() => setSection("comms")}
         />
+
+        <Tile
+          letter="F"
+          figure={`${LANGUAGE_FIGURES.live} live · ${LANGUAGE_FIGURES.translating} translating`}
+          title="Translations"
+          gloss="Every language on the site, from live to aspirational — open the survey in each, or download it."
+          selected={section === "translations"}
+          onClick={() => setSection("translations")}
+        />
       </div>
+
+      {section === "translations" && (
+        <Band
+          letter="F"
+          title="Translations"
+          gloss="Every language, by stage. Open the survey in any of them (nothing is saved), or download it as text or as the translation sheet (CSV)."
+          figure={`${LANGUAGE_FIGURES.onSite} on the site · ${LANGUAGE_FIGURES.aspirational} aspirational`}
+        >
+          <Translations />
+        </Band>
+      )}
 
       {section === "comms" && (
         <Band

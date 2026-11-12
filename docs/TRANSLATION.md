@@ -21,6 +21,27 @@ language only reaches respondents once a researcher has approved it.
 | `draft` | Being translated. Previewable; missing text shows in English. |
 | `requested` | Asked for; not started. Not previewable. |
 
+### Stages (the admin console's Translations tile)
+
+The console groups every language into four stages. The stage is derived
+from the status above — it is never stored twice:
+
+| Stage | From |
+|---|---|
+| **Live** | `live` |
+| **Translating** | `review` or `draft` |
+| **Prospective** | `requested` |
+| **Aspirational** | One of the world's main languages (`src/data/languages.world.json`) with no variant on the site yet. |
+
+The tile's top bar shows how far the site has got through those main
+languages. For each language it can open the survey (held in memory — nothing
+is saved, whatever the stage), download it as **text** (the whole fielded
+survey, untranslated lines marked `[EN]`) or as **CSV** — the same sheet
+`translation-sheet.mjs export` writes, so it can be translated and imported
+straight back. An aspirational language gets a starter sheet; add it to
+`locales.json` (status `requested`) and give it an `i18n/<code>.json` file
+before importing.
+
 **Preview:** add `?preview=1` to any survey link to choose non-live languages
 (add `&lang=fr` to jump straight to one). A preview in a language that isn't
 live **never records an answer** — a yellow banner says so.
