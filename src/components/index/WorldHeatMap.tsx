@@ -1,5 +1,6 @@
 import { COUNTRY_CODE_BY_NAME, WORLD_CENTROIDS, WORLD_FEATURES, WORLD_VIEWBOX } from "@/data/worldGeo";
 import { fig, tierHeat } from "@/lib/model";
+import { CaveatMark, CountryCaveat } from "@/components/site/CountryCaveat";
 
 export type MapCountry = {
   /** Free-text country name, exactly as stored on organisations/sessions. */
@@ -135,11 +136,13 @@ export default function WorldHeatMap({
       )}
       {countries.length > 0 && (
         <p className="mt-3 font-mono text-[9px] uppercase tracking-wider text-muted">
-          {countries.length} {countries.length === 1 ? "country" : "countries"} shown · of those who
-          completed the Index · n ={" "}
+          {countries.length} {countries.length === 1 ? "country" : "countries"} shown
+          <CaveatMark /> · of those who completed the Index · n ={" "}
           {countries.reduce((sum, c) => sum + c.n, 0).toLocaleString()}
         </p>
       )}
+      {/* Every country map says what a country's colour is not (Oct 2026). */}
+      <CountryCaveat className="mt-3" />
     </div>
   );
 }

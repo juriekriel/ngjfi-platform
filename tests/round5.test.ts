@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 
 /**
  * Round 5 (Oct 2026): the benefits become headings that reveal their line on
- * hover, under the hero buttons; the J12 is "12 unique items"; and the
+ * hover, under the hero buttons; the J12 is "12 core questions" (was "12 unique items" until the Oct 2026 clarity pass); and the
  * "house"/"room" metaphor is gone from what people read.
  */
 const read = (p: string) => readFileSync(p, "utf8");
@@ -33,9 +33,9 @@ test("benefits: headings only, context on hover, under the hero buttons", () => 
   assert.match(read("src/components/site/Chrome.tsx"), /linear-gradient\(135deg, rgb\(var\(--c-emerald\)\), rgb\(var\(--c-violet\)\)\) border-box/);
 });
 
-test("the J12 says 12 unique items, and counts its questions per cell from the instrument", () => {
+test("the J12 says 12 core questions, and counts its questions per cell from the instrument", () => {
   const j = read("src/components/index/J12Journey.tsx");
-  assert.match(j, /\{total\} unique items\. One shared measure of Jesus-following\./);
+  assert.match(j, /\{total\} core questions\. One shared measure of Jesus-following\./);
   assert.match(j, /measured by \{NUM\[perCell\] \?\? perCell\} survey questions/);
 });
 
