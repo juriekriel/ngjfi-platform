@@ -98,3 +98,33 @@ test("the text download is the whole fielded survey, untranslated lines marked [
   assert.ok(frTxt.includes("[EN] "), "English fallbacks are marked");
   assert.ok(frTxt.includes("in French (fr)"));
 });
+
+import { byPriority, people, type Reach } from "../src/lib/translations.ts";
+const reachDoc = json("src/data/languages.reach.json");
+const R: Record<string, Reach> = reachDoc.languages;
+
+test("reach data covers every world language and every survey language, with its sources", () => {
+  for (const w of world) assert.ok(R[w.code], `world ${w.code}`);
+  for (const l of reg) assert.ok(R[l.code], `survey ${l.code}`);
+  for (const k of ["population", "languages", "online", "open"]) assert.ok(reachDoc.sources[k], k);
+  for (const [code, r] of Object.entries(R)) {
+    for (const k of ["online", "open", "access"] as const) assert.ok(r[k] >= 0 && r[k] <= 1, `${code}.${k}`);
+    assert.ok(r.u30_readers <= r.u30 && r.reach <= r.u30_readers, code);
+    assert.ok(r.u30 > 0, `${code} has young speakers`);
+  }
+});
+
+test("priority is most reachable young people first, and the stored order agrees", () => {
+  const ranked = byPriority(world, R).map((w) => w.code);
+  assert.deepEqual(ranked, reachDoc.priority);
+  for (let i = 1; i < ranked.length; i++) assert.ok(R[ranked[i - 1]].reach >= R[ranked[i]].reach);
+  // Unknown codes sink to the end without disturbing the rest.
+  assert.equal(byPriority([{ code: "xx" }, { code: "en" }], R)[0].code, "en");
+});
+
+test("people() rounds to what the data can bear", () => {
+  assert.equal(people(866_123_456), "866M");
+  assert.equal(people(4_234_567), "4.2M");
+  assert.equal(people(1_460_000_000), "1.5B");
+  assert.equal(people(950_400), "950K");
+});
