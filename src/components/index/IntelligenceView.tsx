@@ -8,6 +8,7 @@ import { getSupabaseBrowser } from "@/lib/supabaseClient";
 import { instrument, t } from "@/lib/instrument";
 import ScoreMatrix from "@/components/index/ScoreMatrix";
 import WorldHeatMap from "@/components/index/WorldHeatMap";
+import { CountryCaveat } from "@/components/site/CountryCaveat";
 import MapTierToggle from "@/components/index/MapTierToggle";
 import { GREEN, NAVY, VIOLET, VERMILLION } from "@/lib/model";
 import CollabInsights from "@/components/index/CollabInsights";
@@ -379,6 +380,7 @@ export default function IntelligenceView({
                   {!d.regions?.length && (
                     <p className="text-sm text-slate">No region has passed the critical-mass gate yet.</p>
                   )}
+                  <CountryCaveat level="region" className="mt-1 basis-full" />
                 </div>
               )}
               {/* The countries view carries its own gradient legend (WorldHeatMap,

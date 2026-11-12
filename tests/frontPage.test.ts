@@ -10,7 +10,7 @@ const walk = (dir: string): string[] =>
 
 test("the front page reads hero → J12 → try it → pitch documents, in one scroll", () => {
   const home = read("src/app/page.tsx");
-  const order = ["Start your journey", "<J12Journey", 'id="try"', "<LazySurveyDemo", "<PitchDocs", "<Footer"].map((m) => home.indexOf(m));
+  const order = ["Set up your survey", "<J12Journey", 'id="try"', "<LazySurveyDemo", "<PitchDocs", "<Footer"].map((m) => home.indexOf(m));
   order.forEach((i, k) => assert.ok(i > 0, `marker ${k} present`));
   assert.deepEqual([...order].sort((a, b) => a - b), order, "sections are in order");
   assert.match(home, /Do you know where your young people are with Jesus\?/);
