@@ -1,6 +1,6 @@
 {
- "$comment": "Mandarin Chinese (Simplified) — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; empty means the language has no question translations yet. Edit via the translation sheet (docs/TRANSLATION.md).",
- "ui_status": "draft",
+ "$comment": "Mandarin Chinese (Simplified) — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; Edit via the translation sheet (docs/TRANSLATION.md).",
+ "ui_status": "machine-draft — complete; needs a fluent reviewer and researcher sign-off (docs/TRANSLATION.md)",
  "ui": {
   "back": "← 返回",
   "begin": "开始 →",
@@ -44,7 +44,490 @@
   "type_here": "想写多少都可以…",
   "waiting_signal": "正在等待信号",
   "welcome_body": "{org}希望学习如何陪伴跟随耶稣的年轻人。你真诚的回答很有帮助。大约需要 {minutes} 分钟，完全匿名。",
-  "welcome_title": "诚邀你分享[你现在的状态]。"
+  "welcome_title": "诚邀你分享[你现在的状态]。",
+  "about_body": "我们不会询问你的姓名、电子邮箱或电话号码，也不会把你的网络地址和你的回答一起保存。我们只询问你的年龄段和大致居住地。{org}只能看到许多人汇总在一起的结果——永远看不到你单独的回答。你可以随时关闭此页面停止作答。",
+  "about_title": "你的回答会怎样处理",
+  "chars_left": "还可输入 {n} 个字",
+  "choose_country": "选择你的国家",
+  "ended_body": "本问卷面向13至30岁的人群，所以没有更多问题需要回答了。谢谢你的参与——你选择的任何内容都没有被保存。",
+  "ended_title": "谢谢你的参与！",
+  "no": "否",
+  "collection_locked_banner": "预览——本指数尚未开始收集数据，因此你的回答不会被保存。",
+  "privacy_link": "阅读完整的隐私声明",
+  "yes": "是"
  },
- "items": {}
+ "items": {
+  "age_band": {
+   "text": "你多大了？",
+   "options": {
+    "under_13": "12岁或以下",
+    "13_17": "13–17",
+    "18_22": "18–22",
+    "23_30": "23–30",
+    "over_30": "31岁或以上"
+   }
+  },
+  "orientation": {
+   "text": "以下哪一项最符合你现在的状况？",
+   "options": {
+    "confident_no_god": "确信上帝不存在",
+    "open_not_exploring": "保持开放，但没有在探索",
+    "open_exploring": "保持开放，并且在积极探索",
+    "other_religion": "上帝存在，但我信奉其他宗教",
+    "interested_jesus": "对耶稣感兴趣，想了解更多",
+    "new_follower": "刚开始跟随耶稣",
+    "committed_growing": "委身跟随，积极成长",
+    "none_of_these": "以上都不符合我",
+    "prefer_not_say": "不愿透露"
+   }
+  },
+  "follower_check": {
+   "text": "你目前是否认为自己是耶稣的跟随者？",
+   "options": {
+    "yes": "是",
+    "no": "否",
+    "not_sure": "不确定",
+    "prefer_not_say": "不愿透露"
+   }
+  },
+  "follow_exposure_internal": {
+   "text": "我想继续更多地了解耶稣是谁以及他的教导。"
+  },
+  "follow_exposure_external": {
+   "text": "我曾有机会了解耶稣的教导以及它为何重要。"
+  },
+  "follow_response_internal": {
+   "text": "我相信只有通过信靠耶稣，罪才能得到赦免。"
+  },
+  "follow_response_external": {
+   "text": "我选择了跟随耶稣，我相信他是神。"
+  },
+  "follow_formation_internal": {
+   "text": "圣经挑战我重新审视自己的选择和行为。"
+  },
+  "follow_formation_external": {
+   "text": "我以能使我与神有个人相交的方式祷告。"
+  },
+  "follow_multiplication_internal": {
+   "text": "我相信福音在我的生命中是好消息，值得与不是基督徒的人分享。"
+  },
+  "follow_multiplication_external": {
+   "text": "在过去六个月里，我曾和不跟随耶稣的人分享过关于耶稣的事。"
+  },
+  "mission_exposure_internal": {
+   "text": "我明白参与耶稣的使命意味着什么。"
+  },
+  "mission_exposure_external": {
+   "text": "目前有人在帮助我跟随耶稣。"
+  },
+  "mission_response_internal": {
+   "text": "我相信分享耶稣的信息是跟随他的一部分。"
+  },
+  "mission_response_external": {
+   "text": "我已接受参与耶稣的使命是我作为耶稣跟随者的责任。"
+  },
+  "attention_check": {
+   "text": "为了确认你在认真阅读，这一题请选择“有一点符合我”。"
+  },
+  "mission_formation_internal": {
+   "text": "在基督徒群体中服侍他人，是我跟随耶稣的重要方式。"
+  },
+  "mission_formation_external": {
+   "text": "我努力让不是基督徒的人看到，跟随耶稣如何塑造我的日常生活。"
+  },
+  "mission_multiplication_internal": {
+   "text": "我想邀请别人和我一起参与与耶稣使命相关的活动。"
+  },
+  "mission_multiplication_external": {
+   "text": "我曾帮助别人在跟随耶稣的路上成长。"
+  },
+  "world_exposure_internal": {
+   "text": "我相信跟随耶稣能为人们和世界带来真正的益处。"
+  },
+  "world_exposure_external": {
+   "text": "我所做的选择，使我的人生朝向比我自己更大的事。"
+  },
+  "world_response_internal": {
+   "text": "我相信我的信仰不只关乎个人生活，它应该给世界带来改变。"
+  },
+  "world_response_external": {
+   "text": "跟随耶稣真实地影响我如何对待别人、如何回应身边的需要。"
+  },
+  "world_formation_internal": {
+   "text": "我在日常生活中寻求遵行神的旨意，即使它与我的意愿不同。"
+  },
+  "world_formation_external": {
+   "text": "成为一个更爱身边每一个人的人，是我每天努力的方向。"
+  },
+  "world_multiplication_internal": {
+   "text": "我相信耶稣的跟随者应该携手合作，为自己的社区带来积极的改变。"
+  },
+  "world_multiplication_external": {
+   "text": "我鼓励其他基督徒把信仰和他们的生活与服侍方式联系起来。"
+  },
+  "pray_frequency": {
+   "text": "我向神祷告。",
+   "options": {
+    "0": "很少或从不",
+    "1": "每月",
+    "2": "每周",
+    "3": "大多数日子"
+   }
+  },
+  "scripture_frequency": {
+   "text": "我阅读或聆听圣经。",
+   "options": {
+    "0": "很少或从不",
+    "1": "每月",
+    "2": "每周",
+    "3": "大多数日子"
+   }
+  },
+  "follow_exposure_internal_unengaged": {
+   "text": "我有兴趣了解关于上帝或灵性的不同观点。"
+  },
+  "follow_exposure_external_unengaged": {
+   "text": "我曾有机会听到基督徒对耶稣的信念。"
+  },
+  "follow_response_internal_unengaged": {
+   "text": "我认为人性中有某些东西需要被修正，而这超出了我们自己能做到的。"
+  },
+  "follow_response_external_unengaged": {
+   "text": "我思考过相信上帝与不相信上帝的理由。"
+  },
+  "follow_formation_internal_unengaged": {
+   "text": "我认为在如何生活这件事上，圣经提供了值得思考的东西。"
+  },
+  "follow_formation_external_unengaged": {
+   "text": "我会花时间思考关于上帝、灵性或人生意义的问题。"
+  },
+  "follow_multiplication_internal_unengaged": {
+   "text": "我认为讨论信仰问题是有价值的，即使人们得出不同的结论。"
+  },
+  "follow_multiplication_external_unengaged": {
+   "text": "在过去六个月里，我曾和别人谈论我对上帝或灵性的看法或疑问。"
+  },
+  "mission_exposure_internal_unengaged": {
+   "text": "我理解为什么基督徒想与别人分享他们的信仰。"
+  },
+  "mission_exposure_external_unengaged": {
+   "text": "我认识一个可以坦诚谈论上帝或灵性的人。"
+  },
+  "mission_response_internal_unengaged": {
+   "text": "我选择承担责任，为身边的世界带来积极的改变。"
+  },
+  "mission_response_external_unengaged": {
+   "text": "我相信我在让世界变得更好这件事上有自己的角色。"
+  },
+  "attention_check_unengaged": {
+   "text": "为了确认你在认真阅读，这一题请选择“有一点符合我”。"
+  },
+  "mission_formation_internal_unengaged": {
+   "text": "成为一个帮助他人的群体的一员，对我很重要。"
+  },
+  "mission_formation_external_unengaged": {
+   "text": "我和其他人一起参与活动，把我的信念和价值观付诸行动。"
+  },
+  "mission_multiplication_internal_unengaged": {
+   "text": "我想邀请别人参加体现我所看重之事的活动。"
+  },
+  "mission_multiplication_external_unengaged": {
+   "text": "我曾帮助别人思考他们自己的信念或关于信仰的问题。"
+  },
+  "world_exposure_internal_unengaged": {
+   "text": "我认为信仰或灵性能激励人们为世界带来积极的改变。"
+  },
+  "world_exposure_external_unengaged": {
+   "text": "我所做的选择，使我的人生朝向比我自己更大的事。"
+  },
+  "world_response_internal_unengaged": {
+   "text": "我相信我的价值观应该在个人生活之外产生影响。"
+  },
+  "world_response_external_unengaged": {
+   "text": "我的信念和价值观真实地影响我如何对待别人、如何回应身边的需要。"
+  },
+  "world_formation_internal_unengaged": {
+   "text": "我努力去做我认为正确的事，即使它与我想要的相冲突。"
+  },
+  "world_formation_external_unengaged": {
+   "text": "成为一个更爱身边每一个人的人，是我每天努力的方向。"
+  },
+  "world_multiplication_internal_unengaged": {
+   "text": "我相信持不同宗教或非宗教观点的人可以携手改善他们的社区。"
+  },
+  "world_multiplication_external_unengaged": {
+   "text": "我鼓励身边的人在生活和帮助他人时把价值观付诸行动。"
+  },
+  "driver_sources_of_belief_engaged": {
+   "text": "以下哪些对你关于耶稣和信仰的看法影响最大？最多选择三项。",
+   "options": {
+    "own_judgment": "我自己的判断",
+    "bible": "圣经",
+    "family": "家人",
+    "friends": "朋友或其他我信任的人",
+    "church_leaders": "教会或基督徒领袖",
+    "peers": "与我同龄的其他基督徒",
+    "personal_experiences": "个人经历",
+    "social_media": "社交媒体、播客或其他网络内容",
+    "not_sure": "我不确定",
+    "other": "其他"
+   }
+  },
+  "driver_conditions_for_growth_engaged": {
+   "text": "以下哪些目前符合你的情况？请选择所有适用项。",
+   "options": {
+    "asked_for_help": "我曾请别人帮助我在信仰上成长。",
+    "time_for_practices": "我能抽出时间祷告、读圣经或了解耶稣。",
+    "safe_place": "我有一个安全的地方，可以坦诚说出我在跟随耶稣上的挣扎。",
+    "community_influence": "我花时间和能帮助我更像耶稣的人在一起。",
+    "ask_questions": "我有机会就我的信仰提出真诚的问题。",
+    "feel_connected": "我感到自己与一个基督徒群体相连。",
+    "none": "以上目前都不符合我。"
+   }
+  },
+  "driver_confidence_and_agency_engaged": {
+   "text": "什么影响你分享信仰的意愿？请选择所有适用项。",
+   "options": {
+    "confidence": "对自己所信的有把握",
+    "fear_of_response": "害怕别人会怎么回应",
+    "feeling_equipped": "我是否觉得自己有能力",
+    "seeing_others": "看到别人分享他们的信仰",
+    "relationships": "我和不是基督徒的人之间的关系",
+    "responsibility": "我是否相信分享信仰是我的责任",
+    "opportunity": "有分享的机会",
+    "invited_alongside": "被邀请和其他人一起分享",
+    "other": "其他"
+   }
+  },
+  "driver_relational_risk_engaged": {
+   "text": "以下哪些描述了你与不是基督徒的人谈论信仰时的感受？请选择所有适用项。",
+   "options": {
+    "naturally": "我会很自然地谈起。",
+    "close_people_only": "我主要和亲近的人谈。",
+    "when_relevant": "当话题显得真实或相关时，我愿意谈。",
+    "wait_to_be_asked": "我通常会等别人先问起。",
+    "avoid_it": "我会回避，因为我想让关系保持融洽。",
+    "worry_offending": "我担心会冒犯别人。",
+    "unsure_how": "我不太确定怎么开口。",
+    "other": "其他"
+   }
+  },
+  "journey_encounter_and_response_engaged": {
+   "text": "哪些人或经历对你认识、理解并回应耶稣最重要？请选择所有适用项。",
+   "options": {
+    "friend_peer": "朋友或同龄人",
+    "family_member": "家人",
+    "church_gathering": "教会聚会",
+    "ministry_leader": "教会或事工领袖",
+    "school_campus": "在学校或校园的经历",
+    "online_social": "网络内容或社交媒体",
+    "outreach_service": "外展或服务的经历",
+    "clear_talk": "一次清晰的讲道或分享",
+    "personal_conversation": "一次个人谈话",
+    "course_discussion": "课程或有引导的讨论",
+    "reading_bible": "自己读圣经",
+    "significant_moment": "人生中一次重要的经历或时刻",
+    "other": "其他"
+   }
+  },
+  "journey_continued_formation_engaged": {
+   "text": "什么帮助你在生活方式上成长得更像耶稣？请选择所有适用项。",
+   "options": {
+    "mentoring": "一对一的门训",
+    "christian_friends": "和基督徒朋友的交谈",
+    "challenged_encouraged": "受到挑战或鼓励",
+    "group_learning": "在小组中学习",
+    "welcomed_community": "被一个基督徒群体接纳",
+    "shared_practices": "一起祷告、敬拜或用餐等共同实践",
+    "studying_bible": "阅读或研读圣经",
+    "observing": "观察另一位基督徒如何生活",
+    "teaching_preaching": "教导或讲道",
+    "serving_alongside": "和其他人一起服侍",
+    "local_church": "一间本地教会",
+    "online_community": "一个网上基督徒群体",
+    "other": "其他"
+   }
+  },
+  "journey_participation_in_mission_engaged": {
+   "text": "什么帮助你开始活出或分享你对耶稣的信仰？请选择所有适用项。",
+   "options": {
+    "encouraged_invited": "有人鼓励或邀请了我。",
+    "opportunity_to_serve": "我有了服侍的机会。",
+    "trained_shown": "有人培训我或示范给我看。",
+    "did_it_alongside": "我是和其他人一起做的。",
+    "personal_conviction": "我形成了个人的信念。",
+    "saw_model": "我看到别人以身作则。",
+    "church_provided": "教会或事工提供了机会。",
+    "other": "其他"
+   }
+  },
+  "journey_multiplication_engaged": {
+   "text": "什么能帮助你迈出下一步，去帮助别人跟随耶稣？请选择所有适用项。",
+   "options": {
+    "someone_to_guide": "有人引导我",
+    "clear_next_steps": "清晰的下一步",
+    "training_tools": "培训或实用的工具",
+    "opportunity_to_try": "尝试的机会",
+    "encouragement": "鼓励",
+    "others_to_do_it_with": "有其他人一起做",
+    "greater_confidence": "对自己所信的更有把握",
+    "already_equipped": "不需要；我已经觉得自己有能力迈出这一步",
+    "not_interested": "我对迈出这一步不感兴趣",
+    "other": "其他"
+   }
+  },
+  "driver_sources_of_belief_unengaged": {
+   "text": "以下哪些对你关于上帝、宗教或灵性的看法影响最大？最多选择三项。",
+   "options": {
+    "own_judgment": "我自己的判断",
+    "family": "家人",
+    "friends": "朋友或其他我信任的人",
+    "church_leaders": "教会或基督徒领袖",
+    "peers": "与我同龄的基督徒",
+    "personal_experiences": "个人经历",
+    "social_media": "社交媒体、播客或其他网络内容",
+    "science": "科学或证据",
+    "teachers": "老师或教育",
+    "bible": "圣经",
+    "other_books": "基督教以外的书籍或思想",
+    "other_communities": "其他宗教或非宗教群体",
+    "not_sure": "我不确定",
+    "other": "其他",
+    "none": "以上都不是"
+   }
+  },
+  "driver_conditions_for_growth_unengaged": {
+   "text": "以下哪些目前符合你的情况？请选择所有适用项。",
+   "options": {
+    "asked_for_help": "我曾请别人帮助我思考关于信仰或人生意义的问题。",
+    "time_for_practices": "我会花时间思考关于信仰或人生意义的问题。",
+    "safe_place": "我有一个安全的地方，可以坦诚说出我的信念、怀疑或不信。",
+    "community_influence": "我花时间和能帮助我思考自己想成为什么样的人的人在一起。",
+    "ask_questions": "我有机会就宗教或灵性提出真诚的问题。",
+    "feel_connected": "无论我们在信仰上是否一致，我都感到被我认识的基督徒接纳。",
+    "none": "以上目前都不符合我。"
+   }
+  },
+  "driver_confidence_and_agency_unengaged": {
+   "text": "什么影响你谈论自己的信念、怀疑或不信的意愿？请选择所有适用项。",
+   "options": {
+    "confidence": "对自己观点的把握",
+    "fear_of_response": "我预期别人会怎么回应",
+    "feeling_equipped": "我是否能解释自己的观点",
+    "seeing_others": "看到别人坦然谈论他们的信念",
+    "relationships": "我和信念与我不同的人之间的关系",
+    "worthwhile": "我是否认为这样的谈话值得",
+    "opportunity": "有交谈的机会",
+    "invited_alongside": "被邀请参与一场谈话",
+    "taken_seriously": "我的问题是否会被认真对待",
+    "pressure_to_change": "我是否会感到被迫改变自己的信念",
+    "interest": "我是否对这个话题感兴趣",
+    "other": "其他",
+    "none": "以上都不是",
+    "not_sure": "我不确定"
+   }
+  },
+  "driver_relational_risk_unengaged": {
+   "text": "你对和基督徒谈论宗教或信仰有什么感受？请选择所有适用项。",
+   "options": {
+    "naturally": "我会很自然地谈起。",
+    "close_people_only": "我主要和亲近的人谈。",
+    "when_relevant": "当话题与我的生活相关时，我愿意谈。",
+    "wait_to_be_asked": "我通常会等别人先问起。",
+    "avoid_it": "我会回避，因为我想让关系保持融洽。",
+    "worry_offending": "我担心会冒犯别人。",
+    "unsure_how": "我不太确定怎么开口。",
+    "worry_judged": "我担心我的观点会被评判或否定。",
+    "worry_pressured": "我担心会被施压成为基督徒。",
+    "not_interested": "我对这类谈话不感兴趣。",
+    "no_christians": "我不认识任何可以交谈的基督徒。",
+    "other": "其他",
+    "not_sure": "我不确定"
+   }
+  },
+  "journey_encounter_and_response_unengaged": {
+   "text": "哪些人或经历对你关于耶稣或基督教的看法影响最大？请选择所有适用项。",
+   "options": {
+    "friend_peer": "朋友或同龄人",
+    "family_member": "家人",
+    "church_gathering": "一次基督教会的聚会",
+    "ministry_leader": "一位基督教会或事工的领袖",
+    "school_campus": "在学校或校园的经历",
+    "online_social": "网络内容或社交媒体",
+    "clear_talk": "一次讲话或分享",
+    "personal_conversation": "一次个人谈话",
+    "course_discussion": "课程或有引导的讨论",
+    "reading_bible": "自己读圣经",
+    "significant_moment": "人生中一次重要的经历或时刻",
+    "other_books": "基督教以外的书籍或思想",
+    "other": "其他",
+    "none": "以上都不是",
+    "not_sure": "我不确定"
+   }
+  },
+  "journey_continued_formation_unengaged": {
+   "text": "什么帮助你形成了自己想成为什么样的人的看法？请选择所有适用项。",
+   "options": {
+    "mentoring": "一对一的门训",
+    "friends": "和朋友的交谈",
+    "challenged_encouraged": "受到挑战或鼓励",
+    "group_learning": "在小组中学习",
+    "welcomed_community": "被一个群体接纳",
+    "shared_activities": "一起用餐、反思或讨论等共同活动",
+    "studying_ideas": "阅读或研究对我重要的思想",
+    "observing": "观察别人如何生活",
+    "teaching_talks": "教导或讲座",
+    "serving_alongside": "和其他人一起服侍",
+    "online_community": "一个网络社群",
+    "time_alone": "独自思考的时间",
+    "other": "其他",
+    "nothing": "没有什么在这方面帮助过我",
+    "not_sure": "我不确定"
+   }
+  },
+  "journey_participation_in_mission_unengaged": {
+   "text": "如果有的话，什么会让你对参加基督徒团体组织的活动感到犹豫？请选择所有适用项。",
+   "options": {
+    "not_interested": "我对他们提供的活动不感兴趣。",
+    "would_not_know_anyone": "我在那里谁也不认识。",
+    "unsure_what_to_expect": "我不确定会遇到什么。",
+    "worry_pressured": "我会担心被施压接受基督教信仰。",
+    "worry_judged": "我会担心被评判或不被接纳。",
+    "conflicting_values": "他们的一些信念或价值观与我的相冲突。",
+    "negative_experience": "我和基督徒团体有过不好的经历。",
+    "practical_issues": "实际问题，比如时间、交通或费用。",
+    "nothing": "没有什么会让我犹豫。",
+    "not_sure": "我不确定。"
+   }
+  },
+  "journey_multiplication_unengaged": {
+   "text": "如果有的话，什么让你难以考虑跟随耶稣？请选择所有适用项。",
+   "options": {
+    "dont_know_enough": "我对耶稣或基督教了解得不够。",
+    "not_convinced": "我不确信基督教的信念是真的。",
+    "unanswered_questions": "我有一些问题，还没有找到令人满意的答案。",
+    "conflicting_teachings": "一些基督教的教导与我的观点或价值观相冲突。",
+    "suffering_injustice": "苦难和不公让我很难相信上帝。",
+    "bad_experiences": "我和基督徒或教会打交道的经历让我望而却步。",
+    "worry_response": "我会担心亲近的人会有什么反应。",
+    "worry_change": "我会担心别人可能期望我改变什么。",
+    "satisfied": "我对现在的信念或人生观感到满意。",
+    "not_thought_about": "跟随耶稣不是我曾考虑过的事。",
+    "other": "其他",
+    "not_sure": "我不确定。"
+   }
+  },
+  "gender": {
+   "text": "以下哪一项最能描述你的性别？",
+   "options": {
+    "male": "男",
+    "female": "女",
+    "other": "其他",
+    "prefer_not_say": "不愿透露"
+   }
+  },
+  "country": {
+   "text": "你住在哪个国家？"
+  }
+ }
 }

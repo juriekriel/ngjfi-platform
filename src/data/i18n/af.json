@@ -1,6 +1,6 @@
 {
- "$comment": "Afrikaans — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; empty means the language has no question translations yet. Edit via the translation sheet (docs/TRANSLATION.md).",
- "ui_status": "draft",
+ "$comment": "Afrikaans — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; Edit via the translation sheet (docs/TRANSLATION.md).",
+ "ui_status": "machine-draft — complete; needs a fluent reviewer and researcher sign-off (docs/TRANSLATION.md)",
  "ui": {
   "back": "← Terug",
   "begin": "Begin →",
@@ -44,7 +44,490 @@
   "type_here": "Skryf soveel of so min as wat jy wil…",
   "waiting_signal": "Wag vir sein",
   "welcome_body": "{org} wil leer hoe om saam met jongmense te loop terwyl hulle Jesus volg. Jou eerlike antwoorde help. Dit neem sowat {minutes} minute en is heeltemal anoniem.",
-  "welcome_title": "Jy word genooi om te deel [waar jy nou staan]."
+  "welcome_title": "Jy word genooi om te deel [waar jy nou staan].",
+  "about_body": "Ons vra nie jou naam, e-pos of foonnommer nie, en ons stoor nie jou internetadres saam met jou antwoorde nie. Ons vra net jou ouderdomsgroep en min of meer waar jy woon. {org} sien net resultate wat van baie mense saamgevoeg is — nooit jou antwoorde op hul eie nie. Jy kan enige tyd ophou deur hierdie bladsy toe te maak.",
+  "about_title": "Wat met jou antwoorde gebeur",
+  "chars_left": "Nog {n} karakters oor",
+  "choose_country": "Kies jou land",
+  "ended_body": "Hierdie opname is vir mense van 13 tot 30 jaar oud, so daar is niks meer om te beantwoord nie. Dankie dat jy ingeloer het — niks wat jy gekies het, is gehou nie.",
+  "ended_title": "Dankie dat jy ingeloer het!",
+  "no": "Nee",
+  "collection_locked_banner": "Voorskou — die Indeks samel nog nie antwoorde in nie, so jou antwoorde word nie gestoor nie.",
+  "privacy_link": "Lees die volledige privaatheidskennisgewing",
+  "yes": "Ja"
  },
- "items": {}
+ "items": {
+  "age_band": {
+   "text": "Hoe oud is jy?",
+   "options": {
+    "under_13": "12 of jonger",
+    "13_17": "13–17",
+    "18_22": "18–22",
+    "23_30": "23–30",
+    "over_30": "31 of ouer"
+   }
+  },
+  "orientation": {
+   "text": "Watter een hiervan lyk nou die meeste soos jy?",
+   "options": {
+    "confident_no_god": "Ek is seker God bestaan nie",
+    "open_not_exploring": "Oop, maar ek ondersoek nie",
+    "open_exploring": "Oop, en ek ondersoek aktief",
+    "other_religion": "God bestaan, maar ek volg ’n ander geloof",
+    "interested_jesus": "Belangstellend in Jesus, wil meer weet",
+    "new_follower": "Nuwe volgeling van Jesus",
+    "committed_growing": "Toegewyd, groei aktief",
+    "none_of_these": "Nie een hiervan beskryf my nie",
+    "prefer_not_say": "Verkies om nie te sê nie"
+   }
+  },
+  "follower_check": {
+   "text": "Beskou jy jouself tans as ’n volgeling van Jesus?",
+   "options": {
+    "yes": "Ja",
+    "no": "Nee",
+    "not_sure": "Nie seker nie",
+    "prefer_not_say": "Verkies om nie te sê nie"
+   }
+  },
+  "follow_exposure_internal": {
+   "text": "Ek wil aanhou leer wie Jesus is en wat Hy geleer het."
+  },
+  "follow_exposure_external": {
+   "text": "Ek het geleenthede gehad om te leer wat Jesus geleer het en hoekom dit saak maak."
+  },
+  "follow_response_internal": {
+   "text": "Ek glo dat vergewing van sondes slegs moontlik is deur geloof in Jesus."
+  },
+  "follow_response_external": {
+   "text": "Ek het gekies om Jesus te volg, van wie ek glo dat Hy God is."
+  },
+  "follow_formation_internal": {
+   "text": "Die Bybel daag my uit om my keuses en gedrag te heroorweeg."
+  },
+  "follow_formation_external": {
+   "text": "Ek bid op maniere wat my in ’n persoonlike verhouding met God bring."
+  },
+  "follow_multiplication_internal": {
+   "text": "Ek glo die evangelie is goeie nuus in my lewe en dit is die moeite werd om met mense te deel wat nie Christene is nie."
+  },
+  "follow_multiplication_external": {
+   "text": "In die afgelope ses maande het ek iets oor Jesus gedeel met iemand wat Hom nie volg nie."
+  },
+  "mission_exposure_internal": {
+   "text": "Ek verstaan wat dit beteken om deel te neem aan Jesus se missie."
+  },
+  "mission_exposure_external": {
+   "text": "Ek het tans iemand wat my help om Jesus te volg."
+  },
+  "mission_response_internal": {
+   "text": "Ek glo dat om die boodskap van Jesus te deel deel is van om Hom te volg."
+  },
+  "mission_response_external": {
+   "text": "Ek het aanvaar dat deelname aan Jesus se missie my verantwoordelikheid as ’n volgeling van Jesus is."
+  },
+  "attention_check": {
+   "text": "Sodat ons weet jy lees aandagtig, kies asseblief “’n Bietjie waar van my” vir hierdie een."
+  },
+  "mission_formation_internal": {
+   "text": "Om ander te dien as deel van ’n Christelike gemeenskap is ’n belangrike deel van hoe ek Jesus volg."
+  },
+  "mission_formation_external": {
+   "text": "Ek probeer vir mense wat nie Christene is nie wys hoe om Jesus te volg my daaglikse lewe vorm."
+  },
+  "mission_multiplication_internal": {
+   "text": "Ek wil ander mense nooi om saam met my deel te neem aan aktiwiteite wat verband hou met Jesus se missie."
+  },
+  "mission_multiplication_external": {
+   "text": "Ek het iemand anders gehelp om te groei in sy of haar navolging van Jesus."
+  },
+  "world_exposure_internal": {
+   "text": "Ek glo dat om Jesus te volg werklike goed vir mense en die wêreld bring."
+  },
+  "world_exposure_external": {
+   "text": "Ek maak keuses wat my lewe rig op iets groter as net myself."
+  },
+  "world_response_internal": {
+   "text": "Ek glo my geloof gaan oor meer as my persoonlike lewe. Dit behoort ’n verskil in die wêreld te maak."
+  },
+  "world_response_external": {
+   "text": "Om Jesus te volg maak ’n werklike verskil in hoe ek mense behandel en op die behoeftes rondom my reageer."
+  },
+  "world_formation_internal": {
+   "text": "Ek probeer God se wil in my daaglikse lewe doen, selfs wanneer dit verskil van my eie."
+  },
+  "world_formation_external": {
+   "text": "Om ’n meer liefdevolle mens teenoor almal rondom my te word, is iets waaraan ek elke dag werk."
+  },
+  "world_multiplication_internal": {
+   "text": "Ek glo volgelinge van Jesus behoort saam te werk om positiewe veranderinge in hul gemeenskappe te bring."
+  },
+  "world_multiplication_external": {
+   "text": "Ek moedig ander Christene aan om hul geloof te verbind met die manier waarop hulle leef en dien."
+  },
+  "pray_frequency": {
+   "text": "Ek bid tot God.",
+   "options": {
+    "0": "Selde of nooit",
+    "1": "Maandeliks",
+    "2": "Weekliks",
+    "3": "Die meeste dae"
+   }
+  },
+  "scripture_frequency": {
+   "text": "Ek lees of luister na die Skrif.",
+   "options": {
+    "0": "Selde of nooit",
+    "1": "Maandeliks",
+    "2": "Weekliks",
+    "3": "Die meeste dae"
+   }
+  },
+  "follow_exposure_internal_unengaged": {
+   "text": "Ek stel belang om verskillende sienings oor God of spiritualiteit te hoor."
+  },
+  "follow_exposure_external_unengaged": {
+   "text": "Ek het geleenthede gehad om te hoor wat Christene oor Jesus glo."
+  },
+  "follow_response_internal_unengaged": {
+   "text": "Ek dink daar is iets in die menslike natuur wat reggestel moet word, verder as wat ons self kan doen."
+  },
+  "follow_response_external_unengaged": {
+   "text": "Ek het redes vir en teen geloof in God oorweeg."
+  },
+  "follow_formation_internal_unengaged": {
+   "text": "Ek dink die Bybel bied iets wat die moeite werd is om te oorweeg oor hoe om te leef."
+  },
+  "follow_formation_external_unengaged": {
+   "text": "Ek maak tyd om na te dink oor vrae oor God, spiritualiteit of die sin van die lewe."
+  },
+  "follow_multiplication_internal_unengaged": {
+   "text": "Ek dink om oor geloofsvrae te praat kan waardevol wees, selfs wanneer mense tot verskillende gevolgtrekkings kom."
+  },
+  "follow_multiplication_external_unengaged": {
+   "text": "In die afgelope ses maande het ek met iemand gepraat oor my sienings of vrae oor God of spiritualiteit."
+  },
+  "mission_exposure_internal_unengaged": {
+   "text": "Ek verstaan hoekom Christene hul geloof met ander wil deel."
+  },
+  "mission_exposure_external_unengaged": {
+   "text": "Ek ken iemand met wie ek eerlik oor God of spiritualiteit kan praat."
+  },
+  "mission_response_internal_unengaged": {
+   "text": "Ek het gekies om verantwoordelikheid te neem om ’n positiewe verskil in die wêreld rondom my te maak."
+  },
+  "mission_response_external_unengaged": {
+   "text": "Ek glo ek het ’n rol te speel om die wêreld ’n beter plek te maak."
+  },
+  "attention_check_unengaged": {
+   "text": "Sodat ons weet jy lees aandagtig, kies asseblief “’n Bietjie waar van my” vir hierdie een."
+  },
+  "mission_formation_internal_unengaged": {
+   "text": "Om deel te wees van ’n gemeenskap wat ander help, is vir my belangrik."
+  },
+  "mission_formation_external_unengaged": {
+   "text": "Ek neem saam met ander mense deel aan aktiwiteite wat my oortuigings en waardes in praktyk bring."
+  },
+  "mission_multiplication_internal_unengaged": {
+   "text": "Ek wil ander nooi na aktiwiteite wat weerspieël wat ek glo belangrik is."
+  },
+  "mission_multiplication_external_unengaged": {
+   "text": "Ek het iemand gehelp om deur sy of haar eie oortuigings of vrae oor geloof te dink."
+  },
+  "world_exposure_internal_unengaged": {
+   "text": "Ek dink geloof of spiritualiteit kan mense motiveer om ’n positiewe verskil in die wêreld te maak."
+  },
+  "world_exposure_external_unengaged": {
+   "text": "Ek maak keuses wat my lewe rig op iets groter as net myself."
+  },
+  "world_response_internal_unengaged": {
+   "text": "Ek glo my waardes behoort ’n verskil te maak verder as my persoonlike lewe."
+  },
+  "world_response_external_unengaged": {
+   "text": "My oortuigings en waardes maak ’n werklike verskil in hoe ek mense behandel en op die behoeftes rondom my reageer."
+  },
+  "world_formation_internal_unengaged": {
+   "text": "Ek probeer doen wat ek glo reg is, selfs wanneer dit bots met wat ek wil hê."
+  },
+  "world_formation_external_unengaged": {
+   "text": "Om ’n meer liefdevolle mens teenoor almal rondom my te word, is iets waaraan ek elke dag werk."
+  },
+  "world_multiplication_internal_unengaged": {
+   "text": "Ek glo mense met verskillende godsdienstige of nie-godsdienstige sienings kan saamwerk om hul gemeenskappe te verbeter."
+  },
+  "world_multiplication_external_unengaged": {
+   "text": "Ek moedig mense rondom my aan om hul waardes in praktyk te bring in hoe hulle leef en ander help."
+  },
+  "driver_sources_of_belief_engaged": {
+   "text": "Watter van die volgende vorm die meeste wat jy oor Jesus en geloof glo? Kies tot drie.",
+   "options": {
+    "own_judgment": "My eie oordeel",
+    "bible": "Die Bybel",
+    "family": "Familie",
+    "friends": "Vriende of ander mense wat ek vertrou",
+    "church_leaders": "Die kerk of Christenleiers",
+    "peers": "Ander Christene van my ouderdom",
+    "personal_experiences": "Persoonlike ervarings",
+    "social_media": "Sosiale media, podsendings of ander aanlyn inhoud",
+    "not_sure": "Ek is nie seker nie",
+    "other": "Ander"
+   }
+  },
+  "driver_conditions_for_growth_engaged": {
+   "text": "Watter van die volgende is tans waar van jou? Merk alles wat van toepassing is.",
+   "options": {
+    "asked_for_help": "Ek het iemand gevra om my te help om in my geloof te groei.",
+    "time_for_practices": "Ek kan tyd maak om te bid, die Bybel te lees of oor Jesus te leer.",
+    "safe_place": "Ek het ’n veilige plek om eerlik te wees oor my stryd om Jesus te volg.",
+    "community_influence": "Ek spandeer tyd saam met mense wat my help om meer soos Jesus te word.",
+    "ask_questions": "Ek het geleenthede om eerlike vrae oor my geloof te vra.",
+    "feel_connected": "Ek voel verbonde aan ’n Christelike gemeenskap.",
+    "none": "Nie een hiervan is tans waar van my nie."
+   }
+  },
+  "driver_confidence_and_agency_engaged": {
+   "text": "Wat beïnvloed jou bereidheid om jou geloof te deel? Merk alles wat van toepassing is.",
+   "options": {
+    "confidence": "Vertroue in wat ek glo",
+    "fear_of_response": "Vrees vir hoe ander mense kan reageer",
+    "feeling_equipped": "Of ek voel ek is toegerus",
+    "seeing_others": "Om te sien hoe ander mense hul geloof deel",
+    "relationships": "My verhoudings met mense wat nie Christene is nie",
+    "responsibility": "Of ek glo dat om my geloof te deel my verantwoordelikheid is",
+    "opportunity": "Om ’n geleentheid te hê om te deel",
+    "invited_alongside": "Om genooi te word om saam met ander mense te deel",
+    "other": "Ander"
+   }
+  },
+  "driver_relational_risk_engaged": {
+   "text": "Watter van die volgende beskryf hoe jy voel om oor geloof te praat met mense wat nie Christene is nie? Merk alles wat van toepassing is.",
+   "options": {
+    "naturally": "Ek praat natuurlik daaroor.",
+    "close_people_only": "Ek praat hoofsaaklik daaroor met mense na aan my.",
+    "when_relevant": "Ek is oop om daaroor te praat wanneer dit eg of relevant voel.",
+    "wait_to_be_asked": "Ek wag gewoonlik om daaroor gevra te word.",
+    "avoid_it": "Ek vermy dit omdat ek verhoudings gemaklik wil hou.",
+    "worry_offending": "Ek is bekommerd dat ek mense sal aanstoot gee.",
+    "unsure_how": "Ek is nie seker hoe om dit te opper nie.",
+    "other": "Ander"
+   }
+  },
+  "journey_encounter_and_response_engaged": {
+   "text": "Watter mense of ervarings was die belangrikste om jou te help om Jesus te ontmoet, te verstaan en op Hom te reageer? Merk alles wat van toepassing is.",
+   "options": {
+    "friend_peer": "’n Vriend of portuurlid",
+    "family_member": "’n Familielid",
+    "church_gathering": "’n Kerkbyeenkoms",
+    "ministry_leader": "’n Kerk- of bedieningsleier",
+    "school_campus": "’n Ervaring by die skool of kampus",
+    "online_social": "Aanlyn inhoud of sosiale media",
+    "outreach_service": "’n Uitreik- of dienservaring",
+    "clear_talk": "’n Duidelike praatjie of aanbieding",
+    "personal_conversation": "’n Persoonlike gesprek",
+    "course_discussion": "’n Kursus of begeleide bespreking",
+    "reading_bible": "Om self die Bybel te lees",
+    "significant_moment": "’n Betekenisvolle ervaring of oomblik in my lewe",
+    "other": "Ander"
+   }
+  },
+  "journey_continued_formation_engaged": {
+   "text": "Wat het jou gehelp om te groei om meer soos Jesus te word in hoe jy leef? Merk alles wat van toepassing is.",
+   "options": {
+    "mentoring": "Een-tot-een-mentorskap",
+    "christian_friends": "Gesprekke met Christenvriende",
+    "challenged_encouraged": "Om uitgedaag of bemoedig te word",
+    "group_learning": "Om in ’n groep te leer",
+    "welcomed_community": "Om in ’n Christelike gemeenskap verwelkom te word",
+    "shared_practices": "Gedeelde gewoontes soos gebed, aanbidding of etes",
+    "studying_bible": "Om die Bybel te lees of te bestudeer",
+    "observing": "Om te sien hoe ’n ander Christen leef",
+    "teaching_preaching": "Onderrig of prediking",
+    "serving_alongside": "Om saam met ander mense te dien",
+    "local_church": "’n Plaaslike kerk",
+    "online_community": "’n Aanlyn Christelike gemeenskap",
+    "other": "Ander"
+   }
+  },
+  "journey_participation_in_mission_engaged": {
+   "text": "Wat het jou gehelp om jou geloof in Jesus te begin uitleef of deel? Merk alles wat van toepassing is.",
+   "options": {
+    "encouraged_invited": "Iemand het my aangemoedig of genooi.",
+    "opportunity_to_serve": "Ek het ’n geleentheid gehad om te dien.",
+    "trained_shown": "Ek is opgelei of gewys hoe.",
+    "did_it_alongside": "Ek het dit saam met ander mense gedoen.",
+    "personal_conviction": "Ek het ’n persoonlike oortuiging ontwikkel.",
+    "saw_model": "Ek het gesien hoe iemand anders dit voorleef.",
+    "church_provided": "’n Kerk of bediening het ’n geleentheid gebied.",
+    "other": "Ander"
+   }
+  },
+  "journey_multiplication_engaged": {
+   "text": "Wat sou jou help om die volgende stap te neem om ander te help om Jesus te volg? Merk alles wat van toepassing is.",
+   "options": {
+    "someone_to_guide": "Iemand om my te lei",
+    "clear_next_steps": "Duidelike volgende stappe",
+    "training_tools": "Opleiding of praktiese hulpmiddels",
+    "opportunity_to_try": "’n Geleentheid om te probeer",
+    "encouragement": "Bemoediging",
+    "others_to_do_it_with": "Ander mense om dit saam mee te doen",
+    "greater_confidence": "Groter vertroue in wat ek glo",
+    "already_equipped": "Niks nie; ek voel reeds toegerus om hierdie stap te neem",
+    "not_interested": "Ek stel nie belang om hierdie stap te neem nie",
+    "other": "Ander"
+   }
+  },
+  "driver_sources_of_belief_unengaged": {
+   "text": "Watter van die volgende vorm die meeste jou sienings oor God, godsdiens of spiritualiteit? Kies tot drie.",
+   "options": {
+    "own_judgment": "My eie oordeel",
+    "family": "Familie",
+    "friends": "Vriende of ander mense wat ek vertrou",
+    "church_leaders": "Die kerk of Christenleiers",
+    "peers": "Christene van my ouderdom",
+    "personal_experiences": "Persoonlike ervarings",
+    "social_media": "Sosiale media, podsendings of ander aanlyn inhoud",
+    "science": "Wetenskap of bewyse",
+    "teachers": "Onderwysers of opvoeding",
+    "bible": "Die Bybel",
+    "other_books": "Boeke of idees buite die Christendom",
+    "other_communities": "Ander godsdienstige of nie-godsdienstige gemeenskappe",
+    "not_sure": "Ek is nie seker nie",
+    "other": "Ander",
+    "none": "Nie een hiervan nie"
+   }
+  },
+  "driver_conditions_for_growth_unengaged": {
+   "text": "Watter van die volgende is tans waar van jou? Merk alles wat van toepassing is.",
+   "options": {
+    "asked_for_help": "Ek het iemand gevra om my te help om deur vrae oor geloof of die sin van die lewe te dink.",
+    "time_for_practices": "Ek maak tyd om na te dink oor vrae oor geloof of die sin van die lewe.",
+    "safe_place": "Ek het ’n veilige plek om eerlik te wees oor my oortuigings, twyfel of ongeloof.",
+    "community_influence": "Ek spandeer tyd saam met mense wat my help om na te dink oor watter soort mens ek wil word.",
+    "ask_questions": "Ek het geleenthede om eerlike vrae oor godsdiens of spiritualiteit te vra.",
+    "feel_connected": "Ek voel aanvaar deur Christene wat ek ken, of ons nou oor geloof saamstem of nie.",
+    "none": "Nie een hiervan is tans waar van my nie."
+   }
+  },
+  "driver_confidence_and_agency_unengaged": {
+   "text": "Wat beïnvloed jou bereidheid om oor jou oortuigings, twyfel of ongeloof te praat? Merk alles wat van toepassing is.",
+   "options": {
+    "confidence": "Vertroue in my eie sienings",
+    "fear_of_response": "Hoe ek verwag ander mense sal reageer",
+    "feeling_equipped": "Of ek my sienings kan verduidelik",
+    "seeing_others": "Om te sien hoe ander mense openlik oor hul oortuigings praat",
+    "relationships": "My verhoudings met mense wie se oortuigings van myne verskil",
+    "worthwhile": "Of ek dink die gesprek die moeite werd sou wees",
+    "opportunity": "Om ’n geleentheid te hê om te praat",
+    "invited_alongside": "Om na ’n gesprek genooi te word",
+    "taken_seriously": "Of my vrae ernstig opgeneem sou word",
+    "pressure_to_change": "Of ek druk sou voel om my oortuigings te verander",
+    "interest": "Of die onderwerp my interesseer",
+    "other": "Ander",
+    "none": "Nie een hiervan nie",
+    "not_sure": "Ek is nie seker nie"
+   }
+  },
+  "driver_relational_risk_unengaged": {
+   "text": "Hoe voel jy daaroor om met Christene oor godsdiens of geloof te praat? Merk alles wat van toepassing is.",
+   "options": {
+    "naturally": "Ek praat natuurlik daaroor.",
+    "close_people_only": "Ek praat hoofsaaklik daaroor met mense na aan my.",
+    "when_relevant": "Ek is oop om daaroor te praat wanneer dit relevant vir my lewe voel.",
+    "wait_to_be_asked": "Ek wag gewoonlik om daaroor gevra te word.",
+    "avoid_it": "Ek vermy dit omdat ek verhoudings gemaklik wil hou.",
+    "worry_offending": "Ek is bekommerd dat ek mense sal aanstoot gee.",
+    "unsure_how": "Ek is nie seker hoe om dit te opper nie.",
+    "worry_judged": "Ek is bekommerd dat my sienings veroordeel of afgemaak sal word.",
+    "worry_pressured": "Ek is bekommerd dat ek onder druk geplaas sal word om ’n Christen te word.",
+    "not_interested": "Ek stel nie in hierdie gesprekke belang nie.",
+    "no_christians": "Ek ken geen Christene met wie ek kan praat nie.",
+    "other": "Ander",
+    "not_sure": "Ek is nie seker nie"
+   }
+  },
+  "journey_encounter_and_response_unengaged": {
+   "text": "Watter mense of ervarings het jou sienings oor Jesus of die Christendom die meeste gevorm? Merk alles wat van toepassing is.",
+   "options": {
+    "friend_peer": "’n Vriend of portuurlid",
+    "family_member": "’n Familielid",
+    "church_gathering": "’n Byeenkoms van ’n Christelike kerk",
+    "ministry_leader": "’n Leier van ’n Christelike kerk of bediening",
+    "school_campus": "’n Ervaring by die skool of kampus",
+    "online_social": "Aanlyn inhoud of sosiale media",
+    "clear_talk": "’n Praatjie of aanbieding",
+    "personal_conversation": "’n Persoonlike gesprek",
+    "course_discussion": "’n Kursus of begeleide bespreking",
+    "reading_bible": "Om self die Bybel te lees",
+    "significant_moment": "’n Betekenisvolle ervaring of oomblik in my lewe",
+    "other_books": "Boeke of idees buite die Christendom",
+    "other": "Ander",
+    "none": "Nie een hiervan nie",
+    "not_sure": "Ek is nie seker nie"
+   }
+  },
+  "journey_continued_formation_unengaged": {
+   "text": "Wat het jou gehelp om jou sienings te ontwikkel oor watter soort mens jy wil word? Merk alles wat van toepassing is.",
+   "options": {
+    "mentoring": "Een-tot-een-mentorskap",
+    "friends": "Gesprekke met vriende",
+    "challenged_encouraged": "Om uitgedaag of bemoedig te word",
+    "group_learning": "Om in ’n groep te leer",
+    "welcomed_community": "Om in ’n gemeenskap verwelkom te word",
+    "shared_activities": "Gedeelde aktiwiteite soos etes, besinning of bespreking",
+    "studying_ideas": "Om idees wat vir my saak maak te lees of te bestudeer",
+    "observing": "Om te sien hoe iemand anders leef",
+    "teaching_talks": "Onderrig of praatjies",
+    "serving_alongside": "Om saam met ander mense te dien",
+    "online_community": "’n Aanlyn gemeenskap",
+    "time_alone": "Tyd om self na te dink",
+    "other": "Ander",
+    "nothing": "Niks het my op hierdie manier gehelp nie",
+    "not_sure": "Ek is nie seker nie"
+   }
+  },
+  "journey_participation_in_mission_unengaged": {
+   "text": "Wat, indien enigiets, sou jou laat huiwer om deel te neem aan ’n aktiwiteit wat deur ’n Christelike groep gereël word? Merk alles wat van toepassing is.",
+   "options": {
+    "not_interested": "Ek stel nie belang in die aktiwiteite wat hulle aanbied nie.",
+    "would_not_know_anyone": "Ek sou niemand daar ken nie.",
+    "unsure_what_to_expect": "Ek sou nie seker wees wat om te verwag nie.",
+    "worry_pressured": "Ek sou bekommerd wees dat ek onder druk geplaas word om Christelike oortuigings aan te neem.",
+    "worry_judged": "Ek sou bekommerd wees dat ek veroordeel of nie aanvaar sal word nie.",
+    "conflicting_values": "Sommige van hul oortuigings of waardes bots met myne.",
+    "negative_experience": "Ek het ’n negatiewe ervaring met ’n Christelike groep gehad.",
+    "practical_issues": "Praktiese kwessies, soos tyd, vervoer of koste.",
+    "nothing": "Niks sou my laat huiwer nie.",
+    "not_sure": "Ek is nie seker nie."
+   }
+  },
+  "journey_multiplication_unengaged": {
+   "text": "Wat, indien enigiets, maak dit vir jou moeilik om te oorweeg om Jesus te volg? Merk alles wat van toepassing is.",
+   "options": {
+    "dont_know_enough": "Ek weet nie genoeg oor Jesus of die Christendom nie.",
+    "not_convinced": "Ek is nie oortuig dat Christelike oortuigings waar is nie.",
+    "unanswered_questions": "Ek het vrae waarop ek nog nie bevredigende antwoorde gekry het nie.",
+    "conflicting_teachings": "Sommige Christelike leringe bots met my sienings of waardes.",
+    "suffering_injustice": "Lyding en onreg maak geloof in God vir my moeilik.",
+    "bad_experiences": "My ervarings met Christene of kerke het my afgeskrik.",
+    "worry_response": "Ek sou bekommerd wees oor hoe mense na aan my sou reageer.",
+    "worry_change": "Ek sou bekommerd wees oor wat van my verwag sou word om te verander.",
+    "satisfied": "Ek is tevrede met my huidige oortuigings of lewensuitkyk.",
+    "not_thought_about": "Om Jesus te volg is nie iets waaroor ek al gedink het nie.",
+    "other": "Ander",
+    "not_sure": "Ek is nie seker nie."
+   }
+  },
+  "gender": {
+   "text": "Wat beskryf jou geslag die beste?",
+   "options": {
+    "male": "Manlik",
+    "female": "Vroulik",
+    "other": "Ander",
+    "prefer_not_say": "Verkies om nie te sê nie"
+   }
+  },
+  "country": {
+   "text": "In watter land woon jy?"
+  }
+ }
 }
