@@ -1,0 +1,383 @@
+{
+ "$comment": "Open Doors World Watch List 2026 — every country scoring 50 points or more (ranks 1–75), reporting period 1 Oct 2024 – 30 Sep 2025. Source: opendoors.org/research-reports/wwl-documentation/WWL2026-Table-of-Scores-and-Ranks-50-points-v2.pdf (published 14 Jan 2026). Higher = more pressure and violence against Christians. A country not listed scored under 50. Used by scripts/language-reach.mjs for the 'open to field' part of the Translations tile's accessibility measure. Replace with the next edition each January.",
+ "edition": "WWL 2026",
+ "published": "2026-01-14",
+ "threshold": 50,
+ "countries": {
+  "KP": {
+   "rank": 1,
+   "name": "North Korea",
+   "score": 97
+  },
+  "SO": {
+   "rank": 2,
+   "name": "Somalia",
+   "score": 94
+  },
+  "YE": {
+   "rank": 3,
+   "name": "Yemen",
+   "score": 93
+  },
+  "SD": {
+   "rank": 4,
+   "name": "Sudan",
+   "score": 92
+  },
+  "ER": {
+   "rank": 5,
+   "name": "Eritrea",
+   "score": 90
+  },
+  "SY": {
+   "rank": 6,
+   "name": "Syria",
+   "score": 90
+  },
+  "NG": {
+   "rank": 7,
+   "name": "Nigeria",
+   "score": 89
+  },
+  "PK": {
+   "rank": 8,
+   "name": "Pakistan",
+   "score": 87
+  },
+  "LY": {
+   "rank": 9,
+   "name": "Libya",
+   "score": 87
+  },
+  "IR": {
+   "rank": 10,
+   "name": "Iran",
+   "score": 87
+  },
+  "AF": {
+   "rank": 11,
+   "name": "Afghanistan",
+   "score": 86
+  },
+  "IN": {
+   "rank": 12,
+   "name": "India",
+   "score": 84
+  },
+  "SA": {
+   "rank": 13,
+   "name": "Saudi Arabia",
+   "score": 82
+  },
+  "MM": {
+   "rank": 14,
+   "name": "Myanmar",
+   "score": 81
+  },
+  "ML": {
+   "rank": 15,
+   "name": "Mali",
+   "score": 81
+  },
+  "BF": {
+   "rank": 16,
+   "name": "Burkina Faso",
+   "score": 80
+  },
+  "CN": {
+   "rank": 17,
+   "name": "China",
+   "score": 79
+  },
+  "IQ": {
+   "rank": 18,
+   "name": "Iraq",
+   "score": 79
+  },
+  "MV": {
+   "rank": 19,
+   "name": "Maldives",
+   "score": 79
+  },
+  "DZ": {
+   "rank": 20,
+   "name": "Algeria",
+   "score": 77
+  },
+  "MR": {
+   "rank": 21,
+   "name": "Mauritania",
+   "score": 76
+  },
+  "CF": {
+   "rank": 22,
+   "name": "Central African Republic",
+   "score": 75
+  },
+  "MA": {
+   "rank": 23,
+   "name": "Morocco",
+   "score": 75
+  },
+  "CU": {
+   "rank": 24,
+   "name": "Cuba",
+   "score": 73
+  },
+  "UZ": {
+   "rank": 25,
+   "name": "Uzbekistan",
+   "score": 73
+  },
+  "NE": {
+   "rank": 26,
+   "name": "Niger",
+   "score": 72
+  },
+  "TJ": {
+   "rank": 27,
+   "name": "Tajikistan",
+   "score": 72
+  },
+  "LA": {
+   "rank": 28,
+   "name": "Laos",
+   "score": 72
+  },
+  "CD": {
+   "rank": 29,
+   "name": "Congo DR",
+   "score": 72
+  },
+  "MX": {
+   "rank": 30,
+   "name": "Mexico",
+   "score": 71
+  },
+  "TN": {
+   "rank": 31,
+   "name": "Tunisia",
+   "score": 71
+  },
+  "NI": {
+   "rank": 32,
+   "name": "Nicaragua",
+   "score": 71
+  },
+  "BD": {
+   "rank": 33,
+   "name": "Bangladesh",
+   "score": 71
+  },
+  "BT": {
+   "rank": 34,
+   "name": "Bhutan",
+   "score": 71
+  },
+  "TM": {
+   "rank": 35,
+   "name": "Turkmenistan",
+   "score": 71
+  },
+  "ET": {
+   "rank": 36,
+   "name": "Ethiopia",
+   "score": 70
+  },
+  "CM": {
+   "rank": 37,
+   "name": "Cameroon",
+   "score": 70
+  },
+  "OM": {
+   "rank": 38,
+   "name": "Oman",
+   "score": 70
+  },
+  "MZ": {
+   "rank": 39,
+   "name": "Mozambique",
+   "score": 69
+  },
+  "KG": {
+   "rank": 40,
+   "name": "Kyrgyzstan",
+   "score": 68
+  },
+  "TR": {
+   "rank": 41,
+   "name": "Turkey",
+   "score": 68
+  },
+  "EG": {
+   "rank": 42,
+   "name": "Egypt",
+   "score": 68
+  },
+  "KM": {
+   "rank": 43,
+   "name": "Comoros",
+   "score": 68
+  },
+  "QA": {
+   "rank": 44,
+   "name": "Qatar",
+   "score": 67
+  },
+  "KZ": {
+   "rank": 45,
+   "name": "Kazakhstan",
+   "score": 67
+  },
+  "NP": {
+   "rank": 46,
+   "name": "Nepal",
+   "score": 67
+  },
+  "CO": {
+   "rank": 47,
+   "name": "Colombia",
+   "score": 66
+  },
+  "TD": {
+   "rank": 48,
+   "name": "Chad",
+   "score": 66
+  },
+  "JO": {
+   "rank": 49,
+   "name": "Jordan",
+   "score": 65
+  },
+  "BN": {
+   "rank": 50,
+   "name": "Brunei",
+   "score": 65
+  },
+  "MY": {
+   "rank": 51,
+   "name": "Malaysia",
+   "score": 65
+  },
+  "AZ": {
+   "rank": 52,
+   "name": "Azerbaijan",
+   "score": 65
+  },
+  "TZ": {
+   "rank": 53,
+   "name": "Tanzania",
+   "score": 64
+  },
+  "KE": {
+   "rank": 54,
+   "name": "Kenya",
+   "score": 64
+  },
+  "VN": {
+   "rank": 55,
+   "name": "Vietnam",
+   "score": 64
+  },
+  "RU": {
+   "rank": 56,
+   "name": "Russian Federation",
+   "score": 63
+  },
+  "AE": {
+   "rank": 57,
+   "name": "United Arab Emirates",
+   "score": 63
+  },
+  "DJ": {
+   "rank": 58,
+   "name": "Djibouti",
+   "score": 62
+  },
+  "ID": {
+   "rank": 59,
+   "name": "Indonesia",
+   "score": 62
+  },
+  "KW": {
+   "rank": 60,
+   "name": "Kuwait",
+   "score": 61
+  },
+  "BI": {
+   "rank": 61,
+   "name": "Burundi",
+   "score": 60
+  },
+  "RW": {
+   "rank": 62,
+   "name": "Rwanda",
+   "score": 60
+  },
+  "PS": {
+   "rank": 63,
+   "name": "Palestinian Territories",
+   "score": 59
+  },
+  "SS": {
+   "rank": 64,
+   "name": "South Sudan",
+   "score": 58
+  },
+  "LK": {
+   "rank": 65,
+   "name": "Sri Lanka",
+   "score": 56
+  },
+  "TG": {
+   "rank": 66,
+   "name": "Togo",
+   "score": 55
+  },
+  "GN": {
+   "rank": 67,
+   "name": "Guinea",
+   "score": 55
+  },
+  "BH": {
+   "rank": 68,
+   "name": "Bahrain",
+   "score": 54
+  },
+  "VE": {
+   "rank": 69,
+   "name": "Venezuela",
+   "score": 54
+  },
+  "AO": {
+   "rank": 70,
+   "name": "Angola",
+   "score": 54
+  },
+  "UA": {
+   "rank": 71,
+   "name": "Ukraine",
+   "score": 53
+  },
+  "UG": {
+   "rank": 72,
+   "name": "Uganda",
+   "score": 53
+  },
+  "CI": {
+   "rank": 73,
+   "name": "Ivory Coast",
+   "score": 52
+  },
+  "HN": {
+   "rank": 74,
+   "name": "Honduras",
+   "score": 52
+  },
+  "GM": {
+   "rank": 75,
+   "name": "Gambia",
+   "score": 50
+  }
+ }
+}

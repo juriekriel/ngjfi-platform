@@ -1,35 +1,355 @@
 {
-  "$comment": "The world's main languages — the yardstick for the Translations tile in the admin console (src/components/console/Translations.tsx). Roughly ordered by total speakers (first + second language, Ethnologue); the order is approximate and only sets the order of the progress bar. A language here is matched to the survey's own languages (src/data/locales.json) by its base code: \"es\" covers es, es-419 and es-ES; \"ar\" covers ar and every Arabic dialect; \"zh\" covers zh-Hans. One that matches nothing is ASPIRATIONAL — on the horizon, not yet requested. Adding or removing a language here is config: no code changes. This list never reaches respondents.",
-  "languages": [
-    { "code": "en", "name": "English", "native": "English", "dir": "ltr" },
-    { "code": "zh", "name": "Mandarin Chinese", "native": "中文", "dir": "ltr" },
-    { "code": "hi", "name": "Hindi", "native": "हिन्दी", "dir": "ltr" },
-    { "code": "es", "name": "Spanish", "native": "Español", "dir": "ltr" },
-    { "code": "ar", "name": "Arabic", "native": "العربية", "dir": "rtl" },
-    { "code": "fr", "name": "French", "native": "Français", "dir": "ltr" },
-    { "code": "bn", "name": "Bengali", "native": "বাংলা", "dir": "ltr" },
-    { "code": "pt", "name": "Portuguese", "native": "Português", "dir": "ltr" },
-    { "code": "ru", "name": "Russian", "native": "Русский", "dir": "ltr" },
-    { "code": "id", "name": "Indonesian", "native": "Bahasa Indonesia", "dir": "ltr" },
-    { "code": "ur", "name": "Urdu", "native": "اردو", "dir": "rtl" },
-    { "code": "de", "name": "German", "native": "Deutsch", "dir": "ltr" },
-    { "code": "ja", "name": "Japanese", "native": "日本語", "dir": "ltr" },
-    { "code": "pcm", "name": "Nigerian Pidgin", "native": "Naijá", "dir": "ltr" },
-    { "code": "mr", "name": "Marathi", "native": "मराठी", "dir": "ltr" },
-    { "code": "vi", "name": "Vietnamese", "native": "Tiếng Việt", "dir": "ltr" },
-    { "code": "te", "name": "Telugu", "native": "తెలుగు", "dir": "ltr" },
-    { "code": "ha", "name": "Hausa", "native": "Hausa", "dir": "ltr" },
-    { "code": "tr", "name": "Turkish", "native": "Türkçe", "dir": "ltr" },
-    { "code": "pa", "name": "Punjabi", "native": "ਪੰਜਾਬੀ", "dir": "ltr" },
-    { "code": "sw", "name": "Swahili", "native": "Kiswahili", "dir": "ltr" },
-    { "code": "tl", "name": "Tagalog (Filipino)", "native": "Tagalog", "dir": "ltr" },
-    { "code": "ta", "name": "Tamil", "native": "தமிழ்", "dir": "ltr" },
-    { "code": "yue", "name": "Cantonese", "native": "粵語", "dir": "ltr" },
-    { "code": "fa", "name": "Persian", "native": "فارسی", "dir": "rtl" },
-    { "code": "ko", "name": "Korean", "native": "한국어", "dir": "ltr" },
-    { "code": "th", "name": "Thai", "native": "ไทย", "dir": "ltr" },
-    { "code": "jv", "name": "Javanese", "native": "Basa Jawa", "dir": "ltr" },
-    { "code": "it", "name": "Italian", "native": "Italiano", "dir": "ltr" },
-    { "code": "am", "name": "Amharic", "native": "አማርኛ", "dir": "ltr" }
-  ]
+ "$comment": "The world's main languages — the yardstick for the Translations tile in the admin console (src/components/console/Translations.tsx). The tile ORDERS them by priority, computed by scripts/language-reach.mjs into src/data/languages.reach.json; the order here is only the fallback. `cldr` names the Unicode CLDR language codes that count as this language (a territory counts once, at its largest share). A language here is matched to the survey's own languages (src/data/locales.json) by its base code: \"es\" covers es, es-419 and es-ES. One that matches nothing is ASPIRATIONAL. `variants` says which CLDR codes and territories a regional survey language covers. Adding a language is config: no code changes. This list never reaches respondents.",
+ "languages": [
+  {
+   "code": "en",
+   "name": "English",
+   "native": "English",
+   "dir": "ltr",
+   "cldr": [
+    "en"
+   ]
+  },
+  {
+   "code": "zh",
+   "name": "Mandarin Chinese",
+   "native": "中文",
+   "dir": "ltr",
+   "cldr": [
+    "zh",
+    "zh_Hant"
+   ]
+  },
+  {
+   "code": "hi",
+   "name": "Hindi",
+   "native": "हिन्दी",
+   "dir": "ltr",
+   "cldr": [
+    "hi"
+   ]
+  },
+  {
+   "code": "es",
+   "name": "Spanish",
+   "native": "Español",
+   "dir": "ltr",
+   "cldr": [
+    "es"
+   ]
+  },
+  {
+   "code": "ar",
+   "name": "Arabic",
+   "native": "العربية",
+   "dir": "rtl",
+   "cldr": [
+    "ar"
+   ]
+  },
+  {
+   "code": "fr",
+   "name": "French",
+   "native": "Français",
+   "dir": "ltr",
+   "cldr": [
+    "fr"
+   ]
+  },
+  {
+   "code": "bn",
+   "name": "Bengali",
+   "native": "বাংলা",
+   "dir": "ltr",
+   "cldr": [
+    "bn"
+   ]
+  },
+  {
+   "code": "pt",
+   "name": "Portuguese",
+   "native": "Português",
+   "dir": "ltr",
+   "cldr": [
+    "pt"
+   ]
+  },
+  {
+   "code": "ru",
+   "name": "Russian",
+   "native": "Русский",
+   "dir": "ltr",
+   "cldr": [
+    "ru"
+   ]
+  },
+  {
+   "code": "id",
+   "name": "Indonesian",
+   "native": "Bahasa Indonesia",
+   "dir": "ltr",
+   "cldr": [
+    "id"
+   ]
+  },
+  {
+   "code": "ur",
+   "name": "Urdu",
+   "native": "اردو",
+   "dir": "rtl",
+   "cldr": [
+    "ur"
+   ]
+  },
+  {
+   "code": "de",
+   "name": "German",
+   "native": "Deutsch",
+   "dir": "ltr",
+   "cldr": [
+    "de"
+   ]
+  },
+  {
+   "code": "ja",
+   "name": "Japanese",
+   "native": "日本語",
+   "dir": "ltr",
+   "cldr": [
+    "ja"
+   ]
+  },
+  {
+   "code": "pcm",
+   "name": "Nigerian Pidgin",
+   "native": "Naijá",
+   "dir": "ltr",
+   "cldr": [
+    "pcm"
+   ]
+  },
+  {
+   "code": "mr",
+   "name": "Marathi",
+   "native": "मराठी",
+   "dir": "ltr",
+   "cldr": [
+    "mr"
+   ]
+  },
+  {
+   "code": "vi",
+   "name": "Vietnamese",
+   "native": "Tiếng Việt",
+   "dir": "ltr",
+   "cldr": [
+    "vi"
+   ]
+  },
+  {
+   "code": "te",
+   "name": "Telugu",
+   "native": "తెలుగు",
+   "dir": "ltr",
+   "cldr": [
+    "te"
+   ]
+  },
+  {
+   "code": "ha",
+   "name": "Hausa",
+   "native": "Hausa",
+   "dir": "ltr",
+   "cldr": [
+    "ha"
+   ]
+  },
+  {
+   "code": "tr",
+   "name": "Turkish",
+   "native": "Türkçe",
+   "dir": "ltr",
+   "cldr": [
+    "tr"
+   ]
+  },
+  {
+   "code": "pa",
+   "name": "Punjabi",
+   "native": "ਪੰਜਾਬੀ",
+   "dir": "ltr",
+   "cldr": [
+    "pa",
+    "pa_Arab"
+   ]
+  },
+  {
+   "code": "sw",
+   "name": "Swahili",
+   "native": "Kiswahili",
+   "dir": "ltr",
+   "cldr": [
+    "sw"
+   ]
+  },
+  {
+   "code": "tl",
+   "name": "Tagalog (Filipino)",
+   "native": "Tagalog",
+   "dir": "ltr",
+   "cldr": [
+    "fil"
+   ]
+  },
+  {
+   "code": "ta",
+   "name": "Tamil",
+   "native": "தமிழ்",
+   "dir": "ltr",
+   "cldr": [
+    "ta"
+   ]
+  },
+  {
+   "code": "yue",
+   "name": "Cantonese",
+   "native": "粵語",
+   "dir": "ltr",
+   "cldr": [
+    "yue"
+   ]
+  },
+  {
+   "code": "fa",
+   "name": "Persian",
+   "native": "فارسی",
+   "dir": "rtl",
+   "cldr": [
+    "fa"
+   ]
+  },
+  {
+   "code": "ko",
+   "name": "Korean",
+   "native": "한국어",
+   "dir": "ltr",
+   "cldr": [
+    "ko"
+   ]
+  },
+  {
+   "code": "th",
+   "name": "Thai",
+   "native": "ไทย",
+   "dir": "ltr",
+   "cldr": [
+    "th"
+   ]
+  },
+  {
+   "code": "jv",
+   "name": "Javanese",
+   "native": "Basa Jawa",
+   "dir": "ltr",
+   "cldr": [
+    "jv"
+   ]
+  },
+  {
+   "code": "it",
+   "name": "Italian",
+   "native": "Italiano",
+   "dir": "ltr",
+   "cldr": [
+    "it"
+   ]
+  },
+  {
+   "code": "am",
+   "name": "Amharic",
+   "native": "አማርኛ",
+   "dir": "ltr",
+   "cldr": [
+    "am"
+   ]
+  }
+ ],
+ "variants": {
+  "es-419": {
+   "cldr": [
+    "es"
+   ],
+   "territories": [
+    "AR",
+    "BO",
+    "CL",
+    "CO",
+    "CR",
+    "CU",
+    "DO",
+    "EC",
+    "SV",
+    "GT",
+    "HN",
+    "MX",
+    "NI",
+    "PA",
+    "PY",
+    "PE",
+    "PR",
+    "UY",
+    "VE",
+    "US"
+   ],
+   "note": "Latin America, plus Spanish speakers in the US"
+  },
+  "es-ES": {
+   "cldr": [
+    "es"
+   ],
+   "territories": [
+    "ES"
+   ]
+  },
+  "ar-EG": {
+   "cldr": [
+    "arz"
+   ],
+   "note": "Egyptian Arabic (CLDR arz)"
+  },
+  "ar-LB": {
+   "cldr": [
+    "apc"
+   ],
+   "note": "Levantine Arabic (CLDR apc): Lebanon, Syria, Jordan, Palestine and beyond"
+  },
+  "ar-AE": {
+   "cldr": [
+    "ar"
+   ],
+   "territories": [
+    "AE",
+    "SA",
+    "KW",
+    "QA",
+    "BH",
+    "OM"
+   ],
+   "note": "CLDR has no Gulf Arabic code: Arabic speakers in the six Gulf states"
+  },
+  "ar-MA": {
+   "cldr": [
+    "ary",
+    "arq",
+    "aeb"
+   ],
+   "note": "Moroccan, Algerian and Tunisian Arabic (CLDR ary, arq, aeb)"
+  },
+  "zh-Hans": {
+   "cldr": [
+    "zh"
+   ],
+   "note": "Simplified script — mainland China and Singapore; Traditional (zh_Hant) is separate"
+  }
+ }
 }
