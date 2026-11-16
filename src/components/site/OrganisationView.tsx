@@ -31,7 +31,7 @@ const CARDS = [
   {
     n: "02",
     h: "Yours, under your name",
-    p: "Your logo, your colour, your words, your consent process. To a young person it is their youth group asking — because it is. The Index sits in the footer.",
+    p: "Your logo, your colour, your words, your consent process. To a young person it is their youth group asking — because it is. The Jesus Following Index sits in the footer.",
     tier: "response",
   },
   {
@@ -137,13 +137,13 @@ function SignedOut({ loading }: { loading: boolean }) {
             What your organisation gets out of it.
           </h1>
           <p className="mt-5 max-w-measure text-[17px] leading-relaxed">
-            Run the Index under your own name and you get back a diagnosis, not a grade —
+            Run the Jesus Following Index under your own name and you get back a diagnosis, not a grade —
             benchmarked against your country and the world, the same day, for free, permanently.
           </p>
         </div>
         <aside className="self-end">
           <p className="margin-note border-l-2 border-emerald pl-3">
-            Already running the Index? Sign in from the dashboard link your organisation was set up
+            Already running the Jesus Following Index? Sign in from the dashboard link your organisation was set up
             with. {loading ? "Checking…" : "Not signed in right now."}
           </p>
         </aside>
@@ -170,8 +170,8 @@ function SignedOut({ loading }: { loading: boolean }) {
         <h2 className="text-[24px] leading-tight">Before you ask</h2>
         <dl className="mt-6 grid gap-x-10 gap-y-6 md:grid-cols-2">
           {[
-            ["Is this free?", "Running the Index is free, and it stays free. Your standard report is free. Advanced reports and consulting are paid — and free for Collab members."],
-            ["Who owns our data?", "You do. You run the Index under your own brand, with your own consent process, and your results are yours to keep."],
+            ["Is this free?", "Running the Jesus Following Index is free, and it stays free. Your standard report is free. Advanced reports and consulting are paid — and free for Collab members."],
+            ["Who owns our data?", "You do. You run the Jesus Following Index under your own brand, with your own consent process, and your results are yours to keep."],
             ["Can anyone see our results?", "No. Only your team, after verifying with your ministry's email domain. No other organisation sees your numbers, and you never see individual responses — only aggregates."],
             ["How do you handle under-18s?", "Consent, including parental consent, is handled by your organisation, locally, under your own rules. We never hold identifiable data about a minor centrally."],
           ].map(([q, a]) => (
@@ -197,7 +197,7 @@ function SignedOut({ loading }: { loading: boolean }) {
               href="/join"
               className="rounded-lg border-2 border-emerald bg-emerald px-5 py-3 text-center text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
             >
-              Join the Index →
+              Join the Jesus Following Index →
             </Link>
           </div>
         </div>

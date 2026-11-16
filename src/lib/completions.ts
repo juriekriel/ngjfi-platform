@@ -2,7 +2,7 @@
  * Completions, segmented (migration 0047) — pure, unit-tested
  * (tests/completions.test.ts).
  *
- * Everyone who completes the Index counts: followers and those not yet
+ * Everyone who completes the Jesus Following Index counts: followers and those not yet
  * following. The total is always shown with its split, and never as one
  * score — followers' answers make the J12, non-followers' the Unengaged
  * matrix, and the two are never combined.

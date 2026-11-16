@@ -42,7 +42,7 @@ export default function CoverageMap() {
 
   return (
     <div className="border-t-2 border-ink pt-4">
-      <p className="figcap">The Index across the globe</p>
+      <p className="figcap">The Jesus Following Index across the globe</p>
       <svg
         viewBox={`0 0 ${WORLD_VIEWBOX.w} ${WORLD_VIEWBOX.h}`}
         className="mt-3 w-full"

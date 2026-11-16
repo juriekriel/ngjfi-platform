@@ -109,7 +109,7 @@ export default function DemoExperience() {
       <section className="pt-12">
         <p className="figcap">See a Demo</p>
         <h1 className="mt-2 text-[34px] font-bold leading-[1.08] tracking-tight sm:text-[44px]">
-          See the Jesus Index at work
+          See the Jesus Following Index at work
         </h1>
         <p className="mt-4 max-w-measure text-[18px] leading-relaxed text-ink-2">
           Ministry, church, or as an organization - you get to decide the view. Scroll through a complete dashboard experience for: setting up your survey, inviting your young people, and reading your results. And, as a bonus, see a global view of others&apos; results as a comparison.
@@ -180,7 +180,7 @@ export default function DemoExperience() {
               Join free →
             </Link>
             <Link href="/tour" className="text-[14.5px] font-semibold text-paper underline decoration-paper/40 underline-offset-4 hover:decoration-paper">
-              Learn more about the Index
+              Learn more about the Jesus Following Index
             </Link>
           </div>
         </div>
@@ -217,7 +217,7 @@ function Season({ view }: { view: DemoView }) {
         </div>
       </section>
 
-      <Step n={1} title="Make it your own" lead="Create your own unique name, color, link, and QR code. The Jesus Index appears only as a small credit in the footer.">
+      <Step n={1} title="Make it your own" lead="Create your own unique name, color, link, and QR code. The Jesus Following Index appears only as a small credit in the footer.">
         <DemoFrame label="Demo only" suffix={false}>
           <div className="grid items-center gap-6 md:grid-cols-[1fr_auto]">
             <div className="overflow-hidden rounded-2xl border border-rule bg-plate shadow-sm">
@@ -273,7 +273,7 @@ function Season({ view }: { view: DemoView }) {
               <ItemLedger items={d.items.slice(0, 8)} labelFor={itemLabel} />
             </Plate>
           </div>
-          <IntegrityNote text="Invented figures, for the demo only. Aggregate group results only, and never one person's answers, for those who completed the Index." />
+          <IntegrityNote text="Invented figures, for the demo only. Aggregate group results only, and never one person's answers, for those who completed the Jesus Following Index." />
         </DemoFrame>
       </Step>
 

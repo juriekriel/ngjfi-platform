@@ -1,6 +1,6 @@
 # Translating the survey
 
-The Index only works if a question means the same thing in every language. So
+The Jesus Following Index only works if a question means the same thing in every language. So
 translation is **researcher-owned**: anyone can help write a translation, but a
 language only reaches respondents once a researcher has approved it.
 

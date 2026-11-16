@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 /**
- * The Jesus Index — design tokens.
+ * The Jesus Following Index — design tokens.
  *
  * Brand Proof № 3 (Sep 2026, see docs/PALETTE.md) replaces the almanac: white
  * ground, coral as the single working colour, violet/blue/green as supporting

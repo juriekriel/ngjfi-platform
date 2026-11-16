@@ -15,7 +15,7 @@ import { getSupabaseBrowser } from "@/lib/supabaseClient";
  * Express is three fields and about thirty seconds — nobody is lost to a long
  * form. "Shape it" is optional and offered immediately AFTER signup (Miguel,
  * Oct 2026: the decision and Collab questions never stand between someone and
- * joining). The Index is available now, so the confirmation is "You're in",
+ * joining). The Jesus Following Index is available now, so the confirmation is "You're in",
  * with next steps — not a place in a queue.
  *
  * "Shape it" is four optional questions: where, how many, which languages,
@@ -248,7 +248,7 @@ export default function JoinForm() {
   return (
     <form onSubmit={submitExpress} className="rounded-xl border-2 border-ink p-6">
       <p className="figcap">Take the next step</p>
-      <h2 className="mt-3 text-[24px] leading-tight">Join the Jesus Index, for free</h2>
+      <h2 className="mt-3 text-[24px] leading-tight">Join the Jesus Following Index, for free</h2>
 
       <div className="mt-5 space-y-4">
         <div>

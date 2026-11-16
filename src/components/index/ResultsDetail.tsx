@@ -10,7 +10,7 @@
  * returned: every floor (min_group_n, the insight gate, trend years) is held
  * in the database, and a field the server left out simply doesn't render.
  *
- * Insight layers are reported beside the Index, never blended into it
+ * Insight layers are reported beside the Jesus Following Index, never blended into it
  * (CLAUDE.md #6, #9).
  */
 import ModuleInsights from "@/components/index/ModuleInsights";
@@ -29,7 +29,7 @@ export type DetailDash = {
   items?: DetailItem[];
   trend?: { year: number; index: number }[] | null;
   insights?: Record<string, InsightAgg>;
-  /** The Exploration Index (0026) — a SEPARATE figure, never blended with the Index. */
+  /** The Exploration Index (0026) — a SEPARATE figure, never blended with the Jesus Following Index. */
   exploration_n?: number;
   exploration_suppressed?: boolean;
   exploration_index?: number | null;
@@ -102,11 +102,11 @@ export default function ResultsDetail({ dash }: { dash: DetailDash }) {
           </div>
 
           {/* Drivers & Journey — unscored insight layers, reported separately from
-              the Index above, never blended into it (CLAUDE.md #6, #9). */}
+              the Jesus Following Index above, never blended into it (CLAUDE.md #6, #9). */}
           {dash.insights && Object.keys(dash.insights).length > 0 && (
             <div className="mt-4 rounded-lg border border-rule bg-paper p-4">
               <div className="font-mono text-[9px] uppercase tracking-wider text-muted">
-                Drivers &amp; journey — not part of the Index score
+                Drivers &amp; journey — not part of the Jesus Following Index score
               </div>
               <div className="mt-3 space-y-4">
                 {INSIGHT_ITEMS.map((item) => {
@@ -147,7 +147,7 @@ export default function ResultsDetail({ dash }: { dash: DetailDash }) {
             </div>
           )}
 
-          {/* Insight modules (Belong–Trust) — unscored, beside the Index (CLAUDE.md #6, #9). */}
+          {/* Insight modules (Belong–Trust) — unscored, beside the Jesus Following Index (CLAUDE.md #6, #9). */}
           <ModuleInsights insights={dash.insights} compact />
 
                 </>

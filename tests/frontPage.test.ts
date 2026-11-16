@@ -37,7 +37,7 @@ test("no public page links to the retired global-picture page; /history redirect
 test("the nav says Sign in and Join; the footer carries Our story, Privacy, Terms, Consent", () => {
   const chrome = read("src/components/site/Chrome.tsx");
   assert.match(chrome, />\s*Sign in\s*</);
-  assert.match(chrome, /Join the Jesus Index\s*</);
+  assert.match(chrome, /Join the Jesus Following Index\s*</);
   assert.match(chrome, /href="\/see-a-demo">See a Demo</);
   for (const l of ["Our story", "Privacy", "Terms", "Consent"]) assert.ok(chrome.includes(`"${l}"`), l);
   for (const p of ["learn", "tour", "join", "access", "organisation", "our-story"]) {

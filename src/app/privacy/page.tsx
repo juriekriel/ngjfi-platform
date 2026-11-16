@@ -11,8 +11,8 @@ import LegalPage from "@/components/site/LegalPage";
 const HOST_LOG_RETENTION = { supabase: "1 day", checked: "9 October 2026" };
 
 export const metadata = {
-  title: "Privacy — The Jesus Index",
-  description: "What the Index stores about the people who answer it, and what it never stores. Draft for review.",
+  title: "Privacy — The Jesus Following Index",
+  description: "What the Jesus Following Index stores about the people who answer it, and what it never stores. Draft for review.",
 };
 
 /**
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
           body: (
             <>
               <p>
-                The Jesus Index (&ldquo;the Index&rdquo;), a global measure of Jesus-following, is a survey that churches and ministries run
+                The Jesus Following Index is a survey that churches and ministries run
                 with young people aged 13 to 30, under their own name. This page explains what happens to the answers.
               </p>
               <p>
@@ -63,7 +63,7 @@ export default function PrivacyPage() {
               </ul>
               <p>
                 We do not store your internet (IP) address with your answers. Like every website, the companies that
-                host the Index see it briefly to deliver the page, and keep it only in technical logs that delete
+                host the Jesus Following Index see it briefly to deliver the page, and keep it only in technical logs that delete
                 themselves:
               </p>
               <ul className="list-disc pl-5">
@@ -108,7 +108,7 @@ export default function PrivacyPage() {
               <p>
                 Results for a place are only shown once enough people there have taken part: at least 400 by default,
                 and at least 2,000 before a whole country is named. We only ever describe &ldquo;those who have
-                completed the Index&rdquo; — never a whole population.
+                completed the Jesus Following Index&rdquo; — never a whole population.
               </p>
             </>
           ),
@@ -121,7 +121,7 @@ export default function PrivacyPage() {
               Each organisation is responsible for getting the consent its context requires before sharing its link —
               including a parent&apos;s or guardian&apos;s consent for under-18s wherever that is required. Organisations
               confirm they have done this before their survey can accept answers. They keep their consent records
-              themselves; the Index never holds them.
+              themselves; the Jesus Following Index never holds them.
             </p>
             <p>
               Read how consent works, and what it involves in your country, in{" "}
@@ -149,7 +149,7 @@ export default function PrivacyPage() {
                   are deleted, and the link you used is folded into the organisation&apos;s overall survey.
                 </li>
                 <li>
-                  <b>Up to 5 years:</b> we keep these cleaned answers to check and improve how the Index is scored.
+                  <b>Up to 5 years:</b> we keep these cleaned answers to check and improve how the Jesus Following Index is scored.
                   After that they&apos;re combined into grouped totals, and the individual answers are deleted.
                 </li>
               </ul>

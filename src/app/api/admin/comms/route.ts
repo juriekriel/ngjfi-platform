@@ -13,7 +13,7 @@
 //
 // Env vars (Netlify → Environment variables; NOT NEXT_PUBLIC_*):
 //   RESEND_API_KEY     — already used by /api/waitlist-notify
-//   COMMS_FROM_EMAIL   — e.g. "The Jesus Index <team@jfindx.org>"; falls back
+//   COMMS_FROM_EMAIL   — e.g. "The Jesus Following Index <team@jfindx.org>"; falls back
 //                        to WAITLIST_FROM_EMAIL, then hello@jfindx.org
 //   COMMS_REPLY_TO     — optional; where replies go (e.g. ulrich@nxtmove.global)
 
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
   const { data: who, error: whoErr } = await sb.auth.getUser(token);
   if (whoErr || !who.user) return NextResponse.json({ error: "Your sign-in has expired. Reload and sign in again." }, { status: 401 });
   const { data: me } = await sb.from("app_users").select("full_name,email").eq("id", who.user.id).maybeSingle();
-  const senderName = (me?.full_name as string | null)?.trim() || "The Jesus Index team";
+  const senderName = (me?.full_name as string | null)?.trim() || "The Jesus Following Index team";
 
   // The audience, as the database sees it right now. Raises for non-admins.
   const { data: all, error: recErr } = await sb.rpc("admin_comms_recipients", {

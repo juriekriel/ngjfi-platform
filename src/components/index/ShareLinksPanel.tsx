@@ -247,7 +247,7 @@ export default function ShareLinksPanel({ sb, orgSlug, orgName }: { sb: Supabase
       <aside className="flex flex-col gap-2 rounded-2xl border border-rule bg-plate p-5 text-[13.5px] leading-relaxed text-ink-2 shadow-sm">
         <h3 className="text-[15px] font-bold text-ink">What a view-only link never does</h3>
         <p>Show an individual answer. Everything on it is an aggregate, exactly as on this dashboard.</p>
-        <p>Compare you with the Collab. No overlay or benchmark on your matrices. The heat map is the same one you see here — each country coloured by everyone there who has completed the Index.</p>
+        <p>Compare you with the Collab. No overlay or benchmark on your matrices. The heat map is the same one you see here — each country coloured by everyone there who has completed the Jesus Following Index.</p>
         <p>Mix the two matrices. People not yet following count in your completions, but their answers only ever appear in the Unengaged matrix.</p>
         <p>Lower a minimum. A survey, a country or a year below the platform&apos;s floor shows its count, or nothing — the same as here.</p>
         <p>Last forever. Every link expires, and anyone on your team can revoke any link at once.</p>

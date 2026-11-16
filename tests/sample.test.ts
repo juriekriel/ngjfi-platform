@@ -130,7 +130,7 @@ test("the landing page renders live components and carries no fabricated scores"
 
 test("the mark never sits beside the typed wordmark", () => {
   // The Rising J reads as a letter J. Next to the words it produces
-  // "J The Jesus Index". It stands alone, or the rising rule carries the gesture.
+  // "J The Jesus Following Index". It stands alone, or the rising rule carries the gesture.
   for (const f of ["../src/app/page.tsx", "../src/components/site/Chrome.tsx"]) {
     const s = src(f);
     const wordmark = /<span className="italic">Jesus<\/span>/;
@@ -150,9 +150,9 @@ test("the mark never sits beside the typed wordmark", () => {
 // them deliberately, on request — running real data behind a banner that
 // says "sample data, not yet real" would itself be an overclaim in the
 // other direction. The underlying non-negotiable (never report on more than
-// "those who have completed the Index," always show n) is still enforced
+// "those who have completed the Jesus Following Index," always show n) is still enforced
 // structurally in the score-display components themselves — see
-// IndexPlate's "n = … · among those who completed the Index" caption in
+// IndexPlate's "n = … · among those who completed the Jesus Following Index" caption in
 // src/components/index/Figures.tsx — which is why it doesn't need a
 // site-wide banner to hold it up.
 
@@ -243,7 +243,7 @@ test("Drivers/Journey are reported as aggregate option rates, gated, and structu
   assert.ok(!/normalized/.test(helper), "insight_aggregates() must not touch the scored column at all");
   for (const key of ["'tiers'", "'domains'", "'matrix'", "'index'"]) {
     assert.ok(!helper.includes(key),
-      `insight_aggregates() must never write a ${key} key — it is reported alongside the Index, not folded into it`);
+      `insight_aggregates() must never write a ${key} key — it is reported alongside the Jesus Following Index, not folded into it`);
   }
   // The min_group_n floor: n is always returned, options only once that
   // item's own n clears the floor — same suppression style as everywhere else.

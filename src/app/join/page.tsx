@@ -5,7 +5,7 @@ import CoverageMap from "@/components/site/CoverageMap";
 import BeforeYouAsk from "./BeforeYouAsk";
 
 export const metadata = {
-  title: "Join now · The Jesus Index",
+  title: "Join now · The Jesus Following Index",
   description:
     "Free for every ministry, available now, and it stays free. Join in thirty seconds, set up your page, and try your survey link today.",
 };
@@ -81,12 +81,12 @@ export default function JoinPage() {
           <p className="mt-3 text-[14px] text-ink-2">Tap a question to see the answer.</p>
           <BeforeYouAsk
             items={[
-              ["Is this free?", "Yes. Running the Index and your standard report are free. Advanced reports and consulting are paid; Collab members get them free."],
+              ["Is this free?", "Yes. Running the Jesus Following Index and your standard report are free. Advanced reports and consulting are paid; Collab members get them free."],
               ["Who owns our data?", "Your ministry owns its results. Answers are anonymous, so nobody sees one young person's answers, including you. Anonymous answers also feed the shared picture, which is what makes comparisons possible."],
               ["How do you handle under-18s?", "Your ministry gathers consent locally, including from parents, and confirms it on the platform for every survey. No consent, no survey. We never hold identifying data about anyone under 18. The consent guide (jfindx.org/resources/consent) has a parent letter, a script, and the rules for each country (as much as we can verify it)."],
               ["Can anyone see our results?", "No. Only your team, after verifying with your ministry's email address. No other ministry sees your numbers, and you see totals, never one person's answers."],
               ["What languages does it work in?", "English and Spanish today. New languages can be added without rebuilding anything. Tell us what you need when you join; it shapes what we translate next."],
-              ["What if we already run our own survey?", "Keep it. Your survey measures what's specific to you. The Index asks the same questions everywhere, so you can compare. Most ministries will run both."],
+              ["What if we already run our own survey?", "Keep it. Your survey measures what's specific to you. The Jesus Following Index asks the same questions everywhere, so you can compare. Most ministries will run both."],
               ["Is the survey final?", "The current survey version is fixed, so everyone's answers compare to the same baseline of questions. Researchers will keep improving it. Each change becomes a new version, and your results stay tied to the one your young people answered."],
               ["When can we start?", "Today: join, set up your page and test your link. Live answers will start recording and country comparisons open as enough ministries near you take part."],
             ] as [string, string][]}
@@ -94,17 +94,17 @@ export default function JoinPage() {
         </section>
 
         <section className="border-t-2 border-ink py-10">
-          <p className="figcap">Want to learn more about the Index?</p>
+          <p className="figcap">Want to learn more about the Jesus Following Index?</p>
           <div className="mt-5 grid gap-6 sm:grid-cols-3">
             <Link href="/learn" className="group no-underline">
               <span aria-hidden className="block h-1 rounded-full bg-gradient-to-r from-emerald via-emerald-deep to-violet" />
               <p className="mt-3 text-[17px] font-bold leading-snug text-ink group-hover:underline">What it measures →</p>
-              <p className="margin-note mt-1">Read more about the Jesus Index.</p>
+              <p className="margin-note mt-1">Read more about the Jesus Following Index.</p>
             </Link>
             <Link href="/tour" className="group no-underline">
               <span aria-hidden className="block h-1 rounded-full bg-gradient-to-r from-emerald via-emerald-deep to-violet" />
               <p className="mt-3 text-[17px] font-bold leading-snug text-ink group-hover:underline">Take the tour →</p>
-              <p className="margin-note mt-1">A step-by-step walk through the Index itself.</p>
+              <p className="margin-note mt-1">A step-by-step walk through the Jesus Following Index itself.</p>
             </Link>
             <Link href="/see-a-demo#global" className="group no-underline">
               <span aria-hidden className="block h-1 rounded-full bg-gradient-to-r from-emerald via-emerald-deep to-violet" />

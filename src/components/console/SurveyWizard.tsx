@@ -210,7 +210,7 @@ export default function SurveyWizard({
         <div className="mt-5">
           <p className="max-w-measure text-[15.5px] leading-relaxed text-ink-2">
             Consent is handled by you, at the edge, because you are the one who knows these
-            families. Here is everything the Index stores about a respondent:
+            families. Here is everything the Jesus Following Index stores about a respondent:
           </p>
           <Rows>
             <Row label="Their answers" meta="bound to the instrument version" tone="good" />
@@ -272,7 +272,7 @@ export default function SurveyWizard({
           )}
           <p className="margin-note mt-4 border-l-2 border-emerald pl-3">
             Your own results appear the moment the first person finishes. A benchmark for your
-            country appears once enough people there have completed the Index — until then the
+            country appears once enough people there have completed the Jesus Following Index — until then the
             dashboard says so, rather than showing you a number it cannot stand behind.
           </p>
         </div>

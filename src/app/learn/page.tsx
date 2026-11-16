@@ -5,9 +5,9 @@ import { itemSetMinutes } from "@/lib/instrument";
 import { BranchDiagram, Matrix, Plate } from "@/components/index/Figures";
 
 export const metadata = {
-  title: "Learn about the Jesus Index",
+  title: "Learn about the Jesus Following Index",
   description:
-    "One instrument, three questions, four tiers. What the Jesus Index actually measures, in plain language.",
+    "One instrument, three questions, four tiers. What the Jesus Following Index actually measures, in plain language.",
 };
 
 export default function LearnPage() {
@@ -94,7 +94,7 @@ export default function LearnPage() {
                 more: [
                   "Your name, colour and logo on every screen young people see.",
                   "Your own welcome and closing message, for each survey you send.",
-                  "The Index appears only as a small credit in the footer.",
+                  "The Jesus Following Index appears only as a small credit in the footer.",
                   "Your results belong to your ministry.",
                 ],
               },
@@ -112,7 +112,7 @@ export default function LearnPage() {
               {
                 n: "03",
                 h: "Free to run",
-                p: "Running the Index costs nothing. Your standard report is included.",
+                p: "Running the Jesus Following Index costs nothing. Your standard report is included.",
                 more: [
                   "No fee to join, to run as many surveys as you like, or to see your dashboard.",
                   "Your live dashboard and exports are included.",
@@ -137,7 +137,7 @@ export default function LearnPage() {
             {[
               { href: "/organisation", h: "What your ministry gets →", p: "Your results under your brand, with comparisons as your area grows." },
               { href: "/see-a-demo#global", h: "A global picture →", p: "How the global view works, with a demo preview." },
-              { href: "/join", h: "Join the Index →", p: "For organizations, churches, and ministries." },
+              { href: "/join", h: "Join the Jesus Following Index →", p: "For organizations, churches, and ministries." },
             ].map((c) => (
               <Link key={c.href} href={c.href} className="group no-underline">
                 <GradientRule />

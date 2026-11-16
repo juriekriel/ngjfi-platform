@@ -76,7 +76,7 @@ type Draft = {
 const BLANK: Draft = {
   template_key: null,
   subject: "",
-  body: "Hi {{first_name}},\n\n\n\n{{sender_name}}\nThe Jesus Index · jfindx.org",
+  body: "Hi {{first_name}},\n\n\n\n{{sender_name}}\nThe Jesus Following Index · jfindx.org",
   audience: "all",
   only_missing: false,
   email: "",

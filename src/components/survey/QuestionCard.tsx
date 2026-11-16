@@ -355,7 +355,7 @@ function CountrySelect({
  * "Select up to N" / "check all that apply" items (Drivers, Journey).
  *
  * Unscored by convention (`scored: false`) — these feed covariate analysis,
- * not the Index — so there is no right answer to force. Submitting an empty
+ * not the Jesus Following Index — so there is no right answer to force. Submitting an empty
  * selection is allowed, same as skipping an open_text item, rather than
  * blocking someone who genuinely has none of the listed experiences.
  */

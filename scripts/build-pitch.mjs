@@ -128,17 +128,17 @@ export function build() {
   for (const i of by((i) => i.key === "age_band" || i.section === "screener").filter((i) => !i.attention_check)) {
     L.push(itemHtml(i, likert, i.section === "screener" ? "Routing · unscored" : "About you · unscored"));
   }
-  L.push(`    <div class="route-note"><b>Route A</b> (the Index): "New follower of Jesus" or "Committed, actively growing", or "Yes" to the follow-up. <b>Route B</b> (the Exploration Index): every other answer, including "Not sure" and "Prefer not to say". The follow-up is only asked after "None of these" or "Prefer not to say".</div>`);
+  L.push(`    <div class="route-note"><b>Route A</b> (the Jesus Following Index): "New follower of Jesus" or "Committed, actively growing", or "Yes" to the follow-up. <b>Route B</b> (the Exploration Index): every other answer, including "Not sure" and "Prefer not to say". The follow-up is only asked after "None of these" or "Prefer not to say".</div>`);
 
-  L.push(route("Route A · following Jesus", "The Index", `${engaged.filter((i) => i.scored !== false).length} scored questions, two in every cell of the 3 × 4 grid (one internal, one external), plus the two prayer and scripture questions, which are measured but not scored.`));
+  L.push(route("Route A · following Jesus", "The Jesus Following Index", `${engaged.filter((i) => i.scored !== false).length} scored questions, two in every cell of the 3 × 4 grid (one internal, one external), plus the two prayer and scripture questions, which are measured but not scored.`));
   L.push(...indexBlock(withCheck(engaged, "attention_check"), likert, ""));
   const core = engaged.filter((i) => i.scored === false);
   if (core.length) {
-    L.push(sect("Route A · Core activities", "Prayer and scripture", "Measured every time and reported as their own figure; 'Weekly' or 'Most days' counts. Not part of the Index score."));
+    L.push(sect("Route A · Core activities", "Prayer and scripture", "Measured every time and reported as their own figure; 'Weekly' or 'Most days' counts. Not part of the Jesus Following Index score."));
     for (const i of core) L.push(itemHtml(i, likert, "Core activity · measured, unscored"));
   }
 
-  L.push(route("Route B · not currently following", "The Exploration Index", `The same 3 × 4 grid, ${unengaged.length} questions worded for someone exploring. Scored separately and <b>never blended</b> with the Index.`));
+  L.push(route("Route B · not currently following", "The Exploration Index", `The same 3 × 4 grid, ${unengaged.length} questions worded for someone exploring. Scored separately and <b>never blended</b> with the Jesus Following Index.`));
   L.push(...indexBlock(withCheck(unengaged, "attention_check_unengaged"), likert, "Route B · "));
 
   for (const [b, name] of [["engaged", "Route A"], ["unengaged", "Route B"]]) {

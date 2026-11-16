@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 
 export const metadata = {
-  title: "The Index — Consulting",
+  title: "The Jesus Following Index — Consulting",
   robots: { index: false, follow: false },
 };
 
 /**
- * The Index — Consulting Overview / Prospectus (Phase 2).
+ * The Jesus Following Index — Consulting Overview / Prospectus (Phase 2).
  *
  * Reserved architecture only. The route, layout and data shape exist so a
  * later build slots in without a rewrite, but there is nothing here for a

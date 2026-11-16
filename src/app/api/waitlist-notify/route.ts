@@ -114,7 +114,7 @@ export async function POST(req: Request) {
         `Setup call ${call === "yes" ? "requested" : "maybe"}: ${row.org_name}`,
         `<p><b>${escapeHtml(row.org_name)}</b> said <b>${call}</b> to a 30-minute setup call.</p>
          <ul>
-           <li>Email: <a href="mailto:${escapeHtml(row.email)}?subject=${encodeURIComponent("Your Jesus Index setup call")}">${escapeHtml(row.email)}</a></li>
+           <li>Email: <a href="mailto:${escapeHtml(row.email)}?subject=${encodeURIComponent("Your Jesus Following Index setup call")}">${escapeHtml(row.email)}</a></li>
            <li>Role: ${escapeHtml(row.role || "—")}</li>
            <li>Countries: ${escapeHtml(row.countries || "—")}</li>
            <li>Young people reached: ${escapeHtml(row.reach || "—")}</li>
@@ -137,8 +137,8 @@ export async function POST(req: Request) {
   const confirmation = sendEmail(
     apiKey,
     email,
-    "You're in — The Jesus Index",
-    `<p>Welcome — <b>${escapeHtml(orgName)}</b> is in. The Index is free for ministries, and it stays free.</p>
+    "You're in — The Jesus Following Index",
+    `<p>Welcome — <b>${escapeHtml(orgName)}</b> is in. The Jesus Following Index is free for ministries, and it stays free.</p>
      <p>What happens next:</p>
      <ol>
        <li><a href="https://jfindx.org/access">Sign in</a> with your ministry email to set up your page — your logo, colour and welcome.</li>
@@ -148,7 +148,7 @@ export async function POST(req: Request) {
      </ol>
      <p>Questions? Just reply to this email.</p>
      ${referralCode ? `<p>Your referral code: <code>${escapeHtml(referralCode)}</code></p>` : ""}
-     <p>— The Jesus Index team</p>`,
+     <p>— The Jesus Following Index team</p>`,
   );
 
   const internal = notifyTo

@@ -2,9 +2,9 @@ import { Footer, Masthead } from "@/components/site/Chrome";
 import OrganisationView from "@/components/site/OrganisationView";
 
 export const metadata = {
-  title: "Your Organisation — The Jesus Index",
+  title: "Your Organisation — The Jesus Following Index",
   description:
-    "What your organisation gets out of running the Index — and, once you're signed in, a straight line to your own dashboard.",
+    "What your organisation gets out of running the Jesus Following Index — and, once you're signed in, a straight line to your own dashboard.",
 };
 
 export default function OrganisationPage() {

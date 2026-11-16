@@ -1,12 +1,12 @@
 import Console from "./Console";
 
 export const metadata = {
-  title: "The Index — Console",
+  title: "The Jesus Following Index — Console",
   robots: { index: false, follow: false },
 };
 
 /**
- * The Index — the authenticated engine.
+ * The Jesus Following Index — the authenticated engine.
  *
  * This is where a magic link lands. It is deliberately a WORKLIST rather than a
  * dashboard: the road to 2027 is a chain of handovers that each need a person to

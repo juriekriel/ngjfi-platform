@@ -1,7 +1,7 @@
 import IntelligenceEntry from "@/components/index/IntelligenceEntry";
 
 export const metadata = {
-  title: "Collab Intelligence — The Jesus Index",
+  title: "Collab Intelligence — The Jesus Following Index",
   description:
     "The crowdsourced picture across every participating organisation. Live space only — no synthetic data has ever been in it.",
 };

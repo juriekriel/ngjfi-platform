@@ -214,7 +214,7 @@ export function buildTables(d: Insights, datasets: DatasetKey[], years: number[]
     key: "about", name: "About",
     rows: [
       ["field", "value"],
-      ["scope", "Of those who have completed the Index — never a whole population. Aggregates only; no individual response."],
+      ["scope", "Of those who have completed the Jesus Following Index — never a whole population. Aggregates only; no individual response."],
       ["data_space", d.space ?? "live"],
       ["generated_at", ctx.generatedAt.toISOString()],
       ["years", [...want].sort().join(" ")],

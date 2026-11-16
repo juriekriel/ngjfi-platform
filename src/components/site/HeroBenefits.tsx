@@ -24,7 +24,7 @@ export default function HeroBenefits({ items, className = "" }: { items: { t: st
   return (
     <section aria-labelledby="benefits-heading" className={`flex flex-col ${className}`}>
       <h2 id="benefits-heading" className="text-[20px] font-bold leading-tight tracking-tight text-ink">
-        Why use the Jesus Index?
+        Why use the Jesus Following Index?
       </h2>
       <p className="mt-1 text-[15px] text-ink-2">{WORD[items.length] ?? items.length} ways this serves you:</p>
 

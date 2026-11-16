@@ -98,7 +98,7 @@ function CollabTab({
           title: "The Collab's pooled view isn't published yet",
           body:
             collab.reason === "below_critical_mass"
-              ? `It opens once ${(collab.gate ?? 400).toLocaleString()} people across the Collab have completed the Index — ${(collab.completions ?? 0).toLocaleString()} so far. Until then there is nothing honest to show.`
+              ? `It opens once ${(collab.gate ?? 400).toLocaleString()} people across the Collab have completed the Jesus Following Index — ${(collab.completions ?? 0).toLocaleString()} so far. Until then there is nothing honest to show.`
               : "The numbers exist, but the Collab publishes the pooled picture deliberately, once it has been checked. Until then this stays empty rather than showing an early, unreviewed figure.",
         };
 
@@ -147,7 +147,7 @@ function CollabTab({
         reason: `${org.name} doesn't have enough responses to overlay yet`,
       }}
       countries={published ? collab?.countries ?? [] : []}
-      scopeLine={`Of those who completed the Index through any Collab organisation · n ${(n ?? 0).toLocaleString()}`}
+      scopeLine={`Of those who completed the Jesus Following Index through any Collab organisation · n ${(n ?? 0).toLocaleString()}`}
       insights={<CollabInsights data={insights} />}
     >
       <CollabExport data={insights} />

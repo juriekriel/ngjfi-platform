@@ -78,10 +78,10 @@ export default function ExportPage() {
       {dash && (
         <div className="space-y-10">
           <header className="border-b-2 border-ink pb-3">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-muted">The Jesus Index</p>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted">The Jesus Following Index</p>
             <h2 className="mt-1 text-2xl font-bold">{dash.org.name}</h2>
             <p className="mt-1 text-sm text-slate">
-              n = {dash.n.toLocaleString()} · among those who completed the Index
+              n = {dash.n.toLocaleString()} · among those who completed the Jesus Following Index
               {overlay && " · small figure in each cell is the Collab-wide average"}
             </p>
           </header>
@@ -102,7 +102,7 @@ export default function ExportPage() {
               Global heat map · {TIER_LABEL[tier]}
             </h3>
             <p className="mt-1 text-xs text-slate">
-              A country only appears in colour once enough people there have completed the Index.
+              A country only appears in colour once enough people there have completed the Jesus Following Index.
             </p>
             <div className="mt-3">
               <WorldHeatMap countries={intel?.countries ?? []} tier={tier} />
@@ -110,7 +110,7 @@ export default function ExportPage() {
           </section>
 
           <p className="border-t border-rule pt-3 font-mono text-[9px] uppercase tracking-wider text-muted">
-            Aggregates only — never individual responses. Of those who completed the Index.
+            Aggregates only — never individual responses. Of those who completed the Jesus Following Index.
           </p>
         </div>
       )}

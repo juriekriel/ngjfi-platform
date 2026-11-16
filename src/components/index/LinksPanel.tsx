@@ -71,7 +71,7 @@ export default function LinksPanel({ sb, orgSlug }: { sb: SupabaseClient; orgSlu
     <div className="rounded-lg border border-rule bg-paper p-4">
       <div className="flex items-center justify-between">
         <div className="font-mono text-[9px] uppercase tracking-wider text-muted">
-          Distribution links — where you&apos;re sending the Index
+          Distribution links — where you&apos;re sending the Jesus Following Index
         </div>
         <button
           onClick={() => setEditing("new")}

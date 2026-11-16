@@ -1,5 +1,5 @@
 /**
- * The Index's chart language, as a small set of primitives.
+ * The Jesus Following Index's chart language, as a small set of primitives.
  *
  * Square-ended bars off a hairline axis. Tabular mono for every number. Colour
  * only ever means something: emerald is the working colour, navy is levels,
@@ -96,7 +96,7 @@ export function IndexPlate({
         )}
       </div>
       <p className="mt-3 tabular text-[11px] uppercase tracking-[0.12em] text-ink-2">
-        n = {n.toLocaleString()} · among those who completed the Index
+        n = {n.toLocaleString()} · among those who completed the Jesus Following Index
       </p>
       {caption && <p className="figcap mt-2">{caption}</p>}
     </div>
@@ -366,7 +366,7 @@ export function ItemLedger({
 export function IntegrityNote({ extra, text }: { extra?: string; text?: string }) {
   return (
     <p className="figcap mt-6 leading-relaxed">
-      {text ?? <>Aggregates only — never an individual response. Of those who completed the Index.{extra ? ` ${extra}` : ""}</>}
+      {text ?? <>Aggregates only — never an individual response. Of those who completed the Jesus Following Index.{extra ? ` ${extra}` : ""}</>}
     </p>
   );
 }
@@ -467,7 +467,7 @@ export function J12Grid({ className = "" }: { className?: string }) {
  * across the same four tiers, worded for where they actually are.
  */
 const BRANCH_TRACKS = [
-  { key: "following", label: "Already following Jesus", note: "goes to the Index" },
+  { key: "following", label: "Already following Jesus", note: "goes to the Jesus Following Index" },
   { key: "exploring", label: "Not yet", note: "goes to the Exploration Index" },
 ] as const;
 

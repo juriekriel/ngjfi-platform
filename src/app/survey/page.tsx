@@ -15,7 +15,7 @@ import { DOMAIN_SHORT, TIER_LABEL } from "@/lib/model";
 import en from "@/data/i18n/en.json";
 
 export const metadata = {
-  title: "The entire survey — The Jesus Index",
+  title: "The entire survey — The Jesus Following Index",
   description: "Every question young people are asked today, word for word, in the order they meet them.",
 };
 
@@ -42,7 +42,7 @@ const UI = (en as { ui: Record<string, string> }).ui;
 const SECTION_HEADING: Record<string, string> = {
   demographic: "About them",
   screener: "Where they're at",
-  index: "The Index questions",
+  index: "The Jesus Following Index questions",
   driver: "What shapes their faith",
   journey: "Their journey so far",
   exploration: "Exploring",
@@ -272,7 +272,7 @@ export default function SurveyPage() {
               href="/join"
               className="rounded-lg border-2 border-emerald bg-emerald px-5 py-3 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
             >
-              Join the Jesus Index →
+              Join the Jesus Following Index →
             </Link>
             <Link href="/see-a-demo" className="rounded-lg border border-ink px-5 py-3 text-[14px] font-semibold text-ink no-underline hover:bg-ink hover:text-paper">
               See a Demo →

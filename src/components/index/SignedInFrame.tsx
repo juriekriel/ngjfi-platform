@@ -12,7 +12,7 @@
  * scope row (rooms on the org tab; the whole Collab on the other).
  *
  * Rules this component holds, whatever it is given:
- *   - every score shows its n; "of those who have completed the Index";
+ *   - every score shows its n; "of those who have completed the Jesus Following Index";
  *   - the overlay is house-level only — callers pass allowed=false for a room;
  *   - the map colours a country only if the server returned it (the country
  *     gate, 2,000 by config, is enforced in collab_intelligence());
@@ -143,7 +143,7 @@ export default function SignedInFrame(p: FrameProps) {
           <>
         {show.figures && <div className="grid gap-2.5 sm:grid-cols-3" data-tour="figures">
           <Figure label="J12 index" note={p.figures.indexNote} value={fig(p.figures.index)} accent={p.active === "org"} />
-          <Figure label="Completed the Index" note={p.figures.nNote} value={p.figures.n == null ? "—" : p.figures.n.toLocaleString()} />
+          <Figure label="Completed the Jesus Following Index" note={p.figures.nNote} value={p.figures.n == null ? "—" : p.figures.n.toLocaleString()} />
           <Figure
             label="Countries active on the map"
             note={`a country lights up at ${p.figures.countryGate.toLocaleString()} completions`}
@@ -213,8 +213,8 @@ export default function SignedInFrame(p: FrameProps) {
               <WorldHeatMap countries={p.countries} tier={tier} reached={p.reached} gate={p.figures.countryGate} />
               <p className="text-[13px] leading-relaxed text-ink-2">
                 {p.active === "org" && p.reached && p.reached.length > 0
-                  ? `Outlined countries are where your links reached. They light up once ${p.figures.countryGate.toLocaleString()} people there — from any organisation — have completed the Index; your responses count toward that.`
-                  : `A country stays grey until ${p.figures.countryGate.toLocaleString()} people there have completed the Index. Each country is checked on its own.`}
+                  ? `Outlined countries are where your links reached. They light up once ${p.figures.countryGate.toLocaleString()} people there — from any organisation — have completed the Jesus Following Index; your responses count toward that.`
+                  : `A country stays grey until ${p.figures.countryGate.toLocaleString()} people there have completed the Jesus Following Index. Each country is checked on its own.`}
               </p>
             </div>
           )}
@@ -228,8 +228,8 @@ export default function SignedInFrame(p: FrameProps) {
 
       <footer className="border-t border-rule bg-plate">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-5 py-4 sm:px-8">
-          <span className="text-[13px] text-ink-2">Of those who have completed the Index · aggregates only, never an individual answer</span>
-          <span className="font-mono text-[11.5px] text-ink-2">powered by The Index · jfindx.org</span>
+          <span className="text-[13px] text-ink-2">Of those who have completed the Jesus Following Index · aggregates only, never an individual answer</span>
+          <span className="font-mono text-[11.5px] text-ink-2">powered by The Jesus Following Index · jfindx.org</span>
         </div>
       </footer>
 
@@ -335,7 +335,7 @@ export function SignedInHeader({
               point, not two. The header keeps a way home to the platform. */}
           {active === "org" && (
             <Link href="/" className="whitespace-nowrap px-3 py-2.5 text-[14px] font-semibold text-ink-2 no-underline hover:text-ink">
-              ← Back to the Jesus Index
+              ← Back to the Jesus Following Index
             </Link>
           )}
           {email && <span className="hidden rounded-lg border border-rule-2 px-3 py-2 text-[13px] text-ink-2 sm:inline">{email}</span>}

@@ -2,15 +2,19 @@ import Link from "next/link";
 
 import { EMERALD, INK, MUTED } from "@/lib/model";
 
-/** The line under the name, wherever the logo appears (round 8, Oct 2026). */
-export const LOGO_TAGLINE = "a global measure of Jesus-following";
-/** The Collab's goal, as the front-page banner states it (round 8). */
+/**
+ * The line under the name, wherever the logo appears. Nov 2026: the Collab's
+ * goal, in lower case, replaces "a global measure of Jesus-following" — the
+ * new name already says what it measures.
+ */
+export const LOGO_TAGLINE = "to see every young person have a real opportunity to follow Jesus by 2033.";
+/** The Collab's goal as a sentence. Nov 2026: no longer a front-page banner — it is the logo line now. */
 export const GOAL_LINE = "To see every young person have a real opportunity to follow Jesus by 2033.";
 
 /**
- * The masthead. Round 4 (Oct 2026): "the Jesus Index is the name and logo all
+ * The masthead. Round 4 (Oct 2026): "the Jesus Following Index is the name and logo all
  * the way through" — the header carries the rising mark beside the name, The
- * Jesus Index, the same way on every page, signed-out or signed-in. (This
+ * Jesus Following Index, the same way on every page, signed-out or signed-in. (This
  * replaces the short "J.FIND.x" wordmark; jfindx.org stays the address.)
  * Nav is plain Inter Tight, same voice as buttons and body copy — the old
  * "every nav link is tracked, uppercase, tabular mono" treatment was a rule
@@ -24,13 +28,13 @@ export function Masthead({ edition }: { edition?: string }) {
           <RisingMark className="h-9 w-9 shrink-0" />
           <span className="flex flex-col">
             <span className="wordmark text-[21px] leading-none tracking-tight text-ink">
-              The <span className="italic">Jesus</span> Index
+              The <span className="italic">Jesus</span> Following Index
             </span>
-            <span className="mt-1 text-[11.5px] leading-none text-ink-2">{LOGO_TAGLINE}</span>
+            <span className="mt-1 max-w-[19rem] text-[11.5px] leading-tight text-ink-2">{LOGO_TAGLINE}</span>
           </span>
         </Link>
         <nav className="flex flex-wrap items-center gap-x-6 gap-y-1.5">
-          <NavLink href="/learn">What is the Jesus Index?</NavLink>
+          <NavLink href="/learn">What is the Jesus Following Index?</NavLink>
           <NavLink href="/see-a-demo">See a Demo</NavLink>
           <Link
             href="/access"
@@ -42,7 +46,7 @@ export function Masthead({ edition }: { edition?: string }) {
             href="/join"
             className="rounded-lg bg-gradient-to-r from-emerald via-emerald-deep to-emerald-deeper px-4 py-2 text-[14px] font-semibold text-plate no-underline hover:opacity-90"
           >
-            Join the Jesus Index
+            Join the Jesus Following Index
           </Link>
         </nav>
       </div>
@@ -84,7 +88,7 @@ export function Footer() {
           </a>
           , to see every young person have a real opportunity to follow Jesus by 2033.
         </p>
-        <nav aria-label="About the Index" className="flex flex-wrap gap-4 text-[13px] sm:ml-auto">
+        <nav aria-label="About the Jesus Following Index" className="flex flex-wrap gap-4 text-[13px] sm:ml-auto">
           {[
             ["/our-story", "Our story"],
             ["/privacy", "Privacy"],
@@ -247,7 +251,7 @@ export function Door({
 
 /**
  * The coral → violet rule the site uses above a bold heading (join page,
- * "What is the Jesus Index?", calls to action). One component, so every page
+ * "What is the Jesus Following Index?", calls to action). One component, so every page
  * draws exactly the same line.
  */
 /**

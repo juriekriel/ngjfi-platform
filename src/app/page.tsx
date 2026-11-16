@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Footer, GOAL_LINE, GradientRule, LOGO_TAGLINE, Masthead, RisingRule } from "@/components/site/Chrome";
+import { Footer, GradientRule, LOGO_TAGLINE, Masthead, RisingRule } from "@/components/site/Chrome";
 import PitchDocs from "@/components/site/PitchDocs";
 import SeeADemoCard from "@/components/site/SeeADemoCard";
 import HeroBenefits from "@/components/site/HeroBenefits";
@@ -19,7 +19,7 @@ import { CaveatMark, CountryCaveat } from "@/components/site/CountryCaveat";
  *   D  Pitch documents — the PDFs to take to leaders.
  *   E  Footer — built by the Collab · Our story · Privacy · Terms · Consent.
  *
- * Round 4 (Oct 2026): the Jesus Index name and mark throughout; the J12
+ * Round 4 (Oct 2026): the Jesus Following Index name and mark throughout; the J12
  * drawn as the real mark with details on hover; "Safe for under-18s" off the
  * benefits (consent lives in the footer and /resources/consent).
  * Round 4b: everything demo — the three sample ministries and the global
@@ -52,7 +52,7 @@ const STEPS: { t: string; d: string }[] = [
 export default function Home() {
   return (
     <>
-      <Masthead edition={GOAL_LINE} />
+      <Masthead />
 
       <main className="mx-auto max-w-5xl px-5">
         {/* ── A · hero ─────────────────────────────────────────────── */}
@@ -61,7 +61,7 @@ export default function Home() {
               what's left of it, so it ends level with the See a Demo card. */}
           <div className="flex flex-col">
             <h1 className="wordmark text-[42px] leading-[0.98] tracking-tight sm:text-[56px]">
-              The <span className="italic">Jesus</span> Index
+              The <span className="italic">Jesus</span> Following Index
             </h1>
             <RisingRule className="mt-3 h-6 w-full max-w-[460px]" />
             <p className="mt-1 text-[15px] text-ink-2">{LOGO_TAGLINE}</p>
@@ -70,7 +70,7 @@ export default function Home() {
               Do you know where your young people are with Jesus?
             </p>
             <p className="mt-3 max-w-measure text-[18px] leading-relaxed text-ink-2">
-              Most of us count who turns up. The Jesus Index shows what&apos;s underneath: who believes, who&apos;s growing,
+              Most of us count who turns up. The Jesus Following Index shows what&apos;s underneath: who believes, who&apos;s growing,
               and who&apos;s helping someone else follow Jesus. Your young people{AGE_RANGE ? <> (aged {AGE_RANGE})</> : null} answer
               anonymously, on any phone, in about {WELCOME_MINUTES} minutes. You set it up, share a link, and see the results.
               Free to join and free to run, permanently.

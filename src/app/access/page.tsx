@@ -3,7 +3,7 @@ import { Footer, Masthead } from "@/components/site/Chrome";
 import AccessForm from "./AccessForm";
 
 export const metadata = {
-  title: "Early access — The Jesus Index",
+  title: "Early access — The Jesus Following Index",
   description:
     "For the people building it: the live roadmap with real dates, the open decisions, the current instrument version and the repo. Approved individually.",
 };
@@ -36,7 +36,7 @@ export default function AccessPage() {
               There is a second reason. Until the research panel locks the instrument,{" "}
               <b>what you would see in here is still changing weekly</b>. Access is approved
               individually so that everyone reading it knows what stage it is at, and season one has to
-              be signed off before anyone interacts with how the Index will actually run.
+              be signed off before anyone interacts with how the Jesus Following Index will actually run.
             </p>
 
             <div className="mt-9 border-t-2 border-ink pt-4">
@@ -59,9 +59,9 @@ export default function AccessPage() {
             </div>
 
             <p className="margin-note mt-7 border-l-2 border-rule pl-3">
-              If you are here to run the Index rather than build it, you want{" "}
+              If you are here to run the Jesus Following Index rather than build it, you want{" "}
               <Link href="/join" className="underline decoration-rule underline-offset-2">
-                Join the Index
+                Join the Jesus Following Index
               </Link>{" "}
               instead — that is the one that opens.
             </p>

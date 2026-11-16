@@ -10,7 +10,7 @@
  * with its reason and your name, to the action log.
  *
  * There is no undo. Organisations can't do this themselves — if a ministry
- * could remove answers it didn't like, the Index would lose its credibility.
+ * could remove answers it didn't like, the Jesus Following Index would lose its credibility.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseClient";

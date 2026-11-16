@@ -156,7 +156,7 @@ export function sheetRows(code: string, items: SheetItem[], enUi: Record<string,
 const SECTION: Record<string, string> = {
   demographic: "About you",
   screener: "Where you're at",
-  index: "The Index questions",
+  index: "The Jesus Following Index questions",
   driver: "What shapes your faith",
   journey: "Your journey so far",
   exploration: "Exploring",
@@ -192,7 +192,7 @@ export function surveyText(opts: {
   const ORG = "[your organisation]";
   const out: string[] = [];
   const pct = Math.round(opts.coverage * 100);
-  out.push(`The Jesus Index — the survey in ${opts.name} (${code})`);
+  out.push(`The Jesus Following Index — the survey in ${opts.name} (${code})`);
   out.push(`Instrument ${opts.version} · stage: ${STAGES.find((s) => s.key === opts.stage)?.label ?? opts.stage} · ${pct}% translated${opts.date ? ` · exported ${opts.date}` : ""}`);
   if (code !== "en") out.push("Lines starting [EN] have no translation yet and show in English.");
   out.push("Respondent-facing text only. Every response is anonymous; no answer here is ever linked to a person.");

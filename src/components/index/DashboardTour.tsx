@@ -164,10 +164,10 @@ export default function DashboardTour({
         body: (
           <>
             <p>
-              <b>J12 index</b> — your overall score on a 1–5 scale. <b>Completed the Index</b> — how many people it rests on.{" "}
+              <b>J12 index</b> — your overall score on a 1–5 scale. <b>Completed the Jesus Following Index</b> — how many people it rests on.{" "}
               <b>Countries active</b> — a country lights up on the shared map once {countryGate.toLocaleString()} people there have taken part.
             </p>
-            <p>Every number here is about those who completed the Index — never your whole community.</p>
+            <p>Every number here is about those who completed the Jesus Following Index — never your whole community.</p>
           </>
         ),
       },

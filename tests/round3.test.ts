@@ -48,7 +48,7 @@ test("the J12 shows a cell's question on hover, and the landing phone has real p
 });
 
 test("round 4: logo, World × Response, guarantees on hover, no black line on learn", () => {
-  // The J.FIND.x wordmark was replaced by the Jesus Index lockup in round 4 (Oct 2026) — tests/round4.test.ts.
+  // The J.FIND.x wordmark was replaced by the Jesus Following Index lockup in round 4 (Oct 2026) — tests/round4.test.ts.
   assert.match(read("src/components/site/Chrome.tsx"), /<RisingMark/);
   assert.equal(MATRIX_PHRASE.world.response, "believes faith matters");
   const learn = read("src/app/learn/page.tsx");

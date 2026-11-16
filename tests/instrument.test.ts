@@ -189,7 +189,7 @@ test("Drivers and Journey are opt-in, not part of the core flow, for both branch
     assert.equal(isVisible(byKey(key), unengagedDirect), true, `"${key}" stayed hidden despite accepting the extras`);
   }
   // continue_to_extras is unconditional in v4 (offered to both branches) —
-  // still asked right after the Index, before any extras of either branch.
+  // still asked right after the Jesus Following Index, before any extras of either branch.
   assert.equal(byKey("continue_to_extras").show_if, undefined, "continue_to_extras must be unconditional — both branches are offered the extras");
   assert.ok(byKey("continue_to_extras").order! > byKey("scripture_frequency").order!);
   assert.ok(byKey("continue_to_extras").order! < byKey("driver_sources_of_belief_engaged").order!);
@@ -429,7 +429,7 @@ test("every free-text item is unscored and length-capped", () => {
   assert.ok(byKey("who_is_jesus").help, `"who_is_jesus" must warn the respondent not to identify anyone`);
 });
 
-test("the open prompt comes before the Index proper", () => {
+test("the open prompt comes before the Jesus Following Index proper", () => {
   assert.ok(byKey("who_is_jesus").order! < byKey("follow_exposure_internal").order!);
   assert.ok(byKey("who_is_jesus").order! < byKey("follow_exposure_external").order!);
 });
@@ -493,7 +493,7 @@ test("one survey link: the old public link redirects and nothing fields a second
 });
 
 // ---------------------------------------------------------------------------
-// v5 — the Belong–Trust module (draft, unscored, reported beside the Index)
+// v5 — the Belong–Trust module (draft, unscored, reported beside the Jesus Following Index)
 // ---------------------------------------------------------------------------
 // The eight that stay in the module. The four no other question covered —
 // community age, size, before joining and real say — moved to the top of
@@ -536,7 +536,7 @@ test("Belong–Trust: opt-in, both branches, and community items follow a monthl
   assert.equal(visibleItems(belonging).length - visibleItems(committed).length, 10);
 });
 
-test("Belong–Trust sits between the extras opt-in and Drivers, without touching the Index", () => {
+test("Belong–Trust sits between the extras opt-in and Drivers, without touching the Jesus Following Index", () => {
   const ex = byKey("continue_to_extras").order!;
   const firstDriver = byKey("driver_sources_of_belief_engaged").order!;
   for (const k of MODULE_KEYS) {

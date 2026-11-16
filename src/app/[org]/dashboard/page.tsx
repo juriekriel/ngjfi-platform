@@ -274,7 +274,7 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
         view === "settings"
           ? `${dash.org.name} · edit your dashboard`
           : view === "share"
-            ? "Share about the Jesus Index"
+            ? "Share about the Jesus Following Index"
             : view === "team"
               ? `${dash.org.name} · your team & access`
             : inRoom
@@ -362,8 +362,8 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
       unengaged={unengaged}
       unengagedScopeLine={
         inRoom
-          ? `Of those not yet following who completed the Index through “${roomName}”`
-          : `Of those not yet following who completed the Index through any ${dash.org.name} link`
+          ? `Of those not yet following who completed the Jesus Following Index through “${roomName}”`
+          : `Of those not yet following who completed the Jesus Following Index through any ${dash.org.name} link`
       }
       consultEnabled={!demoPreview}
       countries={countries}
@@ -372,8 +372,8 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
       panels={panels}
       scopeLine={
         inRoom
-          ? `Of those who completed the Index through “${roomName}” · n ${(n ?? 0).toLocaleString()}`
-          : `Of those who completed the Index through any ${dash.org.name} link · n ${dash.n.toLocaleString()}`
+          ? `Of those who completed the Jesus Following Index through “${roomName}” · n ${(n ?? 0).toLocaleString()}`
+          : `Of those who completed the Jesus Following Index through any ${dash.org.name} link · n ${dash.n.toLocaleString()}`
       }
     >
       {tour.open && !demoPreview && (
@@ -437,12 +437,12 @@ export default function DashboardPage({ params }: { params: { org: string } }) {
         </section>
       )}
       {view === "results" && (panels.share || showShare) && (
-        // Share about the Jesus Index — last on the page, the same shape as
+        // Share about the Jesus Following Index — last on the page, the same shape as
         // "Export your results" above it, a shade darker.
         <section className="rounded-2xl border border-ink bg-ink px-4 py-3 text-paper sm:px-6">
           <button type="button" onClick={() => setShowShare((v) => !v)} aria-expanded={showShare}
             className="flex w-full items-center justify-between py-1 text-left text-[14px] font-semibold text-paper">
-            Share about the Jesus Index
+            Share about the Jesus Following Index
             <span aria-hidden className="text-paper/70">{showShare ? "▲" : "▾"}</span>
           </button>
           {showShare && (

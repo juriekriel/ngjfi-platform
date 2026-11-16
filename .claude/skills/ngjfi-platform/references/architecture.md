@@ -12,7 +12,7 @@ map.
 |---|---|
 | `/` | Landing — the five-door page |
 | `/[org]` | **Respondent survey, community link.** For the young people a ministry already reaches |
-| `/[org]/open` | The same instrument, fielded to everyone else. The gap between the two is the most useful number the Index produces — they must never become two different surveys |
+| `/[org]/open` | The same instrument, fielded to everyone else. The gap between the two is the most useful number the Jesus Following Index produces — they must never become two different surveys |
 | `/[org]/dashboard` | The org's own results |
 | `/intelligence` · `/demo/intelligence` | Collab aggregate intelligence |
 | `/access` | Sign-in (magic link, ministry website-domain verification) |

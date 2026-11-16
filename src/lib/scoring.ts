@@ -11,7 +11,7 @@
  *  - yes_no:     Yes → 100, No → 0
  *  - frequency:  ordinal index mapped across 0–100  (index / (points − 1) × 100)
  *  - reverse_scored items are inverted (100 − normalised) before aggregation.
- *  - Only items with `scored: true` feed the Index; diagnostics are ignored here.
+ *  - Only items with `scored: true` feed the Jesus Following Index; diagnostics are ignored here.
  *  - Tier score   = mean of scored items tagged to that tier.
  *  - Domain score = mean of scored items tagged to that question domain.
  *  - Matrix cell  = mean of scored items at a domain × tier intersection (may be sparse).

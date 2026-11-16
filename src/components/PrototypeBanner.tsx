@@ -12,7 +12,7 @@ export default function PrototypeBanner() {
       <p className="tabular text-[10px] uppercase leading-relaxed tracking-[0.14em] text-paper">
         Sample data — synthetic, labelled, never quoted
         <span className="mx-2 text-muted">·</span>
-        <span className="text-muted">the Index is in development</span>
+        <span className="text-muted">the Jesus Following Index is in development</span>
       </p>
     </div>
   );
