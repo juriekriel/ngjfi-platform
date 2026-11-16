@@ -1,6 +1,6 @@
 {
- "$comment": "French — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; empty means the language has no question translations yet. Edit via the translation sheet (docs/TRANSLATION.md).",
- "ui_status": "draft",
+ "$comment": "French — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; Edit via the translation sheet (docs/TRANSLATION.md).",
+ "ui_status": "machine-draft — complete; needs a fluent reviewer and researcher sign-off (docs/TRANSLATION.md)",
  "ui": {
   "back": "← Retour",
   "begin": "Commencer →",
@@ -44,7 +44,490 @@
   "type_here": "Écris autant ou aussi peu que tu veux…",
   "waiting_signal": "En attente de réseau",
   "welcome_body": "{org} veut apprendre à marcher avec les jeunes qui suivent Jésus. Tes réponses sincères comptent. Cela prend environ {minutes} minutes et c’est entièrement anonyme.",
-  "welcome_title": "Tu es invité à partager [où tu en es]."
+  "welcome_title": "Tu es invité à partager [où tu en es].",
+  "about_body": "Nous ne demandons ni ton nom, ni ton e-mail, ni ton numéro de téléphone, et nous ne conservons pas ton adresse internet avec tes réponses. Nous demandons seulement ta tranche d’âge et à peu près où tu vis. {org} ne voit que des résultats regroupés de nombreuses personnes — jamais tes réponses seules. Tu peux arrêter à tout moment en fermant cette page.",
+  "about_title": "Ce que deviennent tes réponses",
+  "chars_left": "{n} caractères restants",
+  "choose_country": "Choisis ton pays",
+  "ended_body": "Ce questionnaire s’adresse aux personnes de 13 à 30 ans, il n’y a donc rien de plus à répondre. Merci d’être passé — rien de ce que tu as choisi n’a été conservé.",
+  "ended_title": "Merci d’être passé !",
+  "no": "Non",
+  "collection_locked_banner": "Aperçu — l’Index ne collecte pas encore de réponses, donc les tiennes ne sont pas enregistrées.",
+  "privacy_link": "Lire l’avis de confidentialité complet",
+  "yes": "Oui"
  },
- "items": {}
+ "items": {
+  "age_band": {
+   "text": "Quel âge as-tu ?",
+   "options": {
+    "under_13": "12 ans ou moins",
+    "13_17": "13–17",
+    "18_22": "18–22",
+    "23_30": "23–30",
+    "over_30": "31 ans ou plus"
+   }
+  },
+  "orientation": {
+   "text": "Laquelle de ces propositions te ressemble le plus en ce moment ?",
+   "options": {
+    "confident_no_god": "Convaincu que Dieu n’existe pas",
+    "open_not_exploring": "Ouvert, mais sans chercher",
+    "open_exploring": "Ouvert, et en recherche active",
+    "other_religion": "Dieu existe, mais je suis une autre religion",
+    "interested_jesus": "Intéressé par Jésus, je veux en savoir plus",
+    "new_follower": "Nouveau disciple de Jésus",
+    "committed_growing": "Engagé, en croissance active",
+    "none_of_these": "Aucune ne me décrit",
+    "prefer_not_say": "Je préfère ne pas répondre"
+   }
+  },
+  "follower_check": {
+   "text": "Te considères-tu actuellement comme un disciple de Jésus ?",
+   "options": {
+    "yes": "Oui",
+    "no": "Non",
+    "not_sure": "Je ne sais pas",
+    "prefer_not_say": "Je préfère ne pas répondre"
+   }
+  },
+  "follow_exposure_internal": {
+   "text": "Je veux continuer à découvrir qui est Jésus et ce qu’il a enseigné."
+  },
+  "follow_exposure_external": {
+   "text": "J’ai eu l’occasion d’apprendre ce que Jésus a enseigné et pourquoi c’est important."
+  },
+  "follow_response_internal": {
+   "text": "Je crois que le pardon des péchés n’est possible que par la foi en Jésus."
+  },
+  "follow_response_external": {
+   "text": "J’ai choisi de suivre Jésus, que je crois être Dieu."
+  },
+  "follow_formation_internal": {
+   "text": "La Bible me pousse à reconsidérer mes choix et mon comportement."
+  },
+  "follow_formation_external": {
+   "text": "Je pratique des formes de prière qui me font entrer dans une relation personnelle avec Dieu."
+  },
+  "follow_multiplication_internal": {
+   "text": "Je crois que l’Évangile est une bonne nouvelle dans ma vie et qu’il vaut la peine d’être partagé avec des personnes qui ne sont pas chrétiennes."
+  },
+  "follow_multiplication_external": {
+   "text": "Au cours des six derniers mois, j’ai partagé quelque chose au sujet de Jésus avec quelqu’un qui ne le suit pas."
+  },
+  "mission_exposure_internal": {
+   "text": "Je comprends ce que signifie prendre part à la mission de Jésus."
+  },
+  "mission_exposure_external": {
+   "text": "En ce moment, quelqu’un m’aide à suivre Jésus."
+  },
+  "mission_response_internal": {
+   "text": "Je crois que partager le message de Jésus fait partie de le suivre."
+  },
+  "mission_response_external": {
+   "text": "J’ai accepté de prendre part à la mission de Jésus comme ma responsabilité de disciple de Jésus."
+  },
+  "attention_check": {
+   "text": "Pour vérifier que tu lis attentivement, choisis « Un peu vrai pour moi » pour celle-ci."
+  },
+  "mission_formation_internal": {
+   "text": "Servir les autres au sein d’une communauté chrétienne est une part importante de ma façon de suivre Jésus."
+  },
+  "mission_formation_external": {
+   "text": "J’essaie de montrer à des personnes qui ne sont pas chrétiennes comment suivre Jésus façonne ma vie quotidienne."
+  },
+  "mission_multiplication_internal": {
+   "text": "Je veux inviter d’autres personnes à me rejoindre dans des activités liées à la mission de Jésus."
+  },
+  "mission_multiplication_external": {
+   "text": "J’ai aidé quelqu’un d’autre à grandir dans sa marche avec Jésus."
+  },
+  "world_exposure_internal": {
+   "text": "Je crois que suivre Jésus apporte un vrai bien aux gens et au monde."
+  },
+  "world_exposure_external": {
+   "text": "Je fais des choix qui orientent ma vie vers quelque chose de plus grand que moi."
+  },
+  "world_response_internal": {
+   "text": "Je crois que ma foi concerne plus que ma vie personnelle. Elle devrait changer quelque chose dans le monde."
+  },
+  "world_response_external": {
+   "text": "Suivre Jésus change vraiment ma façon de traiter les gens et de répondre aux besoins autour de moi."
+  },
+  "world_formation_internal": {
+   "text": "Je cherche à faire la volonté de Dieu dans mon quotidien, même quand elle est différente de la mienne."
+  },
+  "world_formation_external": {
+   "text": "Devenir une personne plus aimante envers tous ceux qui m’entourent est quelque chose sur quoi je travaille chaque jour."
+  },
+  "world_multiplication_internal": {
+   "text": "Je crois que les disciples de Jésus devraient travailler ensemble pour apporter des changements positifs dans leurs communautés."
+  },
+  "world_multiplication_external": {
+   "text": "J’encourage d’autres chrétiens à relier leur foi à leur manière de vivre et de servir."
+  },
+  "pray_frequency": {
+   "text": "Je prie Dieu.",
+   "options": {
+    "0": "Rarement ou jamais",
+    "1": "Chaque mois",
+    "2": "Chaque semaine",
+    "3": "Presque tous les jours"
+   }
+  },
+  "scripture_frequency": {
+   "text": "Je lis ou j’écoute les Écritures.",
+   "options": {
+    "0": "Rarement ou jamais",
+    "1": "Chaque mois",
+    "2": "Chaque semaine",
+    "3": "Presque tous les jours"
+   }
+  },
+  "follow_exposure_internal_unengaged": {
+   "text": "Cela m’intéresse d’entendre différents points de vue sur Dieu ou la spiritualité."
+  },
+  "follow_exposure_external_unengaged": {
+   "text": "J’ai eu l’occasion d’entendre ce que les chrétiens croient au sujet de Jésus."
+  },
+  "follow_response_internal_unengaged": {
+   "text": "Je pense qu’il y a dans la nature humaine quelque chose qui doit être réparé, au-delà de ce que nous pouvons faire par nous-mêmes."
+  },
+  "follow_response_external_unengaged": {
+   "text": "J’ai réfléchi aux raisons de croire ou de ne pas croire en Dieu."
+  },
+  "follow_formation_internal_unengaged": {
+   "text": "Je pense que la Bible propose quelque chose qui mérite réflexion sur la manière de vivre."
+  },
+  "follow_formation_external_unengaged": {
+   "text": "Je prends le temps de réfléchir à des questions sur Dieu, la spiritualité ou le sens de la vie."
+  },
+  "follow_multiplication_internal_unengaged": {
+   "text": "Je pense que parler de questions de croyance peut être précieux, même quand on arrive à des conclusions différentes."
+  },
+  "follow_multiplication_external_unengaged": {
+   "text": "Au cours des six derniers mois, j’ai parlé avec quelqu’un de mes opinions ou de mes questions sur Dieu ou la spiritualité."
+  },
+  "mission_exposure_internal_unengaged": {
+   "text": "Je comprends pourquoi les chrétiens veulent partager leur foi avec les autres."
+  },
+  "mission_exposure_external_unengaged": {
+   "text": "Je connais quelqu’un avec qui je peux parler honnêtement de Dieu ou de spiritualité."
+  },
+  "mission_response_internal_unengaged": {
+   "text": "J’ai choisi de prendre la responsabilité d’avoir un impact positif sur le monde qui m’entoure."
+  },
+  "mission_response_external_unengaged": {
+   "text": "Je crois que j’ai un rôle à jouer pour rendre le monde meilleur."
+  },
+  "attention_check_unengaged": {
+   "text": "Pour vérifier que tu lis attentivement, choisis « Un peu vrai pour moi » pour celle-ci."
+  },
+  "mission_formation_internal_unengaged": {
+   "text": "Faire partie d’une communauté qui aide les autres compte pour moi."
+  },
+  "mission_formation_external_unengaged": {
+   "text": "Je participe à des activités avec d’autres qui mettent mes convictions et mes valeurs en pratique."
+  },
+  "mission_multiplication_internal_unengaged": {
+   "text": "Je veux inviter d’autres personnes à des activités qui reflètent ce qui compte à mes yeux."
+  },
+  "mission_multiplication_external_unengaged": {
+   "text": "J’ai aidé quelqu’un à réfléchir à ses propres convictions ou à ses questions sur la foi."
+  },
+  "world_exposure_internal_unengaged": {
+   "text": "Je pense que la foi ou la spiritualité peut motiver les gens à avoir un impact positif sur le monde."
+  },
+  "world_exposure_external_unengaged": {
+   "text": "Je fais des choix qui orientent ma vie vers quelque chose de plus grand que moi."
+  },
+  "world_response_internal_unengaged": {
+   "text": "Je crois que mes valeurs devraient faire une différence au-delà de ma vie personnelle."
+  },
+  "world_response_external_unengaged": {
+   "text": "Mes convictions et mes valeurs changent vraiment ma façon de traiter les gens et de répondre aux besoins autour de moi."
+  },
+  "world_formation_internal_unengaged": {
+   "text": "J’essaie de faire ce que je crois juste, même quand cela va à l’encontre de ce que je veux."
+  },
+  "world_formation_external_unengaged": {
+   "text": "Devenir une personne plus aimante envers tous ceux qui m’entourent est quelque chose sur quoi je travaille chaque jour."
+  },
+  "world_multiplication_internal_unengaged": {
+   "text": "Je crois que des personnes aux opinions religieuses ou non religieuses différentes peuvent travailler ensemble pour améliorer leurs communautés."
+  },
+  "world_multiplication_external_unengaged": {
+   "text": "J’encourage les gens autour de moi à mettre leurs valeurs en pratique dans leur façon de vivre et d’aider les autres."
+  },
+  "driver_sources_of_belief_engaged": {
+   "text": "Lesquels de ces éléments façonnent le plus ce que tu crois au sujet de Jésus et de la foi ? Choisis-en trois au maximum.",
+   "options": {
+    "own_judgment": "Mon propre jugement",
+    "bible": "La Bible",
+    "family": "La famille",
+    "friends": "Des amis ou d’autres personnes en qui j’ai confiance",
+    "church_leaders": "L’Église ou des responsables chrétiens",
+    "peers": "D’autres chrétiens de mon âge",
+    "personal_experiences": "Des expériences personnelles",
+    "social_media": "Les réseaux sociaux, les podcasts ou d’autres contenus en ligne",
+    "not_sure": "Je ne suis pas sûr",
+    "other": "Autre"
+   }
+  },
+  "driver_conditions_for_growth_engaged": {
+   "text": "Lesquelles de ces affirmations sont vraies pour toi en ce moment ? Coche toutes celles qui s’appliquent.",
+   "options": {
+    "asked_for_help": "J’ai demandé à quelqu’un de m’aider à grandir dans ma foi.",
+    "time_for_practices": "Je peux prendre du temps pour prier, lire la Bible ou découvrir Jésus.",
+    "safe_place": "J’ai un endroit sûr où être honnête sur mes difficultés à suivre Jésus.",
+    "community_influence": "Je passe du temps avec des personnes qui m’aident à ressembler davantage à Jésus.",
+    "ask_questions": "J’ai l’occasion de poser des questions honnêtes sur ma foi.",
+    "feel_connected": "Je me sens lié à une communauté chrétienne.",
+    "none": "Aucune de ces affirmations n’est vraie pour moi en ce moment."
+   }
+  },
+  "driver_confidence_and_agency_engaged": {
+   "text": "Qu’est-ce qui influence ta volonté de partager ta foi ? Coche tout ce qui s’applique.",
+   "options": {
+    "confidence": "La confiance en ce que je crois",
+    "fear_of_response": "La peur de la réaction des autres",
+    "feeling_equipped": "Le fait de me sentir préparé ou non",
+    "seeing_others": "Voir d’autres personnes partager leur foi",
+    "relationships": "Mes relations avec des personnes qui ne sont pas chrétiennes",
+    "responsibility": "Le fait de croire ou non que partager ma foi est ma responsabilité",
+    "opportunity": "Avoir l’occasion de la partager",
+    "invited_alongside": "Être invité à la partager avec d’autres",
+    "other": "Autre"
+   }
+  },
+  "driver_relational_risk_engaged": {
+   "text": "Lesquelles de ces affirmations décrivent ce que tu ressens à l’idée de parler de foi avec des personnes qui ne sont pas chrétiennes ? Coche toutes celles qui s’appliquent.",
+   "options": {
+    "naturally": "J’en parle naturellement.",
+    "close_people_only": "J’en parle surtout avec des proches.",
+    "when_relevant": "Je suis prêt à en parler quand cela semble vrai ou pertinent.",
+    "wait_to_be_asked": "J’attends généralement qu’on m’en parle.",
+    "avoid_it": "J’évite le sujet parce que je veux garder des relations tranquilles.",
+    "worry_offending": "J’ai peur de blesser les gens.",
+    "unsure_how": "Je ne sais pas trop comment aborder le sujet.",
+    "other": "Autre"
+   }
+  },
+  "journey_encounter_and_response_engaged": {
+   "text": "Quelles personnes ou expériences ont le plus compté pour t’aider à rencontrer Jésus, à le comprendre et à lui répondre ? Coche tout ce qui s’applique.",
+   "options": {
+    "friend_peer": "Un ami ou quelqu’un de mon âge",
+    "family_member": "Un membre de ma famille",
+    "church_gathering": "Un rassemblement d’Église",
+    "ministry_leader": "Un responsable d’Église ou de ministère",
+    "school_campus": "Une expérience à l’école ou à l’université",
+    "online_social": "Des contenus en ligne ou les réseaux sociaux",
+    "outreach_service": "Une action d’évangélisation ou de service",
+    "clear_talk": "Un message ou une présentation clairs",
+    "personal_conversation": "Une conversation personnelle",
+    "course_discussion": "Un parcours ou une discussion encadrée",
+    "reading_bible": "Lire la Bible par moi-même",
+    "significant_moment": "Une expérience ou un moment marquant de ma vie",
+    "other": "Autre"
+   }
+  },
+  "journey_continued_formation_engaged": {
+   "text": "Qu’est-ce qui t’a aidé à grandir pour ressembler davantage à Jésus dans ta façon de vivre ? Coche tout ce qui s’applique.",
+   "options": {
+    "mentoring": "Un accompagnement personnel (mentorat)",
+    "christian_friends": "Des conversations avec des amis chrétiens",
+    "challenged_encouraged": "Être mis au défi ou encouragé",
+    "group_learning": "Apprendre en groupe",
+    "welcomed_community": "Être accueilli dans une communauté chrétienne",
+    "shared_practices": "Des pratiques partagées comme la prière, la louange ou les repas",
+    "studying_bible": "Lire ou étudier la Bible",
+    "observing": "Observer comment vit un autre chrétien",
+    "teaching_preaching": "L’enseignement ou la prédication",
+    "serving_alongside": "Servir aux côtés d’autres personnes",
+    "local_church": "Une Église locale",
+    "online_community": "Une communauté chrétienne en ligne",
+    "other": "Autre"
+   }
+  },
+  "journey_participation_in_mission_engaged": {
+   "text": "Qu’est-ce qui t’a aidé à commencer à vivre ou à partager ta foi en Jésus ? Coche tout ce qui s’applique.",
+   "options": {
+    "encouraged_invited": "Quelqu’un m’a encouragé ou invité.",
+    "opportunity_to_serve": "J’ai eu l’occasion de servir.",
+    "trained_shown": "On m’a formé ou montré comment faire.",
+    "did_it_alongside": "Je l’ai fait avec d’autres personnes.",
+    "personal_conviction": "J’ai développé une conviction personnelle.",
+    "saw_model": "J’ai vu quelqu’un d’autre montrer l’exemple.",
+    "church_provided": "Une Église ou un ministère m’en a donné l’occasion.",
+    "other": "Autre"
+   }
+  },
+  "journey_multiplication_engaged": {
+   "text": "Qu’est-ce qui t’aiderait à franchir la prochaine étape pour aider d’autres à suivre Jésus ? Coche tout ce qui s’applique.",
+   "options": {
+    "someone_to_guide": "Quelqu’un pour me guider",
+    "clear_next_steps": "Des prochaines étapes claires",
+    "training_tools": "Une formation ou des outils pratiques",
+    "opportunity_to_try": "Une occasion d’essayer",
+    "encouragement": "Des encouragements",
+    "others_to_do_it_with": "D’autres personnes avec qui le faire",
+    "greater_confidence": "Plus de confiance en ce que je crois",
+    "already_equipped": "Rien ; je me sens déjà prêt à franchir cette étape",
+    "not_interested": "Franchir cette étape ne m’intéresse pas",
+    "other": "Autre"
+   }
+  },
+  "driver_sources_of_belief_unengaged": {
+   "text": "Lesquels de ces éléments façonnent le plus ton regard sur Dieu, la religion ou la spiritualité ? Choisis-en trois au maximum.",
+   "options": {
+    "own_judgment": "Mon propre jugement",
+    "family": "La famille",
+    "friends": "Des amis ou d’autres personnes en qui j’ai confiance",
+    "church_leaders": "L’Église ou des responsables chrétiens",
+    "peers": "Des chrétiens de mon âge",
+    "personal_experiences": "Des expériences personnelles",
+    "social_media": "Les réseaux sociaux, les podcasts ou d’autres contenus en ligne",
+    "science": "La science ou les preuves",
+    "teachers": "Des enseignants ou l’éducation",
+    "bible": "La Bible",
+    "other_books": "Des livres ou des idées en dehors du christianisme",
+    "other_communities": "D’autres communautés religieuses ou non religieuses",
+    "not_sure": "Je ne suis pas sûr",
+    "other": "Autre",
+    "none": "Aucun de ceux-ci"
+   }
+  },
+  "driver_conditions_for_growth_unengaged": {
+   "text": "Lesquelles de ces affirmations sont vraies pour toi en ce moment ? Coche toutes celles qui s’appliquent.",
+   "options": {
+    "asked_for_help": "J’ai demandé à quelqu’un de m’aider à réfléchir à des questions de croyance ou de sens de la vie.",
+    "time_for_practices": "Je prends le temps de réfléchir à des questions de croyance ou de sens de la vie.",
+    "safe_place": "J’ai un endroit sûr où être honnête sur mes convictions, mes doutes ou mon incroyance.",
+    "community_influence": "Je passe du temps avec des personnes qui m’aident à réfléchir à la personne que je veux devenir.",
+    "ask_questions": "J’ai l’occasion de poser des questions honnêtes sur la religion ou la spiritualité.",
+    "feel_connected": "Je me sens accepté par les chrétiens que je connais, que nous soyons d’accord ou non sur la foi.",
+    "none": "Aucune de ces affirmations n’est vraie pour moi en ce moment."
+   }
+  },
+  "driver_confidence_and_agency_unengaged": {
+   "text": "Qu’est-ce qui influence ta volonté de parler de tes convictions, de tes doutes ou de ton incroyance ? Coche tout ce qui s’applique.",
+   "options": {
+    "confidence": "La confiance en mes propres opinions",
+    "fear_of_response": "La réaction que j’attends des autres",
+    "feeling_equipped": "Le fait de pouvoir expliquer mes opinions ou non",
+    "seeing_others": "Voir d’autres personnes parler ouvertement de leurs convictions",
+    "relationships": "Mes relations avec des personnes dont les convictions diffèrent des miennes",
+    "worthwhile": "Le fait que la conversation en vaille la peine ou non",
+    "opportunity": "Avoir l’occasion d’en parler",
+    "invited_alongside": "Être invité dans une conversation",
+    "taken_seriously": "Le fait que mes questions soient prises au sérieux ou non",
+    "pressure_to_change": "Le fait de me sentir poussé ou non à changer de convictions",
+    "interest": "Le fait que le sujet m’intéresse ou non",
+    "other": "Autre",
+    "none": "Aucun de ceux-ci",
+    "not_sure": "Je ne suis pas sûr"
+   }
+  },
+  "driver_relational_risk_unengaged": {
+   "text": "Que ressens-tu à l’idée de parler de religion ou de croyance avec des chrétiens ? Coche tout ce qui s’applique.",
+   "options": {
+    "naturally": "J’en parle naturellement.",
+    "close_people_only": "J’en parle surtout avec des proches.",
+    "when_relevant": "Je suis prêt à en parler quand cela semble pertinent pour ma vie.",
+    "wait_to_be_asked": "J’attends généralement qu’on m’en parle.",
+    "avoid_it": "J’évite le sujet parce que je veux garder des relations tranquilles.",
+    "worry_offending": "J’ai peur de blesser les gens.",
+    "unsure_how": "Je ne sais pas trop comment aborder le sujet.",
+    "worry_judged": "J’ai peur que mes opinions soient jugées ou rejetées.",
+    "worry_pressured": "J’ai peur qu’on me pousse à devenir chrétien.",
+    "not_interested": "Ces conversations ne m’intéressent pas.",
+    "no_christians": "Je ne connais aucun chrétien avec qui je pourrais en parler.",
+    "other": "Autre",
+    "not_sure": "Je ne suis pas sûr"
+   }
+  },
+  "journey_encounter_and_response_unengaged": {
+   "text": "Quelles personnes ou expériences ont le plus façonné ton regard sur Jésus ou le christianisme ? Coche tout ce qui s’applique.",
+   "options": {
+    "friend_peer": "Un ami ou quelqu’un de mon âge",
+    "family_member": "Un membre de ma famille",
+    "church_gathering": "Un rassemblement d’Église chrétienne",
+    "ministry_leader": "Un responsable d’Église ou de ministère chrétien",
+    "school_campus": "Une expérience à l’école ou à l’université",
+    "online_social": "Des contenus en ligne ou les réseaux sociaux",
+    "clear_talk": "Un message ou une présentation",
+    "personal_conversation": "Une conversation personnelle",
+    "course_discussion": "Un parcours ou une discussion encadrée",
+    "reading_bible": "Lire la Bible par moi-même",
+    "significant_moment": "Une expérience ou un moment marquant de ma vie",
+    "other_books": "Des livres ou des idées en dehors du christianisme",
+    "other": "Autre",
+    "none": "Aucun de ceux-ci",
+    "not_sure": "Je ne suis pas sûr"
+   }
+  },
+  "journey_continued_formation_unengaged": {
+   "text": "Qu’est-ce qui t’a aidé à te faire une idée de la personne que tu veux devenir ? Coche tout ce qui s’applique.",
+   "options": {
+    "mentoring": "Un accompagnement personnel (mentorat)",
+    "friends": "Des conversations avec des amis",
+    "challenged_encouraged": "Être mis au défi ou encouragé",
+    "group_learning": "Apprendre en groupe",
+    "welcomed_community": "Être accueilli dans une communauté",
+    "shared_activities": "Des activités partagées comme des repas, de la réflexion ou des discussions",
+    "studying_ideas": "Lire ou étudier des idées qui comptent pour moi",
+    "observing": "Observer comment vit quelqu’un d’autre",
+    "teaching_talks": "Des enseignements ou des conférences",
+    "serving_alongside": "Servir aux côtés d’autres personnes",
+    "online_community": "Une communauté en ligne",
+    "time_alone": "Du temps pour réfléchir seul",
+    "other": "Autre",
+    "nothing": "Rien ne m’a aidé de cette façon",
+    "not_sure": "Je ne suis pas sûr"
+   }
+  },
+  "journey_participation_in_mission_unengaged": {
+   "text": "Qu’est-ce qui, le cas échéant, te ferait hésiter à participer à une activité organisée par un groupe chrétien ? Coche tout ce qui s’applique.",
+   "options": {
+    "not_interested": "Les activités qu’ils proposent ne m’intéressent pas.",
+    "would_not_know_anyone": "Je n’y connaîtrais personne.",
+    "unsure_what_to_expect": "Je ne saurais pas à quoi m’attendre.",
+    "worry_pressured": "J’aurais peur qu’on me pousse à adopter des croyances chrétiennes.",
+    "worry_judged": "J’aurais peur d’être jugé ou de ne pas être accepté.",
+    "conflicting_values": "Certaines de leurs convictions ou valeurs vont à l’encontre des miennes.",
+    "negative_experience": "J’ai eu une mauvaise expérience avec un groupe chrétien.",
+    "practical_issues": "Des raisons pratiques, comme le temps, le transport ou le coût.",
+    "nothing": "Rien ne me ferait hésiter.",
+    "not_sure": "Je ne suis pas sûr."
+   }
+  },
+  "journey_multiplication_unengaged": {
+   "text": "Qu’est-ce qui, le cas échéant, rend difficile pour toi d’envisager de suivre Jésus ? Coche tout ce qui s’applique.",
+   "options": {
+    "dont_know_enough": "Je n’en sais pas assez sur Jésus ou le christianisme.",
+    "not_convinced": "Je ne suis pas convaincu que les croyances chrétiennes soient vraies.",
+    "unanswered_questions": "J’ai des questions auxquelles je n’ai pas trouvé de réponses satisfaisantes.",
+    "conflicting_teachings": "Certains enseignements chrétiens vont à l’encontre de mes opinions ou de mes valeurs.",
+    "suffering_injustice": "La souffrance et l’injustice rendent la foi en Dieu difficile pour moi.",
+    "bad_experiences": "Mes expériences avec des chrétiens ou des Églises m’ont refroidi.",
+    "worry_response": "J’aurais peur de la réaction de mes proches.",
+    "worry_change": "J’aurais peur de ce qu’on pourrait attendre de moi que je change.",
+    "satisfied": "Je suis satisfait de mes convictions actuelles ou de ma vision de la vie.",
+    "not_thought_about": "Suivre Jésus n’est pas quelque chose à quoi j’ai réfléchi.",
+    "other": "Autre",
+    "not_sure": "Je ne suis pas sûr."
+   }
+  },
+  "gender": {
+   "text": "Qu’est-ce qui décrit le mieux ton genre ?",
+   "options": {
+    "male": "Homme",
+    "female": "Femme",
+    "other": "Autre",
+    "prefer_not_say": "Je préfère ne pas répondre"
+   }
+  },
+  "country": {
+   "text": "Dans quel pays vis-tu ?"
+  }
+ }
 }

@@ -1,6 +1,6 @@
 {
- "$comment": "Zulu — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; empty means the language has no question translations yet. Edit via the translation sheet (docs/TRANSLATION.md).",
- "ui_status": "draft",
+ "$comment": "Zulu — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; Edit via the translation sheet (docs/TRANSLATION.md).",
+ "ui_status": "machine-draft — complete; needs a fluent reviewer and researcher sign-off (docs/TRANSLATION.md)",
  "ui": {
   "back": "← Emuva",
   "begin": "Qala →",
@@ -44,7 +44,490 @@
   "type_here": "Bhala okuningi noma okuncane ngendlela othanda ngayo…",
   "waiting_signal": "Ilinde isiginali",
   "welcome_body": "{org} ifuna ukufunda ukuhamba nabasha njengoba belandela uJesu. Izimpendulo zakho eziqotho ziyasiza. Kuthatha cishe imizuzu engu-{minutes} futhi akuvezi ukuthi ungubani.",
-  "welcome_title": "Uyamenywa ukuba wabelane ngokuthi [ukuphi manje]."
+  "welcome_title": "Uyamenywa ukuba wabelane ngokuthi [ukuphi manje].",
+  "about_body": "Asikubuzi igama lakho, i-imeyili noma inombolo yocingo, futhi asigcini ikheli lakho le-inthanethi kanye nezimpendulo zakho. Sibuza kuphela iqembu lakho leminyaka nokuthi uhlala kuphi cishe. I-{org} ibona kuphela imiphumela ehlanganisiwe yabantu abaningi — ayilokothi ibone izimpendulo zakho zodwa. Ungayeka noma nini ngokuvala leli khasi.",
+  "about_title": "Okwenzeka ezimpendulweni zakho",
+  "chars_left": "Kusele izinhlamvu ezingu-{n}",
+  "choose_country": "Khetha izwe lakho",
+  "ended_body": "Lolu cwaningo lungolwabantu abaneminyaka eyi-13 kuya kwengama-30, ngakho akukho okunye okumele ukuphendule. Siyabonga ngokuvakasha — akukho nokukodwa okukhethile okugciniwe.",
+  "ended_title": "Siyabonga ngokuvakasha!",
+  "no": "Cha",
+  "collection_locked_banner": "Ukubuka kuqala — Inkomba ayikaqali ukuqoqa izimpendulo, ngakho izimpendulo zakho azigcinwa.",
+  "privacy_link": "Funda isaziso esiphelele sobumfihlo",
+  "yes": "Yebo"
  },
- "items": {}
+ "items": {
+  "age_band": {
+   "text": "Uneminyaka emingaki?",
+   "options": {
+    "under_13": "12 noma ngaphansi",
+    "13_17": "13–17",
+    "18_22": "18–22",
+    "23_30": "23–30",
+    "over_30": "31 noma ngaphezulu"
+   }
+  },
+  "orientation": {
+   "text": "Yikuphi kulokhu okufana nawe kakhulu njengamanje?",
+   "options": {
+    "confident_no_god": "Ngiqinisekile ukuthi uNkulunkulu akekho",
+    "open_not_exploring": "Ngivulekile, kodwa angihloli",
+    "open_exploring": "Ngivulekile, futhi ngihlola ngenkuthalo",
+    "other_religion": "UNkulunkulu ukhona, kodwa ngilandela enye inkolo",
+    "interested_jesus": "Nginentshisekelo kuJesu, ngifuna ukwazi okwengeziwe",
+    "new_follower": "Ngisanda kuqala ukulandela uJesu",
+    "committed_growing": "Ngizinikele, ngikhula ngenkuthalo",
+    "none_of_these": "Akukho kulokhu okuchaza mina",
+    "prefer_not_say": "Ngikhetha ukungasho"
+   }
+  },
+  "follower_check": {
+   "text": "Ingabe njengamanje uzibona njengomlandeli kaJesu?",
+   "options": {
+    "yes": "Yebo",
+    "no": "Cha",
+    "not_sure": "Angiqiniseki",
+    "prefer_not_say": "Ngikhetha ukungasho"
+   }
+  },
+  "follow_exposure_internal": {
+   "text": "Ngifuna ukuqhubeka ngifunda kabanzi ngokuthi uJesu ungubani nokuthi wafundisani."
+  },
+  "follow_exposure_external": {
+   "text": "Ngike ngathola amathuba okufunda lokho uJesu akufundisa nokuthi kungani kubalulekile."
+  },
+  "follow_response_internal": {
+   "text": "Ngikholwa ukuthi intethelelo yezono itholakala kuphela ngokukholwa kuJesu."
+  },
+  "follow_response_external": {
+   "text": "Ngikhethe ukulandela uJesu, engikholwa ukuthi unguNkulunkulu."
+  },
+  "follow_formation_internal": {
+   "text": "IBhayibheli lingiphonsela inselelo yokucabanga kabusha ngezinqumo nokuziphatha kwami."
+  },
+  "follow_formation_external": {
+   "text": "Ngithandaza ngezindlela ezingingenisa ebudlelwaneni bomuntu siqu noNkulunkulu."
+  },
+  "follow_multiplication_internal": {
+   "text": "Ngikholwa ukuthi ivangeli liyizindaba ezinhle empilweni yami futhi kufanele ukuba ngabelane ngalo nabantu abangewona amaKristu."
+  },
+  "follow_multiplication_external": {
+   "text": "Ezinyangeni eziyisithupha ezedlule, ngike ngatshela umuntu ongamlandeli uJesu okuthile ngoJesu."
+  },
+  "mission_exposure_internal": {
+   "text": "Ngiyaqonda ukuthi kusho ukuthini ukuba yingxenye yomsebenzi kaJesu."
+  },
+  "mission_exposure_external": {
+   "text": "Njengamanje nginomuntu ongisizayo ukulandela uJesu."
+  },
+  "mission_response_internal": {
+   "text": "Ngikholwa ukuthi ukwabelana ngomlayezo kaJesu kuyingxenye yokumlandela."
+  },
+  "mission_response_external": {
+   "text": "Ngamukele ukuba yingxenye yomsebenzi kaJesu njengomthwalo wami njengomlandeli kaJesu."
+  },
+  "attention_check": {
+   "text": "Ukuze sazi ukuthi ufunda ngokucophelela, sicela ukhethe ethi “Kuyiqiniso ngami kancane” kulo mbuzo."
+  },
+  "mission_formation_internal": {
+   "text": "Ukusebenzela abanye njengengxenye yomphakathi wobuKristu kuyingxenye ebalulekile yendlela engilandela ngayo uJesu."
+  },
+  "mission_formation_external": {
+   "text": "Ngizama ukukhombisa abantu abangewona amaKristu ukuthi ukulandela uJesu kuyibumba kanjani impilo yami yansuku zonke."
+  },
+  "mission_multiplication_internal": {
+   "text": "Ngifuna ukumema abanye abantu ukuthi bangijoyine emisebenzini exhumene nomsebenzi kaJesu."
+  },
+  "mission_multiplication_external": {
+   "text": "Ngike ngasiza omunye umuntu ukuba akhule ekulandeleni uJesu."
+  },
+  "world_exposure_internal": {
+   "text": "Ngikholwa ukuthi ukulandela uJesu kuletha okuhle kwangempela kubantu nasemhlabeni."
+  },
+  "world_exposure_external": {
+   "text": "Ngenza izinqumo eziqondisa impilo yami entweni enkulu kunami."
+  },
+  "world_response_internal": {
+   "text": "Ngikholwa ukuthi ukholo lwami lumayelana nokungaphezu kwempilo yami siqu. Kufanele lulethe umehluko emhlabeni."
+  },
+  "world_response_external": {
+   "text": "Ukulandela uJesu kwenza umehluko wangempela endleleni engiphatha ngayo abantu nendlela engisabela ngayo ezidingweni ezingizungezile."
+  },
+  "world_formation_internal": {
+   "text": "Ngifuna ukwenza intando kaNkulunkulu empilweni yami yansuku zonke, ngisho noma ihlukile kweyami."
+  },
+  "world_formation_external": {
+   "text": "Ukuba umuntu onothando olukhulu kubo bonke abangizungezile yinto engisebenza kuyo nsuku zonke."
+  },
+  "world_multiplication_internal": {
+   "text": "Ngikholwa ukuthi abalandeli bakaJesu kufanele basebenze ndawonye ukuletha izinguquko ezinhle emiphakathini yabo."
+  },
+  "world_multiplication_external": {
+   "text": "Ngikhuthaza amanye amaKristu ukuthi axhumanise ukholo lwawo nendlela aphila futhi akhonza ngayo."
+  },
+  "pray_frequency": {
+   "text": "Ngithandaza kuNkulunkulu.",
+   "options": {
+    "0": "Ngokungavamile noma angikaze",
+    "1": "Nyanga zonke",
+    "2": "Masonto onke",
+    "3": "Izinsuku eziningi"
+   }
+  },
+  "scripture_frequency": {
+   "text": "Ngifunda noma ngilalela umBhalo.",
+   "options": {
+    "0": "Ngokungavamile noma angikaze",
+    "1": "Nyanga zonke",
+    "2": "Masonto onke",
+    "3": "Izinsuku eziningi"
+   }
+  },
+  "follow_exposure_internal_unengaged": {
+   "text": "Nginentshisekelo yokuzwa imibono ehlukene ngoNkulunkulu noma ngezikamoya."
+  },
+  "follow_exposure_external_unengaged": {
+   "text": "Ngike ngathola amathuba okuzwa lokho amaKristu akukholelwayo ngoJesu."
+  },
+  "follow_response_internal_unengaged": {
+   "text": "Ngicabanga ukuthi kukhona okuthile emvelweni yomuntu okudinga ukulungiswa, okungaphezu kwalokho esingakwenza sodwa."
+  },
+  "follow_response_external_unengaged": {
+   "text": "Ngike ngacabanga ngezizathu zokukholwa nezokungakholwa kuNkulunkulu."
+  },
+  "follow_formation_internal_unengaged": {
+   "text": "Ngicabanga ukuthi iBhayibheli linikeza okuthile okufanele kucatshangelwe mayelana nokuthi umuntu aphile kanjani."
+  },
+  "follow_formation_external_unengaged": {
+   "text": "Ngiyazinikela isikhathi sokuzindla ngemibuzo ephathelene noNkulunkulu, ezikamoya, noma incazelo yempilo."
+  },
+  "follow_multiplication_internal_unengaged": {
+   "text": "Ngicabanga ukuthi ukukhuluma ngemibuzo yokholo kungaba nenzuzo, ngisho noma abantu befinyelela eziphethweni ezihlukene."
+  },
+  "follow_multiplication_external_unengaged": {
+   "text": "Ezinyangeni eziyisithupha ezedlule, ngike ngakhuluma nomuntu ngemibono noma imibuzo yami ngoNkulunkulu noma ngezikamoya."
+  },
+  "mission_exposure_internal_unengaged": {
+   "text": "Ngiyaqonda ukuthi kungani amaKristu efuna ukwabelana ngokholo lwawo nabanye."
+  },
+  "mission_exposure_external_unengaged": {
+   "text": "Ngiyamazi umuntu engingakhuluma naye ngokwethembeka ngoNkulunkulu noma ngezikamoya."
+  },
+  "mission_response_internal_unengaged": {
+   "text": "Ngikhethe ukuthatha umthwalo wokuletha umehluko omuhle emhlabeni ongizungezile."
+  },
+  "mission_response_external_unengaged": {
+   "text": "Ngikholwa ukuthi nginendima engingayidlala ekwenzeni umhlaba ube yindawo engcono."
+  },
+  "attention_check_unengaged": {
+   "text": "Ukuze sazi ukuthi ufunda ngokucophelela, sicela ukhethe ethi “Kuyiqiniso ngami kancane” kulo mbuzo."
+  },
+  "mission_formation_internal_unengaged": {
+   "text": "Ukuba yingxenye yomphakathi osiza abanye kubalulekile kimi."
+  },
+  "mission_formation_external_unengaged": {
+   "text": "Ngibamba iqhaza emisebenzini nabanye abantu efaka izinkolelo nezimiso zami ekusebenzeni."
+  },
+  "mission_multiplication_internal_unengaged": {
+   "text": "Ngifuna ukumema abanye emisebenzini ekhombisa lokho engikholwa ukuthi kubalulekile."
+  },
+  "mission_multiplication_external_unengaged": {
+   "text": "Ngike ngasiza umuntu ukuthi acabange ngezinkolelo zakhe noma imibuzo yakhe ngokholo."
+  },
+  "world_exposure_internal_unengaged": {
+   "text": "Ngicabanga ukuthi ukholo noma ezikamoya kungakhuthaza abantu ukuthi balethe umehluko omuhle emhlabeni."
+  },
+  "world_exposure_external_unengaged": {
+   "text": "Ngenza izinqumo eziqondisa impilo yami entweni enkulu kunami."
+  },
+  "world_response_internal_unengaged": {
+   "text": "Ngikholwa ukuthi izimiso zami kufanele zenze umehluko ngaphezu kwempilo yami siqu."
+  },
+  "world_response_external_unengaged": {
+   "text": "Izinkolelo nezimiso zami zenza umehluko wangempela endleleni engiphatha ngayo abantu nendlela engisabela ngayo ezidingweni ezingizungezile."
+  },
+  "world_formation_internal_unengaged": {
+   "text": "Ngizama ukwenza engikholwa ukuthi kulungile, ngisho noma kungqubuzana nalokho engikufunayo."
+  },
+  "world_formation_external_unengaged": {
+   "text": "Ukuba umuntu onothando olukhulu kubo bonke abangizungezile yinto engisebenza kuyo nsuku zonke."
+  },
+  "world_multiplication_internal_unengaged": {
+   "text": "Ngikholwa ukuthi abantu abanemibono ehlukene yenkolo noma engeyona eyenkolo bangasebenza ndawonye ukuthuthukisa imiphakathi yabo."
+  },
+  "world_multiplication_external_unengaged": {
+   "text": "Ngikhuthaza abantu abangizungezile ukuthi bafake izimiso zabo ekusebenzeni endleleni abaphila ngayo nabasiza ngayo abanye."
+  },
+  "driver_sources_of_belief_engaged": {
+   "text": "Yikuphi kulokhu okubumba kakhulu lokho okukholelwayo ngoJesu nangokholo? Khetha okungafika kokuthathu.",
+   "options": {
+    "own_judgment": "Ukwahlulela kwami",
+    "bible": "IBhayibheli",
+    "family": "Umndeni",
+    "friends": "Abangane noma abanye abantu engibethembayo",
+    "church_leaders": "Ibandla noma abaholi bobuKristu",
+    "peers": "Amanye amaKristu angontanga yami",
+    "personal_experiences": "Okuhlangenwe nakho kwami siqu",
+    "social_media": "Izinkundla zokuxhumana, ama-podcast, noma okunye okuqukethwe ku-inthanethi",
+    "not_sure": "Angiqiniseki",
+    "other": "Okunye"
+   }
+  },
+  "driver_conditions_for_growth_engaged": {
+   "text": "Yikuphi kulokhu okuyiqiniso ngawe njengamanje? Khetha konke okusebenzayo.",
+   "options": {
+    "asked_for_help": "Ngike ngacela umuntu ukuthi angisize ngikhule okholweni lwami.",
+    "time_for_practices": "Ngiyakwazi ukuthola isikhathi sokuthandaza, ukufunda iBhayibheli, noma ukufunda ngoJesu.",
+    "safe_place": "Nginendawo ephephile lapho ngingathembeka khona ngezinkinga zami ekulandeleni uJesu.",
+    "community_influence": "Ngichitha isikhathi nabantu abangisiza ukuba ngifane kakhulu noJesu.",
+    "ask_questions": "Nginamathuba okubuza imibuzo eqotho ngokholo lwami.",
+    "feel_connected": "Ngizizwa ngixhumene nomphakathi wobuKristu.",
+    "none": "Akukho kulokhu okuyiqiniso ngami njengamanje."
+   }
+  },
+  "driver_confidence_and_agency_engaged": {
+   "text": "Yini ethinta ukuzimisela kwakho ukwabelana ngokholo lwakho? Khetha konke okusebenzayo.",
+   "options": {
+    "confidence": "Ukuqiniseka ngalokho engikukholwayo",
+    "fear_of_response": "Ukwesaba ukuthi abanye bangasabela kanjani",
+    "feeling_equipped": "Ukuthi ngizizwa ngilungele yini",
+    "seeing_others": "Ukubona abanye besabelana ngokholo lwabo",
+    "relationships": "Ubudlelwano bami nabantu abangewona amaKristu",
+    "responsibility": "Ukuthi ngiyakholwa yini ukuthi ukwabelana ngokholo lwami kungumthwalo wami",
+    "opportunity": "Ukuba nethuba lokwabelana",
+    "invited_alongside": "Ukumenywa ukuba ngabelane kanye nabanye abantu",
+    "other": "Okunye"
+   }
+  },
+  "driver_relational_risk_engaged": {
+   "text": "Yikuphi kulokhu okuchaza indlela ozizwa ngayo ngokukhuluma ngokholo nabantu abangewona amaKristu? Khetha konke okusebenzayo.",
+   "options": {
+    "naturally": "Ngikhuluma ngakho ngokwemvelo.",
+    "close_people_only": "Ngikhuluma ngakho ikakhulukazi nabantu engisondelene nabo.",
+    "when_relevant": "Ngivulekile ukukhuluma ngakho uma kuzwakala kuyiqiniso noma kufanele.",
+    "wait_to_be_asked": "Ngokuvamile ngilinda ukuthi ngibuzwe ngakho.",
+    "avoid_it": "Ngiyakugwema ngoba ngifuna ubudlelwano buhlale bukhululekile.",
+    "worry_offending": "Ngikhathazeka ngokucasula abantu.",
+    "unsure_how": "Angiqiniseki ukuthi ngikuqala kanjani.",
+    "other": "Okunye"
+   }
+  },
+  "journey_encounter_and_response_engaged": {
+   "text": "Yibaphi abantu noma okuhlangenwe nakho okwakubaluleke kakhulu ekukusizeni ukuhlangana noJesu, ukumqonda, nokumsabela? Khetha konke okusebenzayo.",
+   "options": {
+    "friend_peer": "Umngane noma ontanga yami",
+    "family_member": "Ilungu lomndeni",
+    "church_gathering": "Umhlangano webandla",
+    "ministry_leader": "Umholi webandla noma wenkonzo",
+    "school_campus": "Okuhlangenwe nakho esikoleni noma enyuvesi",
+    "online_social": "Okuqukethwe ku-inthanethi noma izinkundla zokuxhumana",
+    "outreach_service": "Okuhlangenwe nakho kokushumayela noma kokusiza",
+    "clear_talk": "Inkulumo noma isethulo esicacile",
+    "personal_conversation": "Ingxoxo yomuntu siqu",
+    "course_discussion": "Isifundo noma ingxoxo eholwayo",
+    "reading_bible": "Ukufunda iBhayibheli ngokwami",
+    "significant_moment": "Okuhlangenwe nakho noma isikhathi esibalulekile empilweni yami",
+    "other": "Okunye"
+   }
+  },
+  "journey_continued_formation_engaged": {
+   "text": "Yini ekusizile ukuthi ukhule ufane kakhulu noJesu endleleni ophila ngayo? Khetha konke okusebenzayo.",
+   "options": {
+    "mentoring": "Ukwelulekwa komuntu nomuntu",
+    "christian_friends": "Izingxoxo nabangane abangamaKristu",
+    "challenged_encouraged": "Ukuphonselwa inselelo noma ukukhuthazwa",
+    "group_learning": "Ukufunda eqenjini",
+    "welcomed_community": "Ukwamukelwa emphakathini wobuKristu",
+    "shared_practices": "Imikhuba yokuhlanganyela njengomthandazo, ukukhonza, noma ukudla ndawonye",
+    "studying_bible": "Ukufunda noma ukutadisha iBhayibheli",
+    "observing": "Ukubuka ukuthi elinye iKristu liphila kanjani",
+    "teaching_preaching": "Ukufundisa noma ukushumayela",
+    "serving_alongside": "Ukukhonza kanye nabanye abantu",
+    "local_church": "Ibandla lendawo",
+    "online_community": "Umphakathi wobuKristu ku-inthanethi",
+    "other": "Okunye"
+   }
+  },
+  "journey_participation_in_mission_engaged": {
+   "text": "Yini ekusizile ukuthi uqale ukuphila noma ukwabelana ngokholo lwakho kuJesu? Khetha konke okusebenzayo.",
+   "options": {
+    "encouraged_invited": "Othile wangikhuthaza noma wangimema.",
+    "opportunity_to_serve": "Ngathola ithuba lokusiza.",
+    "trained_shown": "Ngaqeqeshwa noma ngakhonjiswa ukuthi kwenziwa kanjani.",
+    "did_it_alongside": "Ngakwenza kanye nabanye abantu.",
+    "personal_conviction": "Ngaba nokukholelwa okuqinile kwami siqu.",
+    "saw_model": "Ngabona omunye umuntu eyisibonelo.",
+    "church_provided": "Ibandla noma inkonzo yanginika ithuba.",
+    "other": "Okunye"
+   }
+  },
+  "journey_multiplication_engaged": {
+   "text": "Yini engakusiza ukuthi uthathe isinyathelo esilandelayo ekusizeni abanye ukulandela uJesu? Khetha konke okusebenzayo.",
+   "options": {
+    "someone_to_guide": "Umuntu ozongiqondisa",
+    "clear_next_steps": "Izinyathelo ezilandelayo ezicacile",
+    "training_tools": "Ukuqeqeshwa noma amathuluzi asebenzayo",
+    "opportunity_to_try": "Ithuba lokuzama",
+    "encouragement": "Ukukhuthazwa",
+    "others_to_do_it_with": "Abanye abantu engingakwenza nabo",
+    "greater_confidence": "Ukuqiniseka okukhulu ngalokho engikukholwayo",
+    "already_equipped": "Lutho; sengivele ngizizwa ngilungele ukuthatha lesi sinyathelo",
+    "not_interested": "Anginantshisekelo yokuthatha lesi sinyathelo",
+    "other": "Okunye"
+   }
+  },
+  "driver_sources_of_belief_unengaged": {
+   "text": "Yikuphi kulokhu okubumba kakhulu imibono yakho ngoNkulunkulu, inkolo, noma ezikamoya? Khetha okungafika kokuthathu.",
+   "options": {
+    "own_judgment": "Ukwahlulela kwami",
+    "family": "Umndeni",
+    "friends": "Abangane noma abanye abantu engibethembayo",
+    "church_leaders": "Ibandla noma abaholi bobuKristu",
+    "peers": "AmaKristu angontanga yami",
+    "personal_experiences": "Okuhlangenwe nakho kwami siqu",
+    "social_media": "Izinkundla zokuxhumana, ama-podcast, noma okunye okuqukethwe ku-inthanethi",
+    "science": "Isayensi noma ubufakazi",
+    "teachers": "Othisha noma imfundo",
+    "bible": "IBhayibheli",
+    "other_books": "Izincwadi noma imibono engaphandle kobuKristu",
+    "other_communities": "Eminye imiphakathi yenkolo noma engeyona eyenkolo",
+    "not_sure": "Angiqiniseki",
+    "other": "Okunye",
+    "none": "Akukho kulokhu"
+   }
+  },
+  "driver_conditions_for_growth_unengaged": {
+   "text": "Yikuphi kulokhu okuyiqiniso ngawe njengamanje? Khetha konke okusebenzayo.",
+   "options": {
+    "asked_for_help": "Ngike ngacela umuntu ukuthi angisize ngicabange ngemibuzo yokholo noma incazelo yempilo.",
+    "time_for_practices": "Ngiyazinikela isikhathi sokucabanga ngemibuzo yokholo noma incazelo yempilo.",
+    "safe_place": "Nginendawo ephephile lapho ngingathembeka khona ngezinkolelo zami, ukungabaza kwami, noma ukungakholwa kwami.",
+    "community_influence": "Ngichitha isikhathi nabantu abangisiza ukuthi ngicabange ngohlobo lomuntu engifuna ukuba nguye.",
+    "ask_questions": "Nginamathuba okubuza imibuzo eqotho ngenkolo noma ngezikamoya.",
+    "feel_connected": "Ngizizwa ngamukelekile kumaKristu engiwaziyo, noma sivumelana ngokholo noma singavumelani.",
+    "none": "Akukho kulokhu okuyiqiniso ngami njengamanje."
+   }
+  },
+  "driver_confidence_and_agency_unengaged": {
+   "text": "Yini ethinta ukuzimisela kwakho ukukhuluma ngezinkolelo zakho, ukungabaza kwakho, noma ukungakholwa kwakho? Khetha konke okusebenzayo.",
+   "options": {
+    "confidence": "Ukuqiniseka ngemibono yami",
+    "fear_of_response": "Indlela engilindele ukuthi abanye basabele ngayo",
+    "feeling_equipped": "Ukuthi ngiyakwazi yini ukuchaza imibono yami",
+    "seeing_others": "Ukubona abanye bekhuluma ngokukhululekile ngezinkolelo zabo",
+    "relationships": "Ubudlelwano bami nabantu abanezinkolelo ezihlukile kwezami",
+    "worthwhile": "Ukuthi ngicabanga ukuthi ingxoxo izoba nenzuzo yini",
+    "opportunity": "Ukuba nethuba lokukhuluma",
+    "invited_alongside": "Ukumenywa engxoxweni",
+    "taken_seriously": "Ukuthi imibuzo yami izothathwa ngokungathi sina yini",
+    "pressure_to_change": "Ukuthi ngingazizwa ngicindezelwa yini ukuthi ngishintshe izinkolelo zami",
+    "interest": "Ukuthi isihloko siyangithakazelisa yini",
+    "other": "Okunye",
+    "none": "Akukho kulokhu",
+    "not_sure": "Angiqiniseki"
+   }
+  },
+  "driver_relational_risk_unengaged": {
+   "text": "Uzizwa kanjani ngokukhuluma namaKristu ngenkolo noma ngokukholwa? Khetha konke okusebenzayo.",
+   "options": {
+    "naturally": "Ngikhuluma ngakho ngokwemvelo.",
+    "close_people_only": "Ngikhuluma ngakho ikakhulukazi nabantu engisondelene nabo.",
+    "when_relevant": "Ngivulekile ukukhuluma ngakho uma kuzwakala kuhlobene nempilo yami.",
+    "wait_to_be_asked": "Ngokuvamile ngilinda ukuthi ngibuzwe ngakho.",
+    "avoid_it": "Ngiyakugwema ngoba ngifuna ubudlelwano buhlale bukhululekile.",
+    "worry_offending": "Ngikhathazeka ngokucasula abantu.",
+    "unsure_how": "Angiqiniseki ukuthi ngikuqala kanjani.",
+    "worry_judged": "Ngikhathazeka ngokuthi imibono yami izokwahlulelwa noma ichithwe.",
+    "worry_pressured": "Ngikhathazeka ngokuthi ngizocindezelwa ukuthi ngibe ngumKristu.",
+    "not_interested": "Anginantshisekelo kulezi zingxoxo.",
+    "no_christians": "Angilazi nelilodwa iKristu engingakhuluma nalo.",
+    "other": "Okunye",
+    "not_sure": "Angiqiniseki"
+   }
+  },
+  "journey_encounter_and_response_unengaged": {
+   "text": "Yibaphi abantu noma okuhlangenwe nakho okubumbe kakhulu imibono yakho ngoJesu noma ngobuKristu? Khetha konke okusebenzayo.",
+   "options": {
+    "friend_peer": "Umngane noma ontanga yami",
+    "family_member": "Ilungu lomndeni",
+    "church_gathering": "Umhlangano webandla lobuKristu",
+    "ministry_leader": "Umholi webandla noma wenkonzo yobuKristu",
+    "school_campus": "Okuhlangenwe nakho esikoleni noma enyuvesi",
+    "online_social": "Okuqukethwe ku-inthanethi noma izinkundla zokuxhumana",
+    "clear_talk": "Inkulumo noma isethulo",
+    "personal_conversation": "Ingxoxo yomuntu siqu",
+    "course_discussion": "Isifundo noma ingxoxo eholwayo",
+    "reading_bible": "Ukufunda iBhayibheli ngokwami",
+    "significant_moment": "Okuhlangenwe nakho noma isikhathi esibalulekile empilweni yami",
+    "other_books": "Izincwadi noma imibono engaphandle kobuKristu",
+    "other": "Okunye",
+    "none": "Akukho kulokhu",
+    "not_sure": "Angiqiniseki"
+   }
+  },
+  "journey_continued_formation_unengaged": {
+   "text": "Yini ekusizile ukuthi wakhe imibono yakho ngohlobo lomuntu ofuna ukuba nguye? Khetha konke okusebenzayo.",
+   "options": {
+    "mentoring": "Ukwelulekwa komuntu nomuntu",
+    "friends": "Izingxoxo nabangane",
+    "challenged_encouraged": "Ukuphonselwa inselelo noma ukukhuthazwa",
+    "group_learning": "Ukufunda eqenjini",
+    "welcomed_community": "Ukwamukelwa emphakathini",
+    "shared_activities": "Imisebenzi yokuhlanganyela njengokudla, ukuzindla, noma ingxoxo",
+    "studying_ideas": "Ukufunda noma ukutadisha imibono ebalulekile kimi",
+    "observing": "Ukubuka ukuthi omunye umuntu uphila kanjani",
+    "teaching_talks": "Ukufundisa noma izinkulumo",
+    "serving_alongside": "Ukukhonza kanye nabanye abantu",
+    "online_community": "Umphakathi we-inthanethi",
+    "time_alone": "Isikhathi sokucabanga ngedwa",
+    "other": "Okunye",
+    "nothing": "Akukho okungisize ngale ndlela",
+    "not_sure": "Angiqiniseki"
+   }
+  },
+  "journey_participation_in_mission_unengaged": {
+   "text": "Uma kukhona, yini engakwenza ungabaze ukujoyina umsebenzi ohlelwe yiqembu lobuKristu? Khetha konke okusebenzayo.",
+   "options": {
+    "not_interested": "Anginantshisekelo emisebenzini abayinikezayo.",
+    "would_not_know_anyone": "Bengingeke ngazi muntu lapho.",
+    "unsure_what_to_expect": "Bengingeke ngazi ukuthi ngilindeleni.",
+    "worry_pressured": "Bengizokhathazeka ngokucindezelwa ukuthi ngamukele izinkolelo zobuKristu.",
+    "worry_judged": "Bengizokhathazeka ngokwahlulelwa noma ngokungamukelwa.",
+    "conflicting_values": "Ezinye zezinkolelo noma izimiso zabo zingqubuzana nezami.",
+    "negative_experience": "Ngike ngaba nokuhlangenwe nakho okubi neqembu lobuKristu.",
+    "practical_issues": "Izindaba ezingokoqobo, njengesikhathi, ezokuthutha, noma izindleko.",
+    "nothing": "Akukho okungangenza ngingabaze.",
+    "not_sure": "Angiqiniseki."
+   }
+  },
+  "journey_multiplication_unengaged": {
+   "text": "Uma kukhona, yini ekwenza kube nzima ukuthi ucabange ngokulandela uJesu? Khetha konke okusebenzayo.",
+   "options": {
+    "dont_know_enough": "Angazi okwanele ngoJesu noma ngobuKristu.",
+    "not_convinced": "Angikholiseki ukuthi izinkolelo zobuKristu ziyiqiniso.",
+    "unanswered_questions": "Nginemibuzo engingakatholi izimpendulo ezanelisayo zayo.",
+    "conflicting_teachings": "Ezinye izimfundiso zobuKristu zingqubuzana nemibono noma izimiso zami.",
+    "suffering_injustice": "Ukuhlupheka nokungabi nabulungisa kwenza kube nzima kimi ukukholwa kuNkulunkulu.",
+    "bad_experiences": "Okuhlangenwe nakho kwami namaKristu noma amabandla kungiqhelisile.",
+    "worry_response": "Bengizokhathazeka ngokuthi abantu engisondelene nabo bangasabela kanjani.",
+    "worry_change": "Bengizokhathazeka ngokuthi yini engangilindela ukuthi ngiyishintshe.",
+    "satisfied": "Ngenelisekile ngezinkolelo zami zamanje noma umbono wami ngempilo.",
+    "not_thought_about": "Ukulandela uJesu akuyona into engike ngacabanga ngayo.",
+    "other": "Okunye",
+    "not_sure": "Angiqiniseki."
+   }
+  },
+  "gender": {
+   "text": "Yikuphi okuchaza kangcono ubulili bakho?",
+   "options": {
+    "male": "Owesilisa",
+    "female": "Owesifazane",
+    "other": "Okunye",
+    "prefer_not_say": "Ngikhetha ukungasho"
+   }
+  },
+  "country": {
+   "text": "Uhlala kuliphi izwe?"
+  }
+ }
 }

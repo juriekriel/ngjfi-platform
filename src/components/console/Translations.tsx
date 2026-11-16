@@ -65,6 +65,24 @@ const REACH_DOC = reachJson as unknown as {
 const REACH = REACH_DOC.languages;
 /** 1-based priority rank of a world language (by its own code, or the base code of a regional variant). */
 const RANK = new Map(REACH_DOC.priority.map((c, i) => [c, i + 1]));
+/** Where each figure comes from — the original datasets, for anyone checking a number. */
+const SOURCE_LINKS: { label: string; what: string; href: string }[] = [
+  { label: "UN World Population Prospects 2024", what: "young people per country", href: "https://population.un.org/wpp/" },
+  { label: "Unicode CLDR", what: "who speaks which language, per country", href: "https://www.unicode.org/cldr/charts/latest/supplemental/territory_language_information.html" },
+  { label: "ITU via the World Bank", what: "internet use per country", href: "https://data.worldbank.org/indicator/IT.NET.USER.ZS" },
+  { label: "Open Doors World Watch List 2026", what: "how open each country is", href: "https://opendoors.org/research-reports/wwl-documentation/WWL2026-Table-of-Scores-and-Ranks-50-points-v2.pdf" },
+];
+/** Open the method note and bring it into view — the target of every "Source" link. */
+function showMethod(e: React.MouseEvent) {
+  const d = document.getElementById("reach-method") as HTMLDetailsElement | null;
+  if (!d) return;
+  e.preventDefault();
+  d.open = true;
+  d.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  d.querySelector("summary")?.focus();
+}
+const sourceLink =
+  "text-[11.5px] font-semibold text-violet-deeper underline decoration-violet/40 underline-offset-2 hover:decoration-violet-deeper";
 const share = (x: number) => `${Math.round(x * 100)}%`;
 const accessTitle = (r: Reach) =>
   `${share(r.access)} accessible: ${share(r.online)} online, ${share(r.open)} open to field. ` +
@@ -216,7 +234,12 @@ export default function Translations() {
         <p className="mt-1.5 text-[12px] text-muted">Highest priority on the left.</p>
 
         <div className="mt-6 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h3 className="text-[16px] font-bold tracking-tight text-ink">Priority</h3>
+          <h3 className="flex items-baseline gap-2 text-[16px] font-bold tracking-tight text-ink">
+            Priority
+            <a href="#reach-method" onClick={showMethod} className={sourceLink}>
+              Where these numbers come from
+            </a>
+          </h3>
           <p className="text-[13px] text-ink-2">Young people a translation could actually reach: under 30, able to read it, online, and where a faith survey can be run safely.</p>
         </div>
         <div className="mt-2 overflow-x-auto rounded-xl border border-rule bg-plate">
@@ -268,7 +291,7 @@ export default function Translations() {
           </table>
         </div>
 
-        <details className="mt-3 text-[13px] text-ink-2">
+        <details id="reach-method" className="mt-3 scroll-mt-6 text-[13px] text-ink-2">
           <summary className="cursor-pointer font-semibold text-ink">How this is worked out</summary>
           <div className="mt-2 max-w-measure space-y-2 text-[12.5px] leading-relaxed">
             <p>
@@ -284,10 +307,23 @@ export default function Translations() {
             <p>
               <b className="text-ink">Reachable</b> — under 30 × can read it × accessible. Priority is this number, highest first.
             </p>
-            <p>
-              Sources: {REACH_DOC.sources.population}; {REACH_DOC.sources.languages}; {REACH_DOC.sources.online}; {REACH_DOC.sources.open}.
-              Generated {REACH_DOC.generated} by <code className="font-mono">scripts/language-reach.mjs</code>.
-            </p>
+            <div>
+              <p className="font-semibold text-ink">Sources</p>
+              <ul className="mt-1 space-y-0.5">
+                {SOURCE_LINKS.map((l) => (
+                  <li key={l.href}>
+                    <a href={l.href} target="_blank" rel="noopener noreferrer" className="font-semibold text-violet-deeper underline decoration-violet/40 underline-offset-2 hover:decoration-violet-deeper">
+                      {l.label}
+                    </a>{" "}
+                    — {l.what}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-1">
+                Exact editions: {REACH_DOC.sources.population}; {REACH_DOC.sources.languages}; {REACH_DOC.sources.online}; {REACH_DOC.sources.open}.
+                Generated {REACH_DOC.generated} by <code className="font-mono">scripts/language-reach.mjs</code>.
+              </p>
+            </div>
             <p>
               Estimates, for ordering work — not a count of anyone. They assume a language is spoken by the same share at every age, and the open
               factor is a judgement for researchers to set, not a measure of where the Church should be.
@@ -347,6 +383,10 @@ export default function Translations() {
                               <p className="tabular text-[12px] text-ink-2">
                                 {share(REACH[r.code].access)} accessible
                                 {RANK.get(r.code.split("-")[0]) && !r.code.includes("-") ? ` · priority #${RANK.get(r.code)}` : ""}
+                                {" · "}
+                                <a href="#reach-method" onClick={showMethod} className={sourceLink}>
+                                  Source
+                                </a>
                               </p>
                             </>
                           ) : (

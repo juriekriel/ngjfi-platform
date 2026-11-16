@@ -94,9 +94,26 @@ Collab owns review and release. An organisation's custom welcome message is
 shown to English-language respondents; other languages see the translated
 standard welcome.
 
+## State of the translations (Nov 2026)
+
+Every survey language is **complete**: every screen, question, answer option
+and demographic question a respondent can meet, in Portuguese, French,
+German, Italian, Russian, Arabic, Mandarin (Simplified), Japanese, Hindi,
+Indonesian, Thai, Swahili, Zulu and Afrikaans, with Spanish (and its Latin
+American and European variants) through the instrument. Country names come
+from the phone's own language data (`Intl.DisplayNames`).
+
+These are **machine drafts** (`ui_status` says so in each file), so they sit
+at `review`, not `live`. Before any goes live: a fluent reviewer reads it,
+a researcher checks the scored questions (ideally against a back-translation),
+and a reviewed PR sets `live`. The attention-check questions quote each
+language's own answer label, and a test keeps it that way. The Arabic
+dialects stay `requested` and show Modern Standard Arabic until a dialect
+version is written.
+
 ## Open questions for researchers
 
-- **Spanish** is complete and marked `review` — approve to make it live.
+- **Spanish** and the other complete languages are at `review` — approve each to make it live.
 - **Arabic dialects** (Egyptian, Levantine, Gulf, Maghrebi): written dialect or
   Modern Standard Arabic for a survey? Which dialects are fielded?
 - **Mandarin:** Simplified only, or Traditional (`zh-Hant`) too?

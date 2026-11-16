@@ -1,6 +1,6 @@
 {
- "$comment": "Arabic (Modern Standard) — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; empty means the language has no question translations yet. Edit via the translation sheet (docs/TRANSLATION.md).",
- "ui_status": "draft",
+ "$comment": "Arabic (Modern Standard) — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; Edit via the translation sheet (docs/TRANSLATION.md).",
+ "ui_status": "machine-draft — complete; needs a fluent reviewer and researcher sign-off (docs/TRANSLATION.md)",
  "ui": {
   "back": "رجوع →",
   "begin": "ابدأ ←",
@@ -44,7 +44,490 @@
   "type_here": "اكتب ما تشاء، قليلًا أو كثيرًا…",
   "waiting_signal": "في انتظار الإشارة",
   "welcome_body": "تسعى {org} إلى أن تتعلّم كيف تسير مع الشباب وهم يتبعون يسوع. إجاباتك الصادقة تساعد. يستغرق الأمر نحو {minutes} دقائق، وهو مجهول الهوية تمامًا.",
-  "welcome_title": "أنت مدعو لتشارك [أين أنت الآن]."
+  "welcome_title": "أنت مدعو لتشارك [أين أنت الآن].",
+  "about_body": "لا نطلب اسمك أو بريدك الإلكتروني أو رقم هاتفك، ولا نحتفظ بعنوان الإنترنت الخاص بك مع إجاباتك. نسأل فقط عن فئتك العمرية ومكان إقامتك بشكل تقريبي. لا ترى {org} إلا نتائج مجمّعة من كثير من الناس — ولا ترى إجاباتك وحدها أبدًا. يمكنك التوقف في أي وقت بإغلاق هذه الصفحة.",
+  "about_title": "ماذا يحدث لإجاباتك",
+  "chars_left": "متبقٍّ {n} حرفًا",
+  "choose_country": "اختر بلدك",
+  "ended_body": "هذا الاستبيان للأشخاص من عمر 13 إلى 30 عامًا، لذلك لا يوجد ما تجيب عنه بعد الآن. شكرًا لزيارتك — لم يُحفظ أي شيء اخترته.",
+  "ended_title": "شكرًا لزيارتك!",
+  "no": "لا",
+  "collection_locked_banner": "معاينة — المؤشر لا يجمع الإجابات بعد، لذلك لا تُحفظ إجاباتك.",
+  "privacy_link": "اقرأ إشعار الخصوصية كاملًا",
+  "yes": "نعم"
  },
- "items": {}
+ "items": {
+  "age_band": {
+   "text": "كم عمرك؟",
+   "options": {
+    "under_13": "12 أو أقل",
+    "13_17": "13–17",
+    "18_22": "18–22",
+    "23_30": "23–30",
+    "over_30": "31 أو أكثر"
+   }
+  },
+  "orientation": {
+   "text": "أيّ من هذه يشبهك أكثر الآن؟",
+   "options": {
+    "confident_no_god": "واثق من أن الله غير موجود",
+    "open_not_exploring": "منفتح، لكنني لا أبحث",
+    "open_exploring": "منفتح، وأبحث بنشاط",
+    "other_religion": "الله موجود، لكنني أتبع دينًا آخر",
+    "interested_jesus": "مهتم بيسوع، وأريد أن أعرف المزيد",
+    "new_follower": "تابع جديد ليسوع",
+    "committed_growing": "ملتزم، وأنمو بنشاط",
+    "none_of_these": "لا شيء من هذه يصفني",
+    "prefer_not_say": "أفضّل عدم الإجابة"
+   }
+  },
+  "follower_check": {
+   "text": "هل تعتبر نفسك حاليًا من أتباع يسوع؟",
+   "options": {
+    "yes": "نعم",
+    "no": "لا",
+    "not_sure": "لست متأكدًا",
+    "prefer_not_say": "أفضّل عدم الإجابة"
+   }
+  },
+  "follow_exposure_internal": {
+   "text": "أريد أن أستمر في التعلّم عن مَن هو يسوع وما الذي علّمه."
+  },
+  "follow_exposure_external": {
+   "text": "أُتيحت لي فرص لأتعلّم ما علّمه يسوع ولماذا هو مهم."
+  },
+  "follow_response_internal": {
+   "text": "أؤمن أن غفران الخطايا ممكن فقط بالإيمان بيسوع."
+  },
+  "follow_response_external": {
+   "text": "اخترت أن أتبع يسوع، الذي أؤمن أنه الله."
+  },
+  "follow_formation_internal": {
+   "text": "يتحدّاني الكتاب المقدس لأعيد النظر في اختياراتي وتصرفاتي."
+  },
+  "follow_formation_external": {
+   "text": "أمارس أشكالًا من الصلاة تقودني إلى علاقة شخصية مع الله."
+  },
+  "follow_multiplication_internal": {
+   "text": "أؤمن أن الإنجيل خبر سار في حياتي، ويستحق أن أشاركه مع أشخاص ليسوا مسيحيين."
+  },
+  "follow_multiplication_external": {
+   "text": "خلال الأشهر الستة الماضية، شاركت شيئًا عن يسوع مع شخص لا يتبعه."
+  },
+  "mission_exposure_internal": {
+   "text": "أفهم ما يعنيه أن أشارك في رسالة يسوع."
+  },
+  "mission_exposure_external": {
+   "text": "لديّ حاليًا شخص يساعدني على اتباع يسوع."
+  },
+  "mission_response_internal": {
+   "text": "أؤمن أن مشاركة رسالة يسوع جزء من اتباعه."
+  },
+  "mission_response_external": {
+   "text": "قبلت المشاركة في رسالة يسوع كمسؤولية لي بصفتي تابعًا له."
+  },
+  "attention_check": {
+   "text": "لنتأكد من أنك تقرأ بانتباه، يُرجى اختيار «ينطبق عليّ قليلًا» في هذا السؤال."
+  },
+  "mission_formation_internal": {
+   "text": "خدمة الآخرين ضمن جماعة مسيحية جزء مهم من طريقة اتباعي ليسوع."
+  },
+  "mission_formation_external": {
+   "text": "أحاول أن أُظهر لأشخاص ليسوا مسيحيين كيف يشكّل اتباع يسوع حياتي اليومية."
+  },
+  "mission_multiplication_internal": {
+   "text": "أريد أن أدعو أشخاصًا آخرين لينضموا إليّ في أنشطة مرتبطة برسالة يسوع."
+  },
+  "mission_multiplication_external": {
+   "text": "ساعدت شخصًا آخر على النمو في اتباعه ليسوع."
+  },
+  "world_exposure_internal": {
+   "text": "أؤمن أن اتباع يسوع يجلب خيرًا حقيقيًا للناس وللعالم."
+  },
+  "world_exposure_external": {
+   "text": "أتخذ قرارات توجّه حياتي نحو شيء أكبر من نفسي."
+  },
+  "world_response_internal": {
+   "text": "أؤمن أن إيماني يتجاوز حياتي الشخصية. يجب أن يُحدث فرقًا في العالم."
+  },
+  "world_response_external": {
+   "text": "اتباع يسوع يُحدث فرقًا حقيقيًا في طريقة معاملتي للناس واستجابتي للاحتياجات من حولي."
+  },
+  "world_formation_internal": {
+   "text": "أسعى إلى أن أعمل مشيئة الله في حياتي اليومية، حتى عندما تختلف عن مشيئتي."
+  },
+  "world_formation_external": {
+   "text": "أن أصبح شخصًا أكثر محبة لكل من حولي أمر أعمل عليه كل يوم."
+  },
+  "world_multiplication_internal": {
+   "text": "أؤمن أن أتباع يسوع يجب أن يعملوا معًا لإحداث تغييرات إيجابية في مجتمعاتهم."
+  },
+  "world_multiplication_external": {
+   "text": "أشجّع مسيحيين آخرين على ربط إيمانهم بطريقة عيشهم وخدمتهم."
+  },
+  "pray_frequency": {
+   "text": "أصلّي إلى الله.",
+   "options": {
+    "0": "نادرًا أو أبدًا",
+    "1": "شهريًا",
+    "2": "أسبوعيًا",
+    "3": "معظم الأيام"
+   }
+  },
+  "scripture_frequency": {
+   "text": "أقرأ الكتاب المقدس أو أستمع إليه.",
+   "options": {
+    "0": "نادرًا أو أبدًا",
+    "1": "شهريًا",
+    "2": "أسبوعيًا",
+    "3": "معظم الأيام"
+   }
+  },
+  "follow_exposure_internal_unengaged": {
+   "text": "أنا مهتم بسماع وجهات نظر مختلفة عن الله أو الروحانية."
+  },
+  "follow_exposure_external_unengaged": {
+   "text": "أُتيحت لي فرص لأسمع ما يؤمن به المسيحيون عن يسوع."
+  },
+  "follow_response_internal_unengaged": {
+   "text": "أعتقد أن في الطبيعة البشرية شيئًا يحتاج إلى إصلاح، يتجاوز ما نستطيع فعله بأنفسنا."
+  },
+  "follow_response_external_unengaged": {
+   "text": "فكّرت في أسباب الإيمان بالله وأسباب عدم الإيمان به."
+  },
+  "follow_formation_internal_unengaged": {
+   "text": "أعتقد أن الكتاب المقدس يقدّم شيئًا يستحق التفكير فيه بشأن كيف نعيش."
+  },
+  "follow_formation_external_unengaged": {
+   "text": "أخصص وقتًا للتأمل في أسئلة عن الله أو الروحانية أو معنى الحياة."
+  },
+  "follow_multiplication_internal_unengaged": {
+   "text": "أعتقد أن الحديث عن أسئلة الإيمان يمكن أن يكون مفيدًا، حتى عندما يصل الناس إلى استنتاجات مختلفة."
+  },
+  "follow_multiplication_external_unengaged": {
+   "text": "خلال الأشهر الستة الماضية، تحدثت مع شخص عن آرائي أو أسئلتي عن الله أو الروحانية."
+  },
+  "mission_exposure_internal_unengaged": {
+   "text": "أفهم لماذا يريد المسيحيون أن يشاركوا إيمانهم مع الآخرين."
+  },
+  "mission_exposure_external_unengaged": {
+   "text": "أعرف شخصًا يمكنني أن أتحدث معه بصدق عن الله أو الروحانية."
+  },
+  "mission_response_internal_unengaged": {
+   "text": "اخترت أن أتحمّل مسؤولية إحداث فرق إيجابي في العالم من حولي."
+  },
+  "mission_response_external_unengaged": {
+   "text": "أؤمن أن لي دورًا في جعل العالم مكانًا أفضل."
+  },
+  "attention_check_unengaged": {
+   "text": "لنتأكد من أنك تقرأ بانتباه، يُرجى اختيار «ينطبق عليّ قليلًا» في هذا السؤال."
+  },
+  "mission_formation_internal_unengaged": {
+   "text": "أن أكون جزءًا من مجتمع يساعد الآخرين أمر مهم بالنسبة لي."
+  },
+  "mission_formation_external_unengaged": {
+   "text": "أشارك مع آخرين في أنشطة تحوّل معتقداتي وقيمي إلى أفعال."
+  },
+  "mission_multiplication_internal_unengaged": {
+   "text": "أريد أن أدعو آخرين إلى أنشطة تعكس ما أراه مهمًا."
+  },
+  "mission_multiplication_external_unengaged": {
+   "text": "ساعدت شخصًا على التفكير في معتقداته أو أسئلته عن الإيمان."
+  },
+  "world_exposure_internal_unengaged": {
+   "text": "أعتقد أن الإيمان أو الروحانية يمكن أن يدفع الناس إلى إحداث فرق إيجابي في العالم."
+  },
+  "world_exposure_external_unengaged": {
+   "text": "أتخذ قرارات توجّه حياتي نحو شيء أكبر من نفسي."
+  },
+  "world_response_internal_unengaged": {
+   "text": "أؤمن أن قيمي يجب أن تُحدث فرقًا يتجاوز حياتي الشخصية."
+  },
+  "world_response_external_unengaged": {
+   "text": "معتقداتي وقيمي تُحدث فرقًا حقيقيًا في طريقة معاملتي للناس واستجابتي للاحتياجات من حولي."
+  },
+  "world_formation_internal_unengaged": {
+   "text": "أحاول أن أفعل ما أؤمن أنه صواب، حتى عندما يتعارض مع ما أريده."
+  },
+  "world_formation_external_unengaged": {
+   "text": "أن أصبح شخصًا أكثر محبة لكل من حولي أمر أعمل عليه كل يوم."
+  },
+  "world_multiplication_internal_unengaged": {
+   "text": "أؤمن أن الناس ذوي الآراء الدينية أو غير الدينية المختلفة يمكنهم العمل معًا لتحسين مجتمعاتهم."
+  },
+  "world_multiplication_external_unengaged": {
+   "text": "أشجّع من حولي على تحويل قيمهم إلى أفعال في طريقة عيشهم ومساعدتهم للآخرين."
+  },
+  "driver_sources_of_belief_engaged": {
+   "text": "أيّ مما يلي يشكّل أكثر ما تؤمن به عن يسوع والإيمان؟ اختر حتى ثلاثة.",
+   "options": {
+    "own_judgment": "حكمي الشخصي",
+    "bible": "الكتاب المقدس",
+    "family": "العائلة",
+    "friends": "الأصدقاء أو أشخاص آخرون أثق بهم",
+    "church_leaders": "الكنيسة أو القادة المسيحيون",
+    "peers": "مسيحيون آخرون في مثل عمري",
+    "personal_experiences": "تجارب شخصية",
+    "social_media": "وسائل التواصل الاجتماعي أو البودكاست أو محتوى آخر على الإنترنت",
+    "not_sure": "لست متأكدًا",
+    "other": "أخرى"
+   }
+  },
+  "driver_conditions_for_growth_engaged": {
+   "text": "أيّ مما يلي ينطبق عليك حاليًا؟ اختر كل ما ينطبق.",
+   "options": {
+    "asked_for_help": "طلبت من شخص أن يساعدني على النمو في إيماني.",
+    "time_for_practices": "أستطيع أن أخصص وقتًا للصلاة أو قراءة الكتاب المقدس أو التعلّم عن يسوع.",
+    "safe_place": "لديّ مكان آمن أكون فيه صادقًا بشأن صعوباتي في اتباع يسوع.",
+    "community_influence": "أقضي وقتًا مع أشخاص يساعدونني على أن أصبح أكثر شبهًا بيسوع.",
+    "ask_questions": "لديّ فرص لأطرح أسئلة صادقة عن إيماني.",
+    "feel_connected": "أشعر بالانتماء إلى جماعة مسيحية.",
+    "none": "لا شيء من هذه ينطبق عليّ حاليًا."
+   }
+  },
+  "driver_confidence_and_agency_engaged": {
+   "text": "ما الذي يؤثر في استعدادك لمشاركة إيمانك؟ اختر كل ما ينطبق.",
+   "options": {
+    "confidence": "الثقة بما أؤمن به",
+    "fear_of_response": "الخوف من ردّ فعل الآخرين",
+    "feeling_equipped": "ما إذا كنت أشعر أنني مستعد",
+    "seeing_others": "رؤية أشخاص آخرين يشاركون إيمانهم",
+    "relationships": "علاقاتي مع أشخاص ليسوا مسيحيين",
+    "responsibility": "ما إذا كنت أؤمن أن مشاركة إيماني مسؤوليتي",
+    "opportunity": "وجود فرصة للمشاركة",
+    "invited_alongside": "أن أُدعى إلى المشاركة مع أشخاص آخرين",
+    "other": "أخرى"
+   }
+  },
+  "driver_relational_risk_engaged": {
+   "text": "أيّ مما يلي يصف شعورك تجاه الحديث عن الإيمان مع أشخاص ليسوا مسيحيين؟ اختر كل ما ينطبق.",
+   "options": {
+    "naturally": "أتحدث عنه بشكل طبيعي.",
+    "close_people_only": "أتحدث عنه غالبًا مع المقرّبين مني.",
+    "when_relevant": "أنا منفتح على الحديث عنه عندما يبدو حقيقيًا أو مناسبًا.",
+    "wait_to_be_asked": "عادةً أنتظر أن يسألني أحد عنه.",
+    "avoid_it": "أتجنّبه لأنني أريد أن تبقى علاقاتي مريحة.",
+    "worry_offending": "أخشى أن أسيء إلى الآخرين.",
+    "unsure_how": "لست متأكدًا كيف أفتح الموضوع.",
+    "other": "أخرى"
+   }
+  },
+  "journey_encounter_and_response_engaged": {
+   "text": "أيّ الأشخاص أو التجارب كان الأهم في مساعدتك على لقاء يسوع وفهمه والاستجابة له؟ اختر كل ما ينطبق.",
+   "options": {
+    "friend_peer": "صديق أو شخص في مثل عمري",
+    "family_member": "أحد أفراد العائلة",
+    "church_gathering": "اجتماع كنسي",
+    "ministry_leader": "قائد في كنيسة أو خدمة",
+    "school_campus": "تجربة في المدرسة أو الجامعة",
+    "online_social": "محتوى على الإنترنت أو وسائل التواصل الاجتماعي",
+    "outreach_service": "تجربة تبشير أو خدمة",
+    "clear_talk": "حديث أو عرض واضح",
+    "personal_conversation": "محادثة شخصية",
+    "course_discussion": "دورة أو نقاش موجَّه",
+    "reading_bible": "قراءة الكتاب المقدس بنفسي",
+    "significant_moment": "تجربة أو لحظة مهمة في حياتي",
+    "other": "أخرى"
+   }
+  },
+  "journey_continued_formation_engaged": {
+   "text": "ما الذي ساعدك على النمو لتصبح أكثر شبهًا بيسوع في طريقة عيشك؟ اختر كل ما ينطبق.",
+   "options": {
+    "mentoring": "إرشاد فردي",
+    "christian_friends": "محادثات مع أصدقاء مسيحيين",
+    "challenged_encouraged": "أن أُتحدّى أو أُشجَّع",
+    "group_learning": "التعلّم ضمن مجموعة",
+    "welcomed_community": "أن أُستقبل في جماعة مسيحية",
+    "shared_practices": "ممارسات مشتركة مثل الصلاة أو العبادة أو الوجبات",
+    "studying_bible": "قراءة الكتاب المقدس أو دراسته",
+    "observing": "ملاحظة طريقة عيش مسيحي آخر",
+    "teaching_preaching": "التعليم أو الوعظ",
+    "serving_alongside": "الخدمة مع أشخاص آخرين",
+    "local_church": "كنيسة محلية",
+    "online_community": "جماعة مسيحية على الإنترنت",
+    "other": "أخرى"
+   }
+  },
+  "journey_participation_in_mission_engaged": {
+   "text": "ما الذي ساعدك على أن تبدأ بعيش إيمانك بيسوع أو مشاركته؟ اختر كل ما ينطبق.",
+   "options": {
+    "encouraged_invited": "شجّعني أحدهم أو دعاني.",
+    "opportunity_to_serve": "أُتيحت لي فرصة للخدمة.",
+    "trained_shown": "تدرّبت أو أراني أحدهم كيف أفعل ذلك.",
+    "did_it_alongside": "فعلت ذلك مع أشخاص آخرين.",
+    "personal_conviction": "تكوّنت لديّ قناعة شخصية.",
+    "saw_model": "رأيت شخصًا آخر يقدّم مثالًا على ذلك.",
+    "church_provided": "وفّرت كنيسة أو خدمة فرصة لذلك.",
+    "other": "أخرى"
+   }
+  },
+  "journey_multiplication_engaged": {
+   "text": "ما الذي قد يساعدك على اتخاذ الخطوة التالية في مساعدة الآخرين على اتباع يسوع؟ اختر كل ما ينطبق.",
+   "options": {
+    "someone_to_guide": "شخص يرشدني",
+    "clear_next_steps": "خطوات تالية واضحة",
+    "training_tools": "تدريب أو أدوات عملية",
+    "opportunity_to_try": "فرصة للتجربة",
+    "encouragement": "التشجيع",
+    "others_to_do_it_with": "أشخاص آخرون أقوم بذلك معهم",
+    "greater_confidence": "ثقة أكبر بما أؤمن به",
+    "already_equipped": "لا شيء؛ أشعر أنني مستعد لاتخاذ هذه الخطوة",
+    "not_interested": "لست مهتمًا باتخاذ هذه الخطوة",
+    "other": "أخرى"
+   }
+  },
+  "driver_sources_of_belief_unengaged": {
+   "text": "أيّ مما يلي يشكّل أكثر آراءك عن الله أو الدين أو الروحانية؟ اختر حتى ثلاثة.",
+   "options": {
+    "own_judgment": "حكمي الشخصي",
+    "family": "العائلة",
+    "friends": "الأصدقاء أو أشخاص آخرون أثق بهم",
+    "church_leaders": "الكنيسة أو القادة المسيحيون",
+    "peers": "مسيحيون في مثل عمري",
+    "personal_experiences": "تجارب شخصية",
+    "social_media": "وسائل التواصل الاجتماعي أو البودكاست أو محتوى آخر على الإنترنت",
+    "science": "العلم أو الأدلة",
+    "teachers": "المعلّمون أو التعليم",
+    "bible": "الكتاب المقدس",
+    "other_books": "كتب أو أفكار من خارج المسيحية",
+    "other_communities": "مجتمعات دينية أو غير دينية أخرى",
+    "not_sure": "لست متأكدًا",
+    "other": "أخرى",
+    "none": "لا شيء من هذه"
+   }
+  },
+  "driver_conditions_for_growth_unengaged": {
+   "text": "أيّ مما يلي ينطبق عليك حاليًا؟ اختر كل ما ينطبق.",
+   "options": {
+    "asked_for_help": "طلبت من شخص أن يساعدني على التفكير في أسئلة الإيمان أو معنى الحياة.",
+    "time_for_practices": "أخصص وقتًا للتفكير في أسئلة الإيمان أو معنى الحياة.",
+    "safe_place": "لديّ مكان آمن أكون فيه صادقًا بشأن معتقداتي أو شكوكي أو عدم إيماني.",
+    "community_influence": "أقضي وقتًا مع أشخاص يساعدونني على التفكير في نوع الشخص الذي أريد أن أصبحه.",
+    "ask_questions": "لديّ فرص لأطرح أسئلة صادقة عن الدين أو الروحانية.",
+    "feel_connected": "أشعر بأن المسيحيين الذين أعرفهم يقبلونني، سواء اتفقنا في الإيمان أم لا.",
+    "none": "لا شيء من هذه ينطبق عليّ حاليًا."
+   }
+  },
+  "driver_confidence_and_agency_unengaged": {
+   "text": "ما الذي يؤثر في استعدادك للحديث عن معتقداتك أو شكوكك أو عدم إيمانك؟ اختر كل ما ينطبق.",
+   "options": {
+    "confidence": "الثقة بآرائي",
+    "fear_of_response": "كيف أتوقع أن يتفاعل الآخرون",
+    "feeling_equipped": "ما إذا كنت أستطيع شرح آرائي",
+    "seeing_others": "رؤية أشخاص آخرين يتحدثون بصراحة عن معتقداتهم",
+    "relationships": "علاقاتي مع أشخاص تختلف معتقداتهم عن معتقداتي",
+    "worthwhile": "ما إذا كنت أعتقد أن الحديث يستحق العناء",
+    "opportunity": "وجود فرصة للحديث",
+    "invited_alongside": "أن أُدعى إلى حوار",
+    "taken_seriously": "ما إذا كانت أسئلتي ستؤخذ بجدية",
+    "pressure_to_change": "ما إذا كنت سأشعر بضغط لتغيير معتقداتي",
+    "interest": "ما إذا كان الموضوع يهمني",
+    "other": "أخرى",
+    "none": "لا شيء من هذه",
+    "not_sure": "لست متأكدًا"
+   }
+  },
+  "driver_relational_risk_unengaged": {
+   "text": "كيف تشعر تجاه الحديث مع مسيحيين عن الدين أو الإيمان؟ اختر كل ما ينطبق.",
+   "options": {
+    "naturally": "أتحدث عنه بشكل طبيعي.",
+    "close_people_only": "أتحدث عنه غالبًا مع المقرّبين مني.",
+    "when_relevant": "أنا منفتح على الحديث عنه عندما يبدو مرتبطًا بحياتي.",
+    "wait_to_be_asked": "عادةً أنتظر أن يسألني أحد عنه.",
+    "avoid_it": "أتجنّبه لأنني أريد أن تبقى علاقاتي مريحة.",
+    "worry_offending": "أخشى أن أسيء إلى الآخرين.",
+    "unsure_how": "لست متأكدًا كيف أفتح الموضوع.",
+    "worry_judged": "أخشى أن تُحاكَم آرائي أو تُرفض.",
+    "worry_pressured": "أخشى أن أتعرّض للضغط لأصبح مسيحيًا.",
+    "not_interested": "لست مهتمًا بهذه المحادثات.",
+    "no_christians": "لا أعرف أي مسيحي يمكنني التحدث معه.",
+    "other": "أخرى",
+    "not_sure": "لست متأكدًا"
+   }
+  },
+  "journey_encounter_and_response_unengaged": {
+   "text": "أيّ الأشخاص أو التجارب شكّل أكثر آراءك عن يسوع أو المسيحية؟ اختر كل ما ينطبق.",
+   "options": {
+    "friend_peer": "صديق أو شخص في مثل عمري",
+    "family_member": "أحد أفراد العائلة",
+    "church_gathering": "اجتماع لكنيسة مسيحية",
+    "ministry_leader": "قائد في كنيسة أو خدمة مسيحية",
+    "school_campus": "تجربة في المدرسة أو الجامعة",
+    "online_social": "محتوى على الإنترنت أو وسائل التواصل الاجتماعي",
+    "clear_talk": "حديث أو عرض",
+    "personal_conversation": "محادثة شخصية",
+    "course_discussion": "دورة أو نقاش موجَّه",
+    "reading_bible": "قراءة الكتاب المقدس بنفسي",
+    "significant_moment": "تجربة أو لحظة مهمة في حياتي",
+    "other_books": "كتب أو أفكار من خارج المسيحية",
+    "other": "أخرى",
+    "none": "لا شيء من هذه",
+    "not_sure": "لست متأكدًا"
+   }
+  },
+  "journey_continued_formation_unengaged": {
+   "text": "ما الذي ساعدك على تكوين آرائك عن نوع الشخص الذي تريد أن تصبحه؟ اختر كل ما ينطبق.",
+   "options": {
+    "mentoring": "إرشاد فردي",
+    "friends": "محادثات مع الأصدقاء",
+    "challenged_encouraged": "أن أُتحدّى أو أُشجَّع",
+    "group_learning": "التعلّم ضمن مجموعة",
+    "welcomed_community": "أن أُستقبل في مجتمع",
+    "shared_activities": "أنشطة مشتركة مثل الوجبات أو التأمل أو النقاش",
+    "studying_ideas": "قراءة أو دراسة أفكار تهمني",
+    "observing": "ملاحظة طريقة عيش شخص آخر",
+    "teaching_talks": "التعليم أو المحاضرات",
+    "serving_alongside": "الخدمة مع أشخاص آخرين",
+    "online_community": "مجتمع على الإنترنت",
+    "time_alone": "وقت للتفكير بمفردي",
+    "other": "أخرى",
+    "nothing": "لم يساعدني شيء بهذه الطريقة",
+    "not_sure": "لست متأكدًا"
+   }
+  },
+  "journey_participation_in_mission_unengaged": {
+   "text": "ما الذي قد يجعلك تتردد، إن وُجد، في الانضمام إلى نشاط تنظّمه مجموعة مسيحية؟ اختر كل ما ينطبق.",
+   "options": {
+    "not_interested": "لست مهتمًا بالأنشطة التي يقدمونها.",
+    "would_not_know_anyone": "لن أعرف أحدًا هناك.",
+    "unsure_what_to_expect": "لن أعرف ماذا أتوقع.",
+    "worry_pressured": "سأخشى أن أتعرّض للضغط لتبنّي معتقدات مسيحية.",
+    "worry_judged": "سأخشى أن أُحاكَم أو لا أُقبل.",
+    "conflicting_values": "بعض معتقداتهم أو قيمهم تتعارض مع معتقداتي أو قيمي.",
+    "negative_experience": "مررت بتجربة سلبية مع مجموعة مسيحية.",
+    "practical_issues": "أمور عملية، مثل الوقت أو المواصلات أو التكلفة.",
+    "nothing": "لا شيء سيجعلني أتردد.",
+    "not_sure": "لست متأكدًا."
+   }
+  },
+  "journey_multiplication_unengaged": {
+   "text": "ما الذي يجعل من الصعب عليك، إن وُجد، أن تفكر في اتباع يسوع؟ اختر كل ما ينطبق.",
+   "options": {
+    "dont_know_enough": "لا أعرف ما يكفي عن يسوع أو المسيحية.",
+    "not_convinced": "لست مقتنعًا بأن المعتقدات المسيحية صحيحة.",
+    "unanswered_questions": "لديّ أسئلة لم أجد لها إجابات مقنعة.",
+    "conflicting_teachings": "بعض التعاليم المسيحية تتعارض مع آرائي أو قيمي.",
+    "suffering_injustice": "الألم والظلم يجعلان الإيمان بالله صعبًا عليّ.",
+    "bad_experiences": "تجاربي مع مسيحيين أو كنائس جعلتني أنفر.",
+    "worry_response": "سأخشى من ردّ فعل المقرّبين مني.",
+    "worry_change": "سأخشى مما قد يُتوقع مني أن أغيّره.",
+    "satisfied": "أنا راضٍ عن معتقداتي الحالية أو نظرتي إلى الحياة.",
+    "not_thought_about": "اتباع يسوع ليس أمرًا فكّرت فيه.",
+    "other": "أخرى",
+    "not_sure": "لست متأكدًا."
+   }
+  },
+  "gender": {
+   "text": "ما الذي يصف جنسك على أفضل وجه؟",
+   "options": {
+    "male": "ذكر",
+    "female": "أنثى",
+    "other": "أخرى",
+    "prefer_not_say": "أفضّل عدم الإجابة"
+   }
+  },
+  "country": {
+   "text": "في أي بلد تعيش؟"
+  }
+ }
 }

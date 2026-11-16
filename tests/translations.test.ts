@@ -82,8 +82,9 @@ test("coverage: English is whole, every live language is whole, inheritance coun
   const es = coverage("es", chain("es", reg), filesFor("es"), keys, fielded);
   const es419 = coverage("es-419", chain("es-419", reg), filesFor("es-419"), keys, fielded);
   assert.ok(es419 >= es, "a regional variant inherits its parent");
-  const fr = coverage("fr", chain("fr", reg), filesFor("fr"), keys, fielded);
-  assert.ok(fr > 0 && fr < 1, `fr is partly translated (${fr})`);
+  // A language with only screen text and no questions is partly translated.
+  const partial = coverage("xx", ["xx", "en"], { xx: { ui: file("fr").ui, items: {} }, en }, keys, fielded);
+  assert.ok(partial > 0 && partial < 1, `screen text only is partial (${partial})`);
 });
 
 test("the text download is the whole fielded survey, untranslated lines marked [EN]", () => {
@@ -127,4 +128,33 @@ test("people() rounds to what the data can bear", () => {
   assert.equal(people(4_234_567), "4.2M");
   assert.equal(people(1_460_000_000), "1.5B");
   assert.equal(people(950_400), "950K");
+});
+
+test("every language past 'requested' is complete: every screen, question and answer a respondent can meet", () => {
+  const keys = Object.keys(en.ui);
+  for (const l of reg.filter((x) => x.status !== "requested")) {
+    const c = coverage(l.code, chain(l.code, reg), filesFor(l.code), keys, fielded);
+    assert.equal(c, 1, `${l.code} is ${(c * 100).toFixed(1)}% translated`);
+  }
+});
+
+test("attention checks name the answer label exactly as that language shows it", () => {
+  for (const l of reg.filter((x) => x.code !== "en" && x.status !== "requested")) {
+    const order = chain(l.code, reg);
+    const files = filesFor(l.code);
+    const label = order.map((c) => files[c]?.ui?.likert_2).find((v) => v && v.trim());
+    for (const key of ["attention_check", "attention_check_unengaged"]) {
+      const text = order.map((c) => files[c]?.items?.[key]?.text).find((v) => v && v.trim());
+      if (!text) continue; // inherits the instrument's own text (e.g. Spanish)
+      assert.ok(text.includes(label!), `${l.code} ${key} must quote "${label}"`);
+    }
+  }
+});
+
+test("translated screen text keeps every {placeholder}", () => {
+  const ph = (s: string) => (s.match(/\{\w+\}/g) ?? []).sort().join();
+  for (const l of reg.filter((x) => x.code !== "en")) {
+    const ui = file(l.code).ui ?? {};
+    for (const [k, v] of Object.entries(ui)) assert.equal(ph(v as string), ph(en.ui[k] ?? ""), `${l.code} ui:${k}`);
+  }
 });

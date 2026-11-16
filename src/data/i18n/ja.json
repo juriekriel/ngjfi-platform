@@ -1,6 +1,6 @@
 {
- "$comment": "Japanese — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; empty means the language has no question translations yet. Edit via the translation sheet (docs/TRANSLATION.md).",
- "ui_status": "draft",
+ "$comment": "Japanese — survey screen text (ui) and instrument translations (items, keyed by item key; instrument v4). ui status: machine-draft. Items here override the instrument's own text; Edit via the translation sheet (docs/TRANSLATION.md).",
+ "ui_status": "machine-draft — complete; needs a fluent reviewer and researcher sign-off (docs/TRANSLATION.md)",
  "ui": {
   "back": "← 戻る",
   "begin": "はじめる →",
@@ -44,7 +44,490 @@
   "type_here": "自由に書いてください…",
   "waiting_signal": "電波を待っています",
   "welcome_body": "{org}は、イエスに従う若い人たちとどう共に歩むかを学ぼうとしています。率直な回答が力になります。所要時間は約{minutes}分で、完全に匿名です。",
-  "welcome_title": "あなたの[今の歩み]を教えてください。"
+  "welcome_title": "あなたの[今の歩み]を教えてください。",
+  "about_body": "名前、メールアドレス、電話番号はお聞きしません。また、あなたのインターネットアドレスを回答と一緒に保存することもありません。お聞きするのは年齢層とおおよその住んでいる地域だけです。{org}が見られるのは多くの人の回答をまとめた結果だけで、あなた個人の回答を見ることは決してありません。このページを閉じれば、いつでも回答をやめられます。",
+  "about_title": "回答はどう扱われるか",
+  "chars_left": "残り {n} 文字",
+  "choose_country": "国を選んでください",
+  "ended_body": "このアンケートは13歳から30歳の方が対象のため、これ以上の質問はありません。立ち寄ってくれてありがとう。選んだ内容は何も保存されていません。",
+  "ended_title": "立ち寄ってくれてありがとう！",
+  "no": "いいえ",
+  "collection_locked_banner": "プレビュー — インデックスはまだ回答を集めていないため、あなたの回答は保存されません。",
+  "privacy_link": "プライバシーに関するお知らせ全文を読む",
+  "yes": "はい"
  },
- "items": {}
+ "items": {
+  "age_band": {
+   "text": "あなたは何歳ですか？",
+   "options": {
+    "under_13": "12歳以下",
+    "13_17": "13–17",
+    "18_22": "18–22",
+    "23_30": "23–30",
+    "over_30": "31歳以上"
+   }
+  },
+  "orientation": {
+   "text": "今のあなたに一番近いのはどれですか？",
+   "options": {
+    "confident_no_god": "神は存在しないと確信している",
+    "open_not_exploring": "関心はあるが、探求はしていない",
+    "open_exploring": "関心があり、積極的に探求している",
+    "other_religion": "神は存在するが、別の宗教を信じている",
+    "interested_jesus": "イエスに興味があり、もっと知りたい",
+    "new_follower": "イエスに従い始めたばかり",
+    "committed_growing": "献身していて、積極的に成長している",
+    "none_of_these": "どれも当てはまらない",
+    "prefer_not_say": "答えたくない"
+   }
+  },
+  "follower_check": {
+   "text": "あなたは今、自分をイエスに従う者だと考えていますか？",
+   "options": {
+    "yes": "はい",
+    "no": "いいえ",
+    "not_sure": "わからない",
+    "prefer_not_say": "答えたくない"
+   }
+  },
+  "follow_exposure_internal": {
+   "text": "イエスがどんな方で、何を教えたのかを、これからも学び続けたい。"
+  },
+  "follow_exposure_external": {
+   "text": "イエスが教えたことと、それがなぜ大切なのかを学ぶ機会があった。"
+  },
+  "follow_response_internal": {
+   "text": "罪の赦しはイエスを信じる信仰によってのみ可能だと信じている。"
+  },
+  "follow_response_external": {
+   "text": "神であると信じるイエスに従うことを選んだ。"
+  },
+  "follow_formation_internal": {
+   "text": "聖書は、自分の選択や行動を見直すよう私に迫る。"
+  },
+  "follow_formation_external": {
+   "text": "神との個人的な交わりへと導く祈りをしている。"
+  },
+  "follow_multiplication_internal": {
+   "text": "福音は私の人生にとって良い知らせであり、クリスチャンでない人と分かち合う価値があると信じている。"
+  },
+  "follow_multiplication_external": {
+   "text": "この6か月の間に、イエスに従っていない人にイエスについて何かを伝えた。"
+  },
+  "mission_exposure_internal": {
+   "text": "イエスの使命に加わるとはどういうことか理解している。"
+  },
+  "mission_exposure_external": {
+   "text": "今、イエスに従うことを助けてくれる人がいる。"
+  },
+  "mission_response_internal": {
+   "text": "イエスのメッセージを伝えることは、イエスに従うことの一部だと信じている。"
+  },
+  "mission_response_external": {
+   "text": "イエスの使命に加わることを、イエスに従う者としての自分の責任として受け入れた。"
+  },
+  "attention_check": {
+   "text": "きちんと読んでいるか確認するため、この質問では「少し当てはまる」を選んでください。"
+  },
+  "mission_formation_internal": {
+   "text": "クリスチャンの共同体の一員として人に仕えることは、私がイエスに従ううえで大切な部分だ。"
+  },
+  "mission_formation_external": {
+   "text": "イエスに従うことが日々の生活をどう形づくっているかを、クリスチャンでない人に示そうとしている。"
+  },
+  "mission_multiplication_internal": {
+   "text": "イエスの使命につながる活動に、ほかの人も一緒に加わるよう招きたい。"
+  },
+  "mission_multiplication_external": {
+   "text": "ほかの人がイエスに従う歩みの中で成長するのを助けたことがある。"
+  },
+  "world_exposure_internal": {
+   "text": "イエスに従うことは、人々と世界に本当の良いものをもたらすと信じている。"
+  },
+  "world_exposure_external": {
+   "text": "自分自身よりも大きな何かに人生を向ける選択をしている。"
+  },
+  "world_response_internal": {
+   "text": "私の信仰は個人の生活だけにとどまらないと信じている。世界に違いをもたらすべきものだ。"
+  },
+  "world_response_external": {
+   "text": "イエスに従うことは、私が人とどう接し、周りの必要にどう応えるかに本当の違いをもたらしている。"
+  },
+  "world_formation_internal": {
+   "text": "自分の思いと違うときでも、日々の生活の中で神のみこころを行おうとしている。"
+  },
+  "world_formation_external": {
+   "text": "周りのすべての人をもっと愛せる人になることに、毎日取り組んでいる。"
+  },
+  "world_multiplication_internal": {
+   "text": "イエスに従う人々は、地域に良い変化をもたらすために協力すべきだと信じている。"
+  },
+  "world_multiplication_external": {
+   "text": "ほかのクリスチャンに、信仰を生き方や仕え方と結びつけるよう励ましている。"
+  },
+  "pray_frequency": {
+   "text": "神に祈る。",
+   "options": {
+    "0": "ほとんど、またはまったくない",
+    "1": "月に1回程度",
+    "2": "週に1回程度",
+    "3": "ほぼ毎日"
+   }
+  },
+  "scripture_frequency": {
+   "text": "聖書を読む、または聞く。",
+   "options": {
+    "0": "ほとんど、またはまったくない",
+    "1": "月に1回程度",
+    "2": "週に1回程度",
+    "3": "ほぼ毎日"
+   }
+  },
+  "follow_exposure_internal_unengaged": {
+   "text": "神やスピリチュアリティについて、さまざまな考え方を聞くことに興味がある。"
+  },
+  "follow_exposure_external_unengaged": {
+   "text": "クリスチャンがイエスについて何を信じているかを聞く機会があった。"
+  },
+  "follow_response_internal_unengaged": {
+   "text": "人間の本性には、自分たちの力を超えて正されなければならない何かがあると思う。"
+  },
+  "follow_response_external_unengaged": {
+   "text": "神を信じる理由と信じない理由について考えたことがある。"
+  },
+  "follow_formation_internal_unengaged": {
+   "text": "どう生きるかについて、聖書には考える価値のあるものがあると思う。"
+  },
+  "follow_formation_external_unengaged": {
+   "text": "神やスピリチュアリティ、人生の意味についての問いを考える時間をとっている。"
+  },
+  "follow_multiplication_internal_unengaged": {
+   "text": "たとえ結論が違っても、信仰について話し合うことには価値があると思う。"
+  },
+  "follow_multiplication_external_unengaged": {
+   "text": "この6か月の間に、神やスピリチュアリティについての自分の考えや疑問を誰かと話した。"
+  },
+  "mission_exposure_internal_unengaged": {
+   "text": "クリスチャンがなぜ自分の信仰をほかの人に伝えたいのか理解できる。"
+  },
+  "mission_exposure_external_unengaged": {
+   "text": "神やスピリチュアリティについて正直に話せる人がいる。"
+  },
+  "mission_response_internal_unengaged": {
+   "text": "周りの世界に良い違いをもたらす責任を引き受けることを選んだ。"
+  },
+  "mission_response_external_unengaged": {
+   "text": "世界をより良い場所にするために、自分にも果たす役割があると信じている。"
+  },
+  "attention_check_unengaged": {
+   "text": "きちんと読んでいるか確認するため、この質問では「少し当てはまる」を選んでください。"
+  },
+  "mission_formation_internal_unengaged": {
+   "text": "人を助けるコミュニティの一員であることは、私にとって大切だ。"
+  },
+  "mission_formation_external_unengaged": {
+   "text": "自分の信念や価値観を行動に移す活動に、ほかの人と一緒に参加している。"
+  },
+  "mission_multiplication_internal_unengaged": {
+   "text": "自分が大切だと思うことを反映した活動に、ほかの人を招きたい。"
+  },
+  "mission_multiplication_external_unengaged": {
+   "text": "誰かが自分の信念や信仰についての疑問を考える手助けをしたことがある。"
+  },
+  "world_exposure_internal_unengaged": {
+   "text": "信仰やスピリチュアリティは、人々が世界に良い違いをもたらす動機になり得ると思う。"
+  },
+  "world_exposure_external_unengaged": {
+   "text": "自分自身よりも大きな何かに人生を向ける選択をしている。"
+  },
+  "world_response_internal_unengaged": {
+   "text": "自分の価値観は、個人の生活を超えて違いをもたらすべきだと信じている。"
+  },
+  "world_response_external_unengaged": {
+   "text": "自分の信念と価値観は、私が人とどう接し、周りの必要にどう応えるかに本当の違いをもたらしている。"
+  },
+  "world_formation_internal_unengaged": {
+   "text": "自分のしたいことと食い違うときでも、正しいと信じることをしようとしている。"
+  },
+  "world_formation_external_unengaged": {
+   "text": "周りのすべての人をもっと愛せる人になることに、毎日取り組んでいる。"
+  },
+  "world_multiplication_internal_unengaged": {
+   "text": "宗教的・非宗教的に異なる考えを持つ人々も、地域を良くするために協力できると信じている。"
+  },
+  "world_multiplication_external_unengaged": {
+   "text": "周りの人に、生き方や人の助け方の中で価値観を行動に移すよう励ましている。"
+  },
+  "driver_sources_of_belief_engaged": {
+   "text": "イエスと信仰について信じていることに、次のうちどれが最も影響していますか？3つまで選んでください。",
+   "options": {
+    "own_judgment": "自分自身の判断",
+    "bible": "聖書",
+    "family": "家族",
+    "friends": "友人や、ほかの信頼できる人",
+    "church_leaders": "教会やクリスチャンのリーダー",
+    "peers": "同年代のほかのクリスチャン",
+    "personal_experiences": "個人的な経験",
+    "social_media": "SNS、ポッドキャスト、その他のオンラインコンテンツ",
+    "not_sure": "わからない",
+    "other": "その他"
+   }
+  },
+  "driver_conditions_for_growth_engaged": {
+   "text": "次のうち、今のあなたに当てはまるものはどれですか？当てはまるものをすべて選んでください。",
+   "options": {
+    "asked_for_help": "信仰が成長できるよう、誰かに助けを求めたことがある。",
+    "time_for_practices": "祈ったり、聖書を読んだり、イエスについて学んだりする時間をとれる。",
+    "safe_place": "イエスに従ううえでの悩みを正直に話せる安心できる場所がある。",
+    "community_influence": "イエスにもっと似た者になれるよう助けてくれる人たちと時間を過ごしている。",
+    "ask_questions": "自分の信仰について正直な質問をする機会がある。",
+    "feel_connected": "クリスチャンの共同体とのつながりを感じている。",
+    "none": "今はどれも当てはまらない。"
+   }
+  },
+  "driver_confidence_and_agency_engaged": {
+   "text": "自分の信仰を伝えようとする気持ちに、何が影響していますか？当てはまるものをすべて選んでください。",
+   "options": {
+    "confidence": "自分の信じていることへの確信",
+    "fear_of_response": "相手がどう反応するかへの不安",
+    "feeling_equipped": "自分に準備ができていると感じるかどうか",
+    "seeing_others": "ほかの人が信仰を伝えているのを見ること",
+    "relationships": "クリスチャンでない人との関係",
+    "responsibility": "信仰を伝えることが自分の責任だと信じているかどうか",
+    "opportunity": "伝える機会があること",
+    "invited_alongside": "ほかの人と一緒に伝えるよう誘われること",
+    "other": "その他"
+   }
+  },
+  "driver_relational_risk_engaged": {
+   "text": "クリスチャンでない人と信仰について話すことについて、あなたの気持ちに当てはまるものはどれですか？当てはまるものをすべて選んでください。",
+   "options": {
+    "naturally": "自然に話す。",
+    "close_people_only": "主に親しい人と話す。",
+    "when_relevant": "自然な流れや関係のある話題のときには、話してもいいと思う。",
+    "wait_to_be_asked": "たいていは聞かれるまで待つ。",
+    "avoid_it": "関係を気まずくしたくないので避ける。",
+    "worry_offending": "相手を不快にさせないか心配だ。",
+    "unsure_how": "どう切り出せばいいかわからない。",
+    "other": "その他"
+   }
+  },
+  "journey_encounter_and_response_engaged": {
+   "text": "イエスに出会い、理解し、応答するうえで最も大切だった人や経験はどれですか？当てはまるものをすべて選んでください。",
+   "options": {
+    "friend_peer": "友人や同年代の仲間",
+    "family_member": "家族の誰か",
+    "church_gathering": "教会の集まり",
+    "ministry_leader": "教会やミニストリーのリーダー",
+    "school_campus": "学校やキャンパスでの経験",
+    "online_social": "オンラインコンテンツやSNS",
+    "outreach_service": "伝道や奉仕の経験",
+    "clear_talk": "わかりやすい話やプレゼンテーション",
+    "personal_conversation": "個人的な会話",
+    "course_discussion": "講座やガイド付きの話し合い",
+    "reading_bible": "自分で聖書を読むこと",
+    "significant_moment": "人生の中の大切な経験や瞬間",
+    "other": "その他"
+   }
+  },
+  "journey_continued_formation_engaged": {
+   "text": "生き方においてイエスにもっと似た者へと成長するのに、何が助けになりましたか？当てはまるものをすべて選んでください。",
+   "options": {
+    "mentoring": "一対一のメンタリング",
+    "christian_friends": "クリスチャンの友人との会話",
+    "challenged_encouraged": "チャレンジや励ましを受けること",
+    "group_learning": "グループで学ぶこと",
+    "welcomed_community": "クリスチャンの共同体に迎え入れられること",
+    "shared_practices": "祈り、礼拝、食事などを共にすること",
+    "studying_bible": "聖書を読む、または学ぶこと",
+    "observing": "ほかのクリスチャンの生き方を見ること",
+    "teaching_preaching": "教えや説教",
+    "serving_alongside": "ほかの人と一緒に奉仕すること",
+    "local_church": "地域の教会",
+    "online_community": "オンラインのクリスチャンコミュニティ",
+    "other": "その他"
+   }
+  },
+  "journey_participation_in_mission_engaged": {
+   "text": "イエスへの信仰を生きたり伝えたりし始めるのに、何が助けになりましたか？当てはまるものをすべて選んでください。",
+   "options": {
+    "encouraged_invited": "誰かが励ましてくれた、または誘ってくれた。",
+    "opportunity_to_serve": "奉仕する機会があった。",
+    "trained_shown": "訓練を受けた、またはやり方を教えてもらった。",
+    "did_it_alongside": "ほかの人と一緒にやった。",
+    "personal_conviction": "自分なりの確信が生まれた。",
+    "saw_model": "ほかの人が手本を見せてくれた。",
+    "church_provided": "教会やミニストリーが機会を用意してくれた。",
+    "other": "その他"
+   }
+  },
+  "journey_multiplication_engaged": {
+   "text": "ほかの人がイエスに従うのを助けるための次の一歩を踏み出すのに、何が助けになりますか？当てはまるものをすべて選んでください。",
+   "options": {
+    "someone_to_guide": "導いてくれる人",
+    "clear_next_steps": "はっきりした次のステップ",
+    "training_tools": "トレーニングや実践的なツール",
+    "opportunity_to_try": "やってみる機会",
+    "encouragement": "励まし",
+    "others_to_do_it_with": "一緒にやる仲間",
+    "greater_confidence": "自分の信じていることへのより強い確信",
+    "already_equipped": "特にない。もうこの一歩を踏み出す準備ができている",
+    "not_interested": "この一歩を踏み出すことには関心がない",
+    "other": "その他"
+   }
+  },
+  "driver_sources_of_belief_unengaged": {
+   "text": "神、宗教、スピリチュアリティについての考えに、次のうちどれが最も影響していますか？3つまで選んでください。",
+   "options": {
+    "own_judgment": "自分自身の判断",
+    "family": "家族",
+    "friends": "友人や、ほかの信頼できる人",
+    "church_leaders": "教会やクリスチャンのリーダー",
+    "peers": "同年代のクリスチャン",
+    "personal_experiences": "個人的な経験",
+    "social_media": "SNS、ポッドキャスト、その他のオンラインコンテンツ",
+    "science": "科学や証拠",
+    "teachers": "先生や教育",
+    "bible": "聖書",
+    "other_books": "キリスト教以外の本や考え方",
+    "other_communities": "ほかの宗教的・非宗教的なコミュニティ",
+    "not_sure": "わからない",
+    "other": "その他",
+    "none": "どれも当てはまらない"
+   }
+  },
+  "driver_conditions_for_growth_unengaged": {
+   "text": "次のうち、今のあなたに当てはまるものはどれですか？当てはまるものをすべて選んでください。",
+   "options": {
+    "asked_for_help": "信仰や人生の意味についての問いを考える手助けを、誰かに求めたことがある。",
+    "time_for_practices": "信仰や人生の意味についての問いを考える時間をとっている。",
+    "safe_place": "自分の信念や疑い、信じていないことを正直に話せる安心できる場所がある。",
+    "community_influence": "自分がどんな人になりたいかを考える手助けをしてくれる人たちと時間を過ごしている。",
+    "ask_questions": "宗教やスピリチュアリティについて正直な質問をする機会がある。",
+    "feel_connected": "信仰について意見が合うかどうかにかかわらず、知り合いのクリスチャンに受け入れられていると感じる。",
+    "none": "今はどれも当てはまらない。"
+   }
+  },
+  "driver_confidence_and_agency_unengaged": {
+   "text": "自分の信念や疑い、信じていないことについて話そうとする気持ちに、何が影響していますか？当てはまるものをすべて選んでください。",
+   "options": {
+    "confidence": "自分の考えへの確信",
+    "fear_of_response": "ほかの人がどう反応すると思うか",
+    "feeling_equipped": "自分の考えを説明できるかどうか",
+    "seeing_others": "ほかの人が自分の信念について率直に話しているのを見ること",
+    "relationships": "自分と違う信念を持つ人との関係",
+    "worthwhile": "その会話に意味があると思うかどうか",
+    "opportunity": "話す機会があること",
+    "invited_alongside": "会話に誘われること",
+    "taken_seriously": "自分の質問を真剣に受け止めてもらえるかどうか",
+    "pressure_to_change": "信念を変えるよう圧力を感じるかどうか",
+    "interest": "その話題に興味があるかどうか",
+    "other": "その他",
+    "none": "どれも当てはまらない",
+    "not_sure": "わからない"
+   }
+  },
+  "driver_relational_risk_unengaged": {
+   "text": "宗教や信仰についてクリスチャンと話すことを、どう感じますか？当てはまるものをすべて選んでください。",
+   "options": {
+    "naturally": "自然に話す。",
+    "close_people_only": "主に親しい人と話す。",
+    "when_relevant": "自分の生活に関係があると感じるときには、話してもいいと思う。",
+    "wait_to_be_asked": "たいていは聞かれるまで待つ。",
+    "avoid_it": "関係を気まずくしたくないので避ける。",
+    "worry_offending": "相手を不快にさせないか心配だ。",
+    "unsure_how": "どう切り出せばいいかわからない。",
+    "worry_judged": "自分の考えが否定されたり、軽く扱われたりしないか心配だ。",
+    "worry_pressured": "クリスチャンになるよう圧力をかけられないか心配だ。",
+    "not_interested": "そうした会話には関心がない。",
+    "no_christians": "話せるクリスチャンの知り合いがいない。",
+    "other": "その他",
+    "not_sure": "わからない"
+   }
+  },
+  "journey_encounter_and_response_unengaged": {
+   "text": "イエスやキリスト教についての考えに最も影響した人や経験はどれですか？当てはまるものをすべて選んでください。",
+   "options": {
+    "friend_peer": "友人や同年代の仲間",
+    "family_member": "家族の誰か",
+    "church_gathering": "キリスト教会の集まり",
+    "ministry_leader": "キリスト教会やミニストリーのリーダー",
+    "school_campus": "学校やキャンパスでの経験",
+    "online_social": "オンラインコンテンツやSNS",
+    "clear_talk": "話やプレゼンテーション",
+    "personal_conversation": "個人的な会話",
+    "course_discussion": "講座やガイド付きの話し合い",
+    "reading_bible": "自分で聖書を読むこと",
+    "significant_moment": "人生の中の大切な経験や瞬間",
+    "other_books": "キリスト教以外の本や考え方",
+    "other": "その他",
+    "none": "どれも当てはまらない",
+    "not_sure": "わからない"
+   }
+  },
+  "journey_continued_formation_unengaged": {
+   "text": "自分がどんな人になりたいかという考えを育むのに、何が助けになりましたか？当てはまるものをすべて選んでください。",
+   "options": {
+    "mentoring": "一対一のメンタリング",
+    "friends": "友人との会話",
+    "challenged_encouraged": "チャレンジや励ましを受けること",
+    "group_learning": "グループで学ぶこと",
+    "welcomed_community": "コミュニティに迎え入れられること",
+    "shared_activities": "食事、振り返り、話し合いなどを共にすること",
+    "studying_ideas": "自分にとって大切な考えを読む、または学ぶこと",
+    "observing": "ほかの人の生き方を見ること",
+    "teaching_talks": "教えや講演",
+    "serving_alongside": "ほかの人と一緒に奉仕すること",
+    "online_community": "オンラインコミュニティ",
+    "time_alone": "一人で考える時間",
+    "other": "その他",
+    "nothing": "そういう意味で助けになったものはない",
+    "not_sure": "わからない"
+   }
+  },
+  "journey_participation_in_mission_unengaged": {
+   "text": "クリスチャンのグループが主催する活動に参加するのをためらうとしたら、何が理由ですか？当てはまるものをすべて選んでください。",
+   "options": {
+    "not_interested": "彼らが提供する活動に興味がない。",
+    "would_not_know_anyone": "知っている人が誰もいないだろう。",
+    "unsure_what_to_expect": "何があるのかわからず不安だ。",
+    "worry_pressured": "キリスト教の信仰を受け入れるよう圧力をかけられないか心配だ。",
+    "worry_judged": "批判されたり、受け入れてもらえなかったりしないか心配だ。",
+    "conflicting_values": "彼らの信念や価値観の一部が、自分のものと相容れない。",
+    "negative_experience": "クリスチャンのグループで嫌な経験をしたことがある。",
+    "practical_issues": "時間、交通手段、費用などの現実的な問題。",
+    "nothing": "ためらう理由はない。",
+    "not_sure": "わからない。"
+   }
+  },
+  "journey_multiplication_unengaged": {
+   "text": "イエスに従うことを考えるのが難しいとしたら、何が理由ですか？当てはまるものをすべて選んでください。",
+   "options": {
+    "dont_know_enough": "イエスやキリスト教について十分に知らない。",
+    "not_convinced": "キリスト教の教えが真実だと確信できない。",
+    "unanswered_questions": "満足のいく答えが見つかっていない疑問がある。",
+    "conflicting_teachings": "キリスト教の教えの一部が、自分の考えや価値観と相容れない。",
+    "suffering_injustice": "苦しみや不正があるので、神を信じるのが難しい。",
+    "bad_experiences": "クリスチャンや教会との経験で、気持ちが離れてしまった。",
+    "worry_response": "親しい人がどう反応するかが心配だ。",
+    "worry_change": "何を変えることを求められるのかが心配だ。",
+    "satisfied": "今の自分の信念や人生観に満足している。",
+    "not_thought_about": "イエスに従うことについて考えたことがない。",
+    "other": "その他",
+    "not_sure": "わからない。"
+   }
+  },
+  "gender": {
+   "text": "あなたの性別に最も当てはまるものはどれですか？",
+   "options": {
+    "male": "男性",
+    "female": "女性",
+    "other": "その他",
+    "prefer_not_say": "答えたくない"
+   }
+  },
+  "country": {
+   "text": "どの国に住んでいますか？"
+  }
+ }
 }

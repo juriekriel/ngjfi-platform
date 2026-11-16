@@ -40,7 +40,7 @@ export function Question({
   moveFocus?: boolean;
 }) {
   const focusRing = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
-  const optBtn = `w-full rounded-xl border-2 px-4 py-3 text-left text-sm transition ${focusRing}`;
+  const optBtn = `w-full rounded-xl border-2 px-4 py-3 text-start text-sm transition ${focusRing}`;
   // Screen readers: each new question announces itself, and its choices are a
   // labelled group whose buttons report whether they are the current answer.
   const headingId = `q-${item.key}`;
@@ -89,7 +89,7 @@ export function Question({
               disabled={busy}
               aria-pressed={isSel(n)}
               onClick={() => onChoose(n)}
-              className={`flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition ${focusRing}`}
+              className={`flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-start text-sm transition ${focusRing}`}
               style={style(n)}
             >
               <span
@@ -410,7 +410,7 @@ function MultiSelect({
               disabled={disabled}
               aria-pressed={isChecked}
               onClick={() => toggle(value)}
-              className="flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition disabled:opacity-40"
+              className="flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-start text-sm transition disabled:opacity-40"
               style={isChecked ? { borderColor: brand, background: `${brand}1a` } : { borderColor: "#e6e8ec" }}
             >
               <span
