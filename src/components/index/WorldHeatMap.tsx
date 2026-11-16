@@ -137,7 +137,7 @@ export default function WorldHeatMap({
       {countries.length > 0 && (
         <p className="mt-3 font-mono text-[9px] uppercase tracking-wider text-muted">
           {countries.length} {countries.length === 1 ? "country" : "countries"} shown
-          <CaveatMark /> · of those who completed the Index · n ={" "}
+          <CaveatMark /> · of those who completed the Jesus Following Index · n ={" "}
           {countries.reduce((sum, c) => sum + c.n, 0).toLocaleString()}
         </p>
       )}

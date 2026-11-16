@@ -47,10 +47,10 @@ test("no question from an older version, or the old hand-typed pitch survey, app
   assert.ok(!/Country \+ city/.test(text), "v6 asks no city");
 });
 
-test("the pitch carries the new name, tagline and goal line", () => {
-  assert.match(text, /The <em>Jesus<\/em> Index/);
-  assert.match(text, /a global measure of Jesus-following/);
-  assert.match(text, /To see every young person have a real opportunity to follow Jesus by 2033\./);
+test("the pitch carries the new name, with the goal as its line", () => {
+  assert.match(text, /The <em>Jesus<\/em> Following Index/);
+  assert.match(text, /to see every young person have a real opportunity to follow Jesus by 2033/);
+  assert.ok(!/a global measure of Jesus-following/.test(text), "the old tagline is retired");
   assert.ok(!/Next Gen Jesus-Following Index/.test(text), "the old long name is gone from the pitch");
 });
 
@@ -59,11 +59,12 @@ test("/pitch is served before the [org] route, and 'pitch' can't be taken as a s
   assert.match(read("supabase/migrations/0061_reserve_pitch_short_name.sql"), /\('pitch',/);
 });
 
-test("the front page carries the logo tagline and the goal banner", () => {
+test("the front page carries the goal as the logo line, and no duplicate banner", () => {
   const chrome = read("src/components/site/Chrome.tsx");
-  assert.match(chrome, /LOGO_TAGLINE = "a global measure of Jesus-following"/);
+  assert.match(chrome, /LOGO_TAGLINE = "to see every young person have a real opportunity to follow Jesus by 2033\."/);
   assert.match(chrome, /GOAL_LINE = "To see every young person have a real opportunity to follow Jesus by 2033\."/);
   const home = read("src/app/page.tsx");
-  assert.match(home, /<Masthead edition=\{GOAL_LINE\} \/>/);
+  assert.match(home, /<Masthead \/>/);
+  assert.ok(!/edition=\{GOAL_LINE\}/.test(home), "the goal banner under the masthead is gone — it now duplicates the logo line");
   assert.ok(!home.includes("The Next Gen Jesus-Following Index"));
 });

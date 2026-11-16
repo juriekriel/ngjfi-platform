@@ -4,7 +4,7 @@
  * Edge-consent confirmation (migration 0042).
  *
  * Consent is gathered by the organisation, at the edge, and never held by the
- * Index (non-negotiable #2). What the Index DOES hold is the organisation's
+ * Index (non-negotiable #2). What the Jesus Following Index DOES hold is the organisation's
  * word that it has done so: a timestamp, the person, and the version of the
  * statement below. Until that exists, a real organisation's links politely
  * refuse answers (test links still work).

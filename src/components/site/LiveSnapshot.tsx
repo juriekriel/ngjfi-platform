@@ -95,7 +95,7 @@ export default function LiveSnapshot() {
       <div className="border-t-2 border-emerald pt-3">
         <p className="tabular text-[40px] leading-none">{typeof orgs === "number" ? orgs.toLocaleString("en") : "—"}</p>
         <p className="mt-2 text-[14.5px] leading-snug text-ink-2">
-          {isDemo ? "invented organisations in the demo" : "ministries have run the Index"}
+          {isDemo ? "invented organisations in the demo" : "ministries have run the Jesus Following Index"}
         </p>
       </div>
       <div className="border-t-2 border-emerald pt-3">
@@ -110,7 +110,7 @@ export default function LiveSnapshot() {
   const map = (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule pb-2">
-        <p className="figcap">{isDemo ? "What the global view will look like" : "By country, of those who completed the Index"}</p>
+        <p className="figcap">{isDemo ? "What the global view will look like" : "By country, of those who completed the Jesus Following Index"}</p>
         <MapTierToggle tier={tier} onChange={setTier} className="rounded-md px-2.5 py-1 text-[12.5px]" />
       </div>
       <div className="mt-5">
@@ -118,10 +118,10 @@ export default function LiveSnapshot() {
       </div>
       <p className="margin-note mt-3 border-l-2 border-rule pl-3">
         {isDemo
-          ? `Every figure here is invented. It shows how the view works and says nothing about any real country. With live data, a country appears only once ${gate} people there have completed the Index.`
+          ? `Every figure here is invented. It shows how the view works and says nothing about any real country. With live data, a country appears only once ${gate} people there have completed the Jesus Following Index.`
           : live && live.published === false
-            ? `No country is shown yet. A country lights up once ${gate} people there have completed the Index, so no result can point to a small group. Switch to the demo preview to see how the map fills.`
-            : `A country is coloured once ${gate} people there have completed the Index. Colours describe those who took part, not the whole country.`}
+            ? `No country is shown yet. A country lights up once ${gate} people there have completed the Jesus Following Index, so no result can point to a small group. Switch to the demo preview to see how the map fills.`
+            : `A country is coloured once ${gate} people there have completed the Jesus Following Index. Colours describe those who took part, not the whole country.`}
       </p>
     </div>
   );

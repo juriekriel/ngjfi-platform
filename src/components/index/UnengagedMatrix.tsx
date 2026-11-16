@@ -1,6 +1,6 @@
 /**
  * The Unengaged matrix — the Exploration Index (migration 0026), for those
- * who completed the Index but don't yet identify as following Jesus.
+ * who completed the Jesus Following Index but don't yet identify as following Jesus.
  *
  * Same 3 × 4 model and the same maths as the J12, on its own n, and NEVER
  * summed, averaged or otherwise blended with it (CLAUDE.md #9). Their
@@ -76,7 +76,7 @@ export default function UnengagedMatrix({ data, scopeLine }: { data: UnengagedDa
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="max-w-xl text-[13.5px] leading-relaxed text-ink-2">
-          For those who completed the Index but don&apos;t yet identify as following Jesus. Same 3 × 4 model and the
+          For those who completed the Jesus Following Index but don&apos;t yet identify as following Jesus. Same 3 × 4 model and the
           same maths as the J12 — never added to it, averaged with it or compared cell for cell as one score.
         </p>
         <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-violet">n {data.n.toLocaleString()}</span>

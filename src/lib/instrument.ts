@@ -38,11 +38,11 @@ export interface InstrumentItem {
   key: string;
   question_domain:
     | "follow" | "mission" | "world" | "screener" | "drivers" | "journey" | "exploration" | "demographic"
-    /** Belong–Trust module (v5): unscored insight domains, reported beside the Index. */
+    /** Belong–Trust module (v5): unscored insight domains, reported beside the Jesus Following Index. */
     | "belong" | "trust" | "context";
   /** Index items only: which parallel branch of the instrument this item belongs to.
    * "engaged" (or omitted) feeds the official Index; "unengaged" feeds the separate
-   * Exploration Index (src/lib/scoring.ts) and must never be blended with the Index. */
+   * Exploration Index (src/lib/scoring.ts) and must never be blended with the Jesus Following Index. */
   branch?: "engaged" | "unengaged";
   tier: "exposure" | "response" | "formation" | "multiplication" | "na";
   type:

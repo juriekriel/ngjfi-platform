@@ -1,9 +1,9 @@
 ---
 name: ngjfi-platform
-description: Develop the Jesus Index platform (jfindx.org / ngjfi-platform) — write code, add features, fix bugs, change the design system, edit the instrument, or write database migrations on github.com/juriekriel/ngjfi-platform. Use for any request to build, change, debug, review or ship anything in that repo: "add a feature to the Index", "fix the survey page", "change the platform colours", "add a migration", "update the instrument", "why is the dashboard broken", "open a PR on ngjfi-platform", "work on jfindx". Starts by proving the session can actually push before any code is written, then carries the project's guardrails — never push to main, migrations only, colour is semantic, respondents stay anonymous. Not for the NXT Move website (use nxtmove-website) or the leadership pitch HTML.
+description: Develop the Jesus Following Index platform (jfindx.org / ngjfi-platform) — write code, add features, fix bugs, change the design system, edit the instrument, or write database migrations on github.com/juriekriel/ngjfi-platform. Use for any request to build, change, debug, review or ship anything in that repo: "add a feature to the Jesus Following Index", "fix the survey page", "change the platform colours", "add a migration", "update the instrument", "why is the dashboard broken", "open a PR on ngjfi-platform", "work on jfindx". Starts by proving the session can actually push before any code is written, then carries the project's guardrails — never push to main, migrations only, colour is semantic, respondents stay anonymous. Not for the NXT Move website (use nxtmove-website) or the leadership pitch HTML.
 ---
 
-# The Jesus Index platform — how to build here
+# The Jesus Following Index platform — how to build here
 
 `github.com/juriekriel/ngjfi-platform` · live at `jfindx.org` · Next.js (App Router) +
 TypeScript + Tailwind · Supabase (Postgres + RLS + Auth) · Netlify with PR deploy previews.
@@ -145,7 +145,7 @@ deleting data, or anything that would centralise identifiable data.
 never a birthdate. Never design anything that centrally holds identifiable data about
 under-18s. Orgs see aggregates only — no individual response is ever exposed to an org.
 
-**Never overclaim.** Every figure is scoped to *"those who have completed the Index"*, and
+**Never overclaim.** Every figure is scoped to *"those who have completed the Jesus Following Index"*, and
 sample size appears wherever a score does.
 
 **Secrets.** The repo is **public**. Only `NEXT_PUBLIC_*` values may reach the browser. Never

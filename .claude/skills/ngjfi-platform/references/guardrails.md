@@ -53,7 +53,7 @@ regardless of how useful it would be.
 
 ## Never overclaim
 
-Report only on *"those who have completed the Index"* — never a whole population. Sample
+Report only on *"those who have completed the Jesus Following Index"* — never a whole population. Sample
 size appears wherever a score appears. Benchmarks stay hidden until a geography passes the
 critical-mass gate.
 
@@ -76,7 +76,7 @@ Edit `src/data/instrument.v1.json`, then `npm run db:seed`. v0 is archived, not 
 
 ## Build for the age-range future now
 
-The Index starts at 13–30 and will become a whole-life tracker. Expansion must be
+The Jesus Following Index starts at 13–30 and will become a whole-life tracker. Expansion must be
 configuration, not a rewrite.
 
 - **Never hard-code age bands.** `13_17 / 18_22 / 23_30` are *data* in the instrument
@@ -100,7 +100,7 @@ Never write a fixture. Never fork a component "just for the demo".
 `tests/sample.test.ts` fails the build if you do.
 
 A demo that has drifted from the product is a demo that lies to the people deciding whether
-to adopt the Index.
+to adopt the Jesus Following Index.
 
 ---
 

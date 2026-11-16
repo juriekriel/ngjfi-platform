@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Share about the Jesus Index — what an organisation hands to a partner, a board
+ * Share about the Jesus Following Index — what an organisation hands to a partner, a board
  * or a neighbouring ministry. Four downloads (static files in public/share/,
  * so they work offline once cached and never depend on the database) plus a
  * short blurb to paste into an email or a WhatsApp group.
@@ -22,7 +22,7 @@ const FILES = [
 ];
 
 export default function ShareJfindx({ orgName }: { orgName: string }) {
-  const blurb = `${orgName} is using the Jesus Index — a seven-minute, anonymous survey that shows how young people are following Jesus, and where they stop moving. It's free for ministries and built with the Next Gen Global Collab. See jfindx.org.`;
+  const blurb = `${orgName} is using the Jesus Following Index — a seven-minute, anonymous survey that shows how young people are following Jesus, and where they stop moving. It's free for ministries and built with the Next Gen Global Collab. See jfindx.org.`;
   const [copied, setCopied] = useState(false);
   return (
     <div className="flex flex-col gap-3">

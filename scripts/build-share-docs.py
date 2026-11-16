@@ -1,6 +1,6 @@
 """
-Builds the three shareable Jesus Index documents (front page "Pitch
-documents" and the dashboard's "Share about the Jesus Index"):
+Builds the three shareable Jesus Following Index documents (front page "Pitch
+documents" and the dashboard's "Share about the Jesus Following Index"):
   public/share/JesusIndex-leadership-pitch.pdf  (16:9 deck)
   public/share/JesusIndex-two-pager.pdf         (16:9, 2 pages)
   public/share/JesusIndex-pitch-and-demo.pdf    (16:9 deck)
@@ -235,7 +235,7 @@ class Deck:
         return len(self.slides)
 
 def lockup(dark=True):
-    return f'<div class="lock">{MARK}<div><div class="word">The <i>Jesus</i> Index</div><div class="tag">A global measure of Jesus-following</div></div></div>'
+    return f'<div class="lock">{MARK}<div><div class="word">The <i>Jesus</i> Following Index</div><div class="tag">To see every young person have a real opportunity to follow Jesus by 2033.</div></div></div>'
 
 def cover(d, headline, sub, pill, meta):
     d.add(f'''{lockup()}
@@ -256,7 +256,7 @@ def opportunity(d, who="Thirty-plus ministries, and the churches around them, lo
       </div>''')
 
 def what_is(d):
-    d.add(f'''<div class="eyebrow">What is the Jesus Index?</div>
+    d.add(f'''<div class="eyebrow">What is the Jesus Following Index?</div>
       <h1>A short, anonymous survey young people take on their own phones, and a dashboard that shows you what it means.</h1>
       <div class="grid4" style="margin-top:52px">
         <div class="stat"><div class="n">&asymp;{FULL_MIN} min</div><div class="l">the full survey &middot; &asymp;{J12_MIN} for the J12 only</div></div>
@@ -311,7 +311,7 @@ def gives(d):
       </div>''')
 
 def phone_join():
-    return f'''<div class="phone"><div class="in"><div class="word" style="font-size:22px">The <i>Jesus</i> Index</div>
+    return f'''<div class="phone"><div class="in"><div class="word" style="font-size:22px">The <i>Jesus</i> Following Index</div>
       <div style="font-weight:800;font-size:28px;margin-top:18px">Join, free</div>
       <div class="lab">Your ministry email</div><div class="field">you@church.org</div>
       <div class="lab">Organisation</div><div class="field">e.g. Northside Church</div>
@@ -368,7 +368,7 @@ def walls(d):
 def pattern(d):
     d.add('''<div class="eyebrow">A proven pattern</div>
       <h1>The missing leg of Collective Impact.</h1>
-      <p class="lead">Stanford&rsquo;s Collective Impact names five conditions a coalition needs. The Collab has four. The Index builds the fifth: <b>shared measurement</b>.</p>
+      <p class="lead">Stanford&rsquo;s Collective Impact names five conditions a coalition needs. The Collab has four. The Jesus Following Index builds the fifth: <b>shared measurement</b>.</p>
       <div class="grid3">
         <div class="card"><h3>Gallup Q12</h3><p>Twelve questions in a four-level hierarchy, run by organisations across 50+ industries and benchmarked against a global database.</p></div>
         <div class="card"><h3>Global Flourishing Study</h3><p>Harvard, Baylor and Gallup: a shared index across 22 countries. The model of a common measure, if not the budget.</p></div>
@@ -383,7 +383,7 @@ def road(d):
       <h1 style="color:#fff">One measure, owned by everyone. About $1M through 2033.</h1>
       <div class="grid4" style="margin-top:40px">
         <div class="card"><h3>The Collab</h3><p>Owns the project, the relationships and the people.</p></div>
-        <div class="card"><h3>NXT Move</h3><p>The Collab&rsquo;s appointed backbone organisation; stewards the Index.</p></div>
+        <div class="card"><h3>NXT Move</h3><p>The Collab&rsquo;s appointed backbone organisation; stewards the Jesus Following Index.</p></div>
         <div class="card"><h3>Eido Research</h3><p>The survey and intelligence engine.</p></div>
         <div class="card"><h3>Every ministry</h3><p>Runs it free, keeps its own results, adds to the shared picture.</p></div>
       </div>
@@ -405,7 +405,7 @@ def invite(d, steps):
 
 def goal(d):
     d.add('''<div class="goal"><div class="q">To see every young person have a real opportunity to <i>follow Jesus</i> by 2033.</div>
-      <div class="rule"></div><div class="by">The Jesus Index &middot; stewarded by NXT Move for the Next Gen Global Collab &middot; jfindx.org</div></div>''', foot=False)
+      <div class="rule"></div><div class="by">The Jesus Following Index &middot; stewarded by NXT Move for the Next Gen Global Collab &middot; jfindx.org</div></div>''', foot=False)
 
 def demo1(d):
     steps = [("Sign in", "On the laptop go to jfindx.org &rarr; &ldquo;Sign in&rdquo;. Enter your ministry email and open the link from the newest email; it works on any device."),
@@ -427,7 +427,7 @@ def demo2(d):
     st = [f'<div class="step"><div class="num">{n}</div><div><h3>{a}</h3><p>{b}</p></div></div>' for n, (a, b) in enumerate(steps, 5)]
     d.add(f'''<div class="eyebrow">Run the demo &middot; part two</div>
       <h1 class="md">Answer, read, ask.</h1>
-      <p class="lead" style="font-size:22px">At the bottom of the dashboard, &ldquo;Share about the Jesus Index&rdquo; has these documents and the QR code. Consent materials: jfindx.org/resources/consent.</p>
+      <p class="lead" style="font-size:22px">At the bottom of the dashboard, &ldquo;Share about the Jesus Following Index&rdquo; has these documents and the QR code. Consent materials: jfindx.org/resources/consent.</p>
       <div class="cols2"><div>{st[0]}{st[1]}</div><div>{st[2]}{st[3]}</div></div>''')
 
 def promises(d):
@@ -439,12 +439,12 @@ def promises(d):
              ("Never locked in code", "Questions are researcher-owned and versioned; every answer stays tied to the version it was given under.")]
     cards = "".join(f'<div class="card"><h3>{a}</h3><p>{b}</p></div>' for a, b in items)
     d.add(f'''<div class="eyebrow">The integrity line</div>
-      <h1 class="md">&ldquo;Of those who have completed the Index.&rdquo; We never claim to speak for a nation.</h1>
+      <h1 class="md">&ldquo;Of those who have completed the Jesus Following Index.&rdquo; We never claim to speak for a nation.</h1>
       <div class="grid3" style="margin-top:34px">{cards}</div>''')
 
 # ── the three documents ───────────────────────────────────────────────────────
 def leadership():
-    d = Deck("The Jesus Index · Leadership pitch")
+    d = Deck("The Jesus Following Index · Leadership pitch")
     cover(d, 'Let&rsquo;s see Jesus-following, <span class="hl">one ministry at a time.</span>',
           "One shared, anonymous measure that any ministry, down to a single local church, can run for free, so the whole movement reads the same picture.",
           "Leadership pitch", "Next Gen Global Collab · on the road to 2033")
@@ -453,22 +453,22 @@ def leadership():
                ("Set up your page.", "Your logo, colour and welcome; confirm consent."),
                ("Send your first survey.", "A link or QR code for each group. Results appear as they answer.")])
     goal(d)
-    return d.write("JesusIndex-leadership-pitch.pdf", "The Jesus Index — leadership pitch")
+    return d.write("JesusIndex-leadership-pitch.pdf", "The Jesus Following Index — leadership pitch")
 
 def demo_guide():
-    d = Deck("The Jesus Index · Pitch and demo guide")
+    d = Deck("The Jesus Following Index · Pitch and demo guide")
     cover(d, 'Walk someone through it, <span class="hl">in ten minutes.</span>',
-          "Why the Jesus Index exists, how a ministry uses it, and step-by-step notes for a leaders&rsquo; meeting or a call.",
+          "Why the Jesus Following Index exists, how a ministry uses it, and step-by-step notes for a leaders&rsquo; meeting or a call.",
           "Pitch and demo guide", "For leaders, boards and partners · jfindx.org")
     opportunity(d); what_is(d); j12(d); how2(d); safe(d); demo1(d); demo2(d)
     invite(d, [("Join, free.", "jfindx.org/join, about a minute."),
                ("Try it with a test link.", "Answers on a test link never count anywhere."),
                ("Confirm consent and send it.", "For your ministry, then for each survey.")])
     goal(d)
-    return d.write("JesusIndex-pitch-and-demo.pdf", "The Jesus Index — pitch and demo guide")
+    return d.write("JesusIndex-pitch-and-demo.pdf", "The Jesus Following Index — pitch and demo guide")
 
 def two_pager():
-    d = Deck("The Jesus Index · Two-pager · jfindx.org")
+    d = Deck("The Jesus Following Index · Two-pager · jfindx.org")
     head = "".join(f"<th>{c}</th>" for c in J12_COLS)
     rows = "".join(f'<tr><td class="rh" style="font-size:20px;width:120px">{r}<span style="font-size:14px">{g}</span></td>' +
                    "".join(f'<td class="c c{j}" style="height:64px;width:142px;font-size:15px">{e(J12_WORDS[i][j])}</td>' for j in range(4)) + "</tr>"
@@ -477,7 +477,7 @@ def two_pager():
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:-40px"><div style="width:900px">{lockup().replace('class="word"','class="word" style="font-size:34px"')}</div>
         <span class="pill" style="font-size:17px;padding:10px 18px">Two-pager &middot; for a board or partner</span></div>
       <h1 class="md" style="margin-top:26px;max-width:1260px;font-size:46px">How are young people following Jesus, and where do they stop moving?</h1>
-      <p class="lead" style="font-size:20px;margin-top:12px;max-width:1260px">The Jesus Index is one short, anonymous survey any ministry can run with the young people it reaches, aged 13 to 30. It&rsquo;s free. Each ministry sees its own results live; together, the Collab sees a picture no single ministry could see alone.</p>
+      <p class="lead" style="font-size:20px;margin-top:12px;max-width:1260px">The Jesus Following Index is one short, anonymous survey any ministry can run with the young people it reaches, aged 13 to 30. It&rsquo;s free. Each ministry sees its own results live; together, the Collab sees a picture no single ministry could see alone.</p>
       <div style="display:flex;margin-top:22px">
         <div style="flex:0 0 760px;width:760px;margin-right:44px">
           <div class="eyebrow" style="font-size:16px">The model &middot; the J12</div>
@@ -503,7 +503,7 @@ def two_pager():
           ("Aggregates only", "No organisation ever sees one person&rsquo;s answers."),
           ("Kept only as long as needed", "Identifying details removed after 60 days; cleaned answers up to 5 years."),
           ("Minors protected at the edge", "Consent, including parental, gathered and held by each ministry."),
-          ("Your brand, not ours", "Your name, colour and logo; the Index sits in the footer.")]
+          ("Your brand, not ours", "Your name, colour and logo; the Jesus Following Index sits in the footer.")]
     pc = "".join(f'<div class="card" style="padding:16px 18px"><h3 style="font-size:19px">{a}</h3><p style="font-size:16px;margin-top:4px">{b}</p></div>' for a, b in pr)
     d.add(f'''<div style="display:flex;margin-top:-30px">
         <div style="flex:0 0 600px;width:600px;margin-right:50px"><div class="eyebrow" style="font-size:16px">How it works</div>
@@ -514,7 +514,7 @@ def two_pager():
             <td style="width:150px;vertical-align:middle"><img src="{QR}" style="width:130px;height:130px;border-radius:12px"></td>
             <td style="vertical-align:middle"><p class="small"><b style="color:#22252b">Join free at jfindx.org.</b> Privacy notice: jfindx.org/privacy &middot; Consent guide, parent letter and script: jfindx.org/resources/consent &middot; Guided tour: jfindx.org/tour</p></td>
           </tr></table></div></div>''')
-    return d.write("JesusIndex-two-pager.pdf", "The Jesus Index — what it is and how it works")
+    return d.write("JesusIndex-two-pager.pdf", "The Jesus Following Index — what it is and how it works")
 
 if __name__ == "__main__":
     counts = {"leadership": leadership(), "two_pager": two_pager(), "demo": demo_guide()}

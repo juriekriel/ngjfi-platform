@@ -13,13 +13,13 @@ export const PITCH_DOCS = [
     href: "/share/JesusIndex-leadership-pitch.pdf",
     kicker: "Leadership pitch · 15 slides · PDF",
     title: "Why a shared measure, and why this matters now.",
-    body: "The case for the Index: why measuring Jesus-following matters, how it works, who does what, and what this means for the future.",
+    body: "The case for the Jesus Following Index: why measuring Jesus-following matters, how it works, who does what, and what this means for the future.",
     lead: true,
   },
   {
     href: "/share/JesusIndex-two-pager.pdf",
     kicker: "Two-pager · 2 slides · PDF",
-    title: "What the Jesus Index is, and how it works",
+    title: "What the Jesus Following Index is, and how it works",
     body: "The three questions and four tiers, what a young person answers, what your ministry sees, and how answers stay anonymous. Specifically written for a board or partner.",
   },
   {
@@ -39,7 +39,7 @@ export default function PitchDocs() {
         Take it to your team.
       </h2>
       <p className="mt-3 max-w-measure text-[16.5px] leading-relaxed text-ink-2">
-        Download, print, or forward. These explain the Index in detail, and can be downloaded with one click.
+        Download, print, or forward. These explain the Jesus Following Index in detail, and can be downloaded with one click.
       </p>
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         {PITCH_DOCS.map((f) => (

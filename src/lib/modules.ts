@@ -16,7 +16,7 @@ export function optionsFor(i: InstrumentItem): { value: string; label: string }[
 }
 
 /**
- * Insight modules — short, unscored blocks inside the Index (section "module").
+ * Insight modules — short, unscored blocks inside the Jesus Following Index (section "module").
  * Everything here is derived from the instrument; the only thing a new module
  * needs in code is a human label for its group headings, and even that falls
  * back to the raw tag.

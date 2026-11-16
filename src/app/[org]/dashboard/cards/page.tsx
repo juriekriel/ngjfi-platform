@@ -138,7 +138,7 @@ function Cards({ org: slug }: { org: string }) {
             <div className="w-full">
               <p className={`${perSheet === 8 ? "text-[10px]" : "text-[13px]"} font-mono font-medium`}>{short}</p>
               <p className={`${perSheet === 8 ? "text-[9px]" : "text-[12px]"} mt-1 text-ink-2`}>About 7 minutes · anonymous · works offline</p>
-              {perSheet !== 8 && <p className="mt-2 font-mono text-[9px] uppercase tracking-wider text-muted">powered by The Index · jfindx.org</p>}
+              {perSheet !== 8 && <p className="mt-2 font-mono text-[9px] uppercase tracking-wider text-muted">powered by The Jesus Following Index · jfindx.org</p>}
             </div>
           </article>
         ))}

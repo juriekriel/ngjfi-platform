@@ -113,7 +113,7 @@ export const SAMPLE_MINISTRY: SampleOrg = {
   n: 742,
 };
 
-/** Scored items only — diagnostics and screeners never enter the Index. */
+/** Scored items only — diagnostics and screeners never enter the Jesus Following Index. */
 export function sampleItems(): InstrumentItem[] {
   return instrument.items.filter(
     (i) => i.scored && (DOMAINS as readonly string[]).includes(i.question_domain),

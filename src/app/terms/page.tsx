@@ -1,8 +1,8 @@
 import LegalPage from "@/components/site/LegalPage";
 
 export const metadata = {
-  title: "Terms for organisations — The Jesus Index",
-  description: "What an organisation agrees to when it runs the Index. Draft for review.",
+  title: "Terms for organisations — The Jesus Following Index",
+  description: "What an organisation agrees to when it runs the Jesus Following Index. Draft for review.",
 };
 
 /** DRAFT terms for participating organisations — pending counsel and the Collab. */
@@ -10,14 +10,14 @@ export default function TermsPage() {
   return (
     <LegalPage
       kicker="Terms for organisations"
-      title="Running the Index as your own"
+      title="Running the Jesus Following Index as your own"
       updated="October 2026"
       sections={[
         {
           heading: "What you get",
           body: (
             <p>
-              The Index is free to run. You get the survey under your own name and colours, your own dashboard of grouped
+              The Jesus Following Index is free to run. You get the survey under your own name and colours, your own dashboard of grouped
               results, and — once enough organisations near you take part — a comparison with your country and the
               world.
             </p>
@@ -30,7 +30,7 @@ export default function TermsPage() {
               <p>
                 <b>Consent.</b> You will obtain the consent your context requires before anyone takes your survey,
                 including parental or guardian consent for 13-to-17-year-olds wherever your law, denomination or
-                safeguarding policy requires it. You keep those records; you will not send them to the Index.
+                safeguarding policy requires it. You keep those records; you will not send them to the Jesus Following Index.
               </p>
               <p>
                 <b>Age.</b> You will only share your links with people aged 13 or over.
@@ -41,7 +41,7 @@ export default function TermsPage() {
               </p>
               <p>
                 <b>Honest reporting.</b> When you share results, you will describe them as results &ldquo;of those who
-                completed the Index&rdquo;, not as a finding about everyone in your community, church or country.
+                completed the Jesus Following Index&rdquo;, not as a finding about everyone in your community, church or country.
               </p>
             </>
           ),
@@ -79,7 +79,7 @@ export default function TermsPage() {
           heading: "Who runs it",
           body: (
             <p>
-              The Index is run for the Next Gen Global Collab by its backbone organisation. Who acts as controller of the
+              The Jesus Following Index is run for the Next Gen Global Collab by its backbone organisation. Who acts as controller of the
               pooled data, and under which law, is being settled with counsel and will be stated here before pilots
               begin.
             </p>

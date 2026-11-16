@@ -146,7 +146,7 @@ export default function WhoAnswered({ sb, orgSlug, linkId, season }: Props) {
         )}
         {bd && (
           <p className="mt-2 text-[12px] leading-relaxed text-muted">
-            Of those who have completed the Index · n {bd.total.toLocaleString("en")} · scores 1–5 · a group smaller than{" "}
+            Of those who have completed the Jesus Following Index · n {bd.total.toLocaleString("en")} · scores 1–5 · a group smaller than{" "}
             {bd.min_n} is hidden and never named, and when only one group would be hidden the next smallest is hidden with it
             {dim === "country" ? " · a country is named only once it reaches the place gate" : ""}.
           </p>

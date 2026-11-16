@@ -9,7 +9,7 @@
  * in-flow welcome screen (Survey.tsx, i === -1) is compact by design — it's
  * the first screen of a six-minute form, and has to get out of the way fast.
  * This page is the thing an organisation actually shares on social media, a
- * church bulletin, or a flyer: it can take its time, explain what the Index
+ * church bulletin, or a flyer: it can take its time, explain what the Jesus Following Index
  * is to someone who has never heard of it, and only THEN invite them in.
  *
  * Reads the same public organisations columns Survey.tsx already reads (RLS:
@@ -116,14 +116,14 @@ export default function OrgWelcomePage({ params }: { params: { org: string } }) 
           className="mt-8 inline-block rounded-lg px-7 py-3.5 text-[15px] font-semibold text-plate no-underline"
           style={{ background: brand }}
         >
-          Take the Index →
+          Take the Jesus Following Index →
         </Link>
         <p className="mt-3 text-[13px] text-ink-2">About 7 minutes, on your phone. No name, no email.</p>
 
         <div className="mt-16 border-t border-rule pt-10 text-left">
           <div className="flex items-center gap-3">
             <RisingMark className="h-8 w-8 shrink-0" />
-            <p className="text-[15px] font-semibold text-ink">What is the Jesus Index?</p>
+            <p className="text-[15px] font-semibold text-ink">What is the Jesus Following Index?</p>
           </div>
           <p className="mt-3 text-[15px] leading-relaxed text-ink-2">
             One shared instrument, run by hundreds of organisations like {orgName} around the world —
@@ -137,7 +137,7 @@ export default function OrgWelcomePage({ params }: { params: { org: string } }) 
           </div>
           <p className="mt-6 text-center">
             <Link href="/learn" className="text-[14px] font-semibold text-ink-2 no-underline hover:text-ink">
-              Read more about the Index →
+              Read more about the Jesus Following Index →
             </Link>
           </p>
         </div>

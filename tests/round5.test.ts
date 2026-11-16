@@ -16,7 +16,7 @@ test("benefits: headings only, context on hover, under the hero buttons", () => 
   order.forEach((i, k) => assert.ok(i > 0, `marker ${k}`));
   assert.deepEqual([...order].sort((a, b) => a - b), order, "benefits sit under the two buttons, in the left column (round 7)");
   const b = read("src/components/site/HeroBenefits.tsx");
-  assert.match(b, /Why use the Jesus Index\?/);
+  assert.match(b, /Why use the Jesus Following Index\?/);
   assert.match(b, /ways this serves you:/);
   assert.match(b, /onMouseEnter/);
   assert.match(b, /sr-only/, "the context is still read out without hovering");

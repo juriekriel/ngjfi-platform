@@ -14,7 +14,7 @@ const dir = new URL("../supabase/migrations/", import.meta.url).pathname;
 const files = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
 
 const header = `-- ============================================================================
--- The Jesus Index — full schema bootstrap
+-- The Jesus Following Index — full schema bootstrap
 --
 -- GENERATED FILE. Do not edit: change a migration and re-run
 --   node scripts/build-bootstrap.mjs

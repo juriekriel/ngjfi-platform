@@ -1,11 +1,11 @@
-# NGJFI Platform — *the Index*
+# NGJFI Platform — *the Jesus Following Index*
 
 The **Next Gen Jesus-Following Index**: a multi-tenant, white-labelled, crowdsourced
 faith-engagement measurement platform for the NextGen Global Collab. One shared survey
 instrument, a per-organisation dashboard, and an aggregate "Collab Intelligence" layer —
 privacy-first, translation-ready, and careful never to overclaim.
 
-> **Integrity line:** the platform only ever reports on *those who have completed the Index* —
+> **Integrity line:** the platform only ever reports on *those who have completed the Jesus Following Index* —
 > never a whole population. Benchmarks are gated by a critical-mass threshold.
 
 ---

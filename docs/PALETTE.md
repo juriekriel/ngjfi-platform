@@ -24,7 +24,7 @@ true. Those are now gone. Changing a colour is one edit to one file.
 
 **The one deliberate exception:** `SAMPLE_ORG.brand` in `src/lib/sample.ts` stays a
 literal hex. That is a white-label ministry's *own* brand colour — org data, not a
-platform token. Re-skinning the Index must never silently re-skin someone's brand.
+platform token. Re-skinning the Jesus Following Index must never silently re-skin someone's brand.
 
 ---
 

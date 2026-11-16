@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /*
- * The Jesus Index — almanac, not app.
+ * The Jesus Following Index — almanac, not app.
  * Fonts are loaded and self-hosted by next/font in layout.tsx (no CDN round
  * trip, which matters on a mid-range Android over 3G). The variables below are
  * bound there.

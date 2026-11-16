@@ -6,7 +6,7 @@ import { OPEN_QUESTIONS } from "@/data/history";
 import { NAVY, VERMILLION } from "@/lib/model";
 
 export const metadata = {
-  title: "Our story — The Jesus Index",
+  title: "Our story — The Jesus Following Index",
   description:
     "The long version: the question the Collab could not answer, the fifty-country study that collapsed, and the pivot to a shared standard.",
 };
@@ -176,7 +176,7 @@ export default function HistoryPage() {
               <p>
                 Crowdsourced data is only responsible if you are honest about what it is. Every score
                 on this platform carries its sample size. No benchmark appears for a country until
-                enough people there have completed the Index.
+                enough people there have completed the Jesus Following Index.
               </p>
               <p>
                 No organisation ever sees another organisation&apos;s results. No organisation ever sees
@@ -217,9 +217,9 @@ export default function HistoryPage() {
           <GradientRule className="mb-8" />
           <div className="grid gap-4 sm:grid-cols-3">
             {[
-              { href: "/learn", kicker: "Start here", title: "What is the Index", note: "The short version." },
+              { href: "/learn", kicker: "Start here", title: "What is the Jesus Following Index", note: "The short version." },
               { href: "/tour", kicker: "Or", title: "See how it works", note: "A guided walk, one step at a time." },
-              { href: "/join", kicker: "When you are ready", title: "Join the Index", note: "For organisations and churches.", lead: true },
+              { href: "/join", kicker: "When you are ready", title: "Join the Jesus Following Index", note: "For organisations and churches.", lead: true },
             ].map((d) => (
               <Link
                 key={d.href}

@@ -18,7 +18,7 @@ export const WHY_CONSENT = {
     { strong: "answers stay private", rest: ", so no one can trace them back to a person" },
   ],
   local:
-    "The Index never asks for names, emails or consent forms. That's deliberate: consent is gathered by you, locally, where you know the young people and the law. The platform can't check it for you, so we ask you to confirm it, for your organisation and again for each survey you send.",
+    "The Jesus Following Index never asks for names, emails or consent forms. That's deliberate: consent is gathered by you, locally, where you know the young people and the law. The platform can't check it for you, so we ask you to confirm it, for your organisation and again for each survey you send.",
   rule: "No consent, no participation. Until you confirm, your survey link can't record answers.",
   countries:
     "Rules differ by country. See the country reference before you send, and check your own law, denomination and safeguarding policy.",

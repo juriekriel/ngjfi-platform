@@ -4,7 +4,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * Round 4 / 4b (Oct 2026): the Jesus Index name throughout, the J12 as the
+ * Round 4 / 4b (Oct 2026): the Jesus Following Index name throughout, the J12 as the
  * real mark, and everything demo on one page — /see-a-demo — with
  * "See your: Ministry · Organisation · Church" and a closing call to action.
  */
@@ -13,13 +13,13 @@ const walk = (dir: string): string[] =>
   readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).isDirectory() ? walk(join(dir, f)) : [join(dir, f)]));
 const code = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-test("the name is the Jesus Index everywhere a person reads it", () => {
+test("the name is the Jesus Following Index everywhere a person reads it", () => {
   for (const f of walk("src").filter((f) => /\.(tsx?|json)$/.test(f))) {
     const visible = code(read(f)).replace(/jfindx[-.]?\w*/gi, ""); // the domain and file names stay
     assert.ok(!/JFINDX|J\.FIND\.x/.test(visible), `${f} still says JFINDX`);
   }
-  assert.match(read("src/components/site/Chrome.tsx"), /The <span className="italic">Jesus<\/span> Index/);
-  assert.match(read("src/app/manifest.ts"), /short_name: "Jesus Index"/);
+  assert.match(read("src/components/site/Chrome.tsx"), /The <span className="italic">Jesus<\/span> Following Index/);
+  assert.match(read("src/app/manifest.ts"), /short_name: "Jesus Following Index"/);
 });
 
 test("the front page: no under-18s tile, no figures, a door to the demo", () => {

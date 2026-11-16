@@ -3,9 +3,9 @@ import PrintControls from "@/components/site/PrintControls";
 import ConsentResource, { CONSENT_RESOURCE_VERSION } from "@/content/consent/ConsentResource";
 
 export const metadata = {
-  title: "Consent — The Jesus Index",
+  title: "Consent — The Jesus Following Index",
   description:
-    "Why consent matters, how it works on the Index, the rules in 21 countries, and the materials to do it well: information for young people, a parent letter and form, a script and a checklist.",
+    "Why consent matters, how it works on the Jesus Following Index, the rules in 21 countries, and the materials to do it well: information for young people, a parent letter and form, a script and a checklist.",
 };
 
 export default function ConsentResourcePage() {

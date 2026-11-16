@@ -82,7 +82,7 @@ export function runChecks(items: CheckItem[], locales: string[]): Check[] {
       label: "Weekly prayer and scripture are measurable (non-negotiable #5)",
       ok: coreActivitiesOk,
       detail: coreActivities.length
-        ? coreActivities.map((i) => `${i.key} (${i.type}, ${i.scored ? "scored into the Index" : "unscored — reported alongside the Index"})`).join(" · ")
+        ? coreActivities.map((i) => `${i.key} (${i.type}, ${i.scored ? "scored into the Jesus Following Index" : "unscored — reported alongside the Jesus Following Index"})`).join(" · ")
         : "No item is marked core_activity",
     },
     {
@@ -101,7 +101,7 @@ export function runChecks(items: CheckItem[], locales: string[]): Check[] {
       id: "insight",
       label: "Drivers, Journey and modules stay unscored (non-negotiable #9)",
       ok: insightScored.length === 0,
-      detail: insightScored.length ? `Scored: ${insightScored.join(", ")}` : "Reported alongside the Index, never folded in",
+      detail: insightScored.length ? `Scored: ${insightScored.join(", ")}` : "Reported alongside the Jesus Following Index, never folded in",
     },
     {
       id: "translations",

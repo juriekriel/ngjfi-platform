@@ -5,7 +5,7 @@ import { join } from "node:path";
 
 /**
  * Oct 2026 clarity pass: every country (and region) view says that a
- * country's colour describes only those who completed the Index, never the
+ * country's colour describes only those who completed the Jesus Following Index, never the
  * country (non-negotiable #1); and the front page says who it's for, what the
  * leader does, and what the young people see, in plain words.
  */
@@ -16,7 +16,7 @@ const walk = (dir: string): string[] =>
 test("the country caveat lives in one place and says what a country's figure is not", () => {
   const c = read("src/components/site/CountryCaveat.tsx");
   assert.match(c, /Not a measure of any \$\{level\}/);
-  assert.match(c, /completed the Index/);
+  assert.match(c, /completed the Jesus Following Index/);
   assert.match(c, /not a representative sample/);
   assert.match(c, /do not speak for the \$\{level\}/);
   // Nowhere else retypes the sentence.

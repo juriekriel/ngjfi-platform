@@ -2,7 +2,7 @@
  * The country caveat (Oct 2026): every view that shows results by country
  * (or region) carries this footnote, so no colour or figure can be read as a
  * statement about a nation. Non-negotiable #1: we only ever describe "those
- * who have completed the Index", never a whole population.
+ * who have completed the Jesus Following Index", never a whole population.
  *
  * The wording lives here once, like DataLabel. WorldHeatMap renders it under
  * every country map, so the Collab view, the org dashboard, view-only share
@@ -16,7 +16,7 @@ export type CaveatLevel = "country" | "region";
 export function countryCaveatWords(level: CaveatLevel = "country"): string {
   return (
     `Not a measure of any ${level}. ` +
-    `${level === "country" ? "Country" : "Region"} results describe only the young people there who have completed the Index through a participating ministry. ` +
+    `${level === "country" ? "Country" : "Region"} results describe only the young people there who have completed the Jesus Following Index through a participating ministry. ` +
     `They are not a representative sample, and they do not speak for the ${level} or its young people as a whole.`
   );
 }

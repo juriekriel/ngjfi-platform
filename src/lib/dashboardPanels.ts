@@ -11,7 +11,7 @@
  *
  * What a choice can never do:
  *   - hide the sample size: wherever a score is drawn its n and the "of those
- *     who have completed the Index" line stay with it (non-negotiable #1);
+ *     who have completed the Jesus Following Index" line stay with it (non-negotiable #1);
  *   - leave the dashboard empty: at least one of the three views stays on.
  *     If every view is switched off, the J12 matrix comes back.
  * These are display choices only — they never change what is collected,
@@ -40,7 +40,7 @@ export const PANELS: PanelDef[] = [
   { key: "consult", group: "Tools", label: "What does this mean?", description: "Ask a Collab facilitator about the view you're looking at." },
   { key: "who_answered", group: "Below the results", label: "Who answered", description: "Age groups, gender and places, grouped." },
   { key: "export", group: "Below the results", label: "Export your results", description: "CSV and PDF downloads, plus the per-question detail." },
-  { key: "share", group: "Below the results", label: "Share about the Jesus Index", description: "Documents and a QR code to pass on." },
+  { key: "share", group: "Below the results", label: "Share about the Jesus Following Index", description: "Documents and a QR code to pass on." },
 ];
 
 export const VIEW_KEYS: PanelKey[] = ["matrix", "unengaged", "heatmap"];

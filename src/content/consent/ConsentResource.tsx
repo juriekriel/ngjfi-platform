@@ -30,7 +30,7 @@ export const CONSENT_RESOURCE_VERSION = "2026-10-v2";
 const FULL_MIN = itemSetMinutes("full");
 const J12_MIN = itemSetMinutes("j12");
 
-/** Who answers questions about consent, the Index or a respondent's data. */
+/** Who answers questions about consent, the Jesus Following Index or a respondent's data. */
 export const PRIVACY_CONTACT_EMAIL = "ulrich@nxtmove.global";
 
 const ADVICE = [
@@ -88,7 +88,7 @@ const SOURCES: [string, string][] = [
 ];
 
 /**
- * Print-only letterhead: the accent bar, the name, and the Index line. On
+ * Print-only letterhead: the accent bar, the name, and the Jesus Following Index line. On
  * screen it is hidden (globals.css, .print-brand). The accent comes from
  * --print-accent on the resource wrapper — coral on /resources/consent, the
  * organisation's own colour on /<org>/consent (white-label, non-negotiable #4).
@@ -106,7 +106,7 @@ function PrintBrand({ org }: { org?: string }) {
           </span>
         )}
         <span className="print-brand-meta">
-          {org ? "Powered by the Jesus Index · jfindx.org" : "A global measure of Jesus-following · jfindx.org"}
+          {org ? "Powered by the Jesus Following Index · jfindx.org" : "The Jesus Following Index · jfindx.org"}
         </span>
       </div>
     </div>
@@ -150,8 +150,8 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
     <div className="consent-resource" style={{ ["--print-accent" as string]: accent } as React.CSSProperties}>
       <PrintBrand org={orgName} />
       <p className="text-[16px] leading-relaxed text-ink-2">
-        <b className="text-ink">For organisations running the Jesus Index with young people aged 13–30.</b>{" "}
-        No young person answers the Index unless someone responsible has said yes first. This resource explains why, how
+        <b className="text-ink">For organisations running the Jesus Following Index with young people aged 13–30.</b>{" "}
+        No young person answers the Jesus Following Index unless someone responsible has said yes first. This resource explains why, how
         consent works on the platform, what the rules look like in {CONSENT_COUNTRIES.length} countries, and gives you
         the materials to do it well.
       </p>
@@ -171,11 +171,11 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
           [<b key="c">What's collected</b>, "Answers, age group, gender (optional), country (chosen from a list), language, and when they answered. No free-text answers and no city. Never names, emails, phone numbers, birthdays or IP addresses."],
           [<b key="d">Who sees what</b>, "You see grouped results only, never one person's answers. Groups smaller than 10 show a count but no score."],
           [<b key="e">How long answers are kept</b>, "Full answers for 60 days, for quality checks. After that the exact time and the individual survey link are removed. The cleaned answers are kept for up to 5 years, then only grouped totals remain."],
-          [<b key="f">Who holds consent records</b>, "You do. Keep them yourself and never send them to the Index."],
+          [<b key="f">Who holds consent records</b>, "You do. Keep them yourself and never send them to the Jesus Following Index."],
         ]} />
       </Sec>
 
-      <Sec id="how" title="2 · How consent works on the Index">
+      <Sec id="how" title="2 · How consent works on the Jesus Following Index">
         <p>Consent is confirmed <b>twice</b>. A survey link records nothing until both are in place.</p>
         <T head={["Level", "When", "Who confirms", "What they confirm"]} rows={[
           [<b key="1">1. Your organisation</b>, "Once, and again whenever the statement changes", "An organisation admin", "The organisation statement (5.1)"],
@@ -184,7 +184,7 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
         <ul className="list-disc pl-5">
           <li><b>No consent, no participation.</b> A link without both confirmations shows young people a polite “This survey isn't open yet” screen and records nothing. Test links still work, and record only to test data.</li>
           <li><b>You can't send what isn't consented.</b> A new survey link shows its URL and QR code only after its consent step.</li>
-          <li><b>Visible to the Index administrators.</b> A consent register shows every organisation and every survey: consented or not, for what, by whom and when, with the full history. It holds staff names and dates only, never anything about a young person.</li>
+          <li><b>Visible to the Jesus Following Index administrators.</b> A consent register shows every organisation and every survey: consented or not, for what, by whom and when, with the full history. It holds staff names and dates only, never anything about a young person.</li>
         </ul>
       </Sec>
 
@@ -199,7 +199,7 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
           [<b key="6">Safeguarding</b>, "A plan for sensitive answers, support for anyone distressed, and knowing local reporting duties."],
         ]} />
         <p>One practical consequence: <b>there&apos;s no compliant way to recruit 13-year-olds directly through social media at scale.</b> Consent has to come through people and organisations who already know the young person.</p>
-        <p><b>That&apos;s how the Index works.</b> The survey reaches young people only through churches and ministries that know them, and those organisations gather consent locally. It never reaches young people through open social-media recruitment. That&apos;s why both levels of consent are required, and why a survey can&apos;t run without them.</p>
+        <p><b>That&apos;s how the Jesus Following Index works.</b> The survey reaches young people only through churches and ministries that know them, and those organisations gather consent locally. It never reaches young people through open social-media recruitment. That&apos;s why both levels of consent are required, and why a survey can&apos;t run without them.</p>
       </Sec>
 
       <Sec id="responsibilities" title="4 · Your responsibilities">
@@ -209,7 +209,7 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
           <li><b>Shared links only with the age groups you confirmed</b>, and never with anyone under 13.</li>
           <li><b>Made taking part voluntary.</b> No one is rewarded for taking part or penalised for not taking part. Anyone can stop at any time, and the personal questions about faith and gender offer “Prefer not to say”.</li>
           <li><b>Given people privacy while they answer.</b> Let them use their own phone, or a space where no one can see their screen. Leaders don&apos;t look over shoulders or ask anyone what they answered.</li>
-          <li><b>Kept your own records.</b> Store consent forms and attendance lists securely, in line with your safeguarding policy. Never upload them to the Index or link them to survey answers.</li>
+          <li><b>Kept your own records.</b> Store consent forms and attendance lists securely, in line with your safeguarding policy. Never upload them to the Jesus Following Index or link them to survey answers.</li>
           <li><b>Prepared for disclosures.</b> If a young person raises something that concerns you, follow your safeguarding policy as you would anywhere else. The survey itself is anonymous and can&apos;t be used to follow anyone up.</li>
         </ol>
       </Sec>
@@ -230,7 +230,7 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
       <Sec id="countries" title="6 · Country reference">
         <p>The table covers {CONSENT_COUNTRIES.length} countries and territories — every UN member state, plus a few places ministries commonly work. Requiring a parent&apos;s or guardian&apos;s consent for <b>every 13–17-year-old</b> meets or exceeds the minimum age in every country in the table{CONSENT_PAST_17.length > 0 && <> except {CONSENT_PAST_17.map((c) => `${c.country} (under ${c.parental_consent_under})`).join(", ")}, where a parent&apos;s consent may also be needed for some young adults</>}.</p>
         <p className="rounded-lg border border-rule bg-paper-deep px-3 py-2 text-[13.5px]"><b className="text-ink">{CONSENT_COUNTRIES.filter(isFirstPass).length} rows are a first pass.</b> {FIRST_PASS_NOTE}</p>
-        <p>Truly anonymous data falls outside nearly every law below. The rules apply in full if answers can identify someone, for example through a small town combined with age band and gender. That&apos;s why the Index removes those details after 60 days.</p>
+        <p>Truly anonymous data falls outside nearly every law below. The rules apply in full if answers can identify someone, for example through a small town combined with age band and gender. That&apos;s why the Jesus Following Index removes those details after 60 days.</p>
         <CountryReference />
         <p className="text-[13.5px]">“Best practice” means we found no legal requirement for a non-academic, church-run survey. It becomes required if a university, public research funding or academic publication is involved.</p>
         <h3 className="text-[16px] font-semibold text-ink">6.1 Countries that need local advice before launch</h3>
@@ -249,18 +249,18 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
       </Sec>
 
       <Sec id="parents" org={orgName} title="8 · Information and consent form for parents and guardians" print="parents">
-        <p className="text-[13.5px] italic">For 13–17-year-olds wherever your law, denomination or safeguarding policy requires a parent&apos;s or guardian&apos;s consent. Print it on your own letterhead. Keep signed forms yourself. Do not send them to the Index.</p>
+        <p className="text-[13.5px] italic">For 13–17-year-olds wherever your law, denomination or safeguarding policy requires a parent&apos;s or guardian&apos;s consent. Print it on your own letterhead. Keep signed forms yourself. Do not send them to the Jesus Following Index.</p>
         <p><b className="text-ink">Dear parent or guardian,</b></p>
-        <p>On <b>[date]</b> at <b>[event / group]</b>, {org} will invite young people to take part in the <b>Jesus Index</b>. It&apos;s a short anonymous survey, about {FULL_MIN} minutes on their own phone, used by churches and ministries around the world to understand young people&apos;s faith and what helps it grow.</p>
+        <p>On <b>[date]</b> at <b>[event / group]</b>, {org} will invite young people to take part in the <b>Jesus Following Index</b>. It&apos;s a short anonymous survey, about {FULL_MIN} minutes on their own phone, used by churches and ministries around the world to understand young people&apos;s faith and what helps it grow.</p>
         <p><b className="text-ink">What your child will be asked:</b> questions about what they believe, how they practise their faith, how they relate to others, and what has shaped them. A few questions ask about their age group, gender (optional) and country. No question asks for anything that identifies them, and no question asks them to type their own words.</p>
         <p><b className="text-ink">What is not collected:</b> their name, email, phone number, date of birth, photo or IP address. Answers can&apos;t be traced back to your child, and {org} sees grouped results only.</p>
         <p><b className="text-ink">How long answers are kept:</b> full answers for 60 days. After that, details that could point to a person are removed, and the cleaned answers are kept for up to 5 years for research. After that, only grouped totals remain.</p>
         <p><b className="text-ink">Taking part is voluntary.</b> Your child can stop at any time, and saying no has no consequences. The personal questions about faith and gender offer “Prefer not to say”.</p>
         <p>Questions? Contact <b>[name, role, phone/email]</b>. The full privacy notice is at jfindx.org/privacy.</p>
         <div className="mt-2 rounded-lg border-2 border-dashed border-rule-2 p-4 text-ink">
-          <p className="font-semibold">Consent <span className="font-normal italic text-ink-2">(return to {org}; kept by us, never shared with the Index)</span></p>
+          <p className="font-semibold">Consent <span className="font-normal italic text-ink-2">(return to {org}; kept by us, never shared with the Jesus Following Index)</span></p>
           <p className="mt-3">Young person&apos;s first name: ______________________ &nbsp; Group: ______________________</p>
-          <p className="mt-3">☐ I agree to my child taking part in the Jesus Index survey.<br />☐ I do not agree to my child taking part.</p>
+          <p className="mt-3">☐ I agree to my child taking part in the Jesus Following Index survey.<br />☐ I do not agree to my child taking part.</p>
           <p className="mt-3">Parent/guardian name: ______________________</p>
           <p className="mt-3">Signature: ______________________ &nbsp; Date: ____________</p>
         </div>
@@ -292,7 +292,7 @@ export default function ConsentResource({ orgName, accent = "#ff7a47" }: { orgNa
 
       <Sec id="disclaimer" title="11 · Disclaimer and contact">
         <p className="consent-callout rounded-xl border border-emerald/50 bg-emerald/10 px-4 py-3 text-[14px] text-ink"><b className="text-ink">{CONSENT_DISCLAIMER.split(".")[0]}.</b>{CONSENT_DISCLAIMER.slice(CONSENT_DISCLAIMER.indexOf(".") + 1)}</p>
-        <p>Questions about consent, the Index or your data: <a href={`mailto:${PRIVACY_CONTACT_EMAIL}`} className="font-semibold text-ink underline decoration-emerald underline-offset-2">{PRIVACY_CONTACT_EMAIL}</a>. Full privacy notice: jfindx.org/privacy · Terms for organisations: jfindx.org/terms</p>
+        <p>Questions about consent, the Jesus Following Index or your data: <a href={`mailto:${PRIVACY_CONTACT_EMAIL}`} className="font-semibold text-ink underline decoration-emerald underline-offset-2">{PRIVACY_CONTACT_EMAIL}</a>. Full privacy notice: jfindx.org/privacy · Terms for organisations: jfindx.org/terms</p>
       </Sec>
 
       <Sec id="sources" title="Sources">

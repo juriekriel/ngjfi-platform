@@ -17,7 +17,7 @@
  *   - the Unengaged matrix is its own view, unlocked at the same floor as the
  *     J12 (migration 0047), never blended with it;
  *   - every score shows its n and is scoped to "of those who have completed
- *     the Index";
+ *     the Jesus Following Index";
  *   - the token never leaves this page except to the database: no analytics,
  *     no outbound links that would carry it (Referer is off).
  *
@@ -131,8 +131,8 @@ export default function SharedViewPage({ params }: { params: { token: string } }
   const unengaged = unengagedFrom(d);
   const completions = d.completions;
   const scopeLine = inRoom
-    ? `Of those who completed the Index through “${data.scope?.room_name}” · n ${d.n.toLocaleString()}`
-    : `Of those who completed the Index through any ${org.name} link · n ${d.n.toLocaleString()}`;
+    ? `Of those who completed the Jesus Following Index through “${data.scope?.room_name}” · n ${d.n.toLocaleString()}`
+    : `Of those who completed the Jesus Following Index through any ${org.name} link · n ${d.n.toLocaleString()}`;
 
   return (
     <div className="flex min-h-screen flex-col bg-paper-deep">
@@ -149,7 +149,7 @@ export default function SharedViewPage({ params }: { params: { token: string } }
             {inRoom ? data.scope?.room_name : `${org.name} · all surveys`}
           </h1>
           <p className="text-[14px] text-ink-2">
-            Shared with {data.label} · live results, updated as people complete the Index
+            Shared with {data.label} · live results, updated as people complete the Jesus Following Index
             {data.expires_at ? ` · this link works until ${day(data.expires_at)}` : ""}
           </p>
         </section>
@@ -162,7 +162,7 @@ export default function SharedViewPage({ params }: { params: { token: string } }
             accent
           />
           <Figure
-            label="Completed the Index"
+            label="Completed the Jesus Following Index"
             note={completions ? completionsNote(completions) : inRoom ? "through this survey" : "across every survey"}
             value={(completions?.total ?? d.n).toLocaleString()}
           />
@@ -190,8 +190,8 @@ export default function SharedViewPage({ params }: { params: { token: string } }
             <UnengagedMatrix
               data={unengaged}
               scopeLine={inRoom
-                ? `Of those not yet following who completed the Index through “${data.scope?.room_name}”`
-                : `Of those not yet following who completed the Index through any ${org.name} link`}
+                ? `Of those not yet following who completed the Jesus Following Index through “${data.scope?.room_name}”`
+                : `Of those not yet following who completed the Jesus Following Index through any ${org.name} link`}
             />
           ) : view === "heatmap" && map ? (
             <div className="flex flex-col gap-4">
@@ -199,7 +199,7 @@ export default function SharedViewPage({ params }: { params: { token: string } }
               <WorldHeatMap countries={map.countries} tier={tier} reached={map.reached} gate={map.country_gate} />
               <p className="text-[13px] leading-relaxed text-ink-2">
                 {map.published
-                  ? `Each country's colour is everyone there who has completed the Index — from any organisation — and appears once ${map.country_gate.toLocaleString()} have. `
+                  ? `Each country's colour is everyone there who has completed the Jesus Following Index — from any organisation — and appears once ${map.country_gate.toLocaleString()} have. `
                   : "Country colours appear once the Collab publishes its shared view. "}
                 Outlined countries are where {inRoom ? "this survey" : org.name} reached {floor.toLocaleString()} or more people.
               </p>
@@ -238,8 +238,8 @@ export default function SharedViewPage({ params }: { params: { token: string } }
 
       <footer className="border-t border-rule bg-plate" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-5 py-4 sm:px-8">
-          <span className="text-[13px] text-ink-2">Of those who have completed the Index · aggregates only, never an individual answer</span>
-          <span className="font-mono text-[11.5px] text-ink-2">powered by The Index · jfindx.org</span>
+          <span className="text-[13px] text-ink-2">Of those who have completed the Jesus Following Index · aggregates only, never an individual answer</span>
+          <span className="font-mono text-[11.5px] text-ink-2">powered by The Jesus Following Index · jfindx.org</span>
         </div>
       </footer>
     </div>
@@ -280,7 +280,7 @@ function Notice({
           </button>
         )}
       </div>
-      <p className="mt-4 text-center font-mono text-[11.5px] text-ink-2">powered by The Index · jfindx.org</p>
+      <p className="mt-4 text-center font-mono text-[11.5px] text-ink-2">powered by The Jesus Following Index · jfindx.org</p>
     </main>
   );
 }

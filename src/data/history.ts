@@ -1,5 +1,5 @@
 /**
- * How the Index came to exist — the record, as content not markup.
+ * How the Jesus Following Index came to exist — the record, as content not markup.
  *
  * Kept as data so the story can be re-ordered, translated, or rendered
  * differently (timeline, ledger, print) without rewriting a page. Compiled from
@@ -127,7 +127,7 @@ export const ERAS: Era[] = [
       {
         when: "The precedent",
         title: "Gallup's Q12",
-        body: "Give the measure away, let everyone benchmark against it, and build intelligence and consulting on top. Framed inside Stanford's Collective Impact model, the Index supplies the “shared measurement” condition the coalition was missing.",
+        body: "Give the measure away, let everyone benchmark against it, and build intelligence and consulting on top. Framed inside Stanford's Collective Impact model, the Jesus Following Index supplies the “shared measurement” condition the coalition was missing.",
       },
       {
         when: "The economics",
@@ -210,7 +210,7 @@ export const OPEN_QUESTIONS: { q: string; why: string }[] = [
   },
   {
     q: "Where exactly should the critical-mass gate sit?",
-    why: "No benchmark is published for a geography until enough people there have completed the Index. The working number is a placeholder, not a finding — and it decides when countries start seeing themselves.",
+    why: "No benchmark is published for a geography until enough people there have completed the Jesus Following Index. The working number is a placeholder, not a finding — and it decides when countries start seeing themselves.",
   },
   {
     q: "Do a 13-year-old and a 29-year-old belong on the same instrument?",
@@ -221,14 +221,14 @@ export const OPEN_QUESTIONS: { q: string; why: string }[] = [
     why: "Now that the survey adapts, Formation and Multiplication describe the people who reached those tiers rather than the whole sample. That makes the funnel honest per-item and harder to compare between organisations. Currently: not-asked.",
   },
   {
-    q: "The Index starts at 13–30 — which cohort comes second?",
+    q: "The Jesus Following Index starts at 13–30 — which cohort comes second?",
     why: "The nameplate was chosen so it never has to change. Editions carry the cohort; the subject never moves.",
   },
 ];
 
 /** Named, so the name can outlive its first cohort. */
 export const NAMING: { layer: string; name: string; role: string }[] = [
-  { layer: "Masterbrand", name: "The Jesus Index", role: "The standard itself. No generation in the name — editions carry the cohort." },
+  { layer: "Masterbrand", name: "The Jesus Following Index", role: "The standard itself. No generation in the name — editions carry the cohort." },
   { layer: "Ticker", name: "JX", role: "JX:NG for NextGen today; JX:DFW and JX:BA for city waves; JX:ALL after 2033." },
   { layer: "Instrument", name: "the J12", role: "The twelve-item core. Twelve was already sacred arithmetic — it inherits the disciples, not a demographic." },
   { layer: "Address", name: "jfindx.org", role: "Reads J·F·INDX — Jesus-Following Index." },

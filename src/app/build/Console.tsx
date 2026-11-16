@@ -35,7 +35,7 @@ import Translations from "@/components/console/Translations";
 import { LANGUAGE_FIGURES } from "@/lib/translationFigures";
 
 /**
- * The Index — the authenticated engine, at every tier.
+ * The Jesus Following Index — the authenticated engine, at every tier.
  *
  * One console, four scopes. The five bands are the same components in the same
  * order whether you are Shoreline Church or an administrator; what changes is
@@ -143,7 +143,7 @@ export default function Console() {
         <Band
           letter="—"
           title={fromLink ? "That link didn't sign you in" : "Not signed in"}
-          gloss={fromLink ?? "The Index is the working engine behind jfindx.org. It needs a ministry email and a one-time sign-in link."}
+          gloss={fromLink ?? "The Jesus Following Index is the working engine behind jfindx.org. It needs a ministry email and a one-time sign-in link."}
         >
           <Link
             href="/access"
@@ -234,7 +234,7 @@ function OrgConsole({ short, name }: { short: string; name: string }) {
             {wl?.links && (
               <p className="margin-note mt-3 border-l-2 border-emerald pl-3">
                 Two links, one survey. The comparison between them is the single most useful thing
-                a ministry gets out of the Index: what is true of the young people you already
+                a ministry gets out of the Jesus Following Index: what is true of the young people you already
                 reach, against what is true of the ones you do not.
               </p>
             )}
@@ -267,7 +267,7 @@ function OrgConsole({ short, name }: { short: string; name: string }) {
         <Awaiting what="Invitations" why="Adding colleagues arrives with the next build step. For now, ask an administrator to attach someone." />
       </Band>
 
-      <Band letter="E" title="Your brand" gloss="Everything a respondent sees: your brand at the top, the Index in the footer, nothing in between that says us." figure="white-label">
+      <Band letter="E" title="Your brand" gloss="Everything a respondent sees: your brand at the top, the Jesus Following Index in the footer, nothing in between that says us." figure="white-label">
         <Awaiting
           what="Logo, colour, welcome and closing message"
           why="These exist as columns on your organisation and are already read by the survey. The editing surface is the next build step."
@@ -1436,7 +1436,7 @@ function OrgDetailPanel({ shortName }: { shortName: string }) {
             <div className="rounded-xl border border-rule bg-paper-deep px-4 py-3.5">
               <p className="figcap">Total responses</p>
               <p className="tabular mt-1.5 text-[26px] font-bold text-emerald">{detail.responses.toLocaleString()}</p>
-              <p className="mt-0.5 text-[12px] text-muted">of those who completed the Index</p>
+              <p className="mt-0.5 text-[12px] text-muted">of those who completed the Jesus Following Index</p>
             </div>
           </div>
 
@@ -1464,7 +1464,7 @@ function OrgDetailPanel({ shortName }: { shortName: string }) {
                 </p>
               )}
               <p className="margin-note mt-3 border-l-2 border-rule pl-3">
-                No passwords exist on the Jesus Index. &quot;Resend link&quot; sends a fresh one-time sign-in
+                No passwords exist on the Jesus Following Index. &quot;Resend link&quot; sends a fresh one-time sign-in
                 email via Supabase Auth — the same link a person would request themselves.
               </p>
             </div>
@@ -1534,7 +1534,7 @@ function Shell({
         <div>
           <p className="figcap">Console</p>
           <h1 className="mt-2 text-[38px] font-bold leading-[1.02] tracking-tight text-ink sm:text-[44px]">
-            {tier || "The Index"}
+            {tier || "The Jesus Following Index"}
           </h1>
           <p className="mt-3 max-w-measure text-[16px] leading-relaxed text-ink-2">
             What is on this page is what is waiting on a person.

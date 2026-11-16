@@ -73,7 +73,7 @@ export default function CollabInsights({ data }: { data: Insights | null }) {
       <LocalityTile data={data} />
       <p className="text-[13px] text-ink-2">
         Reach counts every session started through a Collab organisation, by the calendar year it started. Scores
-        elsewhere stay scoped to those who have completed the Index.
+        elsewhere stay scoped to those who have completed the Jesus Following Index.
       </p>
     </div>
   );

@@ -83,7 +83,7 @@ const fmt = (v: number | null | undefined) => (v === null || v === undefined ? "
 // The Exploration Index's own colour. This design system aliases the "violet"
 // Tailwind token to --c-navy (tailwind.config.ts), so its heat cells read
 // that same variable directly rather than a separate hard-coded hex — same
-// pattern as greenCell() above, just never the Index's own emerald/coral.
+// pattern as greenCell() above, just never the Jesus Following Index's own emerald/coral.
 const navyCell = (v: number | null) => (v === null || v === undefined ? "transparent" : `rgb(var(--c-navy) / ${Math.max(0.08, v / 5.5)})`);
 
 export default function IntelligenceView({
@@ -147,7 +147,7 @@ export default function IntelligenceView({
                 <b>{(d.completions ?? 0).toLocaleString()}</b> completions so far. A geography is
                 only ever named once{" "}
                 <b>{d.gate ? d.gate.toLocaleString() : "the agreed threshold of"}</b> people there
-                have completed the Index.
+                have completed the Jesus Following Index.
               </>
             ) : (
               <>
@@ -161,7 +161,7 @@ export default function IntelligenceView({
               See how it works instead →
             </a>
             <a href="/join" className="rounded-lg border-2 border-accent bg-accent px-4 py-2 text-[14px] font-semibold text-plate no-underline">
-              Join the Index →
+              Join the Jesus Following Index →
             </a>
           </div>
         </div>
@@ -265,7 +265,7 @@ export default function IntelligenceView({
               </div>
               <p className="mt-1 max-w-2xl text-sm text-slate">
                 A separate, equally-structured measure across every organisation, for respondents who
-                don&apos;t yet identify as followers of Jesus. Same 3×4 model, same math as the Index
+                don&apos;t yet identify as followers of Jesus. Same 3×4 model, same math as the Jesus Following Index
                 above — never summed, averaged, or otherwise blended with it.
               </p>
 
@@ -326,7 +326,7 @@ export default function IntelligenceView({
               </div>
 
               <p className="mt-5 font-mono text-[9px] uppercase tracking-wider text-navy">
-                Of those who took this branch — never a whole population. Never blended with the Index above.
+                Of those who took this branch — never a whole population. Never blended with the Jesus Following Index above.
               </p>
             </section>
           )}
@@ -431,13 +431,13 @@ export default function IntelligenceView({
             </section>
           </div>
 
-          {/* Drivers & Journey — unscored, reported alongside the Index above,
+          {/* Drivers & Journey — unscored, reported alongside the Jesus Following Index above,
               never blended into funnel/domains/matrix (CLAUDE.md #6, #9). */}
           {d.insights && Object.keys(d.insights).length > 0 && (
             <section className="mt-6 rounded-xl border border-ink bg-card p-6">
               <h2 className="font-sans text-xl font-semibold">Drivers &amp; journey</h2>
               <p className="mt-1 text-sm text-slate">
-                Not part of the Index score — reported on their own, across the whole Collab.
+                Not part of the Jesus Following Index score — reported on their own, across the whole Collab.
               </p>
               <div className="mt-4 grid gap-6 md:grid-cols-2">
                 {INSIGHT_ITEMS.map((item) => {
@@ -476,7 +476,7 @@ export default function IntelligenceView({
             </section>
           )}
 
-          {/* Insight modules (Belong–Trust) — unscored, beside the Index (CLAUDE.md #6, #9). */}
+          {/* Insight modules (Belong–Trust) — unscored, beside the Jesus Following Index (CLAUDE.md #6, #9). */}
           <ModuleInsights insights={d.insights} />
 
           {/* Reach & re-engagement (migration 0041) — the same Insights view
@@ -491,7 +491,7 @@ export default function IntelligenceView({
           </div>
 
           <p className="mt-8 font-mono text-[10px] uppercase tracking-wider text-muted">
-            Of those who completed the Index — never a whole population. · <Link href="/" className="text-accent">home</Link>
+            Of those who completed the Jesus Following Index — never a whole population. · <Link href="/" className="text-accent">home</Link>
           </p>
         </>
       )}

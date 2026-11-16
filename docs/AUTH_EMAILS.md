@@ -21,7 +21,7 @@ Replace the link in each template below. Keep the rest of the wording as you lik
 
 ```html
 <h2>Your sign-in link</h2>
-<p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=magiclink&next=/build">Sign in to the Index</a></p>
+<p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=magiclink&next=/build">Sign in to the Jesus Following Index</a></p>
 <p>This link works once, for about an hour, on any device.</p>
 ```
 
@@ -60,7 +60,7 @@ rate limit.
    | Username | `resend` |
    | Password | the dedicated API key |
    | Sender email | `no-reply@jfindx.org` |
-   | Sender name | `The Jesus Index` |
+   | Sender name | `The Jesus Following Index` |
 
 4. **Authentication → Rate Limits:** raise the email limit (e.g. 100/hour).
 5. **Test:** request magic links for three different addresses within a

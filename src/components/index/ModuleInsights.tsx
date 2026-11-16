@@ -3,7 +3,7 @@ import { MODULES, MODULE_GROUP_LABEL } from "@/lib/modules";
 type Agg = { n: number; options: Record<string, number> | null };
 
 /**
- * Insight modules (e.g. Belong–Trust), reported beside the Index as aggregate
+ * Insight modules (e.g. Belong–Trust), reported beside the Jesus Following Index as aggregate
  * option shares only — never tied to a respondent, never folded into a score
  * (CLAUDE.md #6, #9). Each item's own n is shown; below the privacy floor the
  * database returns n and nothing else, and this says so.
@@ -31,7 +31,7 @@ export default function ModuleInsights({
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h3 className={compact ? "font-mono text-[9px] uppercase tracking-wider text-muted" : "font-sans text-xl font-semibold"}>
                 {m.label}
-                {compact ? " — not part of the Index score" : ""}
+                {compact ? " — not part of the Jesus Following Index score" : ""}
               </h3>
               {m.draft && (
                 <span className="rounded border border-rule-2 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted">
@@ -41,7 +41,7 @@ export default function ModuleInsights({
             </div>
             {!compact && (
               <p className="mt-1 text-sm text-slate">
-                Not part of the Index score — reported on its own, of those who completed the Index and chose the extra questions.
+                Not part of the Jesus Following Index score — reported on its own, of those who completed the Jesus Following Index and chose the extra questions.
               </p>
             )}
             <div className={compact ? "mt-3 space-y-5" : "mt-4 space-y-6"}>

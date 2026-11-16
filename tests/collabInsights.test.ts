@@ -50,7 +50,7 @@ test("years come from the data, oldest first", () => {
 test("every export starts with an About table carrying the scope line", () => {
   const t = buildTables(D, ["timeline"], [], CTX);
   assert.equal(t[0].key, "about");
-  assert.match(String(t[0].rows[1][1]), /Of those who have completed the Index/);
+  assert.match(String(t[0].rows[1][1]), /Of those who have completed the Jesus Following Index/);
 });
 
 test("year filter applies to every yearly dataset", () => {

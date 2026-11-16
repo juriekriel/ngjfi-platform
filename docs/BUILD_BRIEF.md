@@ -1,6 +1,6 @@
 # NGJFI Platform — Build & Context Prompt
 
-**Working title:** The Next Gen Jesus-Following Index (NGJFI) — "the Index"
+**Working title:** The Next Gen Jesus-Following Index (NGJFI) — "the Jesus Following Index"
 **Document type:** Context / briefing prompt for the team (or AI build agent) establishing the software platform
 **Status:** Draft for input and shaping. *Clay to be moulded — not a vase to be baked.*
 
@@ -14,7 +14,7 @@ If you are an AI build agent, treat everything below as authoritative project co
 
 Two standing rules that override convenience:
 1. **The instrument is not final.** The questions below are an illustrative v0. They will be tightened by a panel of standardised-measurement researchers. Build the instrument as *data-driven and versioned*, never hard-coded.
-2. **Never overclaim.** The platform reports only on *those who have completed the Index*, never on whole populations. This principle is a hard requirement baked into the reporting layer (see §6).
+2. **Never overclaim.** The platform reports only on *those who have completed the Jesus Following Index*, never on whole populations. This principle is a hard requirement baked into the reporting layer (see §6).
 
 ---
 
@@ -26,7 +26,7 @@ The **Next Gen Global Collab** is a coalition of 30+ ministries with one shared 
 - **Eido Research** is the proposed technical partner / platform engine (they already build shared-measurement platforms). https://www.eidoresearch.com/
 - **Co-owned IP** between NXT Move (for the Collab) and Eido Research.
 
-**The strategic pivot this platform serves:** the Collab moved away from a centralised 50-country research study (too costly, regulated, and methodologically fragile) toward a **crowdsourced shared metric** — one instrument hundreds of organisations (down to a single local church) run for themselves, pooling anonymised data into a common picture. Grounded in the **Stanford Collective Impact** framework, the Index is the "shared measurement" condition the coalition was missing. The reference precedent is **Gallup's Q12** (give the measure away, let everyone benchmark, build intelligence and consulting on top).
+**The strategic pivot this platform serves:** the Collab moved away from a centralised 50-country research study (too costly, regulated, and methodologically fragile) toward a **crowdsourced shared metric** — one instrument hundreds of organisations (down to a single local church) run for themselves, pooling anonymised data into a common picture. Grounded in the **Stanford Collective Impact** framework, the Jesus Following Index is the "shared measurement" condition the coalition was missing. The reference precedent is **Gallup's Q12** (give the measure away, let everyone benchmark, build intelligence and consulting on top).
 
 ---
 
@@ -151,7 +151,7 @@ Implement scoring as a **configurable, versioned service**, not fixed constants.
   - `yes_no`: Yes = 100, No = 0
   - `frequency`: ordinal mapped across 0–100 (e.g., never 0 / monthly 33 / weekly 67 / most-days 100)
   - **Reverse-scored items:** invert (`100 − normalised`) before aggregation.
-- **`scored` vs diagnostic items.** Belief/behaviour items feed the Index. Most `multi_select` "what shapes / where do you form / what helped" items are **diagnostic** (`scored: false`) — they power segmentation and consulting insight, not the score. Keep this split explicit in the schema.
+- **`scored` vs diagnostic items.** Belief/behaviour items feed the Jesus Following Index. Most `multi_select` "what shapes / where do you form / what helped" items are **diagnostic** (`scored: false`) — they power segmentation and consulting insight, not the score. Keep this split explicit in the schema.
 - **Tier score** = mean of scored items tagged to that tier (Exposure / Response / Formation / Multiplication).
 - **Question (domain) score** = mean of scored items tagged to that question.
 - **Matrix cell (3×4)** = mean of scored items at that question × tier intersection (may be sparse; handle low-n gracefully).
@@ -164,7 +164,7 @@ Implement scoring as a **configurable, versioned service**, not fixed constants.
 ## 6. Integrity & claims principle (HARD REQUIREMENT)
 
 - The platform **never** presents results as representative of a nation, region, or "young people" in general.
-- All reporting language is scoped: **"of those who have completed the Index, here are the results."**
+- All reporting language is scoped: **"of those who have completed the Jesus Following Index, here are the results."**
 - **Benchmark gating:** a country/region benchmark only becomes visible once it reaches a **critical mass threshold** (configurable, e.g., n ≥ 400 per geography). Below threshold → show "not enough data yet," never a benchmark.
 - Margins of error / sample sizes are shown wherever a score is shown.
 - No individual response is ever exposed to an org; orgs see **aggregates only**.
@@ -187,7 +187,7 @@ The entire pivot exists partly to move data-collection risk to the edge. The pla
 ## 8. Product modules / features
 
 ### 8.1 Organisation onboarding & white-labelling
-Org signs up → uploads **logo**, sets **brand colour(s)** and display name → receives a branded survey instance ("powered by the Index" footer). The respondent experience and the org's own dashboard carry the org's identity, not the Index's. Multi-tenant; org data isolated.
+Org signs up → uploads **logo**, sets **brand colour(s)** and display name → receives a branded survey instance ("powered by the Jesus Following Index" footer). The respondent experience and the org's own dashboard carry the org's identity, not the Jesus Following Index's. Multi-tenant; org data isolated.
 
 ### 8.2 Instrument management & versioning
 Researchers manage items, tiers, tags, scales, reverse flags, translations, and the scoring config through admin tooling. Every change is **versioned**; responses bind to the instrument + scoring version they were captured under. Support a stable **core** instrument plus optional **rotating/diagnostic modules** and an **item bank** partners can draw from.
@@ -355,12 +355,12 @@ Early years are lean because crowdsourcing pushes gathering cost to partners; th
 
 ## 17. Glossary
 
-- **NGJFI / the Index** — the Next Gen Jesus-Following Index.
+- **NGJFI / the Jesus Following Index** — the Next Gen Jesus-Following Index.
 - **The 3 Questions** — Follow / Mission / World (what we measure).
 - **The 4 Tiers** — Exposure / Response / Formation / Multiplication (how deep).
 - **Gospel momentum** — movement through the four tiers.
 - **Journey funnel** — the tier-to-tier drop-off (Exposure highest → Multiplication lowest).
-- **White-label** — an org's branded instance of the Index.
+- **White-label** — an org's branded instance of the Jesus Following Index.
 - **Critical-mass gate** — minimum n before a geography's benchmark is shown.
 - **Collab Intelligence** — the aggregate cross-org dashboard layer.
 - **Certified facilitator** — a trained person who helps orgs act on results (consulting layer).
@@ -372,8 +372,8 @@ Early years are lean because crowdsourcing pushes gathering cost to partners; th
 
 1. **Don't lock the instrument.** Items, scales, tags, and scoring are versioned config — never hard-coded.
 2. **Privacy is a feature, not a setting.** Anonymous by default; no central minor PII; edge consent.
-3. **Never overclaim.** "Of those who completed the Index…" Benchmarks gated by critical mass.
-4. **White-label means theirs.** Org-facing surfaces carry the org's brand; the Index stays in the footer.
+3. **Never overclaim.** "Of those who completed the Jesus Following Index…" Benchmarks gated by critical mass.
+4. **White-label means theirs.** Org-facing surfaces carry the org's brand; the Jesus Following Index stays in the footer.
 5. **Both lenses, one instrument.** Always support reporting by the 3 questions *and* the 4 tiers.
 6. **Keep the two core activities.** Weekly prayer and weekly scripture engagement must always be measurable.
 7. **Clay, not a vase.** This is a starting brief. Flag assumptions, propose better, and expect the model to be shaped by the researchers and the Collab.

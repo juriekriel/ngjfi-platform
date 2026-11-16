@@ -10,7 +10,7 @@ type Brand = { name: string; logo_url: string | null; brand_color: string | null
 
 /**
  * White-label: the organisation's name, logo and colour on top, its name in
- * the materials ([Organisation name] pre-filled). The Index sits in the
+ * the materials ([Organisation name] pre-filled). The Jesus Following Index sits in the
  * footer (non-negotiable #4). Public brand fields only — the same ones the
  * survey link already shows.
  */
@@ -47,7 +47,7 @@ export default function OrgConsent({ slug }: { slug: string }) {
       </main>
       <footer className="no-print border-t border-rule">
         <div className="mx-auto flex max-w-4xl items-center gap-2 px-5 py-5 text-[12.5px] text-ink-2">
-          <RisingMark className="h-4 w-4" /> Powered by the Jesus Index · jfindx.org
+          <RisingMark className="h-4 w-4" /> Powered by the Jesus Following Index · jfindx.org
         </div>
       </footer>
     </>

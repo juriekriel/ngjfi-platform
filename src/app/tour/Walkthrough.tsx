@@ -100,7 +100,7 @@ export default function Walkthrough() {
       <section className="border-b border-ink py-8">
         <p className="figcap">A guided walk · six steps</p>
         <h1 className="mt-3 text-[36px] font-bold leading-[1.05] tracking-tight sm:text-[44px]">
-          How the Index will work.
+          How the Jesus Following Index will work.
         </h1>
         <p className="mt-5 max-w-measure text-[17px] leading-relaxed text-ink-2">
           Every screen in this walkthrough is the real product, running on invented figures. Click
@@ -167,7 +167,7 @@ export default function Walkthrough() {
               href="/join"
               className="rounded-lg border-2 border-emerald bg-emerald px-5 py-2 text-[14px] font-semibold text-plate no-underline hover:bg-emerald-deep"
             >
-              Join the Index →
+              Join the Jesus Following Index →
             </Link>
           )}
         </div>
@@ -238,7 +238,7 @@ function BeatPhone() {
         </p>
         <p className="margin-note mt-5 border-l-2 border-rule pl-3">
           Respondents are anonymous — no name, no email, no location beyond a country, age as a band.
-          We report only on those who have completed the Index. Consent — including parental consent —
+          We report only on those who have completed the Jesus Following Index. Consent — including parental consent —
           is handled by the organisation, locally, before anyone reaches this screen.
         </p>
       </div>
@@ -517,7 +517,7 @@ function BeatCollab() {
           organisations, in dozens of countries, every year.
         </p>
         <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
-          A benchmark for a country only appears once enough people there have completed the Index. Up
+          A benchmark for a country only appears once enough people there have completed the Jesus Following Index. Up
           to that point the row shows what it honestly is — a count of organisations taking part, and
           nothing else.
         </p>
@@ -596,7 +596,7 @@ function BeatNext() {
     <div className="grid gap-8 md:grid-cols-[1.3fr_1fr] md:gap-12">
       <div>
         <p className="max-w-measure text-[17px] leading-relaxed">
-          A number that changes nothing is a vanity metric. The Index earns its place by making one
+          A number that changes nothing is a vanity metric. The Jesus Following Index earns its place by making one
           question answerable: <i>what should we do differently next season?</i>
         </p>
         <p className="mt-4 max-w-measure text-[16px] leading-relaxed text-ink-2">
